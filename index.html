@@ -8,10 +8,26 @@
     <div id="status" role="status" aria-live="polite"></div>
     <details id="controls">
       <summary>Test controls</summary>
-      <label>Scene <select id="test-scene"><option value="fabric" selected>06 · Fabrics</option><option value="fibers">07 · Fur / hair</option><option value="granular">05 · Gravel / sand / mud</option><option value="fluid">04 · Water / pressure</option><option value="grass">03 · Grass interaction</option><option value="terrain">02 · Streamed terrain</option><option value="materials">01 · Materials / carving</option></select></label>
+      <label>Scene <select id="test-scene"><option value="optics" selected>08 · Subsurface / transmission</option><option value="fabric">07 · Fabrics</option><option value="fibers">06 · Fur / hair</option><option value="granular">05 · Gravel / sand / mud</option><option value="fluid">04 · Water / pressure</option><option value="grass">03 · Grass interaction</option><option value="terrain">02 · Streamed terrain</option><option value="materials">01 · Materials / carving</option></select></label>
       <label>Tool <select id="tool"><option value="orbit">Inspect / orbit</option><option value="stir">Stir water</option><option value="heat">Heat water</option><option value="carve">Subtract material</option><option value="add">Add terrain</option><option value="push">Impulse probe</option></select></label>
       <label>Brush radius <output id="brush-value">1.25 m</output><input id="brush" type="range" min="0.25" max="3" step="0.05" value="1.25"></label>
       <div class="row"><button id="undo">Undo edit</button><button id="home">Reset camera</button></div>
+      <fieldset id="optics-controls" hidden><legend>Subsurface / transmission</legend>
+        <label>Sample <select id="optics-sample"></select></label>
+        <div class="row"><button id="focus-optics">Inspect selected</button><button id="reset-optics">Restore preset</button></div>
+        <label class="check"><input id="optics-lineup" type="checkbox">Transmission lineup</label>
+        <label class="check"><input id="optics-isolate" type="checkbox">Only selected sample</label>
+        <div class="row"><button id="optics-front">Front light</button><button id="optics-back">Back light</button></div>
+        <label class="check"><input id="optics-split" type="checkbox">Half-shadow illumination</label>
+        <label class="check"><input id="optics-transport" type="checkbox" checked>Subsurface transport</label>
+        <label>Thickness <output id="optics-thickness-value"></output><input id="optics-thickness" type="range" min="0.25" max="3" step="0.05" value="1"></label>
+        <label>Scattering multiplier <output id="optics-scatterScale-value"></output><input id="optics-scatterScale" type="range" min="0" max="3" step="0.05" value="1"></label>
+        <label>Absorption multiplier <output id="optics-absorptionScale-value"></output><input id="optics-absorptionScale" type="range" min="0" max="3" step="0.05" value="1"></label>
+        <label>Suspended scatterers <output id="optics-turbidity-value"></output><input id="optics-turbidity" type="range" min="0" max="3" step="0.02" value="0"></label>
+        <label>Surface roughness <output id="optics-roughness-value"></output><input id="optics-roughness" type="range" min="0.04" max="0.85" step="0.01"></label>
+        <label>Optical view <select id="optics-view"><option value="0">Appearance</option><option value="1">Thickness · red / green / blue = 30 / 60 / 100 mm</option><option value="2">Straight-path RGB transmittance</option></select></label>
+        <dl><dt>Centre thickness</dt><dd id="optics-mm">—</dd><dt>IOR</dt><dd id="optics-ior">—</dd><dt>Diffusion cache</dt><dd id="optics-cache">—</dd><dt>Cache build (worker)</dt><dd id="optics-ms">—</dd><dt>Gaussian samples</dt><dd id="optics-count">—</dd></dl>
+      </fieldset>
       <fieldset id="fabric-controls"><legend>Fabric · left to right</legend>
         <label>Selected swatch <select id="fabric-sample"><option value="0">Silk-like · blue</option><option value="1">Canvas · tan</option><option value="2">Knit · red</option><option value="3">Leather-like · brown</option></select></label>
         <button id="focus-fabric">Inspect selected</button>
@@ -76,7 +92,7 @@
         <label>Light angle <output id="light-value">125°</output><input id="light-angle" type="range" min="0" max="360" value="125"></label>
         <label class="check"><input id="animate-light" type="checkbox">Rotate light</label>
       </fieldset>
-      <fieldset><legend>Physics</legend><div class="row"><button id="drop">Drop probe here</button><button id="pause">Pause</button></div></fieldset>
+      <fieldset id="physics-controls"><legend>Physics</legend><div class="row"><button id="drop">Drop probe here</button><button id="pause">Pause</button></div></fieldset>
       <fieldset><legend>Diagnostics</legend>
         <label>View <select id="view-mode"><option value="0">Materials</option><option value="1">Normals</option><option value="2">Splat coverage</option><option value="3">SDF reference</option></select></label>
         <label>Resolution <select id="render-scale"><option value="0.6">60%</option><option value="0.85" selected>85%</option><option value="1">100%</option></select></label>
@@ -126,6 +142,7 @@
         </dl>
       </fieldset>
     </details>
+    <div id="optics-labels" hidden></div>
     <div id="stats"><span id="fps">—</span> fps · <span id="frame-ms">—</span> ms · <span id="splat-count">—</span> splats · <span id="detail">2 px</span> target σ</div>
   </main>
   <script type="module" src="/src/main.js"></script>

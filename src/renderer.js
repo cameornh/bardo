@@ -7,6 +7,7 @@ import { MotionDetail, projectedMotion, allocateBudget, sameViewMatrix } from '.
 import { GrassRenderer } from './grass-renderer.js';
 import { FluidRenderer } from './fluid-renderer.js';
 import { SoftRenderer } from './soft-renderer.js';
+import { OpticsRenderer } from './optics-renderer.js';
 import { TerrainProxies, TERRAIN_FADE_START, TERRAIN_FADE_END } from './terrain-proxy.js';
 import { GAUSSIAN_VERTEX, GAUSSIAN_FRAGMENT, GAUSSIAN_DEPTH_FRAGMENT, TERRAIN_DEPTH_FRAGMENT, COPY_TERRAIN_DEPTH_FRAGMENT, QUAD_VERTEX, BACKGROUND_FRAGMENT, GLASS_FRAGMENT, TONEMAP_FRAGMENT, REFERENCE_FRAGMENT } from './shaders.js';
 
@@ -84,7 +85,7 @@ export class FieldRenderer {
     this.slots=new Uint32Array(MAX_DRAW);this.weights=new Float32Array(MAX_DRAW);this.depths=new Float32Array(MAX_DRAW);this.order=new Uint32Array(MAX_DRAW);
     this.frustum=new THREE.Frustum();this.matrix=new THREE.Matrix4();this.point=new THREE.Vector3();this.sphere=new THREE.Sphere();
     this.grass=new GrassRenderer(this.uniforms);
-    this.soft=new SoftRenderer(this.uniforms);
+    this.soft=new SoftRenderer(this.uniforms);this.optics=new OpticsRenderer(this.uniforms);
     this.water=new FluidRenderer(this.uniforms);this.fluid=null;this.grains=new FluidRenderer(this.uniforms,{granular:true});this.granular=null;this.proxies=new TerrainProxies(this);this.terrainReady=new Map();
     this.addBatch(sampleGround(),6,0);
     for(let id=0;id<world.objects.length;id++)this.rebuild(id);
@@ -196,7 +197,8 @@ export class FieldRenderer {
     this.world.terrain.edits.forEach((e,i)=>{this.uniforms.uTerrainEdits.value[i].fromArray(e);this.uniforms.uTerrainEditModes.value[i]=e[4];});
     this.world.edits.forEach((e,i)=>this.uniforms.uEdits.value[i].fromArray(e));this.world.objects.forEach((o,i)=>this.uniforms.uCenters.value[i].fromArray(o.center));
     this.uniforms.uProbeRotation.value.setFromMatrix4(this.matrix.makeRotationFromQuaternion(probe.rotation));this.camera.updateMatrixWorld();
-    this.prepare(dt,adaptive,focusDistance,probe);
+    if(this.optics.enabled)return this.optics.render(this,{lightAngle,dt,adaptive,focusDistance});
+    this.optics.count=0;this.prepare(dt,adaptive,focusDistance,probe);
     this.grass.prepare(this.camera,probe,this.motion.factor,dt);
     this.water.prepare(this.fluid,this.camera,probe,this.motion.factor);
     this.grains.prepare(this.granular,this.camera,probe,this.motion.factor);
@@ -226,5 +228,5 @@ export class FieldRenderer {
     this.water.render(this.renderer,this.camera,this.target);
     this.renderer.setRenderTarget(null);this.renderer.clear();this.renderer.render(this.output,this.quadCamera);return !this.error;
   }
-  dispose(){this.soft.dispose();this.proxies.dispose();this.water.dispose();this.grains.dispose();this.grass.dispose();this.terrainDepthTarget.dispose();this.pool.texture.dispose();this.target.dispose();this.glassTarget.dispose();this.empty.dispose();this.geometry.dispose();this.gaussianMaterial.dispose();this.depthMaterial.dispose();for(const s of [this.background,this.reference,this.output,this.glass,this.terrainDepth,this.copyTerrainDepth])for(const m of s.children){m.geometry.dispose();m.material.dispose();}this.renderer.dispose();}
+  dispose(){this.optics.dispose();this.soft.dispose();this.proxies.dispose();this.water.dispose();this.grains.dispose();this.grass.dispose();this.terrainDepthTarget.dispose();this.pool.texture.dispose();this.target.dispose();this.glassTarget.dispose();this.empty.dispose();this.geometry.dispose();this.gaussianMaterial.dispose();this.depthMaterial.dispose();for(const s of [this.background,this.reference,this.output,this.glass,this.terrainDepth,this.copyTerrainDepth])for(const m of s.children){m.geometry.dispose();m.material.dispose();}this.renderer.dispose();}
 }

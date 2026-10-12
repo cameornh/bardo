@@ -22,7 +22,9 @@ export class Groom extends Deformable {
     this.node(g*(segments+1)+j,p,.00045,j<2);
    }
    for(let j=0;j<segments;j++)this.link(g*(segments+1)+j,g*(segments+1)+j+1,1e-7);
+   const straight=parameters.curl<.15;
    for(let j=0;j<segments-1;j++){
+    if(straight){const a=g*(segments+1)+j;this.rod(a,a+1,a+2,0);continue;}
     const a=g*(segments+1)+j;this.link(a,a+2,0,1);
     this.angle(a,a+1,a+2,0);
     // Chord constraints already encode the bend of a curled segment. Near a
@@ -31,11 +33,11 @@ export class Groom extends Deformable {
     // persistent solver energy; a world-space rest vector is worse still.
     if(this.angles.at(-1).rest<Math.PI-.2)this.angles.pop();
    }
-   for(let j=0;j<=segments-3;j++)this.link(g*(segments+1)+j,g*(segments+1)+j+3,0,2);
+   if(!straight)for(let j=0;j<=segments-3;j++)this.link(g*(segments+1)+j,g*(segments+1)+j+3,0,2);
   }
   this.links.sort((a,b)=>b.type-a.type);this.configure(parameters);
  }
- configure(parameters){Object.assign(this.parameters,parameters);const compliance=500*(1e-4/500)**(clamp(this.parameters.stiffness,0,100)/100);for(const a of this.angles)a.compliance=compliance;for(const l of this.links)if(l.type)l.compliance=compliance*l.type;}
+ configure(parameters){Object.assign(this.parameters,parameters);const compliance=500*(1e-4/500)**(clamp(this.parameters.stiffness,0,100)/100);for(const a of this.angles)a.compliance=compliance;for(const r of this.rods)r.compliance=compliance;for(const l of this.links)if(l.type)l.compliance=compliance*l.type;}
  step(dt,probe,wind){
   const sub=dt/3;let contacts=0;
   for(let s=0;s<3;s++){

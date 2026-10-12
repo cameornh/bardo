@@ -135,3 +135,19 @@ test('both Gaussian LOD layers fit the deformable budget across camera speeds an
  fibers.enabled=false;fabrics.enabled=true;renderer.prepare(fabrics,fibers,camera,probe,1,dt,2);assert.ok(renderer.count<=renderer.budget);
  renderer.dispose();
 });
+
+test('stiff bristles settle after the actual launched-ball interaction without angle-constraint explosions',()=>{
+ const scene=new FiberTest();scene.grooms=[scene.grooms[1]];scene.enabled=true;
+ const groom=scene.grooms[0],world=new World();world.terrain=scene.terrain;world.terrainEnabled=true;world.showcaseEnabled=false;
+ const ball=new Probe(world);ball.setMass(1.5);let impactPeak=0,settledPeak=0;
+ for(let i=0;i<1800;i++){
+  if(i===300){ball.dropAt([groom.center[0],2.1,1.05]);ball.velocity.set(0,.4,-3);}
+  ball.step(dt/2);ball.step(dt/2);scene.step(dt,ball);
+  const rms=Math.sqrt(groom.velocities.reduce((sum,v)=>sum+v*v,0)/groom.count);
+  if(i>=300&&i<480)impactPeak=Math.max(impactPeak,rms);if(i>=1500)settledPeak=Math.max(settledPeak,rms);
+ }
+ assert.ok(scene.totalContacts>0);assert.ok(impactPeak>.1&&impactPeak<3,`impact RMS ${impactPeak}`);
+ assert.ok(settledPeak<.002,`late RMS ${settledPeak} m/s`);
+ assert.ok(Math.max(...groom.links.filter(l=>!l.type).map(l=>Math.abs(groom.strain(l))))<.04);
+ for(let i=0;i<groom.count;i++)if(groom.pinned[i])assert.deepEqual(Array.from(groom.positions.subarray(i*3,i*3+3)),Array.from(groom.rest.subarray(i*3,i*3+3)));
+});

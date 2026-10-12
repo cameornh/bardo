@@ -11,6 +11,7 @@ import { Granular, GRAIN_STEP } from './granular.js';
 import { FabricTest } from './fabric.js';
 import { FiberTest,FIBER_PRESETS } from './fibers.js';
 import { DEFORM_STEP } from './deformable.js';
+import { OPTICAL_METRES, sampleRadii } from './optics.js';
 
 const $ = id => document.getElementById(id);
 const canvas=$('scene'), viewport=$('viewport');
@@ -48,7 +49,8 @@ function moveTo(target) {
   controls.target.add(delta);camera.position.add(delta);controls.update();updateStream();
 }
 function home() {
-  if(fabrics?.enabled){camera.position.set(0,3.3,12);controls.target.set(0,2.2,0);}
+  if(renderer?.optics.enabled){const s=renderer.optics.samples[renderer.optics.selected];if(renderer.optics.isolate){camera.position.set(s.center[0]+.1,s.center[1]+.05,3.1);controls.target.set(...s.center);}else{camera.position.set(0,2.65,10.3);controls.target.set(0,2.65,0);}}
+  else if(fabrics?.enabled){camera.position.set(0,3.3,12);controls.target.set(0,2.2,0);}
   else if(fibers?.enabled){camera.position.set(0,3.6,12.5);controls.target.set(0,1.35,0);}
   else if(granular?.enabled){camera.position.set(0,6,12);controls.target.set(0,.6,0);}
   else if(world.fluidEnabled){camera.position.set(6,5,7);controls.target.set(0,-1.1,0);}
@@ -74,18 +76,23 @@ function saveEdits() {
 }
 function sceneChange(value) {
   world.fluidEnabled=value==='fluid';fluid.enabled=world.fluidEnabled;fluidAccumulator=0;granular.enabled=value==='granular';grainAccumulator=0;
+  renderer.optics.enabled=value==='optics';
   fabrics.enabled=value==='fabric';fibers.enabled=value==='fibers';softAccumulator=0;
   world.terrain=world.fluidEnabled?fluid.terrain:granular.enabled?granular.terrain:fabrics.enabled?fabrics.terrain:fibers.enabled?fibers.terrain:persistentTerrain;streamer.terrain=world.terrain;renderer.depthValid=false;
-  world.terrainEnabled=value!=='materials';world.showcaseEnabled=value==='materials'||value==='terrain';$('test-scene').value=value;
+  world.terrainEnabled=value!=='materials'&&value!=='optics';world.showcaseEnabled=value==='materials'||value==='terrain';$('test-scene').value=value;
   probe.setMass(world.fluidEnabled?180:granular.enabled?40:(fabrics.enabled||fibers.enabled)?1.5:1);probe.active=false;probe.velocity.set(0,0,0);probe.position.set(0,.45,3);probe.sync();
   renderer.grass.enabled=value==='grass';$('grass-visible').checked=renderer.grass.enabled;
   $('grain-controls').hidden=!granular.enabled;$('fluid-controls').hidden=!world.fluidEnabled;$('grass-controls').hidden=value!=='grass';
   $('fabric-controls').hidden=!fabrics.enabled;$('fiber-controls').hidden=!fibers.enabled;
-  $('travel-controls').hidden=world.fluidEnabled||granular.enabled||fabrics.enabled||fibers.enabled;$('material-controls').hidden=$('travel-controls').hidden;
+  $('optics-controls').hidden=!renderer.optics.enabled;$('optics-labels').hidden=!renderer.optics.enabled;
+  $('tool').parentElement.hidden=renderer.optics.enabled;$('physics-controls').hidden=renderer.optics.enabled;
+  $('view-mode').querySelector('option[value="3"]').disabled=renderer.optics.enabled;
+  if(renderer.optics.enabled){renderer.uniforms.uView.value=0;$('view-mode').value='0';angle=Math.PI/2;$('light-angle').value=90;$('light-value').value='90°';$('animate-light').checked=false;}
+  $('travel-controls').hidden=renderer.optics.enabled||world.fluidEnabled||granular.enabled||fabrics.enabled||fibers.enabled;$('material-controls').hidden=$('travel-controls').hidden;
   for(const option of $('tool').options)if(option.value==='stir'||option.value==='heat')option.disabled=!world.fluidEnabled;
   for(const option of $('tool').options)if(option.value==='carve'||option.value==='add')option.disabled=fabrics.enabled||fibers.enabled;
-  $('undo').hidden=fabrics.enabled||fibers.enabled;
-  $('brush').parentElement.hidden=fabrics.enabled||fibers.enabled;
+  $('undo').hidden=renderer.optics.enabled||fabrics.enabled||fibers.enabled;
+  $('brush').parentElement.hidden=renderer.optics.enabled||fabrics.enabled||fibers.enabled;
   $('brush').max=world.terrainEnabled?'3':'.6';$('brush').min='.25';
   $('brush').value=world.terrainEnabled?'1.25':'.4';$('brush-value').value=`${Number($('brush').value).toFixed(2)} m`;
   setTool('orbit');home();saveEdits();
@@ -96,6 +103,7 @@ function rayFromEvent(event) {
   const raycaster=new THREE.Raycaster();raycaster.setFromCamera(ndc,camera);return raycaster.ray;
 }
 function clickScene(event) {
+  if(renderer.optics.enabled)return;
   if(event.button!==0||!dragStart)return;
   const moved=Math.hypot(event.clientX-dragStart[0],event.clientY-dragStart[1]);dragStart=null;
   if(moved>5)return;
@@ -168,6 +176,35 @@ function setupSoftControls(){
   $('launch-fiber').onclick=()=>{const groom=fibers.grooms[fiberIndex()];probe.dropAt([groom.center[0],2.1,1.05]);probe.velocity.set(0,.4,-3);resume();};
   syncFabric();syncFiber();
 }
+function setupOpticsControls(){
+  const optics=renderer.optics,fields=['thickness','scatterScale','absorptionScale','turbidity','roughness'];
+  for(const sample of optics.samples){
+    const option=document.createElement('option');option.value=sample.id;option.textContent=sample.name;$('optics-sample').append(option);
+    const label=document.createElement('button');label.textContent=sample.name;label.dataset.sample=sample.id;label.onclick=()=>{$('optics-sample').value=sample.id;optics.selected=sample.id;sync();focus();};$('optics-labels').append(label);
+  }
+  function sync(){const s=optics.samples[optics.selected];for(const name of fields){$(`optics-${name}`).value=s[name];$(`optics-${name}-value`).value=s[name].toFixed(2)+(name==='thickness'||name.endsWith('Scale')?'×':'');}
+    $('optics-mm').textContent=(sampleRadii(s)[2]*2*OPTICAL_METRES*1000).toFixed(2)+' mm';$('optics-ior').textContent=s.ior;
+  }
+  function focus(){const s=optics.samples[optics.selected];camera.position.set(s.center[0]+.1,s.center[1]+.05,3.1);controls.target.set(...s.center);controls.update();updateStream();}
+  $('optics-sample').onchange=()=>{optics.selected=Number($('optics-sample').value);sync();if(optics.isolate)focus();};
+  $('focus-optics').onclick=focus;$('optics-isolate').onchange=()=>{optics.isolate=$('optics-isolate').checked;if(optics.isolate)focus();else home();};
+  $('optics-lineup').onchange=()=>{optics.lineup=$('optics-lineup').checked;optics.layout();home();};
+  $('reset-optics').onclick=()=>{optics.reset(optics.selected);sync();};
+  for(const name of fields)$(`optics-${name}`).oninput=()=>{optics.configure(optics.selected,{[name]:Number($(`optics-${name}`).value)});sync();};
+  $('optics-front').onclick=()=>{$('light-angle').value=90;$('light-angle').oninput();};
+  $('optics-back').onclick=()=>{$('light-angle').value=270;$('light-angle').oninput();};
+  $('optics-split').onchange=()=>optics.split=$('optics-split').checked;
+  $('optics-transport').onchange=()=>optics.transport=$('optics-transport').checked;
+  $('optics-view').onchange=()=>optics.view=Number($('optics-view').value);sync();
+}
+const labelPosition=new THREE.Vector3();
+function updateOpticsLabels(){
+  const optics=renderer.optics;
+  for(const label of $('optics-labels').children){const s=optics.samples[Number(label.dataset.sample)];labelPosition.set(s.center[0],s.center[1]+(optics.lineup&&s.id<3?s.radii[1]+.2:-s.radii[1]-.15),s.center[2]).project(camera);
+    label.hidden=(optics.isolate&&optics.selected!==s.id)||Math.abs(labelPosition.x)>1||Math.abs(labelPosition.y)>1||Math.abs(labelPosition.z)>1;
+    label.style.left=((labelPosition.x*.5+.5)*viewport.clientWidth)+'px';label.style.top=((-labelPosition.y*.5+.5)*viewport.clientHeight)+'px';
+  }
+}
 function setup() {
   world=new World();world.terrainEnabled=true;world.showcaseEnabled=false;world.fluidEnabled=true;
   try {
@@ -216,7 +253,7 @@ function setup() {
     probe.dropAt([target[0],(hit?.point[1]||0)+4,target[2]]);paused=false;$('pause').textContent='Pause';select(5);
   };
   $('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'Resume':'Pause';};
-  setupSoftControls();
+  setupSoftControls();setupOpticsControls();
   $('reset-water').onclick=()=>{fluid.reset('pool');fluidAccumulator=0;probe.active=false;probe.position.set(0,.8,0);probe.velocity.set(0,0,0);probe.sync();};
   $('dam-break').onclick=()=>{fluid.reset('dam');fluidAccumulator=0;paused=false;$('pause').textContent='Pause';};
   $('stir-water').onclick=()=>{fluid.disturb([-.5,-1.4,0]);};
@@ -246,6 +283,7 @@ function setup() {
   document.addEventListener('keydown',e=>{
     if(['INPUT','SELECT','BUTTON','SUMMARY'].includes(document.activeElement.tagName))return;
     if(['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','ShiftLeft','ShiftRight'].includes(e.code)){keys.add(e.code);e.preventDefault();}
+    if(renderer.optics.enabled&&(e.code==='Space'||e.code==='KeyR'))return;
     if(e.code==='Space'){e.preventDefault();$('drop').click();}if(e.code==='KeyC')home();
     if(e.code==='KeyR')$(fabrics.enabled?'launch-fabric':fibers.enabled?'launch-fiber':granular.enabled?'roll-grains':'roll-ball').click();
     if(e.code==='KeyP')$('controls').open=!$('controls').open;
@@ -253,7 +291,7 @@ function setup() {
   document.addEventListener('keyup',e=>keys.delete(e.code));
   window.addEventListener('blur',()=>keys.clear());
   document.addEventListener('visibilitychange',()=>{keys.clear();lastTime=0;stepper.accumulator=0;});
-  select(0);sceneChange('fabric');$('loading').style.display='none';$('renderer-status').textContent='WebGL 2';
+  select(0);sceneChange('optics');$('loading').style.display='none';$('renderer-status').textContent='WebGL 2';
   requestAnimationFrame(tick);
 }
 function tick(time) {
@@ -263,7 +301,7 @@ function tick(time) {
     travel(Math.min(elapsed,.05));controls.update(Math.min(elapsed,.1));
     if(time-lastStream>150){updateStream();lastStream=time;}
     if(streamer.error)throw new Error(streamer.error);
-    if(!paused)stepper.advance(elapsed,dt=>{
+    if(!paused&&!renderer.optics.enabled)stepper.advance(elapsed,dt=>{
       const previous=probe.position.toArray();probe.step(dt);
       if(fluid.enabled){fluidAccumulator+=dt;if(fluidAccumulator>=FLUID_STEP-1e-9){fluid.step(FLUID_STEP,probe);fluidAccumulator-=FLUID_STEP;fluidAverageMs=fluidAverageMs*.9+fluid.simMs*.1;}}
       if(granular.enabled){grainAccumulator+=dt;if(grainAccumulator>=GRAIN_STEP-1e-9){granular.step(GRAIN_STEP,probe);grainAccumulator-=GRAIN_STEP;}}
@@ -272,11 +310,14 @@ function tick(time) {
     });else stepper.accumulator=0;
     if($('animate-light').checked){angle=(angle+Math.min(elapsed,.1)*.18)%(Math.PI*2);$('light-angle').value=Math.round(angle*180/Math.PI);$('light-value').value=`${$('light-angle').value}°`;}
     if(!renderer.render({lightAngle:angle,probe,dt:elapsed,adaptive:$('adaptive-detail').checked,focusDistance:camera.position.distanceTo(controls.target)}))throw new Error(renderer.error);
+    if(renderer.optics.enabled)updateOpticsLabels();
     frameTimes.push(elapsed*1000);if(frameTimes.length>120)frameTimes.shift();
     if(frame++%15===0){
       const average=frameTimes.reduce((a,b)=>a+b,0)/frameTimes.length;
       $('fps').textContent=Math.round(1000/average);$('frame-ms').textContent=average.toFixed(1);
-      $('splat-count').textContent=(renderer.visibleSplats+renderer.grass.count+renderer.water.count+renderer.grains.count+renderer.soft.count).toLocaleString();$('detail').textContent=renderer.effectivePixelTarget.toFixed(1)+' px';
+      $('splat-count').textContent=(renderer.visibleSplats+renderer.grass.count+renderer.water.count+renderer.grains.count+renderer.soft.count+renderer.optics.count).toLocaleString();$('detail').textContent=renderer.effectivePixelTarget.toFixed(1)+' px';
+      $('optics-count').textContent=renderer.optics.count.toLocaleString();$('optics-ms').textContent=renderer.optics.cacheMs.toFixed(0)+' ms';
+      $('optics-cache').textContent=renderer.optics.busy?'Updating…':`Ready · ${renderer.optics.cacheCount}`;
       const soft=fabrics.enabled?fabrics:fibers.enabled?fibers:null,subjects=soft?.patches||soft?.grooms||[];
       $('soft-count').textContent=soft?`${subjects.reduce((sum,s)=>sum+s.count,0)} / ${renderer.soft.count}`:'off';
       $('soft-cpu').textContent=soft?`${(soft.simMs||0).toFixed(1)} ms`:'—';$('soft-draw').textContent=soft?`${renderer.soft.cpuMs.toFixed(1)} ms`:'—';

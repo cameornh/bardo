@@ -6,22 +6,30 @@ export class Deformable {
  constructor(count){
   this.count=count;for(const name of ['positions','previous','velocities','rest'])this[name]=new Float32Array(count*3);
   this.inverseMass=new Float32Array(count);this.mass=new Float32Array(count);this.pinned=new Uint8Array(count);
-  this.links=[];this.bends=[];this.angles=[];this.contacts=0;this.broken=0;this.simMs=0;
+  this.links=[];this.bends=[];this.angles=[];this.rods=[];this.contacts=0;this.broken=0;this.simMs=0;
  }
  node(i,p,mass,pin=false){this.positions.set(p,i*3);this.rest.set(p,i*3);this.mass[i]=mass;this.pinned[i]=pin?1:0;this.inverseMass[i]=pin?0:1/mass;}
  link(a,b,compliance,type=0){const p=this.rest,rest=Math.hypot(p[a*3]-p[b*3],p[a*3+1]-p[b*3+1],p[a*3+2]-p[b*3+2]);const link={a,b,rest,compliance,type,lambda:0,broken:false};this.links.push(link);return this.links.length-1;}
  bend(a,b,c,compliance,restShape=false){const p=this.rest;this.bends.push({a,b,c,compliance,rest:[0,1,2].map(k=>restShape?p[a*3+k]-2*p[b*3+k]+p[c*3+k]:0),lambda:[0,0,0],broken:false});}
  angle(a,b,c,compliance){const p=this.rest,u=[0,1,2].map(k=>p[a*3+k]-p[b*3+k]),v=[0,1,2].map(k=>p[c*3+k]-p[b*3+k]);const cosine=u.reduce((s,x,k)=>s+x*v[k],0)/(Math.hypot(...u)*Math.hypot(...v));this.angles.push({a,b,c,compliance,rest:Math.acos(clamp(cosine,-1,1)),lambda:0});}
+ // A zero-curvature vector constraint for almost straight guide rods. Its
+ // constant gradient stays well conditioned at 180 degrees. Normalizing by
+ // each rest segment length avoids forcing unequal segments to equal length.
+ rod(a,b,c,compliance){const p=this.rest,ab=Math.hypot(...[0,1,2].map(k=>p[a*3+k]-p[b*3+k])),bc=Math.hypot(...[0,1,2].map(k=>p[b*3+k]-p[c*3+k]));this.rods.push({nodes:[a,b,c],weights:[1/ab,-1/ab-1/bc,1/bc],compliance,lambda:[0,0,0]});}
  begin(dt,{damping=1,gravity=9.81,force=[0,0,0]}={}){
   this.previous.set(this.positions);this.contacts=0;
   const attenuation=Math.exp(-damping*dt);
   for(let i=0;i<this.count;i++)if(this.inverseMass[i])for(let k=0;k<3;k++){
    const o=i*3+k;this.velocities[o]=this.velocities[o]*attenuation+((k===1?-gravity:0)+force[k]*this.inverseMass[i])*dt;this.positions[o]+=this.velocities[o]*dt;
   }
-  for(const l of this.links)l.lambda=0;for(const b of this.bends)b.lambda.fill(0);for(const a of this.angles)a.lambda=0;
+  for(const l of this.links)l.lambda=0;for(const b of this.bends)b.lambda.fill(0);for(const a of this.angles)a.lambda=0;for(const r of this.rods)r.lambda.fill(0);
  }
  solve(dt){
   const p=this.positions,w=this.inverseMass;
+  for(const r of this.rods){
+   const [a,b,c]=r.nodes,[wa,wb,wc]=r.weights,alpha=r.compliance/(dt*dt),sum=w[a]*wa*wa+w[b]*wb*wb+w[c]*wc*wc;if(sum===0)continue;
+   for(let k=0;k<3;k++){const C=wa*p[a*3+k]+wb*p[b*3+k]+wc*p[c*3+k],delta=(-C-alpha*r.lambda[k])/(sum+alpha);r.lambda[k]+=delta;p[a*3+k]+=w[a]*wa*delta;p[b*3+k]+=w[b]*wb*delta;p[c*3+k]+=w[c]*wc*delta;}
+  }
   // Rotation-invariant angle constraints for guide rods. Solve these before
   // segment lengths so the final projection prioritizes extension resistance.
   for(const q of this.angles){
