@@ -8,10 +8,34 @@
     <div id="status" role="status" aria-live="polite"></div>
     <details id="controls">
       <summary>Test controls</summary>
-      <label>Scene <select id="test-scene"><option value="optics" selected>08 · Subsurface / transmission</option><option value="fabric">07 · Fabrics</option><option value="fibers">06 · Fur / hair</option><option value="granular">05 · Gravel / sand / mud</option><option value="fluid">04 · Water / pressure</option><option value="grass">03 · Grass interaction</option><option value="terrain">02 · Streamed terrain</option><option value="materials">01 · Materials / carving</option></select></label>
+      <label>Scene <select id="test-scene"><option value="light-test" selected>09 · Refraction / caustics</option><option value="optics">08 · Subsurface / transmission</option><option value="fabric">07 · Fabrics</option><option value="fibers">06 · Fur / hair</option><option value="granular">05 · Gravel / sand / mud</option><option value="fluid">04 · Water / pressure</option><option value="grass">03 · Grass interaction</option><option value="terrain">02 · Streamed terrain</option><option value="materials">01 · Materials / carving</option></select></label>
       <label>Tool <select id="tool"><option value="orbit">Inspect / orbit</option><option value="stir">Stir water</option><option value="heat">Heat water</option><option value="carve">Subtract material</option><option value="add">Add terrain</option><option value="push">Impulse probe</option></select></label>
       <label>Brush radius <output id="brush-value">1.25 m</output><input id="brush" type="range" min="0.25" max="3" step="0.05" value="1.25"></label>
       <div class="row"><button id="undo">Undo edit</button><button id="home">Reset camera</button></div>
+      <fieldset id="light-test-controls" hidden><legend>Refraction / caustics</legend>
+        <label>Experiment <select id="lt-experiment"><option value="tank">Glass tank / water / hollow balls</option><option value="sphere">Glass sphere</option><option value="convex">Convex lens</option><option value="concave">Concave lens</option><option value="prism">Triangular prism</option><option value="water">Water surface</option><option value="flat-mirror">Flat mirror</option><option value="concave-mirror">Concave mirror</option></select></label>
+        <div class="row"><button id="lt-receiver">Inspect receiver</button><button id="lt-reset">Restore settings</button></div>
+        <label>Source <select id="lt-source"><option value="broad">Broad beam</option><option value="laser">Laser</option><option value="rgb">Three RGB lasers</option></select></label>
+        <label>Color <select id="lt-color"><option value="white">White</option><option value="red">Red</option><option value="green">Green</option><option value="blue">Blue</option></select></label>
+        <label>Emitted power (W) <output id="lt-power-value"></output><input id="lt-power" type="range" min="5" max="180" step="5"></label>
+        <label>Beam divergence (°) <output id="lt-spread-value"></output><input id="lt-spread" type="range" min="0" max="6" step="0.05"></label>
+        <label>Light tilt (°) <output id="lt-aim-value"></output><input id="lt-aim" type="range" min="-35" max="35" step="1"></label>
+        <label data-lt="lens">Lens curvature radius (m) <output id="lt-curvature-value"></output><input id="lt-curvature" type="range" min="1.25" max="4" step="0.05"></label>
+        <label data-lt="prism">Prism apex angle (°) <output id="lt-prismAngle-value"></output><input id="lt-prismAngle" type="range" min="40" max="90" step="1"></label>
+        <p data-lt="prism">Broad source uses a narrow slit. Compare dispersion off/on; wider prism angles can cause total internal reflection.</p>
+        <label data-lt="mirror">Mirror focal length (m) <output id="lt-focal-value"></output><input id="lt-focal" type="range" min="2" max="8" step="0.1"></label>
+        <label data-lt="water">Wave amplitude (m) <output id="lt-wave-value"></output><input id="lt-wave" type="range" min="0" max="0.2" step="0.01"></label>
+        <label data-lt="water">Wave phase <output id="lt-phase-value"></output><input id="lt-phase" type="range" min="0" max="6.28" step="0.1"></label>
+        <label data-lt="water">Water level (m) <output id="lt-waterHeight-value"></output><input id="lt-waterHeight" type="range" min="0.6" max="1.85" step="0.05"></label>
+        <label data-lt="tank">Glass ball shell (m) <output id="lt-shell-value"></output><input id="lt-shell" type="range" min="0.008" max="0.12" step="0.002"></label>
+        <label>Photon budget <select id="lt-photons"><option value="4096">4,096</option><option value="16384" selected>16,384</option><option value="65536">65,536</option></select></label>
+        <label>Photon gather radius (m) <output id="lt-gather-value"></output><input id="lt-gather" type="range" min="0.02" max="0.15" step="0.005"></label>
+        <label>Receiver lighting <select id="lt-view"><option value="0">Direct + caustics</option><option value="1">Direct only</option><option value="2">Caustic irradiance only</option></select></label>
+        <label class="check"><input id="lt-dispersion" type="checkbox">RGB dispersion</label>
+        <label class="check"><input id="lt-paths" type="checkbox">Trace overlay (x-ray diagnostic)</label>
+        <dl><dt>Photon solution</dt><dd id="lt-state">Starting</dd><dt>Worker build</dt><dd id="lt-ms">—</dd><dt>Received / absorbed / escaped</dt><dd id="lt-energy">—</dd><dt>Path-limit remainder</dt><dd id="lt-remainder">—</dd><dt>Total internal reflections</dt><dd id="lt-tir">—</dd><dt data-lt="tank">Glass balls</dt><dd data-lt="tank" id="lt-floats">—</dd></dl>
+        <p id="lt-note">Static optical snapshot. Wave phase and floating equilibrium rebuild with the photon solution.</p>
+      </fieldset>
       <fieldset id="optics-controls" hidden><legend>Subsurface / transmission</legend>
         <label>Sample <select id="optics-sample"></select></label>
         <div class="row"><button id="focus-optics">Inspect selected</button><button id="reset-optics">Restore preset</button></div>
@@ -88,7 +112,7 @@
         <label>Roughness <output id="roughness-value">0.64</output><input id="roughness" type="range" min="0.04" max="1" step="0.01" value="0.64"></label>
         <div class="row"><button id="clear-glass">Clear glass</button><button id="frosted-glass">Frosted glass</button></div>
       </fieldset>
-      <fieldset><legend>Light</legend>
+      <fieldset id="environment-light-controls"><legend>Light</legend>
         <label>Light angle <output id="light-value">125°</output><input id="light-angle" type="range" min="0" max="360" value="125"></label>
         <label class="check"><input id="animate-light" type="checkbox">Rotate light</label>
       </fieldset>

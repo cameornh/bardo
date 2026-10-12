@@ -12,6 +12,7 @@ import { FabricTest } from './fabric.js';
 import { FiberTest,FIBER_PRESETS } from './fibers.js';
 import { DEFORM_STEP } from './deformable.js';
 import { OPTICAL_METRES, sampleRadii } from './optics.js';
+import { DEFAULT_LIGHT_TEST } from './light-transport.js';
 
 const $ = id => document.getElementById(id);
 const canvas=$('scene'), viewport=$('viewport');
@@ -49,7 +50,8 @@ function moveTo(target) {
   controls.target.add(delta);camera.position.add(delta);controls.update();updateStream();
 }
 function home() {
-  if(renderer?.optics.enabled){const s=renderer.optics.samples[renderer.optics.selected];if(renderer.optics.isolate){camera.position.set(s.center[0]+.1,s.center[1]+.05,3.1);controls.target.set(...s.center);}else{camera.position.set(0,2.65,10.3);controls.target.set(0,2.65,0);}}
+  if(renderer?.lightTest.enabled){const preset=renderer.lightTest.config.experiment;if(['sphere','convex','concave'].includes(preset)){camera.position.set(3.8,3.6,4.8);controls.target.set(0,1.2,0);}else if(preset==='prism'){camera.position.set(4.8,5.2,5.5);controls.target.set(0,1,-1.2);}else if(preset.includes('mirror')){camera.position.set(4.3,4.6,6.2);controls.target.set(0,1.4,1.6);}else{camera.position.set(5.6,4.2,6.4);controls.target.set(0,1,0);}}
+  else if(renderer?.optics.enabled){const s=renderer.optics.samples[renderer.optics.selected];if(renderer.optics.isolate){camera.position.set(s.center[0]+.1,s.center[1]+.05,3.1);controls.target.set(...s.center);}else{camera.position.set(0,2.65,10.3);controls.target.set(0,2.65,0);}}
   else if(fabrics?.enabled){camera.position.set(0,3.3,12);controls.target.set(0,2.2,0);}
   else if(fibers?.enabled){camera.position.set(0,3.6,12.5);controls.target.set(0,1.35,0);}
   else if(granular?.enabled){camera.position.set(0,6,12);controls.target.set(0,.6,0);}
@@ -76,23 +78,27 @@ function saveEdits() {
 }
 function sceneChange(value) {
   world.fluidEnabled=value==='fluid';fluid.enabled=world.fluidEnabled;fluidAccumulator=0;granular.enabled=value==='granular';grainAccumulator=0;
-  renderer.optics.enabled=value==='optics';
+  renderer.optics.enabled=value==='optics';renderer.lightTest.enabled=value==='light-test';const optical=renderer.optics.enabled||renderer.lightTest.enabled;
   fabrics.enabled=value==='fabric';fibers.enabled=value==='fibers';softAccumulator=0;
   world.terrain=world.fluidEnabled?fluid.terrain:granular.enabled?granular.terrain:fabrics.enabled?fabrics.terrain:fibers.enabled?fibers.terrain:persistentTerrain;streamer.terrain=world.terrain;renderer.depthValid=false;
-  world.terrainEnabled=value!=='materials'&&value!=='optics';world.showcaseEnabled=value==='materials'||value==='terrain';$('test-scene').value=value;
+  world.terrainEnabled=value!=='materials'&&!optical;world.showcaseEnabled=value==='materials'||value==='terrain';$('test-scene').value=value;
   probe.setMass(world.fluidEnabled?180:granular.enabled?40:(fabrics.enabled||fibers.enabled)?1.5:1);probe.active=false;probe.velocity.set(0,0,0);probe.position.set(0,.45,3);probe.sync();
   renderer.grass.enabled=value==='grass';$('grass-visible').checked=renderer.grass.enabled;
   $('grain-controls').hidden=!granular.enabled;$('fluid-controls').hidden=!world.fluidEnabled;$('grass-controls').hidden=value!=='grass';
   $('fabric-controls').hidden=!fabrics.enabled;$('fiber-controls').hidden=!fibers.enabled;
   $('optics-controls').hidden=!renderer.optics.enabled;$('optics-labels').hidden=!renderer.optics.enabled;
-  $('tool').parentElement.hidden=renderer.optics.enabled;$('physics-controls').hidden=renderer.optics.enabled;
-  $('view-mode').querySelector('option[value="3"]').disabled=renderer.optics.enabled;
-  if(renderer.optics.enabled){renderer.uniforms.uView.value=0;$('view-mode').value='0';angle=Math.PI/2;$('light-angle').value=90;$('light-value').value='90°';$('animate-light').checked=false;}
-  $('travel-controls').hidden=renderer.optics.enabled||world.fluidEnabled||granular.enabled||fabrics.enabled||fibers.enabled;$('material-controls').hidden=$('travel-controls').hidden;
+  $('light-test-controls').hidden=!renderer.lightTest.enabled;$('environment-light-controls').hidden=renderer.lightTest.enabled;
+  $('chunk-lines').parentElement.hidden=optical;
+  const irrelevant=['soft-count','soft-cpu','soft-draw','soft-contacts','soft-strain','soft-time','fiber-speed','grain-count','grain-cpu','proxy-count','fluid-count','fluid-cpu','fluid-draw','fluid-error','fluid-contact','fluid-time','grass-count','grass-roots','grass-bent','grass-contact','resident','queued','stream-count','memory','pool-memory','selected-count','sort-time','worker-ms','contacts','dropped-time'];
+  for(const id of irrelevant){$(id).hidden=optical;$(id).previousElementSibling.hidden=optical;}
+  $('tool').parentElement.hidden=optical;$('physics-controls').hidden=optical;
+  $('view-mode').querySelector('option[value="3"]').disabled=optical;
+  if(optical){renderer.uniforms.uView.value=0;$('view-mode').value='0';angle=Math.PI/2;$('light-angle').value=90;$('light-value').value='90°';$('animate-light').checked=false;}
+  $('travel-controls').hidden=optical||world.fluidEnabled||granular.enabled||fabrics.enabled||fibers.enabled;$('material-controls').hidden=$('travel-controls').hidden;
   for(const option of $('tool').options)if(option.value==='stir'||option.value==='heat')option.disabled=!world.fluidEnabled;
   for(const option of $('tool').options)if(option.value==='carve'||option.value==='add')option.disabled=fabrics.enabled||fibers.enabled;
-  $('undo').hidden=renderer.optics.enabled||fabrics.enabled||fibers.enabled;
-  $('brush').parentElement.hidden=renderer.optics.enabled||fabrics.enabled||fibers.enabled;
+  $('undo').hidden=optical||fabrics.enabled||fibers.enabled;
+  $('brush').parentElement.hidden=optical||fabrics.enabled||fibers.enabled;
   $('brush').max=world.terrainEnabled?'3':'.6';$('brush').min='.25';
   $('brush').value=world.terrainEnabled?'1.25':'.4';$('brush-value').value=`${Number($('brush').value).toFixed(2)} m`;
   setTool('orbit');home();saveEdits();
@@ -103,7 +109,7 @@ function rayFromEvent(event) {
   const raycaster=new THREE.Raycaster();raycaster.setFromCamera(ndc,camera);return raycaster.ray;
 }
 function clickScene(event) {
-  if(renderer.optics.enabled)return;
+  if(renderer.optics.enabled||renderer.lightTest.enabled)return;
   if(event.button!==0||!dragStart)return;
   const moved=Math.hypot(event.clientX-dragStart[0],event.clientY-dragStart[1]);dragStart=null;
   if(moved>5)return;
@@ -283,7 +289,7 @@ function setup() {
   document.addEventListener('keydown',e=>{
     if(['INPUT','SELECT','BUTTON','SUMMARY'].includes(document.activeElement.tagName))return;
     if(['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','ShiftLeft','ShiftRight'].includes(e.code)){keys.add(e.code);e.preventDefault();}
-    if(renderer.optics.enabled&&(e.code==='Space'||e.code==='KeyR'))return;
+    if((renderer.optics.enabled||renderer.lightTest.enabled)&&(e.code==='Space'||e.code==='KeyR'))return;
     if(e.code==='Space'){e.preventDefault();$('drop').click();}if(e.code==='KeyC')home();
     if(e.code==='KeyR')$(fabrics.enabled?'launch-fabric':fibers.enabled?'launch-fiber':granular.enabled?'roll-grains':'roll-ball').click();
     if(e.code==='KeyP')$('controls').open=!$('controls').open;
@@ -291,9 +297,34 @@ function setup() {
   document.addEventListener('keyup',e=>keys.delete(e.code));
   window.addEventListener('blur',()=>keys.clear());
   document.addEventListener('visibilitychange',()=>{keys.clear();lastTime=0;stepper.accumulator=0;});
-  select(0);sceneChange('optics');$('loading').style.display='none';$('renderer-status').textContent='WebGL 2';
+  setupLightTest();select(0);sceneChange('light-test');$('loading').style.display='none';$('renderer-status').textContent='WebGL 2';
   requestAnimationFrame(tick);
 }
+function setupLightTest(){
+ const test=renderer.lightTest,fields=['power','spread','aim','curvature','prismAngle','focal','wave','phase','waterHeight','shell','gather'];
+ function sync(){
+  const c=test.config;for(const name of fields){$(`lt-${name}`).value=c[name];$(`lt-${name}-value`).value=Number(c[name]).toFixed(name==='shell'||name==='gather'?3:2);}
+  for(const name of ['experiment','source','color','photons'])$(`lt-${name}`).value=c[name];$('lt-color').disabled=c.source==='rgb';$('lt-dispersion').checked=c.dispersion;
+  document.querySelectorAll('[data-lt]').forEach(el=>{const k=el.dataset.lt;el.hidden=k==='tank'?c.experiment!=='tank':k==='water'?!['tank','water'].includes(c.experiment):k==='mirror'?c.experiment!=='concave-mirror':k==='prism'?c.experiment!=='prism':!['convex','concave'].includes(c.experiment);});
+  $('lt-note').hidden=!['tank','water'].includes(c.experiment);
+ }
+ for(const name of fields)$(`lt-${name}`).oninput=()=>{test.configure({[name]:Number($(`lt-${name}`).value)});sync();};
+ for(const name of ['experiment','source','color','photons'])$(`lt-${name}`).onchange=()=>{test.configure({[name]:name==='photons'?Number($(`lt-${name}`).value):$(`lt-${name}`).value,...(name==='experiment'&&$('lt-experiment').value==='prism'?{dispersion:true}:{})});sync();if(name==='experiment')home();};
+ $('lt-dispersion').onchange=()=>test.configure({dispersion:$('lt-dispersion').checked});
+ $('lt-paths').onchange=()=>test.showPaths=$('lt-paths').checked;
+ $('lt-view').onchange=()=>test.view=Number($('lt-view').value);
+ $('lt-reset').onclick=()=>{test.configure({...DEFAULT_LIGHT_TEST,photons:16384,experiment:test.config.experiment});sync();};
+ $('lt-receiver').onclick=()=>{const mirror=test.config.experiment.includes('mirror'),prism=test.config.experiment==='prism';camera.position.set(.1,8,mirror?7:prism?-.4:4);controls.target.set(0,0,mirror?3:prism?-3.8:0);controls.update();};sync();
+}
+function updateLightTestStats(){
+ const test=renderer.lightTest,r=test.result,l=r?.ledger;
+ $('lt-state').textContent=test.error?`Error: ${test.error}`:test.busy?(r?.id===test.revision?`${r.count.toLocaleString()} preview · refining…`:'Building · previous solution shown'):r?`${r.count.toLocaleString()} ready`:'Starting';
+ $('lt-ms').textContent=r?(r.ms/1000).toFixed(2)+' s':'—';
+ $('lt-energy').textContent=l?[l.receiver,l.absorbed,l.escaped].map(v=>(100*v/l.emitted).toFixed(1)+'%').join(' / '):'—';
+ $('lt-remainder').textContent=l?(100*l.truncated/l.emitted).toFixed(3)+'%':'—';$('lt-tir').textContent=l?l.tir.toLocaleString():'—';
+ $('lt-floats').textContent=test.sceneData.floats.map(f=>`${f.mass.toFixed(1)} kg · ${f.floating?'floating':'on bottom'}`).join(' / ');
+}
+
 function tick(time) {
   try {
     const elapsed=lastTime?(time-lastTime)/1000:1/60;lastTime=time;
@@ -301,7 +332,7 @@ function tick(time) {
     travel(Math.min(elapsed,.05));controls.update(Math.min(elapsed,.1));
     if(time-lastStream>150){updateStream();lastStream=time;}
     if(streamer.error)throw new Error(streamer.error);
-    if(!paused&&!renderer.optics.enabled)stepper.advance(elapsed,dt=>{
+    if(!paused&&!renderer.optics.enabled&&!renderer.lightTest.enabled)stepper.advance(elapsed,dt=>{
       const previous=probe.position.toArray();probe.step(dt);
       if(fluid.enabled){fluidAccumulator+=dt;if(fluidAccumulator>=FLUID_STEP-1e-9){fluid.step(FLUID_STEP,probe);fluidAccumulator-=FLUID_STEP;fluidAverageMs=fluidAverageMs*.9+fluid.simMs*.1;}}
       if(granular.enabled){grainAccumulator+=dt;if(grainAccumulator>=GRAIN_STEP-1e-9){granular.step(GRAIN_STEP,probe);grainAccumulator-=GRAIN_STEP;}}
@@ -315,7 +346,8 @@ function tick(time) {
     if(frame++%15===0){
       const average=frameTimes.reduce((a,b)=>a+b,0)/frameTimes.length;
       $('fps').textContent=Math.round(1000/average);$('frame-ms').textContent=average.toFixed(1);
-      $('splat-count').textContent=(renderer.visibleSplats+renderer.grass.count+renderer.water.count+renderer.grains.count+renderer.soft.count+renderer.optics.count).toLocaleString();$('detail').textContent=renderer.effectivePixelTarget.toFixed(1)+' px';
+      $('splat-count').textContent=(renderer.visibleSplats+renderer.grass.count+renderer.water.count+renderer.grains.count+renderer.soft.count+renderer.optics.count+renderer.lightTest.count).toLocaleString();$('detail').textContent=renderer.effectivePixelTarget.toFixed(1)+' px';
+      updateLightTestStats();
       $('optics-count').textContent=renderer.optics.count.toLocaleString();$('optics-ms').textContent=renderer.optics.cacheMs.toFixed(0)+' ms';
       $('optics-cache').textContent=renderer.optics.busy?'Updating…':`Ready · ${renderer.optics.cacheCount}`;
       const soft=fabrics.enabled?fabrics:fibers.enabled?fibers:null,subjects=soft?.patches||soft?.grooms||[];
