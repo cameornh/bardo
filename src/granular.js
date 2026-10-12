@@ -1,9 +1,10 @@
+import { SAND_MATERIAL } from './sand-material.js';
 import { Terrain } from './terrain.js';
 
 export const GRAIN_STEP=1/60;
 export const GRAIN_MATERIALS=[
  {name:'Gravel',radius:.15,friction:.75,cohesion:0,damping:.015,color:[.26,.26,.245],roughness:.8},
- {name:'Sand',radius:.10,friction:.55,cohesion:0,damping:.025,color:[.56,.39,.19],roughness:.95},
+ {name:'Sand',radius:.10,friction:.55,cohesion:0,damping:.025,color:[...SAND_MATERIAL.color],roughness:SAND_MATERIAL.dryRoughness},
  {name:'Mud',radius:.12,friction:.35,cohesion:.55,damping:.16,color:[.19,.115,.06],roughness:.22},
 ];
 // Coarse equal-mass parcels per material, with position-level Coulomb friction

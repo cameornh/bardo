@@ -50,7 +50,8 @@ function moveTo(target) {
   controls.target.add(delta);camera.position.add(delta);controls.update();updateStream();
 }
 function home() {
-  if(renderer?.lightTest.enabled){const preset=renderer.lightTest.config.experiment;if(['sphere','convex','concave'].includes(preset)){camera.position.set(3.8,3.6,4.8);controls.target.set(0,1.2,0);}else if(preset==='prism'){camera.position.set(4.8,5.2,5.5);controls.target.set(0,1,-1.2);}else if(preset.includes('mirror')){camera.position.set(4.3,4.6,6.2);controls.target.set(0,1.4,1.6);}else{camera.position.set(5.6,4.2,6.4);controls.target.set(0,1,0);}}
+  if(renderer?.beach.enabled){camera.position.set(16,renderer.beach.sim.sample(16,13).bed+2.2,13);controls.target.set(-8,.8,-16);}
+  else if(renderer?.lightTest.enabled){const preset=renderer.lightTest.config.experiment;if(['sphere','convex','concave'].includes(preset)){camera.position.set(3.8,3.6,4.8);controls.target.set(0,1.2,0);}else if(preset==='prism'){camera.position.set(4.8,5.2,5.5);controls.target.set(0,1,-1.2);}else if(preset.includes('mirror')){camera.position.set(4.3,4.6,6.2);controls.target.set(0,1.4,1.6);}else{camera.position.set(5.6,4.2,6.4);controls.target.set(0,1,0);}}
   else if(renderer?.optics.enabled){const s=renderer.optics.samples[renderer.optics.selected];if(renderer.optics.isolate){camera.position.set(s.center[0]+.1,s.center[1]+.05,3.1);controls.target.set(...s.center);}else{camera.position.set(0,2.65,10.3);controls.target.set(0,2.65,0);}}
   else if(fabrics?.enabled){camera.position.set(0,3.3,12);controls.target.set(0,2.2,0);}
   else if(fibers?.enabled){camera.position.set(0,3.6,12.5);controls.target.set(0,1.35,0);}
@@ -78,7 +79,9 @@ function saveEdits() {
 }
 function sceneChange(value) {
   world.fluidEnabled=value==='fluid';fluid.enabled=world.fluidEnabled;fluidAccumulator=0;granular.enabled=value==='granular';grainAccumulator=0;
-  renderer.optics.enabled=value==='optics';renderer.lightTest.enabled=value==='light-test';const optical=renderer.optics.enabled||renderer.lightTest.enabled;
+  renderer.beach.enabled=value==='beach';renderer.optics.enabled=value==='optics';renderer.lightTest.enabled=value==='light-test';const optical=renderer.optics.enabled||renderer.lightTest.enabled||renderer.beach.enabled;
+  camera.far=renderer.beach.enabled?2400:220;camera.updateProjectionMatrix();renderer.resize(viewport.clientWidth,viewport.clientHeight);controls.maxDistance=renderer.beach.enabled?300:70;
+  $('beach-controls').hidden=!renderer.beach.enabled;if(renderer.beach.enabled)renderer.beach.activate();
   fabrics.enabled=value==='fabric';fibers.enabled=value==='fibers';softAccumulator=0;
   world.terrain=world.fluidEnabled?fluid.terrain:granular.enabled?granular.terrain:fabrics.enabled?fabrics.terrain:fibers.enabled?fibers.terrain:persistentTerrain;streamer.terrain=world.terrain;renderer.depthValid=false;
   world.terrainEnabled=value!=='materials'&&!optical;world.showcaseEnabled=value==='materials'||value==='terrain';$('test-scene').value=value;
@@ -87,21 +90,21 @@ function sceneChange(value) {
   $('grain-controls').hidden=!granular.enabled;$('fluid-controls').hidden=!world.fluidEnabled;$('grass-controls').hidden=value!=='grass';
   $('fabric-controls').hidden=!fabrics.enabled;$('fiber-controls').hidden=!fibers.enabled;
   $('optics-controls').hidden=!renderer.optics.enabled;$('optics-labels').hidden=!renderer.optics.enabled;
-  $('light-test-controls').hidden=!renderer.lightTest.enabled;$('environment-light-controls').hidden=renderer.lightTest.enabled;
+  $('light-test-controls').hidden=!renderer.lightTest.enabled;$('environment-light-controls').hidden=renderer.lightTest.enabled||renderer.beach.enabled;
   $('chunk-lines').parentElement.hidden=optical;
   const irrelevant=['soft-count','soft-cpu','soft-draw','soft-contacts','soft-strain','soft-time','fiber-speed','grain-count','grain-cpu','proxy-count','fluid-count','fluid-cpu','fluid-draw','fluid-error','fluid-contact','fluid-time','grass-count','grass-roots','grass-bent','grass-contact','resident','queued','stream-count','memory','pool-memory','selected-count','sort-time','worker-ms','contacts','dropped-time'];
   for(const id of irrelevant){$(id).hidden=optical;$(id).previousElementSibling.hidden=optical;}
   $('tool').parentElement.hidden=optical;$('physics-controls').hidden=optical;
   $('view-mode').querySelector('option[value="3"]').disabled=optical;
   if(optical){renderer.uniforms.uView.value=0;$('view-mode').value='0';angle=Math.PI/2;$('light-angle').value=90;$('light-value').value='90°';$('animate-light').checked=false;}
-  $('travel-controls').hidden=optical||world.fluidEnabled||granular.enabled||fabrics.enabled||fibers.enabled;$('material-controls').hidden=$('travel-controls').hidden;
+  $('travel-controls').hidden=(optical&&!renderer.beach.enabled)||world.fluidEnabled||granular.enabled||fabrics.enabled||fibers.enabled;$('material-controls').hidden=renderer.beach.enabled||$('travel-controls').hidden;
   for(const option of $('tool').options)if(option.value==='stir'||option.value==='heat')option.disabled=!world.fluidEnabled;
   for(const option of $('tool').options)if(option.value==='carve'||option.value==='add')option.disabled=fabrics.enabled||fibers.enabled;
   $('undo').hidden=optical||fabrics.enabled||fibers.enabled;
   $('brush').parentElement.hidden=optical||fabrics.enabled||fibers.enabled;
   $('brush').max=world.terrainEnabled?'3':'.6';$('brush').min='.25';
   $('brush').value=world.terrainEnabled?'1.25':'.4';$('brush-value').value=`${Number($('brush').value).toFixed(2)} m`;
-  setTool('orbit');home();saveEdits();
+  setTool('orbit');renderer.beach.tool='orbit';$('beach-tool').value='orbit';home();saveEdits();
 }
 function rayFromEvent(event) {
   const rect=canvas.getBoundingClientRect();
@@ -109,6 +112,7 @@ function rayFromEvent(event) {
   const raycaster=new THREE.Raycaster();raycaster.setFromCamera(ndc,camera);return raycaster.ray;
 }
 function clickScene(event) {
+  if(renderer.beach.enabled){if(event.button===0&&renderer.beach.tool!=='orbit'){const ray=rayFromEvent(event);if(!renderer.beach.interact(ray.origin.toArray(),ray.direction.toArray()))status('No nearby surface, or the 12-ball limit was reached.');}dragStart=null;return;}
   if(renderer.optics.enabled||renderer.lightTest.enabled)return;
   if(event.button!==0||!dragStart)return;
   const moved=Math.hypot(event.clientX-dragStart[0],event.clientY-dragStart[1]);dragStart=null;
@@ -244,8 +248,8 @@ function setup() {
   $('sh-degree').onchange=()=>renderer.uniforms.uSHDegree.value=Number($('sh-degree').value);
   $('orbit-test').onchange=()=>{controls.autoRotate=$('orbit-test').checked;controls.autoRotateSpeed=2;};
   $('home').onclick=home;
-  $('travel').onclick=()=>{const x=controls.target.x+128,z=controls.target.z;moveTo([x,terrainHeight(x,z),z]);status('Moved 128 m. Previous chunks are evicted.');};
-  $('return').onclick=()=>{const p=world.terrain.lastEdit||[0,0,0];moveTo(p);status('Returned to saved edit location.');};
+  $('travel').onclick=()=>{if(renderer.beach.enabled){camera.position.x+=128;controls.target.x+=128;controls.update();renderer.previousCamera=null;return;}const x=controls.target.x+128,z=controls.target.z;moveTo([x,terrainHeight(x,z),z]);status('Moved 128 m. Previous chunks are evicted.');};
+  $('return').onclick=()=>{if(renderer.beach.enabled){home();return;}const p=world.terrain.lastEdit||[0,0,0];moveTo(p);status('Returned to saved edit location.');};
   $('save-location').onclick=()=>{savedLocation=controls.target.toArray();status('Location stored for this session.');};
   $('saved-location').onclick=()=>{if(savedLocation)moveTo(savedLocation);else status('Save a location first.');};
   $('undo').onclick=()=>{
@@ -259,7 +263,7 @@ function setup() {
     probe.dropAt([target[0],(hit?.point[1]||0)+4,target[2]]);paused=false;$('pause').textContent='Pause';select(5);
   };
   $('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'Resume':'Pause';};
-  setupSoftControls();setupOpticsControls();
+  setupSoftControls();setupOpticsControls();setupBeachControls();
   $('reset-water').onclick=()=>{fluid.reset('pool');fluidAccumulator=0;probe.active=false;probe.position.set(0,.8,0);probe.velocity.set(0,0,0);probe.sync();};
   $('dam-break').onclick=()=>{fluid.reset('dam');fluidAccumulator=0;paused=false;$('pause').textContent='Pause';};
   $('stir-water').onclick=()=>{fluid.disturb([-.5,-1.4,0]);};
@@ -292,16 +296,44 @@ function setup() {
     if(['INPUT','SELECT','BUTTON','SUMMARY'].includes(document.activeElement.tagName))return;
     if(['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','ShiftLeft','ShiftRight'].includes(e.code)){keys.add(e.code);e.preventDefault();}
     if((renderer.optics.enabled||renderer.lightTest.enabled)&&(e.code==='Space'||e.code==='KeyR'))return;
-    if(e.code==='Space'){e.preventDefault();$('drop').click();}if(e.code==='KeyC')home();
-    if(e.code==='KeyR')$(fabrics.enabled?'launch-fabric':fibers.enabled?'launch-fiber':granular.enabled?'roll-grains':'roll-ball').click();
+    if(e.code==='Space'){e.preventDefault();$(renderer.beach.enabled?'beach-spawn':'drop').click();}if(e.code==='KeyC')home();
+    if(e.code==='KeyR')$(renderer.beach.enabled?'beach-spawn':fabrics.enabled?'launch-fabric':fibers.enabled?'launch-fiber':granular.enabled?'roll-grains':'roll-ball').click();
     if(e.code==='KeyP')$('controls').open=!$('controls').open;
   });
   document.addEventListener('keyup',e=>keys.delete(e.code));
   window.addEventListener('blur',()=>keys.clear());
   document.addEventListener('visibilitychange',()=>{keys.clear();lastTime=0;stepper.accumulator=0;});
-  setupLightTest();select(0);sceneChange('light-test');$('loading').style.display='none';$('renderer-status').textContent='WebGL 2 · GPU rendering';
+  setupLightTest();select(0);sceneChange('beach');$('loading').style.display='none';$('renderer-status').textContent='WebGL 2 · GPU rendering';
   requestAnimationFrame(tick);
 }
+
+function setupBeachControls(){
+ const beach=renderer.beach,sim=beach.sim;
+ $('beach-tool').onchange=()=>{beach.tool=$('beach-tool').value;controls.mouseButtons.LEFT=beach.tool==='orbit'?THREE.MOUSE.ROTATE:null;canvas.classList.toggle('editing',beach.tool!=='orbit');};
+ $('beach-radius').oninput=()=>{beach.radius=Number($('beach-radius').value);$('beach-radius-value').value=beach.radius.toFixed(1)+' m';};
+ $('beach-time').oninput=()=>{beach.hour=Number($('beach-time').value);updateBeachStats();};
+ $('beach-cycle').onchange=()=>beach.cycle=$('beach-cycle').checked;
+ $('beach-wind').oninput=()=>{sim.wind=Number($('beach-wind').value);$('beach-wind-value').value=sim.wind.toFixed(1)+' m/s';};
+ $('beach-direction').oninput=()=>{sim.windAngle=Number($('beach-direction').value)*Math.PI/180;$('beach-direction-value').value=$('beach-direction').value+'°';};
+ $('beach-pause').onclick=()=>{beach.paused=!beach.paused;$('beach-pause').textContent=beach.paused?'Resume':'Pause';};
+ $('beach-spawn').onclick=()=>{const p=controls.target;if(!beach.spawn(p.x+(beach.balls.length%3-1)*.9,p.z))status('12 glass balls active. Clear balls to start another run.');};
+ $('beach-clear').onclick=()=>beach.balls.length=0;
+ $('beach-nudge').onclick=()=>sim.nudgeWater(controls.target.x,controls.target.z,beach.radius,3);
+ $('beach-mound').onclick=()=>sim.nudgeSand(controls.target.x,controls.target.z,beach.radius,.8);
+ $('beach-dig').onclick=()=>sim.nudgeSand(controls.target.x,controls.target.z,beach.radius,-.8);
+ const focus=(p,offset)=>{controls.target.set(...p);camera.position.set(p[0]+offset[0],p[1]+offset[1],p[2]+offset[2]);controls.update();renderer.previousCamera=null;};
+ $('beach-inspect-ball').onclick=()=>{const b=beach.balls.at(-1);if(b)focus(b.position,[2,1.5,3]);};
+ $('beach-shore').onclick=home;$('beach-pool').onclick=()=>focus([12,.2,15],[5,5,8]);$('beach-grass').onclick=()=>{const y=sim.sample(-6,16).bed;focus([-6,y+.8,16],[3,2.8,5]);};
+ $('beach-backend').onchange=()=>sim.setCPU($('beach-backend').value==='cpu');$('beach-verify').onclick=()=>beach.verify();
+ let lastBrush=0;canvas.addEventListener('pointermove',event=>{if(!beach.enabled||beach.tool==='orbit'||beach.tool==='ball'||event.buttons!==1||event.timeStamp-lastBrush<80)return;lastBrush=event.timeStamp;const ray=rayFromEvent(event);beach.interact(ray.origin.toArray(),ray.direction.toArray());});
+ updateBeachStats();
+}
+function updateBeachStats(){if(!renderer?.beach)return;const b=renderer.beach,h=Math.floor(b.hour),m=Math.floor((b.hour-h)*60);$('beach-time-value').value=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;if(b.cycle)$('beach-time').value=b.hour;
+ $('beach-state').textContent=b.sim.backend; $('beach-draw').textContent=(b.cpuMs||0).toFixed(1)+' ms CPU submission';$('beach-validation').textContent=b.verification;$('beach-cells').textContent=`${b.sim.n} × ${b.sim.n} · ${b.sim.dx} m cells`;
+ $('beach-balls').textContent=`${b.balls.length} / 12 · ${b.balls.filter(v=>v.submerged>.01).length} in water`;
+ $('beach-clock').textContent=b.sim.time.toFixed(1)+' s';$('beach-edits').textContent=b.sim.savedBed.size.toLocaleString()+' cells';
+}
+
 function setupLightTest(){
  const test=renderer.lightTest,fields=['power','spread','aim','curvature','prismAngle','focal','wave','phase','waterHeight','shell','gather'];
  function sync(){
@@ -339,9 +371,11 @@ function tick(time) {
     const elapsed=lastTime?(time-lastTime)/1000:1/60;lastTime=time;
     if(document.hidden){requestAnimationFrame(tick);return;}
     travel(Math.min(elapsed,.05));controls.update(Math.min(elapsed,.1));
+    if(renderer.beach.enabled){const floor=renderer.beach.sim.sample(camera.position.x,camera.position.z).bed+.4;if(camera.position.y<floor)camera.position.y=floor;}
     if(time-lastStream>150){updateStream();lastStream=time;}
     if(streamer.error)throw new Error(streamer.error);
-    if(!paused&&!renderer.optics.enabled&&!renderer.lightTest.enabled)stepper.advance(elapsed,dt=>{
+    renderer.beach.advance(elapsed,renderer.beach.paused,camera);
+    if(!paused&&!renderer.optics.enabled&&!renderer.lightTest.enabled&&!renderer.beach.enabled)stepper.advance(elapsed,dt=>{
       const previous=probe.position.toArray();probe.step(dt);
       if(fluid.enabled){fluidAccumulator+=dt;if(fluidAccumulator>=FLUID_STEP-1e-9){fluid.step(FLUID_STEP,probe);fluidAccumulator-=FLUID_STEP;fluidAverageMs=fluidAverageMs*.9+fluid.simMs*.1;}}
       if(granular.enabled){grainAccumulator+=dt;if(grainAccumulator>=GRAIN_STEP-1e-9){granular.step(GRAIN_STEP,probe);grainAccumulator-=GRAIN_STEP;}}
@@ -355,8 +389,8 @@ function tick(time) {
     if(frame++%15===0){
       const average=frameTimes.reduce((a,b)=>a+b,0)/frameTimes.length;
       $('fps').textContent=Math.round(1000/average);$('frame-ms').textContent=average.toFixed(1);
-      $('splat-count').textContent=(renderer.visibleSplats+renderer.grass.count+renderer.water.count+renderer.grains.count+renderer.soft.count+renderer.optics.count+renderer.lightTest.count).toLocaleString();$('detail').textContent=renderer.effectivePixelTarget.toFixed(1)+' px';
-      updateLightTestStats();
+      $('splat-count').textContent=(renderer.visibleSplats+renderer.grass.count+renderer.water.count+renderer.grains.count+renderer.soft.count+renderer.optics.count+renderer.lightTest.count+renderer.beach.count).toLocaleString();$('detail').textContent=renderer.effectivePixelTarget.toFixed(1)+' px';
+      updateLightTestStats();updateBeachStats();
       $('optics-count').textContent=renderer.optics.count.toLocaleString();$('optics-ms').textContent=renderer.optics.cacheMs.toFixed(0)+' ms';
       $('optics-cache').textContent=renderer.optics.busy?'Updating…':`Ready · ${renderer.optics.cacheCount}`;
       const soft=fabrics.enabled?fabrics:fibers.enabled?fibers:null,subjects=soft?.patches||soft?.grooms||[];

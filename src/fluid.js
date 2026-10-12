@@ -1,6 +1,7 @@
+import { WATER_MATERIAL } from './water-material.js';
 import { Terrain } from './terrain.js';
 
-export const WATER_DENSITY=1000;
+export const WATER_DENSITY=WATER_MATERIAL.density;
 export const FLUID_STEP=1/30;
 export function createFluidTerrain(){const terrain=new Terrain();terrain.edit([0,0,0],3,'subtract');return terrain;}
 

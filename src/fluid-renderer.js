@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { WATER_MATERIAL } from './water-material.js';
 import { SH_GLSL, QUAD_VERTEX } from './shaders.js';
 import { projectSH } from './sh.js';
 import { WATER_SURFACE_FRAGMENT, WATER_MOMENTS_FRAGMENT } from './water-optics.js';
@@ -77,7 +78,7 @@ export class FluidRenderer {
   this.background=new THREE.WebGLRenderTarget(1,1,{type:THREE.HalfFloatType,depthBuffer:false});
   const coeffs=projectSH(d=>{const sky=.5+.5*d[1];return [.38+.35*sky,.47+.3*sky,.5+.26*sky];});
   this.moments=new THREE.WebGLRenderTarget(1,1,{count:granular?2:1,type:THREE.FloatType,depthBuffer:false});
-  this.uniforms={...uniforms,uGranular:{value:granular},uNearestDepth:{value:0},uWaterRoughness:{value:.12},uTurbidity:{value:.12},uWaterMoments:{value:this.moments.texture},uWaterBackground:{value:this.background.texture},uBall:{value:new THREE.Vector3()},uBallRadius:{value:.43},uFluidView:{value:0},uWaterSH:{value:Array.from({length:16},(_,i)=>new THREE.Vector3(...coeffs.subarray(i*3,i*3+3)))}};
+  this.uniforms={...uniforms,uGranular:{value:granular},uNearestDepth:{value:0},uWaterRoughness:{value:WATER_MATERIAL.roughness},uTurbidity:{value:WATER_MATERIAL.turbidity},uWaterMoments:{value:this.moments.texture},uWaterBackground:{value:this.background.texture},uBall:{value:new THREE.Vector3()},uBallRadius:{value:.43},uFluidView:{value:0},uWaterSH:{value:Array.from({length:16},(_,i)=>new THREE.Vector3(...coeffs.subarray(i*3,i*3+3)))}};
   if(granular){
    this.grainFront=new THREE.WebGLRenderTarget(1,1,{count:2,type:THREE.HalfFloatType,depthBuffer:false});
    this.grainBlur=Array.from({length:2},()=>new THREE.WebGLRenderTarget(1,1,{count:2,type:THREE.FloatType,depthBuffer:false}));

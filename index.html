@@ -8,10 +8,28 @@
     <div id="status" role="status" aria-live="polite"></div>
     <details id="controls">
       <summary>Test controls</summary>
-      <label>Scene <select id="test-scene"><option value="light-test" selected>09 · Refraction / caustics</option><option value="optics">08 · Subsurface / transmission</option><option value="fabric">07 · Fabrics</option><option value="fibers">06 · Fur / hair</option><option value="granular">05 · Gravel / sand / mud</option><option value="fluid">04 · Water / pressure</option><option value="grass">03 · Grass interaction</option><option value="terrain">02 · Streamed terrain</option><option value="materials">01 · Materials / carving</option></select></label>
+      <label>Scene <select id="test-scene"><option value="beach" selected>10 · Open beach</option><option value="light-test">09 · Refraction / caustics</option><option value="optics">08 · Subsurface / transmission</option><option value="fabric">07 · Fabrics</option><option value="fibers">06 · Fur / hair</option><option value="granular">05 · Gravel / sand / mud</option><option value="fluid">04 · Water / pressure</option><option value="grass">03 · Grass interaction</option><option value="terrain">02 · Streamed terrain</option><option value="materials">01 · Materials / carving</option></select></label>
       <label>Tool <select id="tool"><option value="orbit">Inspect / orbit</option><option value="stir">Stir water</option><option value="heat">Heat water</option><option value="carve">Subtract material</option><option value="add">Add terrain</option><option value="push">Impulse probe</option></select></label>
       <label>Brush radius <output id="brush-value">1.25 m</output><input id="brush" type="range" min="0.25" max="3" step="0.05" value="1.25"></label>
       <div class="row"><button id="undo">Undo edit</button><button id="home">Reset camera</button></div>
+      <fieldset id="beach-controls" hidden><legend>Beach</legend>
+        <div class="row"><button id="beach-shore">Shore</button><button id="beach-pool">Isolated pool</button><button id="beach-grass">Grass</button></div>
+        <label>Interaction <select id="beach-tool"><option value="orbit">Inspect / orbit</option><option value="water">Nudge water</option><option value="sand">Mound sand</option><option value="dig">Dig sand</option><option value="ball">Place glass ball</option></select></label>
+        <label>Radius <output id="beach-radius-value">2.0 m</output><input id="beach-radius" type="range" min="0.8" max="5" step="0.2" value="2"></label>
+        <div class="row"><button id="beach-spawn">Spawn glass ball (Space)</button><button id="beach-clear">Clear balls</button></div>
+        <button id="beach-inspect-ball">Inspect latest ball</button>
+        <div class="row"><button id="beach-nudge">Nudge water here</button><button id="beach-mound">Mound here</button><button id="beach-dig">Dig here</button></div>
+        <label>Time of day <output id="beach-time-value">11:00</output><input id="beach-time" type="range" min="0" max="23.9" step="0.1" value="11"></label>
+        <label class="check"><input id="beach-cycle" type="checkbox">Run day / night cycle</label>
+        <label>Wind speed <output id="beach-wind-value">7.0 m/s</output><input id="beach-wind" type="range" min="0" max="16" step="0.5" value="7"></label>
+        <label>Wind direction <output id="beach-direction-value">0°</output><input id="beach-direction" type="range" min="-180" max="180" step="5" value="0"></label>
+        <button id="beach-pause">Pause</button>
+        <label>Simulation <select id="beach-backend"><option value="gpu">GPU</option><option value="cpu">CPU reference</option></select></label>
+        <button id="beach-verify">Compare GPU / CPU</button>
+        <dl><dt>Backend</dt><dd id="beach-state">Starting</dd><dt>Draw</dt><dd id="beach-draw">—</dd><dt>Local simulation</dt><dd id="beach-cells">—</dd><dt>Glass balls</dt><dd id="beach-balls">0</dd><dt>Simulated time</dt><dd id="beach-clock">0 s</dd><dt>Sand edits (session)</dt><dd id="beach-edits">0</dd></dl>
+        <p id="beach-validation">Not run</p>
+        <p>Click or drag to interact. Right-drag orbits. WASD travels; Q/E changes height. Wind 0° blows toward the beach. Glass balls are hollow.</p>
+      </fieldset>
       <fieldset id="light-test-controls" hidden><legend>Refraction / caustics</legend>
         <label>Experiment <select id="lt-experiment"><option value="tank">Glass tank / water / hollow balls</option><option value="sphere">Glass sphere</option><option value="convex">Convex lens</option><option value="concave">Concave lens</option><option value="prism">Triangular prism</option><option value="water">Water surface</option><option value="flat-mirror">Flat mirror</option><option value="concave-mirror">Concave mirror</option></select></label>
         <div class="row"><button id="lt-receiver">Inspect receiver</button><button id="lt-reset">Restore settings</button></div>
@@ -88,7 +106,7 @@
         <div class="row"><button id="stir-water">Stir centre</button><button id="heat-water">Heat centre</button></div>
         <label>View <select id="fluid-view"><option value="0">Water</option><option value="1">Density / rest density</option><option value="2">Speed</option><option value="3">Temperature</option></select></label>
         <label>Surface roughness <output id="water-roughness-value">0.12</output><input id="water-roughness" type="range" min="0.04" max="0.6" step="0.01" value="0.12"></label>
-        <label>Turbidity <output id="water-turbidity-value">0.12</output><input id="water-turbidity" type="range" min="0" max="1" step="0.02" value="0.12"></label>
+        <label>Turbidity <output id="water-turbidity-value">0.012</output><input id="water-turbidity" type="range" min="0" max="1" step="0.002" value="0.012"></label>
         <label>Viscosity <output id="fluid-viscosity-value">0.04</output><input id="fluid-viscosity" type="range" min="0" max="0.18" step="0.01" value="0.04"></label>
         <label>Pressure iterations <select id="fluid-iterations"><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
       </fieldset>
