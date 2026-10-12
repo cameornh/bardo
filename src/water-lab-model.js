@@ -24,15 +24,15 @@ export function normalAt(p,field){const e=.003,n=[0,1,2].map(k=>{const a=p.slice
 export function wallVelocity(p,m){const r=p.map((v,k)=>v-m.position[k]),axis=rotate([0,1,0],m.tilt,0),omega=[0,0,m.tiltVelocity].map((v,k)=>v+axis[k]*m.spinVelocity);return [m.velocity[0]+omega[1]*r[2]-omega[2]*r[1],m.velocity[1]+omega[2]*r[0]-omega[0]*r[2],m.velocity[2]+omega[0]*r[1]-omega[1]*r[0]];}
 export function createMotion(){return {position:[0,2,0],velocity:[0,0,0],target:[0,2,0],tilt:0,targetTilt:0,tiltVelocity:0,spin:0,spinVelocity:0,targetSpin:0};}
 export function stepMotion(m,dt){for(let k=0;k<3;k++){m.velocity[k]+=(25*(m.target[k]-m.position[k])-9*m.velocity[k])*dt;m.position[k]+=m.velocity[k]*dt;}m.tiltVelocity+=(25*(m.targetTilt-m.tilt)-9*m.tiltVelocity)*dt;m.tilt+=m.tiltVelocity*dt;m.spinVelocity+=(m.targetSpin-m.spinVelocity)*(1-Math.exp(-dt*3));m.spin+=m.spinVelocity*dt;}
-export function seedWater(kind){const spec=LAB_PRESETS[kind],s=spec.spacing,result=[];const add=(p,v=[0,0,0])=>result.push({p,v,held:false,chem:[0,0,0,0]});
+export function seedWater(kind,spec=LAB_PRESETS[kind]){const s=spec.spacing,result=[];const add=(p,v=[0,0,0])=>result.push({p,v,held:false,chem:[0,0,0,0]});
  if(kind==='pipe'){for(let i=0;i<1200;i++)add([-4.875+(i%40)*s,s*.45+Math.floor(i/800)*s,(Math.floor(i/40)%20-9.5)*s]);return result;}
  if(kind==='waterfall'){
   for(let i=0;i<1600;i++)add([(i%28-13.5)*s,s*.48+Math.floor(i/448)*s,(Math.floor(i/28)%16)*s-.5]);
-  for(let i=0;i<220;i++)add([(i%14-6.5)*s,4.8+s*.5+Math.floor(i/140)*s,-4.35+(Math.floor(i/14)%10)*s],[0,0,1.8]);
-  for(let y=0;y<20;y++)for(let x=0;x<14;x++){const drop=y*.235,age=Math.sqrt(2*drop/(9.81/spec.scale));add([(x-6.5)*s,4.95-drop,-1.1+1.8*age],[0,-9.81/spec.scale*age,1.8]);}
+  for(let i=0;i<220;i++)add([(i%14-6.5)*s,4.8+s*.5+Math.floor(i/140)*s,-4.35+(Math.floor(i/14)%10)*s],[0,0,6/spec.scale]);
+  for(let y=0;y<Math.floor(4.7/s);y++)for(let x=0;x<14;x++){const drop=y*s,age=Math.sqrt(2*drop/(9.81/spec.scale)),speed=6/spec.scale;add([(x-6.5)*s,4.95-drop,-1.1+speed*age],[0,-9.81/spec.scale*age,speed]);}
   return result;
  }
- for(let z=-4.4;z<4.5;z+=s)for(let y=.24;y<3;y+=s)for(let x=-4.7;x<4.8;x+=s){let yes=false;if(kind==='pool')yes=Math.abs(x)<3.5&&Math.abs(z)<2.6&&y<1.4;if(kind==='tank')yes=Math.abs(x)<1.87&&Math.abs(z)<1.26&&y>.55&&y<2.1;if(kind==='glass')yes=Math.hypot(x,z)<.87&&y>.66&&y<2.35;if(kind==='river')yes=Math.abs(x)<2.55&&y>floorHeight([x,y,z],kind)+.14&&y<floorHeight([x,y,z],kind)+.75;if(kind==='ocean')yes=y>floorHeight([x,y,z],kind)+.16&&y<1.35;if(yes)add([x,y,z],kind==='river'?[0,0,.8]:[0,0,0]);}return result;
+ for(let z=-4.4;z<4.5;z+=s)for(let y=.24;y<3;y+=s)for(let x=-4.7;x<4.8;x+=s){let yes=false;if(kind==='pool')yes=Math.abs(x)<3.5&&Math.abs(z)<2.6&&y<1.4;if(kind==='tank')yes=Math.abs(x)<1.87&&Math.abs(z)<1.26&&y>.55&&y<2.1;if(kind==='glass')yes=Math.hypot(x,z)<.87&&y>.66&&y<2.35;if(kind==='river')yes=Math.abs(x)<2.55&&y>floorHeight([x,y,z],kind)+.14&&y<floorHeight([x,y,z],kind)+.75;if(kind==='ocean')yes=y>floorHeight([x,y,z],kind)+.16&&y<1.35;if(yes)add([x,y,z],kind==='river'?[0,0,1.2/spec.scale]:[0,0,0]);}return result;
 }
 // Symmetric lists: both particles accept a pair or neither does. Diffusion
 // therefore exchanges equal solute mass; no directional nearest-N truncation.

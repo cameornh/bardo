@@ -19,6 +19,7 @@ export class LabRain {
     this.sequence=0;
     this.budget=0;
     this.sourceVolume=0;
+    this.capacityLimited=false;
   }
   get options() {
     if(!this.settings.has(this.kind))this.settings.set(this.kind,{enabled:false,rate:5});
@@ -134,7 +135,7 @@ export class LabRain {
         if(this.solidHit(point,other))continue;
         group.push(q);volume+=q.volume;
       }
-      if(volume+1e-12>=pv) {
+      if(volume+1e-12>=pv && lab.count+items.length<lab.particleBudget) {
         const position=lab.collide(point.map((v,k)=>v+normal[k]*lab.spacing*.42));
         const velocity=p.particle>=0?Array.from(lab.velocities.subarray(p.particle*4,p.particle*4+3)):[0,0,0];
         items.push({position,velocity});
@@ -159,9 +160,11 @@ export class LabRain {
     const lab=this.lab,scale=lab.spec.scale;
     if(this.enabled&&this.rate>0) {
       this.budget+=dt*72;
-      this.sourceVolume+=this.flux*dt;
+      const available=Math.max(0,(lab.particleBudget-lab.count)*lab.spacing**3-this.unresolvedVolume-this.sourceVolume);
+      this.capacityLimited=available<this.flux*dt;
+      this.sourceVolume+=Math.min(available,this.flux*dt);
       const count=Math.floor(this.budget);
-      if(count) {
+      if(count&&this.sourceVolume>0) {
         const volume=this.sourceVolume/count;this.sourceVolume=0;this.budget-=count;
         for(let i=0;i<count;i++) {
           const seq=++this.sequence;
@@ -173,6 +176,7 @@ export class LabRain {
         }
       }
     }
+    this.budget=Math.min(this.budget,1);
     if(this.drops.length) {
       this.buildSurfaceIndex();
       const alive=[];

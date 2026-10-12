@@ -47,3 +47,13 @@ test('distributed rain on connected water raises the resolved inventory before i
  }
  lab.rain.releaseDeposits();assert.ok(lab.count>before);assert.ok(Math.abs(ledger(lab))<1e-9);
 });
+
+
+test('rain reserves its incoming volume against the bulk budget without deleting accumulated water',()=>{
+ const lab=new WaterLab({extensions:{has:()=>false}});lab.configure('glass');lab.particleBudget=lab.count+1;
+ const before=lab.count,initial=lab.volume;lab.rain.enabled=true;lab.rain.rate=120;
+ for(let i=0;i<900;i++)lab.rain.step(1/60);
+ assert.ok(lab.count<=before+1);assert.equal(lab.rain.capacityLimited,true);
+ assert.ok(lab.rain.emitted<=lab.spacing**3+1e-10);
+ assert.ok(Math.abs(lab.volume+lab.rain.unresolvedVolume*lab.spec.scale**3-initial-lab.rain.emitted*lab.spec.scale**3)<1e-10);
+});

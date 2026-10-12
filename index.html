@@ -16,6 +16,11 @@
       <div class="row"><button id="undo">Undo edit</button><button id="home">Reset camera</button></div>
       <fieldset id="water-lab-controls" hidden><legend>Water laboratory</legend>
         <label>Station <select id="wl-station"><option value="pipe">Pipe / impinging jet</option><option value="waterfall">Large waterfall</option><option value="pool">Pool / underwater jets and lights</option><option value="tank">Moving glass tank</option><option value="river">River / sediment / dyes / tannins</option><option value="glass">Spinning drinking glass</option><option value="ocean">Wind-driven ocean basin</option></select></label>
+        <label>Water detail target (resets water) <select id="wl-resolution"><option value="1">1× · standard</option><option value="1.5">1.5× · finer sheets</option><option value="2">2× · fine</option><option value="3">3× · fine target</option></select></label>
+        <label>Bulk particle budget (resets water) <select id="wl-budget"><option value="8192">8,192</option><option value="16384">16,384</option><option value="32768">32,768 · stress test</option></select></label>
+        <label>Physical size (resets water) <output id="wl-scale-value">1×</output><input id="wl-scale" type="range" min="-1" max="1" step="0.05" value="0"></label>
+        <label><input id="wl-detail" type="checkbox" checked> Fine spray / bubbles / foam</label>
+        <label>Fine particle density <output id="wl-detail-density-value">1×</output><input id="wl-detail-density" type="range" min="0" max="3" step="0.1" value="1"></label>
         <label>Interaction <select id="wl-tool"><option value="orbit">Inspect / orbit</option><option value="grab">Grab / drop water sphere</option><option value="nudge">Push water</option><option value="wind">Wind brush (hold)</option><option value="glass">Throw floating glass ball</option><option value="mirror">Throw neutral mirror ball</option><option value="rock">Throw sinking rock</option><option value="dye">Dissolve blue dye</option><option value="tannin">Dissolve tannins</option></select></label>
         <label>Interaction radius <output id="wl-radius-value"></output><input id="wl-radius" type="range" min="0.2" max="2" step="0.05" value="0.75"></label>
         <label>Laminar → turbulent forcing <output id="wl-turbulence-value">0.20</output><input id="wl-turbulence" type="range" min="0" max="2" step="0.05" value="0.2"></label>
@@ -40,7 +45,7 @@
         <div class="row"><button id="wl-pause">Pause</button><button id="wl-reset">Reset station</button><button id="wl-clear">Clear bodies</button></div>
         <label>Fluid constraints <select id="wl-backend"><option value="gpu">GPU</option><option value="cpu">CPU reference</option></select></label>
         <button id="wl-verify">Compare GPU / CPU</button>
-        <dl><dt>Backend</dt><dd id="wl-state"></dd><dt>Water volume</dt><dd id="wl-volume"></dd><dt>Rain added / still falling</dt><dd id="wl-rain-volume"></dd><dt>Held volume</dt><dd id="wl-held"></dd><dt>Sediment balance</dt><dd id="wl-sediment"></dd><dt>Rigid bodies</dt><dd id="wl-bodies"></dd><dt>Simulation</dt><dd id="wl-clock"></dd><dt>GPU draw passes</dt><dd id="wl-times"></dd></dl>
+        <dl><dt>Backend</dt><dd id="wl-state"></dd><dt>Physical dimensions</dt><dd id="wl-dimensions"></dd><dt>Bulk resolution</dt><dd id="wl-resolution-state"></dd><dt>Fine Gaussian particles</dt><dd id="wl-detail-state"></dd><dt>Water volume</dt><dd id="wl-volume"></dd><dt>Rain added / still falling</dt><dd id="wl-rain-volume"></dd><dt>Held volume</dt><dd id="wl-held"></dd><dt>Sediment balance</dt><dd id="wl-sediment"></dd><dt>Rigid bodies</dt><dd id="wl-bodies"></dd><dt>Simulation</dt><dd id="wl-clock"></dd><dt>GPU draw passes</dt><dd id="wl-times"></dd></dl>
         <p id="wl-validation">Not run</p><p>Click to interact; click again to drop held water. Right-drag orbits. Station changes reset the finite water supply. Pipe, waterfall and river pumps recirculate it. Moving vessels respond to position, tilt and rotation controls.</p>
       </fieldset>
       <fieldset id="beach-controls" hidden><legend>Beach</legend>

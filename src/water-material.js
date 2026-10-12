@@ -1,5 +1,5 @@
 // One water material, independent of the solver, body size, or connectivity.
-export const WATER_MATERIAL=Object.freeze({density:1000,ior:1.333,absorption:Object.freeze([.28,.065,.035]),scatter:Object.freeze([.012,.026,.035]),roughness:.12,turbidity:.012});
+export const WATER_MATERIAL=Object.freeze({density:1000,kinematicViscosity:1.004e-6,surfaceTension:.072,ior:1.333,absorption:Object.freeze([.28,.065,.035]),scatter:Object.freeze([.012,.026,.035]),roughness:.12,turbidity:.012});
 export function waterTransmittance(distance,turbidity=0){return WATER_MATERIAL.absorption.map((a,i)=>Math.exp(-(a+WATER_MATERIAL.scatter[i]+turbidity)*Math.max(0,distance)));}
 export const WATER_MATERIAL_GLSL=`
 const float WATER_IOR=1.333;
