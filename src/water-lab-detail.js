@@ -29,6 +29,16 @@ p.w+=uDt;if(p.w<v.w){vec2 air=beachWind(p.xz*uScale,uTime,uWind,0.,uTurbulence)/
 float drag=info.y>1.5?3.:info.y>.5?.45:1.1;v.xyz+=(target-v.xyz)*(1.-exp(-drag*uDt));v.y+=(info.y>1.5?.45:info.y>.5?-.12:-9.81)/uScale*uDt;p.xyz+=v.xyz*uDt;}
 nextPosition=p;nextVelocity=v;nextInfo=info;}`;
 function texture(data){const t=new THREE.DataTexture(data,256,data.length/1024,THREE.RGBAFormat,THREE.FloatType);t.needsUpdate=true;return t;}
+function sourceNoise(position,normal,spacing,time,seed){
+  // Smooth, bounded variation shared by each emitter's particles. Keep most
+  // of it tangent to the surface so fine foam stays near its source interface.
+  const drift=position.map((_,k)=>{
+    const phase=(position[k]*.8+position[(k+1)%3]*.45+position[(k+2)%3]*.3)/spacing+time*.6,cell=Math.floor(phase),u=phase-cell,f=u*u*(3-2*u),key=seed*23+k*107;
+    return (hash(key+cell*17)*(1-f)+hash(key+(cell+1)*17)*f-.5)*spacing*.24;
+  });
+  const along=drift.reduce((sum,v,k)=>sum+v*normal[k],0);
+  return drift.map((v,k)=>v-normal[k]*along*.85);
+}
 export class LabDetail {
   constructor(renderer,capacity=DETAIL_CAPACITY){
     this.renderer=renderer;this.capacity=Math.ceil(capacity/256)*256;this.cpu=!renderer.extensions.has('EXT_color_buffer_float');this.enabled=true;this.density=1;
@@ -73,6 +83,8 @@ export class LabDetail {
       const vertical=lab.velocities[o+1]*scale,kind=normal[1]>.35&&vertical>-.7&&vertical<1.5?(r<.18&&energy>.8?2:1):0;
       const tangent=patch.reduce((sum,v,k)=>sum+v*normal[k],0);for(let k=0;k<3;k++)patch[k]-=normal[k]*tangent;
       const source=normal.map((v,k)=>lab.positions[o+k]+patch[k]*s*.35+v*s*(kind===2?-.12:.8)),history=i*3;
+      const drift=sourceNoise(source,normal,s,lab.time??this.time,i),noisy=source.map((v,k)=>v+drift[k]);
+      if(!lab.solid||lab.solid(noisy)>0)for(let k=0;k<3;k++)source[k]=noisy[k];
       // Pump recycling teleports a parcel to the inlet. Never connect that
       // discontinuity with an artificial spray strand across the fixture.
       if(!Number.isFinite(this.sources[history])||Math.hypot(...source.map((v,k)=>v-this.sources[history+k]))>s*2)this.sources.set(source,history);
