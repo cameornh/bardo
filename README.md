@@ -1,0 +1,198 @@
+# Bardo engine experiments
+
+Local SDF/Gaussian sandbox experiments. The interface is a viewport and collapsible functional controls. Test 01 contains material objects and clay carving; test 02 adds streamed, editable terrain and a physics probe; test 03 fills that terrain with interactive Gaussian grass; test 04 adds a bounded water solver in a carved basin; test 05 compares gravel, sand, and a cohesive mud proxy; test 06 compares deformable fabrics; test 07 compares fur and hair. The browser is a development harness, not a commitment to a browser-based final engine.
+
+## Run
+
+Run **npm install**, then **npm run dev**. Open the local Vite URL. A desktop browser with accelerated WebGL 2 and floating-point render targets is required. **npm test** runs numerical and streaming checks; **npm run build** builds the harness. No account or backend is involved. Earlier mesh_to_splats.py, synthetic_splats.json, and test_cube.obj files remain untouched and are not runtime inputs.
+
+## Gaussian renderer and motion detail
+
+The old renderer used Gaussian-weighted attributes but reconstructed an opaque surface through a hard depth prepass. It did not contain spherical harmonics. That path has been replaced.
+
+Each solid/terrain primitive stores a 3D center, a full symmetric positive-definite covariance, optical density, a normal/material reference, and **degree-3 RGB spherical harmonics: 16 coefficients per channel**. The perspective Jacobian projects the covariance into an elliptical Gaussian. Gaussian density is exp(−q/2), and opacity is 1 − exp(−density × optical depth). Premultiplied color is blended back to front. This optical-depth formulation allows parent/child density interpolation without a sudden opacity switch. It differs from the original 3DGS formula that multiplies a bounded opacity directly by the Gaussian.
+
+The screen footprint extends until its opacity is negligible, including for dense merged parents. It is not an opaque ellipse. A pixel reconstruction filter broadens subpixel covariance with determinant compensation to preserve integrated density. No motion-blur shader, screen smear, frame accumulation, or blur overlay is used.
+
+SH coefficients are projected from a procedural environment response and material properties. They are **real directional radiance coefficients, not photo-trained coefficients**. Moving direct lights remain a separate GGX/diffuse term, with field shadows evaluated per Gaussian. Degree 0 removes directional SH terms for comparison. SH is a compact angular color representation; it does not itself implement refraction, diffraction, pressure, or subsurface transport. The moving probe carries its fitted environment response with its rotation; fully relightable dynamic SH remains future work.
+
+Glass keeps an approximate two-interface Snell/Beer model and rough transmission. This shading is calculated once per covered pixel in a cache, then sampled by overlapping Gaussians. Repeating secondary rays for every overlapping kernel was prohibitively expensive. Wax backlighting and wool sheen remain appearance approximations.
+
+### LOD policy
+
+- Camera translation and rotation produce an estimated screen-motion speed in render-target pixels per second. A first-order projection at the camera's focus distance is a proxy, not per-pixel optical flow.
+- Motion raises the target Gaussian footprint linearly with estimated screen speed: multiplier = 1 + speed / 160, with speed measured in render pixels/second. Thus 160, 320, and 640 px/s target 2×, 3×, and 5× coarsening. Fast attack and slower continuous recovery replace the old wait-after-camera-stops timer. Refinement does not change physics.
+- Each object/chunk owns a stable Gaussian hierarchy. Parents merge optical mass, position means, and covariance second moments. Normal groups avoid merging opposite-facing surfaces. Parent/child density blends continuously between adjacent levels.
+- Projected size includes distance, focal length, and render resolution. A small distant object therefore uses fewer, broader Gaussians; the wax test hierarchy goes from 1,850 leaf Gaussians to 24 coarse Gaussians.
+- The base pixel sigma is a hierarchy-selection target, not an instruction to enlarge every individual splat to a fixed minimum diameter. Flat terrain receives lower detail priority than curved objects; edited terrain gets intermediate priority.
+- A global active-splat budget counts both levels during transitions. It raises the footprint target until the conservative visible count fits. It does not randomly discard individual splats. Conservative accounting can leave some budget unused.
+- Terrain chunks retain the same 0.5 m base sampling grid throughout their residency. Moving across a distance ring no longer replaces an entire sampling grid. Drawing changes hierarchy level each frame instead.
+
+For comparison, choose **01 · Materials / carving**, select Wax, and enable **Repeatable orbit test**. Watch Camera motion, Motion coarsening, Selected material splats, and the bottom count. Disable **Coarsen during camera motion** to isolate screen-size LOD. Adjust **Base Gaussian sigma**, **Surface splat budget**, or **SH degree**. All of these controls affect rendering.
+
+### Visibility limitations
+
+Objects use center-depth sorting, which is an approximation for intersecting or very large Gaussians. Solid ground is rendered as a separate Gaussian support layer with depth, so a broad ground footprint cannot paint the floor through a foreground object. Gaussian object colors remain alpha-composited rather than writing opaque splat disks. This is an SDF/material-aware hybrid, not an exact reproduction of the original 3DGS rasterizer.
+
+Edited splat support is constrained against the field along the viewing ray. Extra samples preserve both faces of cut rims. Coarse levels can still soften silhouettes, lose tiny cuts, expose residual cut-edge artifacts, or show sorting changes. These merged levels have not undergone the image-based optimization used by trained hierarchical 3DGS. Detailed chunk arrival remains asynchronous; coarse proxies now cover loading and distant chunks, with a 0.45 s optical-density handover.
+
+## Tests 06–07: fabric, fur, and hair
+
+**06 · Fabrics** is the default. Four swatches, left to right, compare silk-like cloth (blue), canvas (tan), knit (red), and leather-like material (brown). They are test presets, not measured material fits. Each has a 14 × 18 cell lattice, 285 physical nodes, two fixed upper corners, and slightly gathered clamps. Gravity and a small constant air load produce the drape; there is no animation path. The four cloths total 1,140 physical nodes and 1,008 finest-level surface Gaussians.
+
+Use **Gust all** for the same applied pressure across the materials; **Ball at swatch (R)** for contact; **Pull hem / Release hem** for a controlled extension/recoil test; and **Release pins** to drop a sheet. **Inspect selected** brings the camera close, while **Reset camera** returns to the comparison. **Reset all** rebuilds the scene with the currently edited parameters; **Restore preset** resets the selected material's parameters and physical state. Pause applies to all simulation; camera and lighting remain usable.
+
+- **Stretch resistance** controls distance-constraint compliance; **Bend resistance** independently controls second-difference bending constraints. Both sliders use a logarithmic compliance mapping.
+- **Damping** changes energy loss: low values retain more oscillation, high values settle faster. Springiness comes from stiffness, mass, and damping together.
+- **Areal density** sets nodal mass. **Weave anisotropy** changes the relative horizontal and vertical stretch compliance, with separate diagonal shear constraints.
+- **Tear strain** is the tensile strain threshold. Enable **Allow strain tearing**, then pull the hem. The grip starts at the currently deformed hem and remains above the floor. Fracture is evaluated after constraint relaxation, so grabbing the cloth does not itself create a rest-position snap and false tear. Broken lattice links also disable crossing bend constraints; cells with a broken perimeter edge disappear. **Show strain** colors current tensile strain from blue toward red. Tearing is disabled by default.
+
+The common CPU solver uses XPBD compliance and accumulated constraint multipliers. It advances at 60 Hz with three 1/180 s substeps, three constraint iterations per substep, gravity, and exponential velocity damping. Sphere contact divides positional correction by mass and returns a linear impulse to the 1.5 kg probe; its rigid-body integrator remains at 120 Hz. Physical state is independent of camera motion and render LOD. Fixed anchors and fixtures absorb external reaction. The floor is a flat plane in these tests, so terrain carving is disabled here; saved terrain/clay edits remain in their original scenes.
+
+The bending model is a discrete vector second-difference approximation, not a calibrated shell/dihedral model. Tearing is lattice-link failure, not remeshed fracture. There is no fabric self-collision, cloth–cloth collision, plasticity, yarn simulation, or high-speed continuous collision detection. Extremely soft settings or large loads can stretch the lattice substantially. Solver iteration error remains, so the maximum resistance is not perfectly inextensible. Detached cloth may fold through itself.
+
+**07 · Fur / hair** compares short plush, stiff bristles, curly wool, and long hair. Plush, bristles, and long hair each have 36 simulated guide curves with 6, 8, and 12 segments respectively. Wool uses 24 guides with 20 segments to resolve its curls. That totals 1,548 physical nodes across the scene. Two root nodes per guide are pinned to an analytic spherical fixture. Guide length constraints resist extension. Two- and three-segment rest-length chords preserve the bend/twist preference of curls; nearly straight segments additionally use angular hinges because chord length becomes insensitive to small bending angles there. All of these constraints are rotation-invariant. This replaces unstable world-space curvature-vector constraints that pumped energy into the wool. The same three substeps/three iterations handle gravity, damping, gusts, floor/fixture contact, and two-way probe contact. **Brush selected** applies a velocity impulse increasing toward each tip. **Ball at groom (R)** launches the physical sphere; there is no scripted bending animation.
+
+Length, curl, stiffness, damping, fiber radius, and roughness can be varied. Changing length or curl rebuilds only the selected groom; the other properties update it in place. **Rendered strands / guide** changes visual density without changing guide physics. Six follower strands per guide are the default; they inherit guide deformation and stable offsets. Followers do not have independent contacts. Roots on the spherical fixtures occupy the upper hemisphere, so these are small coat/groom samples rather than complete furry creatures.
+
+Fabric cells become thin full-covariance Gaussians; each fiber segment becomes a long, narrow 3D Gaussian aligned to its current tangent. The visible fixtures are also Gaussian samples. No triangle cloth or hair mesh is drawn. Shared RGB degree-3 environment SH is evaluated against the deformed normal/reflection direction, alongside a cloth GGX/sheen approximation and a tangent-dependent fiber highlight. This is procedural relightable shading, not fitted per-strand radiance, spectral fiber scattering, a full Marschner BSDF, or multiple scattering through dense fur. Directional highlights and roughness are present; shadowing within the grooms needs further work.
+
+Stable material-space groups merge optical mass and covariance moments for LOD. The renderer blends adjacent levels and uses projected size plus the existing smooth, speed-proportional camera multiplier. It has a separate **12,000-splat** cap including both transition levels and 640 fixture splats. A torn cloth stays at its finest level so a broad parent cannot bridge the opening. Coarse hair bundles can soften curls and silhouettes. The renderer accumulates bundle moments directly to avoid creating a fine object hierarchy every frame. Simulation resolution does not change during motion.
+
+These are bounded CPU experiments, not open-world deformable streaming. Tests cover independent stretch/bend response, damping, fixed anchors, optional tearing and reset, equal/opposite isolated contact impulses, bounded hair extension, curl/brush response, optical-mass preservation, and the draw cap. A 30-second wool settling regression applies a brush impulse at 12 seconds and requires RMS node speed below 2 mm/s over the final five seconds; the current run decayed to roughly 0.07 mm/s at 30 seconds. The live **Selected groom RMS speed** diagnostic exposes this motion directly. These measurements concern stability, not material calibration. Numerical compliance and parameters still need calibration. Next steps are calibrated rod/shell bending and torsion, self-collision, fiber friction and entanglement, better scattering/shadows, GPU simulation and submission, and distance-based simulation residency with preserved state. Wetting, cloth absorption, mud adhesion, and hair–water coupling are later experiments.
+
+## Test 04: water and pressure
+
+Choose **04 · Water / pressure**. **Test controls → Water** contains **Reset pool**, **Dam break**, **Stir centre**, and **Heat centre**. **Drop probe here** (or Space with the viewport focused) drops the rigid sphere into the water. Choose **Stir water** or **Heat water** in the Tool menu to act at a clicked water particle. Heat automatically selects the temperature visualization. **Pause** freezes the simulation; the camera remains usable. Reset pool reseeds water inside the current basin; reload restores the original bowl.
+
+The basin is a separate, session-only terrain field with a 3 m spherical subtraction. It uses the same terrain/contact queries as the other tests. Subtract/add tools can change the basin while water is running. These edits never overwrite the saved terrain experiment. Water retains a fixed safety box (x/z ±5 m, y −4…6 m), including after carving an outlet. This is a bounded solver test, not fluid streaming across an open world. Only nine detailed terrain chunks are resident in this scene, in addition to the coarse proxies; no grass roots are generated.
+
+The default pool has **346 equal-mass particles** at a 0.45 m initial spacing. A CPU position-based fluid solver advances at a fixed **30 Hz**, independently of display refresh rate and render LOD. It predicts gravity-driven motion, finds neighbors through a spatial grid, relaxes excess density with two Jacobi constraint iterations, enforces terrain/body contact, and recovers velocity from corrected positions. The viscosity control applies symmetric pairwise velocity mixing. Pressure iterations trades CPU work for density convergence. **Peak compression** reports the maximum density excess before the final correction; it is not pressure in pascals. Particle mass stays constant, but this coarse discretization does not guarantee an exact visible water volume.
+
+The sphere advances at 120 Hz and has a mass of 180 kg in this test. Water/body penetration corrections are split by mass and converted into equal-and-opposite linear impulses. The ball displaces water and receives a reaction. This coupling is approximate: it has no calibrated buoyancy, tangential fluid drag, or viscous torque. SDF boundaries absorb momentum. The fluid's boundary density estimate, free surface, splashes, and angular-momentum behavior need further work.
+
+Temperature starts at 20°C, follows each particle, and diffuses symmetrically between neighbors. Heat clicks add a local temperature pulse; the temperature view maps 20–55°C from blue to red. Equal particle masses and a constant assumed heat capacity make summed temperature a heat-conservation proxy. Temperature is **passive**: it does not yet change density or viscosity, produce convection, boil water, or exchange heat with terrain or air. The viscosity slider is a dimensionless mixing strength, not a calibrated SI viscosity.
+
+Water still projects full-covariance 3D Gaussians. Its optical view now accumulates Gaussian depth moments, thickness, and foam, then reconstructs one smooth interface per pixel. Normals come from spatial differences of that reconstructed surface. This is an optical reconstruction from splats, with no triangle water mesh, animated normal map, or imposed wave motion. Density/speed/temperature views retain direct Gaussian compositing.
+
+The interface uses water IOR 1.333, Fresnel reflection, a GGX sun highlight, and shared degree-3 sky SH. Refracted rays march into the SDF basin; their path length drives wavelength-dependent RGB Beer absorption and an approximate single-scattering term. Terrain color is sampled from the opaque image at the refracted hit, with a fallback when the hit is offscreen. **Surface roughness** controls the specular response; **Turbidity** controls the scattering/extinction approximation. This single-interface screen-space reconstruction cannot faithfully handle overlapping sheets, underwater viewpoints, offscreen reflection, or full multi-bounce transport. It is not yet a calibrated spectral or multiple-scattering model.
+
+Foam is an advected scalar generated near the free surface from weighted relative particle velocity, with a 1.8 s exponential decay timescale. It raises roughness and adds white scattering. This is an entrainment heuristic, not a resolved turbulence, air, spray, or bubble simulation. Waves/sloshing follow the existing fluid dynamics and are visible in the optical interface; fine capillary waves and breakers are unresolved. **No caustic texture or animated light pattern is applied.**
+
+Water render LOD groups particles into coarser spatial cells using projected footprint and the same continuous camera-speed multiplier as other tests. It merges center/covariance moments and blends optical density between neighboring levels. Both levels count as submitted water splats during transitions; simulation particles are unchanged. Moving particles can still change coarse cell membership. The draw buffer accommodates both levels and is independent of the surface budget.
+
+Tests cover a contained pool, dam collapse, fixed particle mass, equal/opposite ball impulses, a falling rigid sphere, heat conservation, fixed stepping across display rates, and LOD isolation/optical blending. The earlier direct-volume preview was approximately **9–12 FPS**, with roughly **9–10 ms per fluid step** and **3 ms of water draw CPU work**; those are local observations, not a GPU profile or hardware guarantee. These older timings predate the new optical interface and shared terrain visibility. There is still substantial terrain/render cost. Dropped catch-up time is reported, so slow frames can make simulated time fall behind wall time. GPU simulation and a measured frame budget are prerequisites for expanding this beyond a small experiment.
+
+## Terrain coverage and cut visibility
+
+Terrain color Gaussians now share one cached first-hit SDF depth and normal per pixel. A cavity-wall Gaussian cannot Newton-project onto the outer rim and carry its wall lighting across the cut. Field-normal agreement and normal-offset support reject incompatible kernels; Gaussian density still determines coverage. Terrain direct diffuse shading uses that common normal, removing per-kernel sun-lighting seams; its existing SH environment term remains. This intentionally trades the old per-splat terrain shadow approximation for consistent field-based lighting; richer terrain shadowing is still pending. The other material objects retain their SH/material shading.
+
+**377 coarse proxy chunks** cover a circular region around the camera, independently of the 9/49 detailed chunk cache. Each proxy samples the upper terrain field at 4 m spacing and owns a Gaussian hierarchy. Proxies are immediately available for loading regions; they crossfade to detailed chunks over 0.45 s. Edits invalidate only affected proxies. Outer terrain fades continuously over **112–152 m** horizontally from the camera, before reaching the proxy-cache boundary. Fog also reduces horizon contrast. Surface splat budgeting includes proxies and handover layers. This avoids a blank ring outside the detailed cache, but is not infinite rendering: distant cave walls, fine cuts, silhouettes, and long rays remain approximate.
+
+## Test 05: gravel, sand, and mud
+
+Choose **05 · Gravel / sand / mud**. The three piles run left to right: **110 gravel particles**, **364 sand parcels**, and **222 mud parcels**. **Reset piles**, **Disturb all piles**, and **Roll ball (R)** exercise settling and displacement; Space drops the probe. The test has its own editable, session-only terrain, preserving saved terrain and basin edits. The camera reset frames all three piles.
+
+The CPU solver advances at 60 Hz with four contact iterations. A spatial grid finds nearby particles. Mass-weighted normal corrections prevent overlap; tangential position corrections approximate Coulomb friction. Gravel uses larger radii/high friction, sand smaller parcels/moderate friction, and mud short-range cohesion, stronger dissipation, and a wetter specular appearance. The 40 kg probe exchanges normal contact impulses with the particles. Gaussian render coarsening blends adjacent levels, never merges different materials, and does not remove simulated parcels. Material color variation stays attached to particle identity rather than changing as a particle moves.
+
+These are **coarse material experiments**, not calibrated geotechnical models. Sand parcels represent many grains. Gravel is spherical rather than interlocking angular stones; grain rotation/torque is absent. Mud is cohesive damped soil, with no pore-water pressure, drainage, saturation, yield-stress constitutive solve, or water–soil exchange yet. Momentum lost to terrain, friction, damping, and safety bounds is intentional; energy and angular momentum are not fully conserved. The safety box is x ±7 m, z ±4 m. Piles may creep or slump with this low iteration count.
+
+Numerical checks cover deterministic resets, settling/containment, distinct spread and retained height, probe contact, and material-preserving render LOD. The local granular preview measured approximately 12–13 FPS and about 11 ms per 60 Hz step, so this is not an open-world performance result.
+
+## Water and mixed-material roadmap
+
+The aim is a shared physical state that drives appearance and interaction. Low visual detail should reduce sampling cost without inventing different material laws. Render LOD can be aggressive; simulation changes must preserve mass, momentum, heat, and material fractions at region boundaries.
+
+| Pass | Scope and acceptance test |
+| --- | --- |
+| Present prototype | Coarse pressure relaxation, SDF contact, particle sloshing, passive heat diffusion, Gaussian optical interface, Fresnel/GGX, one-interface refraction, absorption, approximate in-scattering, heuristic foam. Compare optical and diagnostic views of exactly the same simulation. |
+| Hydrostatics and rigid coupling | Boundary volume/density correction, pressure-force integration, displaced volume, buoyancy, drag, and torque in a unified solve. Floating objects must displace their weight of fluid; sealed pools must conserve mass and settle to a stable level. Avoid adding an independent upward buoyancy force on top of an already complete pressure force. |
+| Waves and interfaces | Improved free-surface reconstruction, resolution convergence, vorticity handling, surface tension, wetting/contact angles, and breaking waves. Resolve macroscopic waves physically; aggregate only subpixel capillary detail. Test wave speed, damping, obstacle wakes, and energy loss. |
+| Light transport and emergent caustics | First provide a view-independent Gaussian density/interface query (the current screen-space surface is insufficient). Trace energy packets from the sun/lights through that shared water interface using Snell/Fresnel; deposit refracted energy on SDF receivers. A bounded photon/beam cache can share estimates across frames and spatial levels. Splats reconstruct the estimate; they do not prescribe a caustic pattern. Test a flat interface, a focusing wave, moving lights, energy conservation, and convergence. Multiple interfaces and offscreen visibility must precede claiming general caustics. |
+| Participating media / subsurface appearance | Wavelength-dependent absorption and scattering, phase functions, optical path length, multiple scattering/diffusion where optically thick, and consistent underwater views. Use molecular/Rayleigh terms where appropriate, plus particulate and bubble scattering; a blue tint alone is not Rayleigh scattering. Test clear/shallow, deep, turbid, backlit, and submerged cases. |
+| White water and air | Couple entrainment to breaking/shear/curvature evidence; evolve separate spray, bubbles, and surface foam with drag, rise, lifetime, and water/air mass accounting. The current foam scalar is only a preview of this system. |
+| Heat, diffusion, and phase change | Calibrated heat capacity/conductivity, heat exchange with terrain and air, temperature-dependent viscosity/density, convection, freezing/melting, and latent heat/boiling. Keep molecular diffusion distinct from turbulent mixing. Test equilibrium, diffusion rate, buoyant convection, and energy budgets. |
+| Sand, gravel, and mud coupling | Angular/frictional grain response, repose and compaction, water saturation/permeability, pore pressure, cohesion/yield behavior, sediment suspension/settling, erosion/deposition, and drying. Test wet/dry transitions and mixture mass conservation before presenting mud as water plus soil. |
+| Open-world scale | GPU neighbor search/solves, sparse active regions, sleeping grains and settled sediment, coarse far-field water, conservative transfers between resolutions, optical cache LOD, named-hardware CPU/GPU budgets, and worst-case interaction tests. Camera coarsening must not silently delete fluid/soil mass or heat. |
+
+Sequence the hydrostatic/interface tests before caustics: otherwise the light system would faithfully amplify an unstable or wrong water surface. Keep gravel/sand/mud isolated until the coupling is validated, then add a shared wet bank/shoreline scene. Full diffraction is a separate wave-optics milestone; geometric Snell rays cannot produce it.
+
+## Test 03: grass interaction
+
+Choose **03 · Grass interaction**. Open **Test controls → Grass → Roll ball (R)**, or focus the viewport and press **R**. The existing rigid sphere starts with rolling velocity and spin, then gravity and field contact determine its path. **Drop probe here** and **Impulse probe** also affect the grass. **Show bending** colors displaced grass orange/red; **Reset bends**, **Recovery**, and **Pause** help inspect contact and regrowth. There is no animated wind or scripted ball path.
+
+The worker generates deterministic roots on the upper exposed terrain surface. On unedited ground, the 49 resident chunks contain 78,400 finest-level roots. Near blades use three elongated 3D Gaussians along a curved centerline. Both their centers and covariance axes bend; their roots stay attached. Coarser levels use wider clump representatives. Grass uses Gaussian optical-depth alpha and a shared degree-3 material SH response, plus direct light and approximate backlighting. It does not allocate individual SDFs, rigid bodies, or unique SH coefficients for every blade.
+
+A sparse 0.5 m lattice stores horizontal deflection and flattening. The physical sphere's swept path presses nearby nodes; critically damped springs restore them. That field advances at the same fixed 120 Hz timestep as physics, independently of drawing detail. The recovery slider controls a characteristic spring timescale, not an exact deadline. Nearby blades interpolate the field on the GPU. An airborne sphere above blade height does not press grass. Contacts agree across shared chunk boundaries.
+
+Grass LOD is selected in 4 m patches using projected size and the camera motion multiplier. Parent/child levels crossfade in density. The separate grass budget defaults to 12,000 submitted Gaussians and counts both levels during transitions. The bottom total includes surface, grass, water, and granular draws. Static draw lists are reused after the camera and detail settle; changed deformation texture rows still update. Terrain depth is ray traced and cached until the camera, resolution, or relevant fields change, so broad terrain kernels do not cut thin blades into bands. The ball occludes grass analytically without turning each grass splat into an opaque depth disk.
+
+This is **one-way body-to-grass coupling**: grass does not exert drag or torque on the ball. The bend field is a coarse vegetation response, not individual elastic rods or blade-to-blade collisions. Roots avoid steep walls; exposed surfaces regenerate after edits, including new cut floors. Regenerating or evicting a chunk resets its bends. Coarse clumps and visibility transitions remain approximate, and refraction/reflection rays do not trace grass. There is no durable vegetation state yet.
+
+Tests cover deterministic roots on edited surfaces, an actual rolling physics sphere, airborne rejection, recovery, chunk seams, draw budgets, deformation updates with cached draw lists, and clean regeneration. Rendering cost remains substantial; the grass test has not established a 60 FPS hardware target.
+
+## Terrain and physics
+
+Drag to orbit and scroll to approach. WASD travels, Q/E descends/ascends, and Shift accelerates. This is a free camera, not a walking character. Keyboard controls require focus in the viewport. Right-drag orbits while editing; P toggles controls, C resets the camera, and Space drops the probe.
+
+1. Select **Subtract material** or **Add terrain** and click the terrain. Enable **Chunk boundaries** to inspect edits across a 16 m border.
+2. **Save location**, then **Move +128 m**. Resident geometry stays bounded at 49 chunks while generated/evicted counts increase.
+3. **Go to location** restores the camera target. **Return to edit** centers on the last edited point. Edits survive regeneration and page reload.
+4. **Undo edit** reverses the latest operation. Terrain permits 64 edits, radii 0.25–3 m, and sphere extents inside y = −11…11 m. Clay permits 12 cuts, stored separately.
+5. **Drop probe here** and **Impulse probe** exercise field contact, gravity, linear velocity, and angular velocity independently of render detail.
+
+The terrain field is (y − height(x,z)) / 2 with ordered sphere unions/subtractions. It is a conservative distance bound, not an exact Euclidean SDF. Local gradient magnitude converts it to approximate contact distance. One worker builds chunks and their hierarchies; edit signatures reject stale worker results. Each chunk has a sampling halo and owns its fragment bounds.
+
+Only edit logs persist in browser local storage. Bookmarks last for the session; body state and material changes are not saved. The single dynamic sphere uses a fixed 120 Hz timestep, restitution, friction impulses, sphere inertia, and angular integration. Static terrain absorbs reaction impulses. Free-flight angular momentum is preserved; high-speed continuous collision detection is not implemented.
+
+## Measurements
+
+Diagnostics report active Gaussians, pixel target, estimated motion, selected-material count, CPU sort time, frame spacing/p95, worker time, residency, edit count, and dropped physics catch-up time. Frame spacing includes browser scheduling and startup/compilation stalls; it is not a GPU timer.
+
+SH and hierarchy storage cost substantially more than the original center/normal samples. Chunk attributes report resident records; GPU Gaussian pool reports allocated record capacity. CPU mirrors, framebuffers, worker scratch memory, and driver overhead are additional. The pool reuses evicted slots and updates changed texture rows rather than uploading the entire pool on every chunk arrival.
+
+Local material-scene inspections at 85% resolution measured 12,655–14,295 active splats and 1,850 wax splats while settled, versus about 3,000 active splats and 72–192 wax splats during continuous orbit. Frame rate varied substantially: earlier views reached 44–45 FPS, but the final carved-scene checks were around 17–21 FPS; loaded terrain views were around 17–20 FPS. Reducing submitted splats has not yet removed the other rendering bottlenecks. These are observations from this preview, not a consumer-hardware or 60 FPS guarantee. Cuts, loading, camera angle, and glass coverage change the cost. Render DPR is capped at 1.5 and target area at 1.4 million pixels.
+
+Automated checks cover fields, carving, contact/torque, fixed stepping, persistence, chunk boundaries, eviction/stale worker results, SH reconstruction, covariance moment preservation, hierarchy reduction, negligible Gaussian tails, screen-size selection, budgets including transition layers, and immediate motion response with smooth recovery.
+
+## Source map
+
+| File | Responsibility |
+| --- | --- |
+| src/world.js | Materials, analytic fields, ray and contact queries |
+| src/terrain.js | Terrain field, edits, serialization, chunk selection |
+| src/terrain-worker.js | Background sampling and hierarchy generation |
+| src/streaming.js | Detailed residency, invalidation, eviction, stale results |
+| src/terrain-proxy.js | Coarse far/loading chunks and distance fade |
+| src/sampling.js | Field surface samples and crease support |
+| src/gaussians.js | Covariance, moment merging, hierarchy records |
+| src/sh.js | Degree-3 SH basis, projection, material radiance fitting |
+| src/lod.js | Motion response, projected size, conservative budget |
+| src/grass.js | Terrain roots, clump levels, sparse contact and spring field |
+| src/grass-renderer.js | Deformed Gaussian grass, patch LOD, bend atlas |
+| src/fluid.js | Bounded position-based fluid, field/body contact, passive heat |
+| src/fluid-renderer.js | Gaussian water/grain submission, blended LOD, optical buffers |
+| src/water-optics.js | Gaussian interface reconstruction, refraction, scattering, reflection |
+| src/granular.js | Gravel/sand/mud parcels, friction, cohesion, probe contact |
+| src/deformable.js | XPBD length/bend constraints, damping, sphere/floor contact |
+| src/fabric.js | Cloth presets, weave compliance, pins, controlled pull, tearing |
+| src/fibers.js | Hair guides, rest curls, fixtures, brush/gust forces |
+| src/soft-splats.js | Material-space Gaussian moments for cloth/fiber LOD |
+| src/soft-renderer.js | Dynamic covariance projection, SH, cloth/fiber lighting |
+| src/renderer.js | Record pool, culling, sorting, Gaussian render passes |
+| src/shaders.js | Covariance projection, SH evaluation, Gaussian alpha, glass cache |
+| src/reference-shader.js | Independent SDF comparison and secondary-lighting helpers |
+| src/physics.js | Dynamic probe and fixed-step accumulator |
+| src/main.js | Input, diagnostics, persistence |
+
+CPU and GLSL fields are manually mirrored. Geometry/field uniforms still use 32-bit coordinates; planetary precision is not supported. Further work includes optimized coarse representations, more accurate visibility, GPU selection/sorting, and a named-hardware frame budget. Large-scale water, calibrated pressure and thermal coupling, calibrated granular/wet-soil behavior, air, diffraction, erosion, and fracture remain later milestones.
+
+## Technical references
+
+The representation is informed by [3D Gaussian Splatting](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/), the screen-filtering discussion in [Mip-Splatting](https://niujinshuchong.github.io/mip-splatting/), and the LOD approach in [Hierarchical 3D Gaussians](https://repo-sam.inria.fr/fungraph/hierarchical-3d-gaussians/). This procedural prototype does not implement their training systems or claim their measured quality/performance.
+
+The fluid constraint solve is based on [Position Based Fluids](https://mmacklin.com/pbf_sig_preprint.pdf), with neighbor kernels and particle-property smoothing informed by [Particle-Based Fluid Simulation for Interactive Applications](https://matthias-research.github.io/pages/publications/sca03.pdf). This simplified CPU implementation does not reproduce either paper’s complete solver or performance results.
+
+Granular position-level contact/friction is informed by [Unified Particle Physics](https://matthias-research.github.io/pages/publications/flex.pdf). The planned caustic pass follows the transport principles in [Stochastic Progressive Photon Mapping](https://www.pbr-book.org/3ed-2018/Light_Transport_III_Bidirectional_Methods/Stochastic_Progressive_Photon_Mapping); participating-media work follows [Volume Scattering](https://www.pbr-book.org/3ed-2018/Volume_Scattering). These are implementation references, not claims that the current prototype implements those complete methods.
+
+The deformable constraint formulation follows [XPBD: Position-Based Simulation of Compliant Constrained Dynamics](https://matthias-research.github.io/pages/publications/XPBD.pdf). The prototype uses simplified bending and collision models. [Light Scattering from Human Hair Fibers](https://www.cs.cornell.edu/~srm/publications/SG03-hair-lr.pdf) is a reference for a future full fiber-scattering model; the current tangent highlight does not implement that model.

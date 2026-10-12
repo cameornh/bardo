@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bardo — engine tests</title></head>
+<body>
+  <main id="viewport">
+    <canvas id="scene" tabindex="0" aria-label="3D test viewport. Drag to orbit; WASD to travel."></canvas>
+    <div id="loading" role="status">Initializing renderer…</div>
+    <div id="status" role="status" aria-live="polite"></div>
+    <details id="controls">
+      <summary>Test controls</summary>
+      <label>Scene <select id="test-scene"><option value="fabric" selected>06 · Fabrics</option><option value="fibers">07 · Fur / hair</option><option value="granular">05 · Gravel / sand / mud</option><option value="fluid">04 · Water / pressure</option><option value="grass">03 · Grass interaction</option><option value="terrain">02 · Streamed terrain</option><option value="materials">01 · Materials / carving</option></select></label>
+      <label>Tool <select id="tool"><option value="orbit">Inspect / orbit</option><option value="stir">Stir water</option><option value="heat">Heat water</option><option value="carve">Subtract material</option><option value="add">Add terrain</option><option value="push">Impulse probe</option></select></label>
+      <label>Brush radius <output id="brush-value">1.25 m</output><input id="brush" type="range" min="0.25" max="3" step="0.05" value="1.25"></label>
+      <div class="row"><button id="undo">Undo edit</button><button id="home">Reset camera</button></div>
+      <fieldset id="fabric-controls"><legend>Fabric · left to right</legend>
+        <label>Selected swatch <select id="fabric-sample"><option value="0">Silk-like · blue</option><option value="1">Canvas · tan</option><option value="2">Knit · red</option><option value="3">Leather-like · brown</option></select></label>
+        <button id="focus-fabric">Inspect selected</button>
+        <div class="row"><button id="reset-fabrics">Reset all</button><button id="gust-fabrics">Gust all</button></div>
+        <div class="row"><button id="launch-fabric">Ball at swatch (R)</button><button id="pull-fabric">Pull hem</button></div>
+        <div class="row"><button id="release-fabric">Release pins</button><button id="restore-fabric">Restore preset</button></div>
+        <label>Stretch resistance <output id="fabric-stretch-value"></output><input id="fabric-stretch" type="range" min="0" max="100" step="1"></label>
+        <label>Bend resistance <output id="fabric-bend-value"></output><input id="fabric-bend" type="range" min="0" max="100" step="1"></label>
+        <label>Damping <output id="fabric-damping-value"></output><input id="fabric-damping" type="range" min="0" max="6" step="0.1"></label>
+        <label>Areal density (kg/m²) <output id="fabric-density-value"></output><input id="fabric-density" type="range" min="0.05" max="1.5" step="0.01"></label>
+        <label>Weave anisotropy <output id="fabric-anisotropy-value"></output><input id="fabric-anisotropy" type="range" min="0.25" max="4" step="0.05"></label>
+        <label>Tear strain <output id="fabric-tear-value"></output><input id="fabric-tear" type="range" min="0.1" max="2" step="0.05"></label>
+        <label class="check"><input id="fabric-tearing" type="checkbox">Allow strain tearing</label>
+        <label class="check"><input id="fabric-strain" type="checkbox">Show strain</label>
+      </fieldset>
+      <fieldset id="fiber-controls" hidden><legend>Fur / hair · left to right</legend>
+        <label>Selected groom <select id="fiber-sample"><option value="0">Short plush</option><option value="1">Stiff bristles</option><option value="2">Curly wool</option><option value="3">Long hair</option></select></label>
+        <button id="focus-fiber">Inspect selected</button>
+        <div class="row"><button id="reset-fibers">Reset all</button><button id="gust-fibers">Gust all</button></div>
+        <div class="row"><button id="brush-fiber">Brush selected</button><button id="launch-fiber">Ball at groom (R)</button></div>
+        <button id="restore-fiber">Restore preset</button>
+        <label>Length (m) <output id="fiber-length-value"></output><input id="fiber-length" type="range" min="0.1" max="1.8" step="0.01"></label>
+        <label>Bend resistance <output id="fiber-stiffness-value"></output><input id="fiber-stiffness" type="range" min="0" max="100" step="1"></label>
+        <label>Damping <output id="fiber-damping-value"></output><input id="fiber-damping" type="range" min="0" max="6" step="0.1"></label>
+        <label>Curl <output id="fiber-curl-value"></output><input id="fiber-curl" type="range" min="0" max="1" step="0.02"></label>
+        <label>Fiber radius (m) <output id="fiber-width-value"></output><input id="fiber-width" type="range" min="0.002" max="0.025" step="0.001"></label>
+        <label>Roughness <output id="fiber-roughness-value"></output><input id="fiber-roughness" type="range" min="0.08" max="1" step="0.02"></label>
+        <label>Rendered strands / guide <output id="fiber-followers-value">6</output><input id="fiber-followers" type="range" min="1" max="10" step="1" value="6"></label>
+      </fieldset>
+      <fieldset id="fluid-controls" hidden><legend>Water</legend>
+        <div class="row"><button id="reset-water">Reset pool</button><button id="dam-break">Dam break</button></div>
+        <div class="row"><button id="stir-water">Stir centre</button><button id="heat-water">Heat centre</button></div>
+        <label>View <select id="fluid-view"><option value="0">Water</option><option value="1">Density / rest density</option><option value="2">Speed</option><option value="3">Temperature</option></select></label>
+        <label>Surface roughness <output id="water-roughness-value">0.12</output><input id="water-roughness" type="range" min="0.04" max="0.6" step="0.01" value="0.12"></label>
+        <label>Turbidity <output id="water-turbidity-value">0.12</output><input id="water-turbidity" type="range" min="0" max="1" step="0.02" value="0.12"></label>
+        <label>Viscosity <output id="fluid-viscosity-value">0.04</output><input id="fluid-viscosity" type="range" min="0" max="0.18" step="0.01" value="0.04"></label>
+        <label>Pressure iterations <select id="fluid-iterations"><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+      </fieldset>
+      <fieldset id="grain-controls" hidden><legend>Gravel · Sand · Mud (left to right)</legend>
+        <div class="row"><button id="reset-grains">Reset piles</button><button id="roll-grains">Roll ball (R)</button></div>
+        <button id="stir-grains">Disturb all piles</button>
+      </fieldset>
+      <fieldset id="grass-controls" hidden><legend>Grass</legend>
+        <div class="row"><button id="roll-ball">Roll ball (R)</button><button id="reset-grass">Reset bends</button></div>
+        <label class="check"><input id="grass-visible" type="checkbox">Grass visible</label>
+        <label class="check"><input id="grass-bend-view" type="checkbox">Show bending</label>
+        <label>Recovery <output id="grass-recovery-value">2.5 s</output><input id="grass-recovery" type="range" min="0.5" max="8" step="0.5" value="2.5"></label>
+        <label>Grass splat budget <output id="grass-budget-value">12,000</output><input id="grass-budget" type="range" min="2000" max="24000" step="1000" value="12000"></label>
+      </fieldset>
+      <fieldset id="travel-controls" hidden><legend>Travel</legend>
+        <div class="row"><button id="travel">Move +128 m</button><button id="return">Return to edit</button></div>
+        <div class="row"><button id="save-location">Save location</button><button id="saved-location">Go to location</button></div>
+        <div id="position">0, 0, 0 m</div>
+        <p>WASD: travel · Q/E: down/up · Shift: fast<br>Drag: orbit · Right-drag: orbit while editing</p>
+      </fieldset>
+      <fieldset id="material-controls" hidden><legend>Materials</legend>
+        <label>Material <select id="material"><option value="0">Clay</option><option value="1">Copper</option><option value="2">Wax</option><option value="3">Glass</option><option value="4">Wool</option><option value="5">Probe</option><option value="6">Ground</option></select></label>
+        <label>Roughness <output id="roughness-value">0.64</output><input id="roughness" type="range" min="0.04" max="1" step="0.01" value="0.64"></label>
+        <div class="row"><button id="clear-glass">Clear glass</button><button id="frosted-glass">Frosted glass</button></div>
+      </fieldset>
+      <fieldset><legend>Light</legend>
+        <label>Light angle <output id="light-value">125°</output><input id="light-angle" type="range" min="0" max="360" value="125"></label>
+        <label class="check"><input id="animate-light" type="checkbox">Rotate light</label>
+      </fieldset>
+      <fieldset><legend>Physics</legend><div class="row"><button id="drop">Drop probe here</button><button id="pause">Pause</button></div></fieldset>
+      <fieldset><legend>Diagnostics</legend>
+        <label>View <select id="view-mode"><option value="0">Materials</option><option value="1">Normals</option><option value="2">Splat coverage</option><option value="3">SDF reference</option></select></label>
+        <label>Resolution <select id="render-scale"><option value="0.6">60%</option><option value="0.85" selected>85%</option><option value="1">100%</option></select></label>
+        <label>Base Gaussian sigma <output id="pixel-size-value">2.0 px</output><input id="pixel-size" type="range" min="0.75" max="8" step="0.25" value="2"></label>
+        <label>Surface splat budget <output id="budget-value">16,000</output><input id="splat-budget" type="range" min="2000" max="32000" step="1000" value="16000"></label>
+        <label>SH degree <select id="sh-degree"><option value="0">0 · 1 coefficient / channel</option><option value="1">1 · 4 coefficients / channel</option><option value="2">2 · 9 coefficients / channel</option><option value="3" selected>3 · 16 coefficients / channel</option></select></label>
+        <label class="check"><input id="adaptive-detail" type="checkbox" checked>Coarsen during camera motion</label>
+        <label class="check"><input id="orbit-test" type="checkbox">Repeatable orbit test</label>
+        <label class="check"><input id="reflections" type="checkbox" checked>Environment reflections</label>
+        <label class="check"><input id="chunk-lines" type="checkbox">Chunk boundaries</label>
+        <dl>
+          <dt>Deformable nodes / splats</dt><dd id="soft-count">—</dd>
+          <dt>Deformable CPU / step</dt><dd id="soft-cpu">—</dd>
+          <dt>Deformable draw CPU</dt><dd id="soft-draw">—</dd>
+          <dt>Deformable ball contacts (total)</dt><dd id="soft-contacts">0</dd>
+          <dt>Broken links / peak strain</dt><dd id="soft-strain">—</dd>
+          <dt>Deformable simulated time</dt><dd id="soft-time">0 s</dd>
+          <dt>Selected groom RMS speed</dt><dd id="fiber-speed">—</dd>
+          <dt>Gravel / sand / mud</dt><dd id="grain-count">off</dd>
+          <dt>Granular CPU</dt><dd id="grain-cpu">—</dd>
+          <dt>Coarse terrain proxies</dt><dd id="proxy-count">0</dd>
+          <dt>Water particles / splats</dt><dd id="fluid-count">0</dd>
+          <dt>Water simulation CPU</dt><dd id="fluid-cpu">—</dd>
+          <dt>Water draw CPU</dt><dd id="fluid-draw">—</dd>
+          <dt>Peak compression</dt><dd id="fluid-error">0%</dd>
+          <dt>Water / ball contacts</dt><dd id="fluid-contact">0</dd>
+          <dt>Water simulated time</dt><dd id="fluid-time">0 s</dd>
+          <dt>Grass splats</dt><dd id="grass-count">0</dd>
+          <dt>Resident grass roots</dt><dd id="grass-roots">0</dd>
+          <dt>Bent grass nodes</dt><dd id="grass-bent">0</dd>
+          <dt>Grass contacts</dt><dd id="grass-contact">0</dd>
+          <dt>Resident chunks</dt><dd id="resident">0 / 49</dd>
+          <dt>Queued builds</dt><dd id="queued">0</dd>
+          <dt>Generated / evicted</dt><dd id="stream-count">0 / 0</dd>
+          <dt>Chunk attributes</dt><dd id="memory">0 MiB</dd>
+          <dt>GPU Gaussian pool</dt><dd id="pool-memory">—</dd>
+          <dt>Camera motion</dt><dd id="motion-speed">0 px/s</dd>
+          <dt>Motion coarsening</dt><dd id="motion-scale">1×</dd>
+          <dt>Selected material splats</dt><dd id="selected-count">—</dd>
+          <dt>Depth sort</dt><dd id="sort-time">—</dd>
+          <dt>Worker build</dt><dd id="worker-ms">—</dd>
+          <dt id="edit-label">Basin edits (session)</dt><dd id="edit-count">0</dd>
+          <dt>Contacts</dt><dd id="contacts">0</dd>
+          <dt>Frame p95</dt><dd id="p95">—</dd>
+          <dt>Dropped sim time</dt><dd id="dropped-time">0 ms</dd>
+          <dt>Renderer</dt><dd id="renderer-status">Starting</dd>
+        </dl>
+      </fieldset>
+    </details>
+    <div id="stats"><span id="fps">—</span> fps · <span id="frame-ms">—</span> ms · <span id="splat-count">—</span> splats · <span id="detail">2 px</span> target σ</div>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
