@@ -13,7 +13,7 @@ vec3 liquidGradient(vec3 p){float h=uVolumeDx*.65;return vec3(liquidDensity(p+ve
 vec3 liquidNormal(vec3 p){vec3 g=-liquidGradient(p);return length(g)>.001?normalize(g):vec3(0,1,0);}
 float liquidField(vec3 p){float base=p.y-surfaceHeight(p.xz,1);return mix(base,(.5-liquidDensity(p))*uVolumeDx,volumeWeight(p));}
 vec3 waterNormal3(vec3 p,float e){float w=volumeWeight(p);vec3 base=surfaceNormal(p.xz,1,e);return w>0.?normalize(mix(base,liquidNormal(p),w)):base;}
-bool waterAt3(vec3 p){return volumeWeight(p)>.5?liquidDensity(p)>.5:p.y<surfaceHeight(p.xz,1)&&waterState(p.xz).x>.005;}
+bool waterAt3(vec3 p){return volumeWeight(p)>.5?liquidDensity(p)>.5:p.y<surfaceHeight(p.xz,1)&&waterState(p.xz).x>.005&&terrainField(p)>0.;}
 vec2 volumeInterval(vec3 o,vec3 d){vec3 inv=1./(d+vec3(1e-8)),a=(uVolumeOrigin-o)*inv,b=(uVolumeOrigin+vec3(uVolumeSize)*uVolumeDx-o)*inv,lo=min(a,b),hi=max(a,b);return vec2(max(lo.x,max(lo.y,lo.z)),min(hi.x,min(hi.y,hi.z)));}
 float traceVolume(vec3 o,vec3 d,float maxT,bool exiting){if(!uVolumeEnabled)return 1e5;vec2 range=volumeInterval(o,d);float t=max(.012,range.x),end=min(maxT,range.y),last=t;if(t>end)return 1e5;float direction=exiting?-1.:1.;
  for(int i=0;i<400;i++){vec3 p=o+d*t;float f=liquidField(p)*direction;if(f<0.&&volumeWeight(p)>.01){float a=last,b=t;for(int j=0;j<6;j++){float m=(a+b)*.5;if(liquidField(o+d*m)*direction>0.)a=m;else b=m;}return (a+b)*.5;}last=t;t+=uVolumeDx*.65;if(t>end)break;}return 1e5;}

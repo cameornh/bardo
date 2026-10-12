@@ -44,9 +44,9 @@ export function stepBeachReference(flow,aux,bed,n,dx,dt,{wind=0,angle=0,time=0,o
   if(open&&boundary&&b<0){const border=Math.min(x,z,n-1-x,n-1-z),relax=clamp((10-border)/10,0,1)*dt*4,far=boundary(wx,wz),h=Math.max(0,far.eta-b);out[0]+=(h-out[0])*relax;out[1]+=(far.u*h-out[1])*relax;out[2]+=(far.v*h-out[2])*relax;}
   if(impulses){out[0]=Math.max(0,out[0]+impulses[i]);out[1]+=impulses[i+1];out[2]+=impulses[i+2];}
   const bx=wx-brush[0],bz=wz-brush[1],bw=Math.exp(-(bx*bx+bz*bz)/Math.max(brush[2]*brush[2],.001));out[1]+=bx*bw*brush[3]*out[0]*dt*5;out[2]+=bz*bw*brush[3]*out[0]*dt*5;
-  const bend=.008*Math.hypot(...w),target=[w[0]*bend,w[1]*bend];let wake=0;
+  const grassAir=airVelocity([wx,b+.85,wz],time,wind,angle,jet,turbulence),bend=.008*Math.hypot(grassAir[0],grassAir[2]),scale=bend/(1+bend*Math.hypot(grassAir[0],grassAir[2])),target=[grassAir[0]*scale,grassAir[2]*scale];let wake=0;
   for(const ball of balls){const dx=wx-ball.position[0],dz=wz-ball.position[2],r=ball.radius+.65,weight=Math.exp(-(dx*dx+dz*dz)/(r*r)),reach=clamp((b+1.4-ball.position[1]+ball.radius)*2,0,1),length=Math.hypot(dx+.001,dz+.001);target[0]+=(dx+.001)/length*weight*reach*1.4;target[1]+=(dz+.001)/length*weight*reach*1.4;const sub=clamp((b+out[0]-ball.position[1]+ball.radius)/(2*ball.radius),0,1),du=ball.velocity[0]-out[1]/Math.max(out[0],.02),dv=ball.velocity[2]-out[2]/Math.max(out[0],.02);out[1]+=du*weight*sub*dt*.7;out[2]+=dv*weight*sub*dt*.7;wake+=weight*sub*Math.hypot(du,dv)*.15;}
-  if(out[0]<.002){out[1]=out[2]=0;}
+  const targetLength=Math.hypot(...target);if(targetLength>1){target[0]/=targetLength;target[1]/=targetLength;}if(out[0]<.002){out[1]=out[2]=0;}
   const [r,br]=cell(x+1,z,1),[l,bl]=cell(x-1,z,1),[u,bu]=cell(x,z+1,2),[d,bd]=cell(x,z-1,2);
   const slope=Math.hypot(r[0]+br-l[0]-bl,u[0]+bu-d[0]-bd)/(2*dx),compression=Math.max(0,-((r[1]/Math.max(r[0],.02)-l[1]/Math.max(l[0],.02))+(u[2]/Math.max(u[0],.02)-d[2]/Math.max(d[0],.02)))/(2*dx));
   const speed=Math.hypot(out[1],out[2])/Math.max(out[0],.02),breaking=Math.max(0,slope-.09)*speed*2+Math.max(0,compression-.18)*.5;
