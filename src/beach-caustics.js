@@ -6,15 +6,16 @@ import { BEACH_RENDER_WORLD } from './beach-shaders.js';
 // photon bundles through the current water normals and hollow glass shells.
 const photon=`precision highp float;precision highp int;in vec2 vUv;layout(location=0)out vec4 hit;layout(location=1)out vec4 flux;
 ${BEACH_RENDER_WORLD}
-float intersectLayer(vec3 o,vec3 d,int layer){float t=.012;for(int k=0;k<24;k++){vec3 p=o+d*t;float h=surfaceHeight(p.xz,layer),f=p.y-h;if(f<.007)return t;t+=max(.015,f/max(.2,-d.y)*.75);if(t>100.)break;}return 1e5;}
+float intersectLayer(vec3 o,vec3 d,int layer){return traceSurface(o,d,layer,100.);}
+
 void main(){vec3 light=uSun.y>.02?uSun:uMoon,power=uSun.y>.02?uSunColor:uMoonColor;vec2 xz=uPhotonOrigin+vUv*uPhotonSize;vec3 o=vec3(xz.x,10.,xz.y)+vec3(light.x,0,light.z)*10./max(.1,light.y),d=-light,energy=power*max(0.,light.y);float medium=1.;hit=vec4(0);flux=vec4(0);if(light.y<=.02)return;
- for(int event=0;event<9;event++){float land=intersectLayer(o,d,0),water=medium==1.?intersectLayer(o,d,1):1e5,nearest=min(land,water);int id=-1;bool inner=false;
+ for(int event=0;event<9;event++){float land=intersectLayer(o,d,0),water=medium==1.?intersectLayer(o,d,1):medium==WATER_IOR?traceVolume(o,d,100.,true):1e5,nearest=min(land,water);int id=-1;bool inner=false;
   for(int i=0;i<uBallCount;i++){vec4 b=body(i);for(int shell=0;shell<2;shell++){float r=b.w-(shell==1?.012:0.);vec2 t=sphere(o,d,b.xyz,r);float q=t.x>.006?t.x:t.y;if(q>.006&&q<nearest){nearest=q;id=i;inner=shell==1;}}}
   if(nearest>9999.)return;vec3 p=o+d*nearest;if(medium==WATER_IOR)energy*=waterTransmission(nearest,uTurbidity);
   if(id<0&&land<=water+.008){if(event==0)return;hit=vec4(p,1);flux=vec4(energy,1);return;}
   vec3 normal;float nextIOR;
-  if(id>=0){vec4 b=body(id);normal=normalize(p-b.xyz);bool entering=dot(d,normal)<0.;if(inner)normal=-normal;nextIOR=inner?(entering?1.:1.5):(entering?1.5:(p.y<surfaceHeight(p.xz,1)?WATER_IOR:1.));}
-  else{if(waterState(p.xz).x<.005)return;normal=surfaceNormal(p.xz,1,.16);nextIOR=WATER_IOR;}
+  if(id>=0){vec4 b=body(id);normal=normalize(p-b.xyz);bool entering=dot(d,normal)<0.;if(inner)normal=-normal;nextIOR=inner?(entering?1.:1.5):(entering?1.5:(waterAt3(p)?WATER_IOR:1.));}
+  else{if(volumeWeight(p)<.5&&waterState(p.xz).x<.005)return;normal=waterNormal3(p,.16);nextIOR=medium==WATER_IOR?1.:WATER_IOR;}
   if(dot(normal,d)>0.)normal=-normal;float cosine=max(0.,-dot(normal,d)),f0=pow((medium-nextIOR)/(medium+nextIOR),2.),F=f0+(1.-f0)*pow(1.-cosine,5.);vec3 refracted=refract(d,normal,medium/nextIOR);if(dot(refracted,refracted)<.01){d=reflect(d,normal);}else{energy*=1.-F;d=refracted;medium=nextIOR;}o=p+d*.009;
  }
 }`;

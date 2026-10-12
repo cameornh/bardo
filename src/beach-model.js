@@ -39,7 +39,7 @@ export function stepBeachReference(flow,aux,bed,n,dx,dt,{wind=0,angle=0,time=0,o
   out[0]=Math.max(0,out[0]);const wx=origin[0]+(x+.5)*dx,wz=origin[1]+(z+.5)*dx,air=airVelocity([wx,b+out[0],wz],time,wind,angle,jet,turbulence),w=[air[0],air[2]];
   const pressure=(x,z)=>{const v=airVelocity([x,b+out[0],z],time,0,angle,jet);return windPressure(x,z,time,wind,angle,turbulence)+.001225*v[1]*v[1];};
   const pressureGradient=[(pressure(wx+dx,wz)-pressure(wx-dx,wz))/(2*dx),(pressure(wx,wz+dx)-pressure(wx,wz-dx))/(2*dx)];
-  for(let k=1;k<3;k++)out[k]=(out[k]+dt*(.0015*w[k-1]*Math.hypot(...w)-out[0]*pressureGradient[k-1]))/(1+dt*(.012+.04/Math.max(out[0],.08)));
+  for(let k=1;k<3;k++)out[k]=(out[k]+dt*(.000003*w[k-1]*Math.hypot(...w)-out[0]*pressureGradient[k-1]))/(1+dt*(.012+.04/Math.max(out[0],.08)));
   if(open&&boundary&&b<0){const border=Math.min(x,z,n-1-x,n-1-z),relax=clamp((10-border)/10,0,1)*dt*4,far=boundary(wx,wz),h=Math.max(0,far.eta-b);out[0]+=(h-out[0])*relax;out[1]+=(far.u*h-out[1])*relax;out[2]+=(far.v*h-out[2])*relax;}
   if(impulses){out[0]=Math.max(0,out[0]+impulses[i]);out[1]+=impulses[i+1];out[2]+=impulses[i+2];}
   const bx=wx-brush[0],bz=wz-brush[1],bw=Math.exp(-(bx*bx+bz*bz)/Math.max(brush[2]*brush[2],.001));out[1]+=bx*bw*brush[3]*out[0]*dt*5;out[2]+=bz*bw*brush[3]*out[0]*dt*5;
@@ -67,19 +67,21 @@ export function sandBrush(bed,n,dx,origin,point,radius,amount,bedrock=null){
 }
 export function submergedVolume(radius,center,water){const h=clamp(water-center+radius,0,2*radius);return Math.PI*h*h*(radius-h/3);}
 export function glassBallMass(radius,shell=.012){return 2500*4*Math.PI/3*(radius**3-(radius-shell)**3);}
-export function stepBeachBall(ball,dt,sample,wind){
- const p=ball.position,v=ball.velocity,r=ball.radius,s=sample(p[0],p[2]),vol=s.h>.002?submergedVolume(r,p[1],s.surface):0,fraction=vol/(4*Math.PI/3*r**3);
- const buoyancy=WATER_MATERIAL.density*9.81*vol,relative=[s.u-v[0],-v[1],s.v-v[2]],drag=.5*WATER_MATERIAL.density*.47*Math.PI*r*r*fraction*Math.hypot(...relative);
+export function stepBeachBall(ball,dt,sample,wind,terrain=null,volume=null){
+ const p=ball.position,v=ball.velocity,r=ball.radius,s=sample(p[0],p[2]),inVolume=volume?.contains(p);let vol=s.h>.002?submergedVolume(r,p[1],s.surface):0,flow=[s.u,0,s.v];
+ if(inVolume){let wet=0;flow=[0,0,0];for(let i=0;i<24;i++){const y=1-2*(i+.5)/24,ring=Math.sqrt(1-y*y),angle=i*2.39996323,rad=r*Math.cbrt(((i*7)%24+.5)/24),q=[p[0]+Math.cos(angle)*ring*rad,p[1]+y*rad,p[2]+Math.sin(angle)*ring*rad],a=volume.liquidAt(q),velocity=volume.velocityAt(q);wet+=a;for(let k=0;k<3;k++)flow[k]+=velocity[k]*a;}for(let k=0;k<3;k++)flow[k]/=Math.max(wet,.001);vol=wet/24*(4*Math.PI/3*r**3);}
+ const fraction=vol/(4*Math.PI/3*r**3),buoyancy=WATER_MATERIAL.density*9.81*vol,relative=flow.map((x,k)=>x-v[k]),drag=.5*WATER_MATERIAL.density*.47*Math.PI*r*r*fraction*Math.hypot(...relative);
  v[1]+=dt*(-9.81+buoyancy/ball.mass);
  // A bounded waterline radiation-damping approximation (20% critical).
  const waterlineArea=Math.PI*Math.max(0,r*r-(p[1]-s.surface)**2),radiation=.4*Math.sqrt(WATER_MATERIAL.density*9.81*waterlineArea*ball.mass);
- if(s.h>.005)v[1]/=1+dt*radiation/ball.mass;
+ if(s.h>.005&&!inVolume)v[1]/=1+dt*radiation/ball.mass;
  // Implicit drag avoids instability for lightweight hollow shells in water.
- const k=drag*dt/ball.mass;for(let j=0;j<3;j++)v[j]=(v[j]+k*(j===0?s.u:j===2?s.v:0))/(1+k);
+ const k=drag*dt/ball.mass;for(let j=0;j<3;j++)v[j]=(v[j]+k*flow[j])/(1+k);
  const air=1-fraction;const wind3=wind.length===3?wind:[wind[0],0,wind[1]];v[1]+=dt*.5*1.225*.47*Math.PI*r*r*air*(wind3[1]-v[1])*Math.abs(wind3[1]-v[1])/ball.mass;v[0]+=dt*.5*1.225*.47*Math.PI*r*r*air*(wind[0]-v[0])*Math.abs(wind[0]-v[0])/ball.mass;v[2]+=dt*.5*1.225*.47*Math.PI*r*r*air*(wind3[2]-v[2])*Math.abs(wind3[2]-v[2])/ball.mass;
  for(let j=0;j<3;j++)p[j]+=v[j]*dt;
- const floor=sample(p[0],p[2]);ball.contact=p[1]-r<floor.bed;
+ const floor=sample(p[0],p[2]);ball.contact=!terrain&&p[1]-r<floor.bed;
  if(ball.contact){p[1]=floor.bed+r;if(v[1]<0)v[1]*=-.12;v[0]-=9.81*floor.dx*dt;v[2]-=9.81*floor.dz*dt;const f=Math.exp(-dt*(floor.wet> .5?3:1.5));v[0]*=f;v[2]*=f;}
+ if(terrain){const collision=terrain.projectSphere(p,r);ball.contact=collision.contact;if(collision.contact){const n=collision.normal,inward=v.reduce((sum,x,k)=>sum+x*n[k],0);if(inward<0)for(let k=0;k<3;k++)v[k]-=1.12*inward*n[k];const drag=Math.exp(-dt*(floor.wet>.5?3:1.5));for(let k=0;k<3;k++)v[k]*=drag;}}
  ball.submerged=fraction;ball.spin[0]+=v[2]/r*dt;ball.spin[2]-=v[0]/r*dt;
 }
 

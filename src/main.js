@@ -1,4 +1,5 @@
 import './style.css';
+import { Walker,sdfContact,cycleInteraction } from './first-person.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { World, MATERIALS } from './world.js';
@@ -12,7 +13,7 @@ import { FabricTest } from './fabric.js';
 import { FiberTest,FIBER_PRESETS } from './fibers.js';
 import { DEFORM_STEP } from './deformable.js';
 import { OPTICAL_METRES, sampleRadii } from './optics.js';
-import { DEFAULT_LIGHT_TEST } from './light-transport.js';
+import { DEFAULT_LIGHT_TEST,SHAPE,shapeDistance,localPoint,mediumAt } from './light-transport.js';
 
 const $ = id => document.getElementById(id);
 const canvas=$('scene'), viewport=$('viewport');
@@ -22,6 +23,7 @@ let fluidAccumulator=0,grainAccumulator=0,softAccumulator=0,fluidAverageMs=0;
 let selected=0,tool='orbit',paused=false,lastTime=0;
 let angle=125*Math.PI/180,dragStart=null,savedLocation=null,lastStream=0,frame=0;
 let frameTimes=[],statusTimeout;
+const walker=new Walker();let firstPerson=false,lookLocked=false,fallbackLook=false,lockClick=false,fpTool="launch",fpJump=false,lastToolScroll=-Infinity;
 
 function status(text, duration=3500) {
   $('status').textContent=text;clearTimeout(statusTimeout);
@@ -50,6 +52,7 @@ function moveTo(target) {
   controls.target.add(delta);camera.position.add(delta);controls.update();updateStream();
 }
 function home() {
+  walker.velocity.fill(0);
   if(renderer?.beach.enabled){camera.position.set(16,renderer.beach.sim.sample(16,13).bed+2.2,13);controls.target.set(-8,.8,-16);}
   else if(renderer?.lightTest.enabled){const preset=renderer.lightTest.config.experiment;if(['sphere','convex','concave'].includes(preset)){camera.position.set(3.8,3.6,4.8);controls.target.set(0,1.2,0);}else if(preset==='prism'){camera.position.set(4.8,5.2,5.5);controls.target.set(0,1,-1.2);}else if(preset.includes('mirror')){camera.position.set(4.3,4.6,6.2);controls.target.set(0,1.4,1.6);}else{camera.position.set(5.6,4.2,6.4);controls.target.set(0,1,0);}}
   else if(renderer?.optics.enabled){const s=renderer.optics.samples[renderer.optics.selected];if(renderer.optics.isolate){camera.position.set(s.center[0]+.1,s.center[1]+.05,3.1);controls.target.set(...s.center);}else{camera.position.set(0,2.65,10.3);controls.target.set(0,2.65,0);}}
@@ -60,7 +63,7 @@ function home() {
   else if(!world.showcaseEnabled){const y=terrainHeight(14,8);camera.position.set(21,y+5,18);controls.target.set(14,y+.2,8);}
   else if(world.terrainEnabled){camera.position.set(26,15,24);controls.target.set(12,0,4);}
   else {camera.position.set(9,7,12.6);controls.target.set(0,.6,.7);}
-  if(renderer)renderer.previousCamera=null;controls.update();updateStream();
+  if(renderer)renderer.previousCamera=null;controls.update();if(firstPerson)standFirstPerson();updateStream();
 }
 function updateStream() {
   if(!streamer)return;
@@ -78,6 +81,7 @@ function saveEdits() {
   $('edit-label').textContent=world.terrain!==persistentTerrain?'Test terrain (session)':'Edits (saved)';
 }
 function sceneChange(value) {
+  if(value==='optics'&&firstPerson)setFirstPerson(false);
   world.fluidEnabled=value==='fluid';fluid.enabled=world.fluidEnabled;fluidAccumulator=0;granular.enabled=value==='granular';grainAccumulator=0;
   renderer.beach.enabled=value==='beach';renderer.optics.enabled=value==='optics';renderer.lightTest.enabled=value==='light-test';const optical=renderer.optics.enabled||renderer.lightTest.enabled||renderer.beach.enabled;
   camera.far=renderer.beach.enabled?2400:220;camera.updateProjectionMatrix();renderer.resize(viewport.clientWidth,viewport.clientHeight);controls.maxDistance=renderer.beach.enabled?300:70;controls.maxPolarAngle=renderer.beach.enabled?Math.PI:Math.PI*.49;
@@ -104,14 +108,15 @@ function sceneChange(value) {
   $('brush').parentElement.hidden=optical||fabrics.enabled||fibers.enabled;
   $('brush').max=world.terrainEnabled?'3':'.6';$('brush').min='.25';
   $('brush').value=world.terrainEnabled?'1.25':'.4';$('brush-value').value=`${Number($('brush').value).toFixed(2)} m`;
-  setTool('orbit');renderer.beach.tool='orbit';$('beach-tool').value='orbit';home();saveEdits();
+  setTool('orbit');renderer.beach.tool='orbit';$('beach-tool').value='orbit';home();saveEdits();$('pov-controls').hidden=value==='optics';walker.velocity.fill(0);refreshFirstPersonTools();
 }
 function rayFromEvent(event) {
   const rect=canvas.getBoundingClientRect();
-  const ndc=new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);
+  const ndc=firstPerson?new THREE.Vector2(0,0):new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);
   const raycaster=new THREE.Raycaster();raycaster.setFromCamera(ndc,camera);return raycaster.ray;
 }
 function clickScene(event) {
+  if(firstPerson){if(lockClick||(!lookLocked&&!fallbackLook)||event.button!==0)return;firstPersonInteract(event);return;}
   if(renderer.beach.enabled){if(event.button===0&&renderer.beach.tool!=='orbit'&&renderer.beach.tool!=='wind'){const ray=rayFromEvent(event);if(!renderer.beach.interact(ray.origin.toArray(),ray.direction.toArray()))status('No nearby surface under the cursor.');}dragStart=null;return;}
   if(renderer.optics.enabled||renderer.lightTest.enabled)return;
   if(event.button!==0||!dragStart)return;
@@ -294,28 +299,85 @@ function setup() {
   canvas.addEventListener('pointerup',clickScene);canvas.addEventListener('pointercancel',()=>dragStart=null);
   document.addEventListener('keydown',e=>{
     if(['INPUT','SELECT','BUTTON','SUMMARY'].includes(document.activeElement.tagName))return;
-    if(['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','ShiftLeft','ShiftRight'].includes(e.code)){keys.add(e.code);e.preventDefault();}
+    if(['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','ShiftLeft','ShiftRight',...(firstPerson?['Space']:[])].includes(e.code)){keys.add(e.code);e.preventDefault();}
+    if(firstPerson&&e.code==='Space'){if(!e.repeat&&(lookLocked||fallbackLook&&document.activeElement===canvas))fpJump=true;return;}if(firstPerson&&e.code==='Escape'&&fallbackLook){fallbackLook=false;keys.clear();refreshFirstPersonTools();}
     if((renderer.optics.enabled||renderer.lightTest.enabled)&&(e.code==='Space'||e.code==='KeyR'))return;
     if(e.code==='Space'){e.preventDefault();$(renderer.beach.enabled?'beach-spawn':'drop').click();}if(e.code==='KeyC')home();
     if(e.code==='KeyR')$(renderer.beach.enabled?'beach-spawn':fabrics.enabled?'launch-fabric':fibers.enabled?'launch-fiber':granular.enabled?'roll-grains':'roll-ball').click();
     if(e.code==='KeyP')$('controls').open=!$('controls').open;
   });
   document.addEventListener('keyup',e=>keys.delete(e.code));
-  window.addEventListener('blur',()=>keys.clear());
+  window.addEventListener('blur',()=>{keys.clear();fpJump=false;renderer.beach.windHeld=false;});
   document.addEventListener('visibilitychange',()=>{keys.clear();lastTime=0;stepper.accumulator=0;});
-  setupLightTest();select(0);sceneChange('beach');$('loading').style.display='none';$('renderer-status').textContent='WebGL 2 · GPU rendering';
+  setupFirstPerson();setupLightTest();select(0);const params=new URLSearchParams(location.search),initialScene=params.get('scene');sceneChange(Array.from($('test-scene').options).some(o=>o.value===initialScene)?initialScene:'beach');if(params.get('pov')==='first-person'&&!renderer.optics.enabled)setFirstPerson(true);$('loading').style.display='none';$('renderer-status').textContent='WebGL 2 · GPU rendering';
   requestAnimationFrame(tick);
+}
+
+function standFirstPerson(){
+ let t=0;
+ for(let i=0;i<160&&t<80;i++){
+  const p=[camera.position.x,camera.position.y-walker.eyeHeight+walker.radius-t,camera.position.z];
+  const d=walkSolid(p).distance-walker.radius;
+  if(d<.002){camera.position.y-=t;break;}t+=Math.max(.02,d*.8);
+ }
+ const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');e.x=0;camera.quaternion.setFromEuler(e);
+}
+function setFirstPerson(enabled){
+ firstPerson=enabled;fallbackLook=false;controls.enabled=!enabled;walker.velocity.fill(0);keys.clear();fpJump=false;$('first-person').checked=enabled;$('pov-hud').hidden=!enabled;canvas.setAttribute('aria-label',enabled?'First-person 3D view. WASD walks, mouse looks, wheel selects tool, click interacts, Space jumps or floats.':'3D test viewport. Drag to orbit; WASD to travel.');
+ if(enabled)standFirstPerson();
+ if(!enabled){if(document.pointerLockElement===canvas)document.exitPointerLock();const d=camera.getWorldDirection(new THREE.Vector3());controls.target.copy(camera.position).addScaledVector(d,5);controls.update();}
+ refreshFirstPersonTools();
+}
+function firstPersonOptions(){
+ if(renderer.beach.enabled)return Array.from($('beach-tool').options).filter(o=>o.value!=='orbit').map(o=>[o.value,o.textContent]);
+ if(renderer.lightTest.enabled)return [['light','Tilt light'],['color','Cycle light color'],['level-up','Raise water'],['level-down','Lower water']];
+ if(fabrics.enabled)return [['launch','Throw ball'],['pull','Pull / release nearest hem'],['gust','Gust fabric']];
+ if(fibers.enabled)return [['launch','Throw ball'],['gust','Gust hair']];
+ if(granular.enabled)return [['nudge','Nudge grains'],['launch','Throw ball'],['carve','Carve terrain'],['add','Add terrain']];
+ return [...(fluid.enabled?[['stir','Stir water'],['heat','Heat water']]:[]),['launch','Throw ball'],['carve','Subtract material'],...(world.terrainEnabled?[['add','Add terrain']]:[]),['push','Impulse probe']];
+}
+function refreshFirstPersonTools(){if(!renderer)return;const options=firstPersonOptions();if(!options.some(([id])=>id===fpTool))fpTool=options[0][0];$('pov-tool').textContent=options.find(([id])=>id===fpTool)?.[1]||'';$('pov-hint').textContent=lookLocked?'WASD · wheel: tool · click: interact · Space: jump / float · Esc: release mouse':fallbackLook?'WASD · right-drag: look · wheel: tool · click: interact · Space: jump / float':'Click the view to capture the mouse';if(firstPerson&&renderer.beach.enabled){renderer.beach.tool=fpTool;$('beach-tool').value=fpTool;}}
+function setupFirstPerson(){
+ $('first-person').onchange=()=>setFirstPerson($('first-person').checked);
+ canvas.addEventListener('pointerdown',event=>{if(!firstPerson||event.button!==0)return;lockClick=!lookLocked&&!fallbackLook;if(lockClick){canvas.focus();try{if(!canvas.requestPointerLock)throw new Error('Pointer lock unavailable');canvas.requestPointerLock()?.catch(()=>{fallbackLook=true;refreshFirstPersonTools();});}catch{fallbackLook=true;refreshFirstPersonTools();}}},true);
+ document.addEventListener('pointerlockchange',()=>{lookLocked=document.pointerLockElement===canvas;keys.clear();if(!lookLocked)renderer.beach.windHeld=false;refreshFirstPersonTools();});
+ document.addEventListener('pointerlockerror',()=>{if(firstPerson){fallbackLook=true;refreshFirstPersonTools();status('Mouse capture unavailable here. Right-drag to look; WASD walks.');}});
+ document.addEventListener('mousemove',event=>{if(!firstPerson||(!lookLocked&&!(fallbackLook&&(event.buttons&2))))return;const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');e.y-=event.movementX*.002;e.x=THREE.MathUtils.clamp(e.x-event.movementY*.002,-Math.PI*.495,Math.PI*.495);camera.quaternion.setFromEuler(e);});
+ canvas.addEventListener('wheel',event=>{if(!firstPerson)return;event.preventDefault();event.stopImmediatePropagation();if(event.deltaY===0||event.timeStamp-lastToolScroll<120)return;lastToolScroll=event.timeStamp;fpTool=cycleInteraction(firstPersonOptions().map(o=>o[0]),fpTool,event.deltaY);renderer.beach.windHeld=false;refreshFirstPersonTools();},{passive:false,capture:true});
+}
+function walkSolid(p){
+ if(renderer.beach.enabled)return sdfContact(renderer.beach.terrain,p);
+ if(renderer.lightTest.enabled){const field={distance:q=>{let d=1e3;for(const v of renderer.lightTest.sceneData.volumes){const local=localPoint(v,q),s=v.type===SHAPE.MIRROR?Math.max(Math.abs(local[0])-v.size[0],Math.abs(local[1])-v.size[1],shapeDistance(v,local)-.02):shapeDistance(v,local);d=v.medium===1||v.medium===3?Math.min(d,s):Math.max(d,-s);}return Math.min(q[1],d);}};field.normal=q=>{const e=.002,n=[0,1,2].map(k=>{const a=q.slice(),b=q.slice();a[k]+=e;b[k]-=e;return field.distance(a)-field.distance(b);}),l=Math.hypot(...n)||1;return n.map(v=>v/l);};return sdfContact(field,p);}
+ const hit=world.collisionSample(p,probe.active?-1:5);return {distance:hit.distance,normal:world.normal(hit.id,p)};
+}
+function walkWater(p){
+ if(renderer.beach.enabled){const b=renderer.beach;if(b.volume?.contains(p))return b.volume.liquidAt(p);const s=b.sim.sample(p[0],p[2],false);return s.h>.01&&p[1]>s.bed&&p[1]<s.surface?1:0;}
+ if(renderer.lightTest.enabled)return mediumAt(renderer.lightTest.sceneData,p)===2?1:0;
+ if(fluid.enabled){let density=0;for(let i=0;i<fluid.count;i++){const o=i*3,d=(p[0]-fluid.positions[o])**2+(p[1]-fluid.positions[o+1])**2+(p[2]-fluid.positions[o+2])**2;if(d<fluid.h2)density+=fluid.volume*fluid.poly*(fluid.h2-d)**3;}return Math.min(1,density);}
+ return 0;
+}
+function stepFirstPerson(dt){walker.position=camera.position.toArray();const down=k=>(lookLocked||fallbackLook&&document.activeElement===canvas)&&keys.has(k);walker.step(dt,{forward:camera.getWorldDirection(new THREE.Vector3()).toArray(),move:[Number(down('KeyD'))-Number(down('KeyA')),Number(down('KeyW'))-Number(down('KeyS'))],buoyant:down('Space'),jump:fpJump,sprint:down('ShiftLeft')||down('ShiftRight')},walkSolid,walkWater);fpJump=false;camera.position.fromArray(walker.position);$('pov-state').textContent=`${walker.submerged>.05?keys.has('Space')?'Buoyant':'Sinking':walker.grounded?'Grounded':walker.velocity[1]>0?'Rising':'Falling'} · ${camera.position.toArray().map(v=>v.toFixed(2)).join(', ')} m`;controls.target.copy(camera.position).addScaledVector(camera.getWorldDirection(new THREE.Vector3()),5);if(renderer.beach.windHeld){const d=camera.getWorldDirection(new THREE.Vector3());renderer.beach.interact(camera.position.toArray(),d.toArray());}}
+function firstPersonInteract(event){
+ const ray=rayFromEvent(event),o=ray.origin.toArray(),d=ray.direction.toArray();
+ if(renderer.beach.enabled){renderer.beach.tool=fpTool;if(fpTool==='wind'){renderer.beach.windHeld=true;}renderer.beach.interact(o,d);return;}
+ if(renderer.lightTest.enabled){const t=renderer.lightTest;if(fpTool==='light')t.configure({aim:THREE.MathUtils.clamp(t.config.aim+5,-35,35)});if(fpTool==='color'){const colors=['white','red','green','blue'];t.configure({color:colors[(colors.indexOf(t.config.color)+1)%4]});}if(fpTool.startsWith('level-'))t.configure({waterHeight:THREE.MathUtils.clamp(t.config.waterHeight+(fpTool==='level-up'?.1:-.1),.6,1.85)});for(const name of ['aim','waterHeight']){$(`lt-${name}`).value=t.config[name];$(`lt-${name}-value`).value=t.config[name].toFixed(2);}$('lt-color').value=t.config.color;return;}
+ if(fpTool==='launch'){probe.dropAt(o.map((v,k)=>v+d[k]*(probe.radius+.45)));probe.velocity.fromArray(d).multiplyScalar(8);paused=false;$('pause').textContent='Pause';return;}
+ if(fpTool==='gust'){(fabrics.enabled?fabrics:fibers).pulse();return;}
+ if(fpTool==='pull'){const target=ray.at(Math.max(.1,-o[2]/(d[2]||1e-6)),new THREE.Vector3()),patch=fabrics.patches.reduce((a,b)=>Math.abs(a.centerX-target.x)<Math.abs(b.centerX-target.x)?a:b);patch.setPull(!patch.pulling);return;}
+ if(fpTool==='nudge'){const hit=world.raycast(o,d,6);if(hit)granular.disturb(hit.point);return;}
+ const prior=firstPerson;firstPerson=false;const rect=canvas.getBoundingClientRect(),center={button:0,clientX:rect.left+rect.width/2,clientY:rect.top+rect.height/2};tool=fpTool;dragStart=[center.clientX,center.clientY];clickScene(center);firstPerson=prior;
 }
 
 function setupBeachControls(){
  const beach=renderer.beach,sim=beach.sim;
- $('beach-tool').onchange=()=>{beach.tool=$('beach-tool').value;controls.mouseButtons.LEFT=beach.tool==='orbit'?THREE.MOUSE.ROTATE:null;canvas.classList.toggle('editing',beach.tool!=='orbit');};
+ $('beach-tool').onchange=()=>{beach.tool=$('beach-tool').value;if(firstPerson){fpTool=beach.tool;refreshFirstPersonTools();}if(['carve','solid'].includes(beach.tool)&&beach.radius>3){beach.radius=3;$('beach-radius').value=3;$('beach-radius-value').value='3.0 m';}controls.mouseButtons.LEFT=beach.tool==='orbit'?THREE.MOUSE.ROTATE:null;canvas.classList.toggle('editing',beach.tool!=='orbit');};
  $('beach-radius').oninput=()=>{beach.radius=Number($('beach-radius').value);$('beach-radius-value').value=beach.radius.toFixed(1)+' m';};
  $('beach-time').oninput=()=>{beach.hour=Number($('beach-time').value);updateBeachStats();};
  $('beach-cycle').onchange=()=>beach.cycle=$('beach-cycle').checked;
  $('beach-wind').oninput=()=>{sim.wind=Number($('beach-wind').value);$('beach-wind-value').value=sim.wind.toFixed(1)+' m/s';};
  $('beach-turbulence').oninput=()=>{sim.turbulence=Number($('beach-turbulence').value);$('beach-turbulence-value').value=sim.turbulence.toFixed(2);};
  $('beach-caustics').onchange=()=>{beach.caustics.enabled=$('beach-caustics').checked;beach.caustics.last=-1;};
+ $('beach-jet').oninput=()=>{beach.windStrength=Number($('beach-jet').value);$('beach-jet-value').value=beach.windStrength+' m/s';};
  $('beach-direction').oninput=()=>{sim.windAngle=Number($('beach-direction').value)*Math.PI/180;$('beach-direction-value').value=$('beach-direction').value+'°';};
  $('beach-pause').onclick=()=>{beach.paused=!beach.paused;$('beach-pause').textContent=beach.paused?'Resume':'Pause';};
  $('beach-spawn').onclick=()=>{const p=controls.target;beach.spawn(p.x+(beach.balls.length%3-1)*.9,p.z);};
@@ -328,17 +390,18 @@ function setupBeachControls(){
  $('beach-sun').onclick=()=>{beach.updateSky();controls.target.copy(camera.position).addScaledVector(beach.u.uSun.value,40);controls.update();};
  $('beach-moon').onclick=()=>{beach.updateSky();controls.target.copy(camera.position).addScaledVector(beach.u.uMoon.value,40);controls.update();};
  $('beach-sand-view').onclick=()=>focus([-2,sim.sample(-2,5).bed+.2,5],[4,1.9,-1]);
+ $('beach-arch').onclick=()=>focus([-8,2,2.5],[4,1,-7]);$('beach-undo-volume').onclick=()=>{if(beach.terrain.undo()){beach.updateTerrain();beach.volume.refreshTerrain();}};$('beach-reef').onclick=()=>focus([-18,0,-17.5],[6,2.5,3]);
  $('beach-rocks').onclick=()=>focus([-8,.5,-12],[5,4,7]);
  $('beach-inspect-ball').onclick=()=>{const b=beach.balls.at(-1);if(b)focus(b.position,[2,1.5,3]);};
  $('beach-shore').onclick=home;$('beach-pool').onclick=()=>focus([12,.2,15],[5,5,8]);$('beach-grass').onclick=()=>{const y=sim.sample(-6,16).bed;focus([-6,y+.8,16],[3,2.8,5]);};
- $('beach-backend').onchange=()=>sim.setCPU($('beach-backend').value==='cpu');$('beach-verify').onclick=()=>beach.verify();
- canvas.addEventListener('pointerdown',event=>{if(beach.enabled&&beach.tool==='wind'&&event.button===0){beach.windHeld=true;const ray=rayFromEvent(event);beach.interact(ray.origin.toArray(),ray.direction.toArray());}});
+ $('beach-backend').onchange=()=>{const cpu=$('beach-backend').value==='cpu';sim.setCPU(cpu);beach.volume.setCPU(cpu);};$('beach-verify').onclick=()=>beach.verify();$('beach-volume-enabled').onchange=()=>beach.volume.enabled=$('beach-volume-enabled').checked;$('beach-volume-here').onclick=()=>{beach.volume.relocate(controls.target.toArray());beach.volume.enabled=true;$('beach-volume-enabled').checked=true;};$('beach-gust-test').onclick=()=>{beach.volume.enabled=true;$('beach-volume-enabled').checked=true;beach.gustEnd=beach.volume.time+2;beach.paused=false;$('beach-reef').click();};$('beach-wind-test').onclick=()=>{beach.volume.enabled=true;$('beach-volume-enabled').checked=true;sim.wind=32;sim.turbulence=1.5;sim.windAngle=0;$('beach-wind').value=32;$('beach-wind-value').value='32.0 m/s';$('beach-turbulence').value=1.5;$('beach-turbulence-value').value='1.50';$('beach-direction').value=0;$('beach-direction-value').value='0°';beach.paused=false;$('beach-reef').click();};
+ canvas.addEventListener('pointerdown',event=>{if(beach.enabled&&beach.tool==='wind'&&event.button===0&&(!firstPerson||lookLocked||fallbackLook)){beach.windHeld=true;const ray=rayFromEvent(event);beach.interact(ray.origin.toArray(),ray.direction.toArray());}});
  window.addEventListener('pointerup',()=>beach.windHeld=false);window.addEventListener('blur',()=>beach.windHeld=false);
- let lastBrush=0;canvas.addEventListener('pointermove',event=>{if(!beach.enabled||beach.tool==='orbit'||beach.tool==='ball'||event.buttons!==1||event.timeStamp-lastBrush<80)return;lastBrush=event.timeStamp;const ray=rayFromEvent(event);beach.interact(ray.origin.toArray(),ray.direction.toArray());});
+ let lastBrush=0;canvas.addEventListener('pointermove',event=>{if(firstPerson||!beach.enabled||beach.tool==='orbit'||beach.tool==='ball'||event.buttons!==1||event.timeStamp-lastBrush<80)return;lastBrush=event.timeStamp;const ray=rayFromEvent(event);beach.interact(ray.origin.toArray(),ray.direction.toArray());});
  updateBeachStats();
 }
 function updateBeachStats(){if(!renderer?.beach)return;const b=renderer.beach,h=Math.floor(b.hour),m=Math.floor((b.hour-h)*60);$('beach-time-value').value=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;if(b.cycle)$('beach-time').value=b.hour;
- $('beach-state').textContent=b.sim.backend;$('beach-backend').value=b.sim.cpu?'cpu':'gpu';$('beach-pause').textContent=b.paused?'Resume':'Pause'; $('beach-draw').textContent=(b.cpuMs||0).toFixed(1)+' ms CPU submission';$('beach-validation').textContent=b.verification;$('beach-gpu-times').textContent=Object.entries(b.timers.ms).map(([k,v])=>`${k} ${v.toFixed(1)} ms`).join(' / ')||'Timer unavailable';$('beach-cells').textContent=`${b.sim.n}² × ${b.sim.dx} m + 512 m wave field`;
+ $('beach-state').textContent=b.sim.backend;$('beach-backend').value=b.sim.cpu?'cpu':'gpu';$('beach-pause').textContent=b.paused?'Resume':'Pause'; $('beach-draw').textContent=(b.cpuMs||0).toFixed(1)+' ms CPU submission';$('beach-validation').textContent=b.verification;$('beach-gpu-times').textContent=Object.entries(b.timers.ms).map(([k,v])=>`${k} ${v.toFixed(1)} ms`).join(' / ')||'Timer unavailable';$('beach-cells').textContent=`${b.volume.size.join(' × ')} at ${b.volume.dx} m (3D) · ${b.sim.n}² coastal + 512 m far field`;$('beach-volume-state').textContent=`${b.volume.cpu?'CPU':'GPU'} · ${b.volume.time.toFixed(1)} s · ${b.volume.metrics.overhangs} overhanging cells · ${b.volume.metrics.volume.toFixed(1)} m³`;
  $('beach-balls').textContent=`${b.balls.length} · ${b.balls.filter(v=>v.submerged>.01).length} in water`;
  $('beach-parcels').textContent=`${b.parcels.items.filter(p=>p.kind==='sand').length} / ${b.parcels.items.filter(p=>p.kind==='water').length} · CPU`; $('beach-grass-count').textContent=(b.grassCount||0).toLocaleString();
  $('beach-clock').textContent=b.sim.time.toFixed(1)+' s';$('beach-edits').textContent=b.sim.savedBed.size.toLocaleString()+' cells';
@@ -380,8 +443,8 @@ function tick(time) {
   try {
     const elapsed=lastTime?(time-lastTime)/1000:1/60;lastTime=time;
     if(document.hidden){requestAnimationFrame(tick);return;}
-    travel(Math.min(elapsed,.05));controls.update(Math.min(elapsed,.1));
-    if(renderer.beach.enabled){const floor=renderer.beach.sim.sample(camera.position.x,camera.position.z).bed+.4;if(camera.position.y<floor)camera.position.y=floor;}
+    if(firstPerson)stepFirstPerson(Math.min(elapsed,.1));else{travel(Math.min(elapsed,.05));controls.update(Math.min(elapsed,.1));}
+    if(renderer.beach.enabled&&!firstPerson){const p=camera.position.toArray();renderer.beach.terrain.projectSphere(p,.35);camera.position.fromArray(p);}
     if(time-lastStream>150){updateStream();lastStream=time;}
     if(streamer.error)throw new Error(streamer.error);
     renderer.beach.advance(elapsed,renderer.beach.paused,camera);

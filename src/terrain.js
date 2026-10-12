@@ -17,23 +17,19 @@ export function terrainHeight(x, z) {
 // surface. Division by two bounds the gradient, including the central plateau.
 export function terrainDistance(x, y, z, edits = []) {
   let d = (y - terrainHeight(x, z)) / 2;
-  for (const e of edits) {
-    const sphere = Math.hypot(x - e[0], y - e[1], z - e[2]) - e[3];
-    d = e[4] > 0 ? Math.min(d, sphere) : Math.max(d, -sphere);
-  }
+  return terrainCSG(d,x,y,z,edits);
+}
+
+// Shared CSG semantics for streamed terrain and the volumetric beach.
+export function terrainCSG(d,x,y,z,edits){
+  for(const e of edits){const sphere=Math.hypot(x-e[0],y-e[1],z-e[2])-e[3];d=e[4]>0?Math.min(d,sphere):Math.max(d,-sphere);}
   return d;
 }
 
-export function terrainNormal(p, edits = []) {
-  const e = .003, [x, y, z] = p;
-  const n = [
-    terrainDistance(x+e,y,z,edits)-terrainDistance(x-e,y,z,edits),
-    terrainDistance(x,y+e,z,edits)-terrainDistance(x,y-e,z,edits),
-    terrainDistance(x,y,z+e,edits)-terrainDistance(x,y,z-e,edits),
-  ];
-  const length = Math.hypot(...n) || 1;
-  return n.map(v => v / length);
+export function fieldNormal(distance,p,e=.003){
+ const n=[0,1,2].map(i=>{const a=p.slice(),b=p.slice();a[i]+=e;b[i]-=e;return distance(a)-distance(b);}),length=Math.hypot(...n)||1;return n.map(v=>v/length);
 }
+export function terrainNormal(p,edits=[]){return fieldNormal(q=>terrainDistance(...q,edits),p);}
 
 export const chunkKey = (x, z) => `${x},${z}`;
 export function editsForChunk(edits, cx, cz, margin = 3) {

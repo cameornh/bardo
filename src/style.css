@@ -2,3 +2,7 @@
 [hidden]{display:none!important}
 
 #optics-labels{position:absolute;inset:0;pointer-events:none}#optics-labels button{position:absolute;transform:translate(-50%,0);pointer-events:auto;background:#171b20d9;font-size:10px;padding:3px 6px;white-space:nowrap}#controls{z-index:2}
+
+#pov-hud{position:absolute;inset:0;pointer-events:none;color:#fff;text-shadow:0 1px 3px #000;font:13px system-ui}#pov-hud[hidden]{display:none}#pov-hud>span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:24px}#pov-tool{position:absolute;bottom:60px;width:100%;text-align:center}#pov-hint{position:absolute;bottom:40px;width:100%;text-align:center}
+
+#pov-state{position:absolute;bottom:82px;width:100%;text-align:center;font-size:12px}

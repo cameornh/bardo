@@ -21,7 +21,7 @@ void main(){ivec2 p=ivec2(gl_FragCoord.xy);vec4 a=cell(p,1),aux=texelFetch(uAux,
  for(int j=0;j<4;j++){ivec2 offset=j==0?ivec2(1,0):j==1?ivec2(-1,0):j==2?ivec2(0,1):ivec2(0,-1);int axis=j<2?1:2;float sign=j%2==0?1.:-1.;vec4 A=cell(p,axis),B=cell(p+offset,axis);float bn=bedAt(p+offset);vec3 f=sign>0.?flux(A,B,b,bn,axis):flux(B,A,bn,b,axis);float height=max(0.,A.x+b-max(b,bn));f+=(axis==1?vec3(0,1,0):vec3(0,0,1))*(.5*9.81*(a.x*a.x-height*height));result-=sign*uDt/uDx*f;}
  result.x=max(0.,result.x);vec2 world=uOrigin+(vec2(p)+.5)*uDx;vec3 wind3=air(world,b+result.x);vec2 wind=wind3.xz;
  vec2 dp=vec2(pressure(world+vec2(uDx,0),b+result.x)-pressure(world-vec2(uDx,0),b+result.x),pressure(world+vec2(0,uDx),b+result.x)-pressure(world-vec2(0,uDx),b+result.x))/(2.*uDx);
- result.yz=(result.yz+uDt*(.0015*wind*length(wind)-result.x*dp))/(1.+uDt*(.012+.04/max(result.x,.08)));
+ result.yz=(result.yz+uDt*(.000003*wind*length(wind)-result.x*dp))/(1.+uDt*(.012+.04/max(result.x,.08)));
  if(uOpen&&uHasOcean&&b<0.){float border=float(min(min(p.x,p.y),min(uN-1-p.x,uN-1-p.y))),relax=clamp((10.-border)/10.,0.,1.)*uDt*4.;vec4 far=texture(uOcean,fract((world+256.)/512.));float h=max(0.,far.x-8.-b);result=mix(result,vec3(h,far.yz/max(far.x,.02)*h),relax);}
  vec4 impulse=texelFetch(uImpulses,p,0);result.x=max(0.,result.x+impulse.x);result.yz+=impulse.yz;
  vec2 relative=world-uBrush.xy;float weight=exp(-dot(relative,relative)/max(uBrush.z*uBrush.z,.001));result.yz+=relative*weight*uBrush.w*result.x*uDt*5.;
