@@ -1,0 +1,28 @@
+<!doctype html><html><body><button id="run">Run GPU comparison</button><pre id="result">Ready</pre><script type="module">
+import * as THREE from 'three';
+import {BeachSimulation} from '../src/beach-gpu.js';
+import {BeachCaustics} from '../src/beach-caustics.js';
+import {BEACH_RENDER_WORLD,BEACH_WATER_SURFACE_FRAGMENT,BEACH_SURFACE_CACHE_FRAGMENT} from '../src/beach-shaders.js';
+import {QUAD_VERTEX} from '../src/shaders.js';
+const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});
+renderer.setSize(64,64);renderer.autoClear=false;document.body.append(renderer.domElement);
+const sim=new BeachSimulation(renderer,{n:16,ocean:false});
+async function verifyShoreline(){
+ const field=new BeachSimulation(renderer,{n:128,dx:.65,origin:[-41.6,-41.6],ocean:false});
+ const surface=new THREE.WebGLRenderTarget(128,128,{type:THREE.FloatType,depthBuffer:false});
+ const cache=new THREE.WebGLRenderTarget(512,512,{type:THREE.HalfFloatType,depthBuffer:false});
+ const probe=new THREE.WebGLRenderTarget(256,256,{type:THREE.FloatType,depthBuffer:false});
+ const ocean=new THREE.DataTexture(new Float32Array([8,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);ocean.needsUpdate=true;
+ const u={uFlow:{value:field.flowTex},uAux:{value:field.auxTex},uBed:{value:field.bedTex},uOcean:{value:ocean},uWaterSurface:{value:surface.texture},uSurfaceCache:{value:cache.texture},uOrigin:{value:new THREE.Vector2(...field.origin)},uN:{value:128},uDx:{value:.65},uFieldLinear:{value:field.linear}};
+ const camera=new THREE.Camera(),geometry=new THREE.PlaneGeometry(2,2),materials=[];
+ const draw=(fragment,target)=>{const material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:fragment,uniforms:u,depthTest:false,depthWrite:false});materials.push(material);const scene=new THREE.Scene();scene.add(new THREE.Mesh(geometry,material));renderer.setRenderTarget(target);renderer.render(scene,camera);};
+ try{
+  draw(BEACH_WATER_SURFACE_FRAGMENT,surface);draw(BEACH_SURFACE_CACHE_FRAGMENT,cache);
+  draw(`precision highp float;precision highp int;in vec2 vUv;out vec4 outColor;${BEACH_RENDER_WORLD}\nvoid main(){vec2 p=vec2(-11.2,-15.2)+vUv*6.4;float b=groundHeight(p),h=waterState(p).x;outColor=vec4(b,h,b+h,1);}`,probe);
+  const values=await renderer.readRenderTargetPixelsAsync(probe,0,0,256,256,new Float32Array(256*256*4));let wetSamples=0,maxFreeSurfaceError=0,dryLeaks=0;
+  for(let i=0;i<values.length;i+=4){if(values[i+1]>.02){wetSamples++;maxFreeSurfaceError=Math.max(maxFreeSurfaceError,Math.abs(values[i+2]));}if(values[i]>.03&&values[i+1]>.005)dryLeaks++;}
+  return {wetSamples,maxFreeSurfaceError,dryLeaks,pass:wetSamples>10000&&maxFreeSurfaceError<.01&&dryLeaks===0};
+ }finally{renderer.setRenderTarget(null);field.dispose();surface.dispose();cache.dispose();probe.dispose();ocean.dispose();geometry.dispose();for(const m of materials)m.dispose();}
+}
+document.querySelector('#run').onclick=async()=>{document.querySelector('#result').textContent='Running';try{const result={waves:await sim.verify(),periodic:await sim.verify({periodic:true}),photons:await BeachCaustics.verifyFlat(renderer),shoreline:await verifyShoreline()};document.querySelector('#result').textContent=JSON.stringify(result,null,2);}catch(e){document.querySelector('#result').textContent=e.stack;}};
+</script></body></html>

@@ -1,46 +1,52 @@
 import * as THREE from 'three';
 import { BeachSimulation } from './beach-gpu.js';
-import { BEACH_DT,MAX_BEACH_BALLS,beachBed,glassBallMass,stepBeachBall,windAt } from './beach-model.js';
+import { BEACH_DT,BEACH_ROCKS,beachBed,glassBallMass,stepBeachBall } from './beach-model.js';
+import { BodyTexture,solveBallContacts } from './beach-bodies.js';
+import { BeachParcels } from './beach-parcels.js';
+import { BeachCaustics } from './beach-caustics.js';
+import { airVelocity } from './beach-wind.js';
+import { GPUTiming } from './gpu-timing.js';
 import { projectedMotion } from './lod.js';
 import { projectSH } from './sh.js';
 import { QUAD_VERTEX } from './shaders.js';
-import { BEACH_ATMOSPHERE_FRAGMENT,BEACH_BACKGROUND_FRAGMENT,BEACH_HITS_FRAGMENT,BEACH_SPLAT_VERTEX,BEACH_SPLAT_FRAGMENT,BEACH_RESOLVE_FRAGMENT,BEACH_GLASS_FRAGMENT } from './beach-shaders.js';
+import { BEACH_SURFACE_CACHE_FRAGMENT,BEACH_WATER_SURFACE_FRAGMENT,BEACH_ATMOSPHERE_FRAGMENT,BEACH_BACKGROUND_FRAGMENT,BEACH_HITS_FRAGMENT,BEACH_SPLAT_VERTEX,BEACH_SPLAT_FRAGMENT,BEACH_RESOLVE_FRAGMENT,BEACH_GLASS_FRAGMENT } from './beach-shaders.js';
 
 const hash=(x,z)=>{const v=Math.sin(x*127.1+z*311.7)*43758.5453;return v-Math.floor(v);};
 export class BeachRenderer {
  constructor(field){
-  this.field=field;this.enabled=false;this.count=0;this.hour=11;this.cycle=false;this.paused=false;this.tool='orbit';this.radius=2;this.balls=[];this.sim=new BeachSimulation(field.renderer);this.accumulator=0;this.dayClock=0;this.verification='Not run';this.skyHour=-1;this.skyPending=false;
+  this.field=field;this.timers=new GPUTiming(field.renderer);this.enabled=false;this.count=0;this.hour=11;this.cycle=false;this.paused=false;this.tool='orbit';this.radius=2;this.balls=[];this.sim=new BeachSimulation(field.renderer);this.parcels=new BeachParcels(this.sim);this.bodies=new BodyTexture();this.windHeld=false;this.accumulator=0;this.dayClock=0;this.verification='Not run';this.skyHour=-1;this.skyPending=false;
   const target=(type=THREE.FloatType)=>new THREE.WebGLRenderTarget(1,1,{type,depthBuffer:false});
-  this.sky=target();this.sky.setSize(128,64);this.hits=target();this.accum=target();this.background=target(THREE.HalfFloatType);
-  this.u={...field.uniforms,uFieldLinear:{value:this.sim.linear},uOrigin:{value:new THREE.Vector2(...this.sim.origin)},uFlow:{value:this.sim.textures[0]},uAux:{value:this.sim.textures[1]},uBed:{value:this.sim.bedTex},uDx:{value:this.sim.dx},uN:{value:this.sim.n},uClock:{value:0},uWind:{value:7},uWindAngle:{value:0},uTurbidity:field.water.uniforms.uTurbidity,uWaterRoughness:field.water.uniforms.uWaterRoughness,uSky:{value:this.sky.texture},uHits:{value:this.hits.texture},uSceneTexture:{value:this.background.texture},uAccum:{value:this.accum.texture},uPass:{value:0},uSun:{value:new THREE.Vector3()},uMoon:{value:new THREE.Vector3()},uSunColor:{value:new THREE.Vector3()},uMoonColor:{value:new THREE.Vector3()},uDaylight:{value:1},uBallCount:{value:0},uBalls:{value:Array.from({length:12},()=>new THREE.Vector4())},uBeachSH:{value:Array.from({length:16},()=>new THREE.Vector3())}};
-  this.quadCamera=new THREE.Camera();this.resources=[];
+  this.sky=target();this.sky.setSize(128,64);this.surfaceCache=target(THREE.HalfFloatType);this.surfaceCache.setSize(this.sim.n*4,this.sim.n*4);this.waterSurface=target();this.waterSurface.setSize(this.sim.n,this.sim.n);this.hits=target();this.hits.texture.minFilter=this.hits.texture.magFilter=THREE.NearestFilter;this.accum=target();this.background=target(THREE.HalfFloatType);
+  this.u={...field.uniforms,uFieldLinear:{value:this.sim.linear},uOrigin:{value:new THREE.Vector2(...this.sim.origin)},uFlow:{value:this.sim.textures[0]},uAux:{value:this.sim.textures[1]},uBed:{value:this.sim.bedTex},uDx:{value:this.sim.dx},uN:{value:this.sim.n},uClock:{value:0},uWind:{value:7},uTurbulence:{value:1},uWindAngle:{value:0},uTurbidity:field.water.uniforms.uTurbidity,uWaterRoughness:field.water.uniforms.uWaterRoughness,uSky:{value:this.sky.texture},uHits:{value:this.hits.texture},uSceneTexture:{value:this.background.texture},uAccum:{value:this.accum.texture},uPass:{value:0},uAccumResolution:{value:new THREE.Vector2()},uSun:{value:new THREE.Vector3()},uMoon:{value:new THREE.Vector3()},uSunColor:{value:new THREE.Vector3()},uMoonColor:{value:new THREE.Vector3()},uDaylight:{value:1},uCeiling:{value:12},uBallCount:{value:0},uBodies:{value:this.bodies.texture},uParticles:{value:this.parcels.texture},uOcean:{value:this.sim.ocean.textures[0]},uWaterSurface:{value:this.waterSurface.texture},uSurfaceCache:{value:this.surfaceCache.texture},uGrassFront:{value:false},uJetOrigin:{value:new THREE.Vector4()},uJetDirection:{value:new THREE.Vector4()},uJetLength:{value:45},uPhotonOrigin:{value:new THREE.Vector2(-18,-22)},uPhotonSize:{value:36},uCausticsEnabled:{value:true},uCaustics:{value:null},uBeachSH:{value:Array.from({length:16},()=>new THREE.Vector3())}};
+  this.caustics=new BeachCaustics(field.renderer,this.u);this.u.uCaustics.value=this.caustics.target.texture;this.quadCamera=new THREE.Camera();this.resources=[];
   const quad=(fragment,extra={},uniforms=this.u)=>{const s=new THREE.Scene(),g=new THREE.PlaneGeometry(2,2),m=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:fragment,uniforms,depthTest:false,depthWrite:false,...extra});s.add(new THREE.Mesh(g,m));this.resources.push(g,m);return s;};
   const over={transparent:true,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor};
-  this.atmosphere=quad(BEACH_ATMOSPHERE_FRAGMENT);this.hitScene=quad(BEACH_HITS_FRAGMENT);this.skyScene=quad(BEACH_BACKGROUND_FRAGMENT);this.resolve=quad(BEACH_RESOLVE_FRAGMENT,over);this.glass=quad(BEACH_GLASS_FRAGMENT,over);
+  this.cacheScene=quad(BEACH_SURFACE_CACHE_FRAGMENT);this.surfaceScene=quad(BEACH_WATER_SURFACE_FRAGMENT);this.atmosphere=quad(BEACH_ATMOSPHERE_FRAGMENT);this.hitScene=quad(BEACH_HITS_FRAGMENT);this.skyScene=quad(BEACH_BACKGROUND_FRAGMENT);this.resolve=quad(BEACH_RESOLVE_FRAGMENT,over);this.glass=quad(BEACH_GLASS_FRAGMENT,over);
   this.copy=quad('precision highp float;in vec2 vUv;out vec4 outColor;uniform sampler2D uImage;void main(){outColor=texture(uImage,vUv);}',{}, {uImage:{value:field.target.texture}});
   this.geometry=new THREE.InstancedBufferGeometry();this.geometry.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));this.geometry.setIndex([0,1,2,0,2,3]);
   this.patches=new Float32Array(50000*4);this.seeds=new Float32Array(50000*4);this.geometry.setAttribute('aPatch',new THREE.InstancedBufferAttribute(this.patches,4).setUsage(THREE.DynamicDrawUsage));this.geometry.setAttribute('aSeed',new THREE.InstancedBufferAttribute(this.seeds,4).setUsage(THREE.DynamicDrawUsage));
   this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:BEACH_SPLAT_VERTEX,fragmentShader:BEACH_SPLAT_FRAGMENT,uniforms:this.u,depthTest:false,depthWrite:false,transparent:true,side:THREE.DoubleSide,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor});
   this.mesh=new THREE.Mesh(this.geometry,this.material);this.mesh.frustumCulled=false;this.splats=new THREE.Scene();this.splats.add(this.mesh);
  }
- spawn(x,z){if(this.balls.length>=MAX_BEACH_BALLS)return false;const s=this.sim.sample(x,z),radius=.38+(this.balls.length%3)*.055;this.balls.push({position:[x,Math.max(s.surface,s.bed)+radius+.65,z],velocity:[0,0,0],spin:[0,0,0],radius,mass:glassBallMass(radius),submerged:0,contact:false});return true;}
+ spawn(x,z){const s=this.sim.sample(x,z),radius=.38+(this.balls.length%3)*.055;this.balls.push({position:[x,Math.max(s.surface,s.bed)+radius+.65,z],velocity:[0,0,0],spin:[0,0,0],radius,mass:glassBallMass(radius),submerged:0,contact:false});return true;}
  activate(){if(!this.started){this.spawn(-3,-2);this.spawn(1,1);this.started=true;}this.verify();}
- async verify(){if(this.verification==='Comparing…')return;this.verification='Comparing…';try{const result=await this.sim.verify();this.verification=`${result.pass?'PASS':'FAIL'} · max error ${result.error.toExponential(2)} / 5e-4`;if(!result.pass)this.sim.setCPU(true);}catch(e){this.verification=`GPU unavailable: ${e.message}`;this.sim.setCPU(true);}}
+ async verify(){if(this.verification==='Comparing…')return;this.verification='Comparing…';try{const local=await this.sim.verify(),far=await this.sim.verify({periodic:true}),result={pass:local.pass&&far.pass,error:Math.max(local.error,far.error)},light=await BeachCaustics.verifyFlat(this.field.renderer);this.verification=`Flow ${result.pass?'PASS':'FAIL'} ${result.error.toExponential(2)} / 1e-4 · photons ${light.pass?'PASS':'FAIL'} ${(light.positionError*1000).toFixed(1)} mm / 20 mm`;if(!result.pass){this.sim.setCPU(true);this.paused=true;}if(!light.pass)this.caustics.enabled=false;}catch(e){this.verification=`GPU validation unavailable: ${e.message}`;this.sim.setCPU(true);this.paused=true;}}
  advance(elapsed,paused,camera){
   if(!this.enabled)return;this.sim.recenter(camera.position.x,camera.position.z);if(paused)return;
-  this.accumulator+=Math.min(elapsed,.1);let iterations=0;while(this.accumulator>=BEACH_DT&&iterations++<6){
-   for(const ball of this.balls){stepBeachBall(ball,BEACH_DT,(x,z)=>this.sim.sample(x,z),windAt(ball.position[0],ball.position[2],this.sim.time,this.sim.wind,this.sim.windAngle));
-    const b=this.sim.sample(ball.position[0],ball.position[2]);if(ball.contact&&b.bed>.7&&b.bed<3.5){ball.velocity[0]*=.99;ball.velocity[2]*=.99;}
-    if(ball.contact&&this.sim.steps%12===0&&Math.hypot(ball.velocity[0],ball.velocity[2])>.15)this.sim.nudgeSand(ball.position[0],ball.position[2],ball.radius*1.5,-.008);
+  this.timers.begin("simulation");this.accumulator+=Math.min(elapsed,.1);let iterations=0;while(this.accumulator>=BEACH_DT&&iterations++<8){
+   if(this.windHeld){this.sim.jet.strength=32;if(this.windHit&&this.sim.steps%12===0){const s=this.sim.sample(this.windHit[0],this.windHit[2]);if(s.h<.015&&s.wet<.65)this.parcels.nudge(this.windHit,this.sim.jet.direction,this.radius);}}
+   for(const ball of this.balls){const previous=ball.submerged,velocity=ball.velocity.slice();stepBeachBall(ball,BEACH_DT,(x,z)=>this.sim.sample(x,z),airVelocity(ball.position,this.sim.time,this.sim.wind,this.sim.windAngle,this.sim.jet,this.sim.turbulence));
+    if(previous<.01&&ball.submerged>.01&&Math.abs(velocity[1])>1)this.parcels.splash(ball.position,velocity,Math.min(.08,ball.radius**3));
+    if(ball.contact){const b=this.sim.sample(ball.position[0],ball.position[2]);if(b.bed>.7&&b.bed<3.5){ball.velocity[0]*=.99;ball.velocity[2]*=.99;}}
    }
-   for(let i=0;i<this.balls.length;i++)for(let j=i+1;j<this.balls.length;j++){const a=this.balls[i],b=this.balls[j],d=a.position.map((x,k)=>x-b.position[k]),length=Math.hypot(...d),overlap=a.radius+b.radius-length;if(overlap>0&&length>.00001){const n=d.map(x=>x/length),ia=1/a.mass,ib=1/b.mass,speed=n.reduce((v,x,k)=>v+x*(a.velocity[k]-b.velocity[k]),0),impulse=Math.max(0,-1.2*speed/(ia+ib));for(let k=0;k<3;k++){a.position[k]+=n[k]*overlap*ia/(ia+ib);b.position[k]-=n[k]*overlap*ib/(ia+ib);a.velocity[k]+=n[k]*impulse*ia;b.velocity[k]-=n[k]*impulse*ib;}}}
+   solveBallContacts(this.balls);this.parcels.step(BEACH_DT,this.balls);
    this.sim.step(BEACH_DT,this.balls);this.accumulator-=BEACH_DT;
   }
-  if(this.sim.steps%4<iterations)this.sim.requestRead();if(this.cycle)this.hour=(this.hour+Math.min(elapsed,.1)*.12)%24;
+  this.timers.end();if(this.sim.steps%4<iterations)this.sim.requestRead();if(this.cycle)this.hour=(this.hour+Math.min(elapsed,.1)*.12)%24;
  }
  pick(origin,direction){let previous=0,t=.05;for(let i=0;i<180;i++){const p=origin.map((v,k)=>v+direction[k]*t),s=this.sim.sample(p[0],p[2]);if(p[1]<s.surface){let a=previous,b=t;for(let j=0;j<10;j++){const m=(a+b)/2,q=origin.map((v,k)=>v+direction[k]*m);if(q[1]>this.sim.sample(q[0],q[2]).surface)a=m;else b=m;}return origin.map((v,k)=>v+direction[k]*(a+b)/2);}previous=t;t+=Math.max(.15,(p[1]-s.surface)*.6);if(t>250)break;}return null;}
- interact(origin,direction){const p=this.pick(origin,direction);if(!p)return false;this.sim.recenter(p[0],p[2]);if(this.tool==='water')this.sim.nudgeWater(p[0],p[2],this.radius,2);if(this.tool==='sand'||this.tool==='dig')this.sim.nudgeSand(p[0],p[2],this.radius,this.tool==='sand'?.6:-.6);if(this.tool==='ball')return this.spawn(p[0],p[2]);return true;}
- updateSky(){const a=(this.hour-6)/24*Math.PI*2,sun=new THREE.Vector3(Math.cos(a)*.4,Math.sin(a),-Math.cos(a)*.9165).normalize(),u=this.u;u.uSun.value.copy(sun);u.uMoon.value.copy(sun).negate();
+ interact(origin,direction){if(this.tool==='wind'){this.windHit=this.pick(origin,direction);this.sim.jet={origin:origin.slice(),direction:direction.slice(),radius:this.radius,strength:32,length:55};return true;}const p=this.pick(origin,direction);if(!p)return false;this.sim.recenter(p[0],p[2]);if(this.tool==='water'){this.sim.nudgeWater(p[0],p[2],this.radius,2);this.parcels.splash(p,[direction[0]*3,-2,direction[2]*3],.04);}if(this.tool==='sediment')this.parcels.nudge(p,direction,this.radius);if(this.tool==='sand'||this.tool==='dig')this.sim.nudgeSand(p[0],p[2],this.radius,this.tool==='sand'?.6:-.6);if(this.tool==='ball')return this.spawn(p[0],p[2]);return true;}
+ updateSky(){const a=(this.hour-6)/24*Math.PI*2,sun=new THREE.Vector3(Math.cos(a)*.4,Math.sin(a),-Math.cos(a)*.9165).normalize(),u=this.u;u.uSun.value.copy(sun);u.uMoon.value.set(-.6,.48,.64).normalize();
   const daylight=THREE.MathUtils.smoothstep(sun.y,-.12,.15);u.uDaylight.value=daylight;
   const light=(direction,intensity)=>[.0058,.0135,.0331].map(beta=>Math.exp(-beta*8/Math.max(.035,direction.y))*intensity*THREE.MathUtils.smoothstep(direction.y,-.05,.025));
   u.uSunColor.value.fromArray(light(sun,2.2));u.uMoonColor.value.fromArray(light(u.uMoon.value,.045));
@@ -48,33 +54,42 @@ export class BeachRenderer {
   if(!this.skyPending){this.skyPending=true;r.readRenderTargetPixelsAsync(this.sky,0,0,128,64,new Float32Array(128*64*4)).then(data=>{const coefficients=projectSH(d=>{const x=Math.max(0,Math.min(127,Math.floor((Math.atan2(d[0],d[2])/Math.PI/2+.5)*128))),y=Math.max(0,Math.min(63,Math.floor((Math.asin(d[1])/Math.PI+.5)*64))),o=(y*128+x)*4;return [data[o],data[o+1],data[o+2]];});for(let i=0;i<16;i++)u.uBeachSH.value[i].fromArray(coefficients,i*3);}).catch(e=>{this.skyError=e.message;}).finally(()=>this.skyPending=false);}
  }
  prepare(camera,motion){
-  const key=[...camera.matrixWorld.elements.map(v=>v.toFixed(4)),motion.toFixed(2),this.field.minPixelSigma,this.field.budget,this.balls.length].join(':');if(key===this.drawKey)return;this.drawKey=key;
+  const key=[...camera.matrixWorld.elements.map(v=>v.toFixed(4)),motion.toFixed(2),this.field.minPixelSigma,this.field.budget,this.balls.length,this.parcels.revision,Math.floor(this.sim.time*4)].join(':');if(key===this.drawKey)return;this.drawKey=key;
   const draws=[],cx=camera.position.x,cz=camera.position.z;const coarsen=Math.min(8,Math.sqrt(motion*this.field.minPixelSigma/2)),grid=Math.max(6,Math.floor(Math.sqrt(this.field.budget*.62/18)/2)*2),base=.6*28/grid*coarsen;
   for(let level=0;level<9;level++){const step=base*2**level,centerX=Math.floor(cx/step)*step,centerZ=Math.floor(cz/step)*step,outer=step*grid*.5,inner=level?outer*.44:0;
    for(let z=-grid/2;z<grid/2;z++)for(let x=-grid/2;x<grid/2;x++){const px=centerX+(x+.5)*step,pz=centerZ+(z+.5)*step,d=Math.max(Math.abs(px-cx),Math.abs(pz-cz));if(d<inner||d>outer)continue;const weight=Math.min(1,(outer-d)/(step*1.5))*(level?Math.min(1,(d-inner)/(step*1.5)):1);if(weight<.01)continue;
     const p=new THREE.Vector3(px,Math.max(0,beachBed(px,pz)),pz).applyMatrix4(camera.matrixWorldInverse);if(p.z>step*4)continue;for(let kind=0;kind<2;kind++)draws.push({patch:[px,pz,step,kind],seed:[hash(px,pz),0,0,weight],depth:-p.z});
    }
   }
-  // Persistent world-grid roots; three elongated Gaussians per blade.
-  const grassStep=.75,limit=30,minX=Math.floor((cx-limit)/grassStep),minZ=Math.floor((cz-limit)/grassStep);
-  for(let z=0;z<80;z++)for(let x=0;x<80;x++){const gx=minX+x,gz=minZ+z,seed=hash(gx,gz),px=(gx+.2+seed*.6)*grassStep,pz=(gz+.2+hash(gz,gx)*.6)*grassStep,bed=beachBed(px,pz);if(bed<.9||bed>3.5||seed<.28||Math.hypot(px-cx,pz-cz)>limit)continue;const p=new THREE.Vector3(px,bed+.5,pz).applyMatrix4(camera.matrixWorldInverse);if(p.z>3)continue;const fade=1-THREE.MathUtils.smoothstep(Math.hypot(px-cx,pz-cz),22,30);for(let segment=0;segment<3;segment++)draws.push({patch:[px,pz,0,2],seed:[seed,segment,.9+seed*.85,fade],depth:-p.z});}
-  const grass=draws.filter(d=>d.patch[3]===2).sort((a,b)=>a.depth-b.depth).slice(0,Math.floor(this.field.budget*.38));draws.splice(0,draws.length,...draws.filter(d=>d.patch[3]!==2),...grass);
+  // Stable world-grid blades blend into wider Gaussian meadow clusters.
+  // The distant ground integrates the same meadow beyond individual footprints.
+  for(let level=0;level<6;level++){const step=.75*2**level,outer=24*2**level/Math.sqrt(Math.min(motion,4)),inner=level?outer*.36:0,loX=Math.floor((cx-outer)/step),loZ=Math.floor((cz-outer)/step),cells=Math.ceil(outer*2/step);
+   for(let z=0;z<cells;z++)for(let x=0;x<cells;x++){const gx=loX+x,gz=loZ+z,seed=hash(gx,gz),px=(gx+.2+seed*.6)*step,pz=(gz+.2+hash(gz,gx)*.6)*step,bed=beachBed(px,pz),distance=Math.hypot(px-cx,pz-cz);if(bed<.8||bed>3.8||(level===0&&seed<.28)||distance>outer||distance<inner)continue;
+    const p=new THREE.Vector3(px,bed+.7,pz).applyMatrix4(camera.matrixWorldInverse);if(p.z>step*3)continue;const fade=(1-THREE.MathUtils.smoothstep(distance,outer*.75,outer))*(level?THREE.MathUtils.smoothstep(distance,inner,outer*.5):1);if(fade<.005)continue;
+    const segments=level===0?3:1;for(let segment=0;segment<segments;segment++)draws.push({patch:[px,pz,level?step:0,2],seed:[seed,segment,.9+seed*.85,fade],depth:-p.z});
+   }
+  }
+  this.grassCount=draws.filter(d=>d.patch[3]===2).length;
+  for(let rock=0;rock<BEACH_ROCKS.length;rock++){const r=BEACH_ROCKS[rock],distance=Math.hypot(r[0]-cx,r[2]-cz),samples=distance<60?256:64;for(let i=0;i<samples;i++)draws.push({patch:[0,0,Math.sqrt(4*Math.PI/samples)*.85,0],seed:[1-2*(i+.5)/samples,i*2.39996323,rock+1,1],depth:distance});}
   // Glass has the same Gaussian coverage requirement as the other surfaces.
   // Its invisible sphere boundaries supply refraction and clip the silhouette.
   const shellSamples=Math.min(192,Math.max(16,Math.floor((this.field.budget-draws.length)/Math.max(1,this.balls.length))));
   for(let ball=0;ball<this.balls.length;ball++)for(let i=0;i<shellSamples;i++)draws.push({patch:[0,0,Math.sqrt(4*Math.PI/shellSamples)*.8,3],seed:[1-2*(i+.5)/shellSamples,i*2.39996323,ball,1],depth:0});
-  draws.sort((a,b)=>b.depth-a.depth);this.count=Math.min(50000,draws.length);for(let i=0;i<this.count;i++){this.patches.set(draws[i].patch,i*4);this.seeds.set(draws[i].seed,i*4);}this.geometry.instanceCount=this.count;for(const name of ['aPatch','aSeed']){const a=this.geometry.getAttribute(name);a.clearUpdateRanges();a.addUpdateRange(0,this.count*4);a.needsUpdate=true;}
+  this.parcels.items.forEach((p,i)=>{const v=new THREE.Vector3(...p.position).applyMatrix4(camera.matrixWorldInverse);if(v.z<1)draws.push({patch:[0,0,0,4],seed:[hash(i,0),0,i,1],depth:-v.z});});
+  draws.sort((a,b)=>b.depth-a.depth);this.count=draws.length;if(this.count*4>this.patches.length){const size=2**Math.ceil(Math.log2(this.count));this.patches=new Float32Array(size*4);this.seeds=new Float32Array(size*4);this.geometry.setAttribute('aPatch',new THREE.InstancedBufferAttribute(this.patches,4).setUsage(THREE.DynamicDrawUsage));this.geometry.setAttribute('aSeed',new THREE.InstancedBufferAttribute(this.seeds,4).setUsage(THREE.DynamicDrawUsage));}for(let i=0;i<this.count;i++){this.patches.set(draws[i].patch,i*4);this.seeds.set(draws[i].seed,i*4);}this.geometry.instanceCount=this.count;for(const name of ['aPatch','aSeed']){const a=this.geometry.getAttribute(name);a.clearUpdateRanges();a.addUpdateRange(0,this.count*4);a.needsUpdate=true;}
  }
  render(field,{dt,adaptive,focusDistance}){
   const r=field.renderer,c=field.camera,u=this.u,current={position:c.position.toArray(),quaternion:c.quaternion.toArray()},speed=projectedMotion(field.previousCamera,current,dt,field.resolution.y*c.projectionMatrix.elements[5]*.5,focusDistance);field.previousCamera=current;const motion=field.motion.update(speed,dt,adaptive);field.effectivePixelTarget=field.minPixelSigma*motion;
   for(const renderer of [field.grass,field.water,field.grains,field.soft,field.optics,field.lightTest])renderer.count=0;field.visibleSplats=0;field.sortMs=0;
-  const start=performance.now();this.updateSky();u.uOrigin.value.fromArray(this.sim.origin);[u.uFlow.value,u.uAux.value]=this.sim.textures;u.uClock.value=this.sim.time;u.uWind.value=this.sim.wind;u.uWindAngle.value=this.sim.windAngle;u.uBallCount.value=this.balls.length;this.balls.forEach((b,i)=>u.uBalls.value[i].set(...b.position,b.radius));
-  this.prepare(c,motion);for(const t of [this.hits,this.accum,this.background]){const scale=1,w=Math.round(field.target.width*scale),h=Math.round(field.target.height*scale);if(t.width!==w||t.height!==h)t.setSize(w,h);}
-  r.setRenderTarget(this.hits);r.render(this.hitScene,this.quadCamera);r.setRenderTarget(field.target);r.setClearColor(0,0);r.clear();r.render(this.skyScene,this.quadCamera);
+  const start=performance.now();this.updateSky();u.uOrigin.value.fromArray(this.sim.origin);[u.uFlow.value,u.uAux.value]=this.sim.textures;u.uCeiling.value=this.sim.ceiling||12;u.uClock.value=this.sim.time;u.uWind.value=this.sim.wind;u.uTurbulence.value=this.sim.turbulence;u.uWindAngle.value=this.sim.windAngle;this.bodies.update(this.balls);this.parcels.updateTexture();u.uBallCount.value=this.balls.length;u.uBodies.value=this.bodies.texture;u.uParticles.value=this.parcels.texture;u.uOcean.value=this.sim.ocean.textures[0];u.uJetOrigin.value.set(...this.sim.jet.origin,this.sim.jet.radius);u.uJetDirection.value.set(...this.sim.jet.direction,this.sim.jet.strength);u.uJetLength.value=this.sim.jet.length;u.uCausticsEnabled.value=this.caustics.enabled;
+  this.timers.poll();this.timers.begin("reconstruction");r.setRenderTarget(this.waterSurface);r.render(this.surfaceScene,this.quadCamera);r.setRenderTarget(this.surfaceCache);r.render(this.cacheScene,this.quadCamera);this.timers.end();this.timers.begin("photons");this.caustics.render(this.sim.time,c,this.sim.readGeneration+this.balls.length);this.timers.end();
+  this.prepare(c,motion);for(const t of [this.hits,this.accum,this.background]){const scale=t===this.accum?.5:1,w=Math.round(field.target.width*scale),h=Math.round(field.target.height*scale);if(t.width!==w||t.height!==h)t.setSize(w,h);}
+  u.uAccumResolution.value.set(this.accum.width,this.accum.height);this.timers.begin("rays");r.setRenderTarget(this.hits);r.render(this.hitScene,this.quadCamera);this.timers.end();this.timers.begin("splats");r.setRenderTarget(field.target);r.setClearColor(0,0);r.clear();r.render(this.skyScene,this.quadCamera);
   for(let pass=0;pass<2;pass++){if(pass===1){r.setRenderTarget(this.background);r.render(this.copy,this.quadCamera);}u.uPass.value=pass;this.material.blendDst=THREE.OneFactor;r.setRenderTarget(this.accum);r.clear();r.render(this.splats,c);r.setRenderTarget(field.target);r.render(this.resolve,this.quadCamera);}
-  u.uPass.value=2;this.material.blendDst=THREE.OneMinusSrcAlphaFactor;r.render(this.splats,c);
+  u.uGrassFront.value=false;u.uPass.value=2;this.material.blendDst=THREE.OneMinusSrcAlphaFactor;r.render(this.splats,c);
   r.setRenderTarget(this.background);r.render(this.copy,this.quadCamera);
-  if(this.balls.length){u.uPass.value=3;this.material.blendDst=THREE.OneFactor;r.setRenderTarget(this.accum);r.clear();r.render(this.splats,c);r.setRenderTarget(field.target);r.render(this.glass,this.quadCamera);}
-  r.setRenderTarget(null);r.clear();r.render(field.output,field.quadCamera);this.cpuMs=performance.now()-start;return !field.error;
+  if(this.balls.length){u.uPass.value=3;this.material.blendDst=THREE.OneFactor;r.setRenderTarget(this.accum);r.clear();r.render(this.splats,c);r.setRenderTarget(field.target);r.render(this.glass,this.quadCamera);u.uPass.value=2;u.uGrassFront.value=true;this.material.blendDst=THREE.OneMinusSrcAlphaFactor;r.render(this.splats,c);}
+  r.setRenderTarget(field.target);u.uPass.value=4;this.material.blendDst=THREE.OneMinusSrcAlphaFactor;r.render(this.splats,c);
+  r.setRenderTarget(null);r.clear();r.render(field.output,field.quadCamera);this.timers.end();this.cpuMs=performance.now()-start;return !field.error;
  }
 }

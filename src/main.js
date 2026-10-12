@@ -80,7 +80,7 @@ function saveEdits() {
 function sceneChange(value) {
   world.fluidEnabled=value==='fluid';fluid.enabled=world.fluidEnabled;fluidAccumulator=0;granular.enabled=value==='granular';grainAccumulator=0;
   renderer.beach.enabled=value==='beach';renderer.optics.enabled=value==='optics';renderer.lightTest.enabled=value==='light-test';const optical=renderer.optics.enabled||renderer.lightTest.enabled||renderer.beach.enabled;
-  camera.far=renderer.beach.enabled?2400:220;camera.updateProjectionMatrix();renderer.resize(viewport.clientWidth,viewport.clientHeight);controls.maxDistance=renderer.beach.enabled?300:70;
+  camera.far=renderer.beach.enabled?2400:220;camera.updateProjectionMatrix();renderer.resize(viewport.clientWidth,viewport.clientHeight);controls.maxDistance=renderer.beach.enabled?300:70;controls.maxPolarAngle=renderer.beach.enabled?Math.PI:Math.PI*.49;
   $('beach-controls').hidden=!renderer.beach.enabled;if(renderer.beach.enabled)renderer.beach.activate();
   fabrics.enabled=value==='fabric';fibers.enabled=value==='fibers';softAccumulator=0;
   world.terrain=world.fluidEnabled?fluid.terrain:granular.enabled?granular.terrain:fabrics.enabled?fabrics.terrain:fibers.enabled?fibers.terrain:persistentTerrain;streamer.terrain=world.terrain;renderer.depthValid=false;
@@ -112,7 +112,7 @@ function rayFromEvent(event) {
   const raycaster=new THREE.Raycaster();raycaster.setFromCamera(ndc,camera);return raycaster.ray;
 }
 function clickScene(event) {
-  if(renderer.beach.enabled){if(event.button===0&&renderer.beach.tool!=='orbit'){const ray=rayFromEvent(event);if(!renderer.beach.interact(ray.origin.toArray(),ray.direction.toArray()))status('No nearby surface, or the 12-ball limit was reached.');}dragStart=null;return;}
+  if(renderer.beach.enabled){if(event.button===0&&renderer.beach.tool!=='orbit'&&renderer.beach.tool!=='wind'){const ray=rayFromEvent(event);if(!renderer.beach.interact(ray.origin.toArray(),ray.direction.toArray()))status('No nearby surface under the cursor.');}dragStart=null;return;}
   if(renderer.optics.enabled||renderer.lightTest.enabled)return;
   if(event.button!==0||!dragStart)return;
   const moved=Math.hypot(event.clientX-dragStart[0],event.clientY-dragStart[1]);dragStart=null;
@@ -314,23 +314,33 @@ function setupBeachControls(){
  $('beach-time').oninput=()=>{beach.hour=Number($('beach-time').value);updateBeachStats();};
  $('beach-cycle').onchange=()=>beach.cycle=$('beach-cycle').checked;
  $('beach-wind').oninput=()=>{sim.wind=Number($('beach-wind').value);$('beach-wind-value').value=sim.wind.toFixed(1)+' m/s';};
+ $('beach-turbulence').oninput=()=>{sim.turbulence=Number($('beach-turbulence').value);$('beach-turbulence-value').value=sim.turbulence.toFixed(2);};
+ $('beach-caustics').onchange=()=>{beach.caustics.enabled=$('beach-caustics').checked;beach.caustics.last=-1;};
  $('beach-direction').oninput=()=>{sim.windAngle=Number($('beach-direction').value)*Math.PI/180;$('beach-direction-value').value=$('beach-direction').value+'°';};
  $('beach-pause').onclick=()=>{beach.paused=!beach.paused;$('beach-pause').textContent=beach.paused?'Resume':'Pause';};
- $('beach-spawn').onclick=()=>{const p=controls.target;if(!beach.spawn(p.x+(beach.balls.length%3-1)*.9,p.z))status('12 glass balls active. Clear balls to start another run.');};
+ $('beach-spawn').onclick=()=>{const p=controls.target;beach.spawn(p.x+(beach.balls.length%3-1)*.9,p.z);};
  $('beach-clear').onclick=()=>beach.balls.length=0;
- $('beach-nudge').onclick=()=>sim.nudgeWater(controls.target.x,controls.target.z,beach.radius,3);
+ $('beach-nudge').onclick=()=>{sim.nudgeWater(controls.target.x,controls.target.z,beach.radius,3);beach.parcels.splash(controls.target.toArray(),[0,-3,0],.06);};
+ $('beach-sediment').onclick=()=>{const p=controls.target;sim.recenter(p.x,p.z);beach.parcels.nudge([p.x,sim.sample(p.x,p.z).bed,p.z],camera.getWorldDirection(new THREE.Vector3()).toArray(),beach.radius);};
  $('beach-mound').onclick=()=>sim.nudgeSand(controls.target.x,controls.target.z,beach.radius,.8);
  $('beach-dig').onclick=()=>sim.nudgeSand(controls.target.x,controls.target.z,beach.radius,-.8);
  const focus=(p,offset)=>{controls.target.set(...p);camera.position.set(p[0]+offset[0],p[1]+offset[1],p[2]+offset[2]);controls.update();renderer.previousCamera=null;};
+ $('beach-sun').onclick=()=>{beach.updateSky();controls.target.copy(camera.position).addScaledVector(beach.u.uSun.value,40);controls.update();};
+ $('beach-moon').onclick=()=>{beach.updateSky();controls.target.copy(camera.position).addScaledVector(beach.u.uMoon.value,40);controls.update();};
+ $('beach-sand-view').onclick=()=>focus([-2,sim.sample(-2,5).bed+.2,5],[4,1.9,-1]);
+ $('beach-rocks').onclick=()=>focus([-8,.5,-12],[5,4,7]);
  $('beach-inspect-ball').onclick=()=>{const b=beach.balls.at(-1);if(b)focus(b.position,[2,1.5,3]);};
  $('beach-shore').onclick=home;$('beach-pool').onclick=()=>focus([12,.2,15],[5,5,8]);$('beach-grass').onclick=()=>{const y=sim.sample(-6,16).bed;focus([-6,y+.8,16],[3,2.8,5]);};
  $('beach-backend').onchange=()=>sim.setCPU($('beach-backend').value==='cpu');$('beach-verify').onclick=()=>beach.verify();
+ canvas.addEventListener('pointerdown',event=>{if(beach.enabled&&beach.tool==='wind'&&event.button===0){beach.windHeld=true;const ray=rayFromEvent(event);beach.interact(ray.origin.toArray(),ray.direction.toArray());}});
+ window.addEventListener('pointerup',()=>beach.windHeld=false);window.addEventListener('blur',()=>beach.windHeld=false);
  let lastBrush=0;canvas.addEventListener('pointermove',event=>{if(!beach.enabled||beach.tool==='orbit'||beach.tool==='ball'||event.buttons!==1||event.timeStamp-lastBrush<80)return;lastBrush=event.timeStamp;const ray=rayFromEvent(event);beach.interact(ray.origin.toArray(),ray.direction.toArray());});
  updateBeachStats();
 }
 function updateBeachStats(){if(!renderer?.beach)return;const b=renderer.beach,h=Math.floor(b.hour),m=Math.floor((b.hour-h)*60);$('beach-time-value').value=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;if(b.cycle)$('beach-time').value=b.hour;
- $('beach-state').textContent=b.sim.backend; $('beach-draw').textContent=(b.cpuMs||0).toFixed(1)+' ms CPU submission';$('beach-validation').textContent=b.verification;$('beach-cells').textContent=`${b.sim.n} × ${b.sim.n} · ${b.sim.dx} m cells`;
- $('beach-balls').textContent=`${b.balls.length} / 12 · ${b.balls.filter(v=>v.submerged>.01).length} in water`;
+ $('beach-state').textContent=b.sim.backend;$('beach-backend').value=b.sim.cpu?'cpu':'gpu';$('beach-pause').textContent=b.paused?'Resume':'Pause'; $('beach-draw').textContent=(b.cpuMs||0).toFixed(1)+' ms CPU submission';$('beach-validation').textContent=b.verification;$('beach-gpu-times').textContent=Object.entries(b.timers.ms).map(([k,v])=>`${k} ${v.toFixed(1)} ms`).join(' / ')||'Timer unavailable';$('beach-cells').textContent=`${b.sim.n}² × ${b.sim.dx} m + 512 m wave field`;
+ $('beach-balls').textContent=`${b.balls.length} · ${b.balls.filter(v=>v.submerged>.01).length} in water`;
+ $('beach-parcels').textContent=`${b.parcels.items.filter(p=>p.kind==='sand').length} / ${b.parcels.items.filter(p=>p.kind==='water').length} · CPU`; $('beach-grass-count').textContent=(b.grassCount||0).toLocaleString();
  $('beach-clock').textContent=b.sim.time.toFixed(1)+' s';$('beach-edits').textContent=b.sim.savedBed.size.toLocaleString()+' cells';
 }
 
