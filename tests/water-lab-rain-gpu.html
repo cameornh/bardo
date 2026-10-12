@@ -1,0 +1,17 @@
+<!doctype html><html><body><button id="run">Validate rain accumulation on GPU</button><pre id="result">Ready</pre><script type="module">
+import * as THREE from 'three';
+import {WaterLab} from '../src/water-lab.js';
+const renderer=new THREE.WebGLRenderer(),lab=new WaterLab(renderer);renderer.setSize(200,100);document.body.append(renderer.domElement);
+document.querySelector('#run').onclick=async()=>{
+ try {
+  lab.configure('glass');lab.rain.enabled=true;lab.rain.rate=60;const initial=lab.count;
+  document.querySelector('#result').textContent='Accumulating rain…';
+  for(let i=0;i<160;i++){lab.step(Math.sqrt(lab.spec.scale)/70);if(i%4===0)await new Promise(r=>setTimeout(r,0));}
+  const error=lab.volume+lab.rain.unresolvedVolume*lab.spec.scale**3-lab.initialVolume-lab.rain.emitted*lab.spec.scale**3;
+  let ground=0;for(let i=initial;i<lab.count;i++)if(Math.hypot(lab.positions[i*4],lab.positions[i*4+2])>1.5&&lab.positions[i*4+1]<.9)ground++;
+  const result={backend:lab.gpu.cpu?'CPU':'GPU',initial,particles:lab.count,hits:lab.rain.hits,groundParcels:ground,added:lab.rain.emitted*lab.spec.scale**3,volumeError:error,finite:lab.positions.every(Number.isFinite),overflows:lab.gpu.overflow};
+  result.pass=result.backend==='GPU'&&result.particles>640&&ground>0&&Math.abs(error)<1e-9&&result.finite&&result.overflows===0;
+  document.querySelector('#result').textContent=JSON.stringify(result,null,2);
+ }catch(e){document.querySelector('#result').textContent=e.stack;}
+};
+</script></body></html>
