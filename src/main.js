@@ -59,7 +59,7 @@ function home() {
   else if(!world.showcaseEnabled){const y=terrainHeight(14,8);camera.position.set(21,y+5,18);controls.target.set(14,y+.2,8);}
   else if(world.terrainEnabled){camera.position.set(26,15,24);controls.target.set(12,0,4);}
   else {camera.position.set(9,7,12.6);controls.target.set(0,.6,.7);}
-  controls.update();updateStream();
+  if(renderer)renderer.previousCamera=null;controls.update();updateStream();
 }
 function updateStream() {
   if(!streamer)return;
@@ -266,6 +266,8 @@ function setup() {
   $('heat-water').onclick=()=>{fluid.disturb([-.5,-1.4,0],{heat:true});renderer.water.uniforms.uFluidView.value=3;$('fluid-view').value='3';};
   $('reset-grains').onclick=()=>{granular.reset();grainAccumulator=0;probe.active=false;probe.position.set(0,3,0);probe.sync();};
   $('roll-grains').onclick=()=>{probe.dropAt([-5,.55,0]);probe.velocity.set(5,0,0);probe.angularVelocity.set(0,0,-5/probe.radius);paused=false;$('pause').textContent='Pause';};
+  ['gravel','sand','mud'].forEach((kind,i)=>{$(`inspect-${kind}`).onclick=()=>{const x=(i-1)*3;camera.position.set(x+.6,2.4,5);controls.target.set(x,.4,0);renderer.previousCamera=null;controls.update();};});
+  $('mud-wetness').oninput=()=>{const wet=Number($('mud-wetness').value);renderer.grains.uniforms.uMudWetness.value=wet;$('mud-wetness-value').value=wet.toFixed(2);};
   $('stir-grains').onclick=()=>{for(const x of [-3,0,3])granular.disturb([x,0,0]);};
   $('water-roughness').oninput=()=>{renderer.water.uniforms.uWaterRoughness.value=Number($('water-roughness').value);$('water-roughness-value').value=$('water-roughness').value;};
   $('water-turbidity').oninput=()=>{renderer.water.uniforms.uTurbidity.value=Number($('water-turbidity').value);$('water-turbidity-value').value=$('water-turbidity').value;};
