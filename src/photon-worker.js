@@ -1,8 +1,10 @@
 import { makeLightScene } from './light-transport.js';
 import { tracePhotons } from './photon-map.js';
-self.onmessage=({data:{id,config}})=>{
+self.onmessage=({data:{id,config,verify}})=>{
  try{
-  const scene=makeLightScene(config),preview=Math.min(2048,config.photons);
+  const scene=makeLightScene(config);
+  if(verify){const result=tracePhotons(scene,{...verify,paths:0});self.postMessage({id,scene,...result},[result.direct.buffer,result.caustic.buffer]);return;}
+  const preview=Math.min(2048,config.photons);
   for(const count of preview<config.photons?[preview,config.photons]:[preview]){
    const result=tracePhotons(scene,{count});self.postMessage({id,scene,...result,preview:count<config.photons},[result.direct.buffer,result.caustic.buffer]);
   }

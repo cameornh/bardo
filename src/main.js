@@ -297,7 +297,7 @@ function setup() {
   document.addEventListener('keyup',e=>keys.delete(e.code));
   window.addEventListener('blur',()=>keys.clear());
   document.addEventListener('visibilitychange',()=>{keys.clear();lastTime=0;stepper.accumulator=0;});
-  setupLightTest();select(0);sceneChange('light-test');$('loading').style.display='none';$('renderer-status').textContent='WebGL 2';
+  setupLightTest();select(0);sceneChange('light-test');$('loading').style.display='none';$('renderer-status').textContent='WebGL 2 · GPU rendering';
   requestAnimationFrame(tick);
 }
 function setupLightTest(){
@@ -309,7 +309,9 @@ function setupLightTest(){
   $('lt-note').hidden=!['tank','water'].includes(c.experiment);
  }
  for(const name of fields)$(`lt-${name}`).oninput=()=>{test.configure({[name]:Number($(`lt-${name}`).value)});sync();};
- for(const name of ['experiment','source','color','photons'])$(`lt-${name}`).onchange=()=>{test.configure({[name]:name==='photons'?Number($(`lt-${name}`).value):$(`lt-${name}`).value,...(name==='experiment'&&$('lt-experiment').value==='prism'?{dispersion:true}:{})});sync();if(name==='experiment')home();};
+ for(const name of ['experiment','source','color','photons'])$(`lt-${name}`).onchange=()=>{test.configure({[name]:name==='photons'?Number($(`lt-${name}`).value):$(`lt-${name}`).value,...(name==='experiment'&&$('lt-experiment').value==='prism'?{dispersion:true}:{})});sync();updateLightTestStats();if(name==='experiment')home();};
+ $('lt-backend').onchange=()=>{test.backend=$('lt-backend').value;test.gpuFailure=null;test.configure({});};
+ $('lt-verify').onclick=async()=>{const comparison=test.verifyGPU();updateLightTestStats();await comparison;updateLightTestStats();};
  $('lt-dispersion').onchange=()=>test.configure({dispersion:$('lt-dispersion').checked});
  $('lt-paths').onchange=()=>test.showPaths=$('lt-paths').checked;
  $('lt-view').onchange=()=>test.view=Number($('lt-view').value);
@@ -320,6 +322,11 @@ function updateLightTestStats(){
  const test=renderer.lightTest,r=test.result,l=r?.ledger;
  $('lt-state').textContent=test.error?`Error: ${test.error}`:test.busy?(r?.id===test.revision?`${r.count.toLocaleString()} preview · refining…`:'Building · previous solution shown'):r?`${r.count.toLocaleString()} ready`:'Starting';
  $('lt-ms').textContent=r?(r.ms/1000).toFixed(2)+' s':'—';
+ $('lt-gpu-ms').textContent=r?.gpuMs!=null?r.gpuMs.toFixed(2)+' ms':r?.backend==='CPU worker'?'CPU reference':'Timer unavailable';
+ $('lt-backend-status').textContent=test.backendStatus;
+ $('lt-device').textContent=test.gpu?.device||'Detecting';
+ $('lt-verification').textContent=test.verification;
+ $('lt-verify').disabled=test.busy||test.verifying||!test.gpu||!!test.gpu.unavailable;
  $('lt-energy').textContent=l?[l.receiver,l.absorbed,l.escaped].map(v=>(100*v/l.emitted).toFixed(1)+'%').join(' / '):'—';
  $('lt-remainder').textContent=l?(100*l.truncated/l.emitted).toFixed(3)+'%':'—';$('lt-tir').textContent=l?l.tir.toLocaleString():'—';
  $('lt-floats').textContent=test.sceneData.floats.map(f=>`${f.mass.toFixed(1)} kg · ${f.floating?'floating':'on bottom'}`).join(' / ');

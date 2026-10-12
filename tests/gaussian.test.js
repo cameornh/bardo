@@ -77,3 +77,21 @@ test('motion estimation reacts to rotation, translation, and focal pixel scale',
   assert.ok(Math.abs(projectedMotion(previous,rotated,.1,500,10)-500)<1e-8);
   assert.equal(projectedMotion(previous,translated,.1,1000,10),1000);
 });
+
+
+test('motion coarsening starts earlier, ramps more gently, and preserves its speed target',()=>{
+ const detail=new MotionDetail(),dt=1/240;let oldSpeed=0,oldFactor=1,previous=1,oldPrevious=1;
+ let onset=null,oldOnset=null,settled=null,oldSettled=null,peak=0,oldPeak=0;
+ for(let step=1;step<=1200;step++){
+  const time=step*dt;detail.update(640,dt);
+  oldSpeed+=(640-oldSpeed)*(1-Math.exp(-dt/.035));oldFactor+=(1+oldSpeed/160-oldFactor)*(1-Math.exp(-dt/.06));
+  if(onset===null&&detail.factor>=1.04)onset=time;if(oldOnset===null&&oldFactor>=1.04)oldOnset=time;
+  if(settled===null&&detail.factor>=4.6)settled=time;if(oldSettled===null&&oldFactor>=4.6)oldSettled=time;
+  peak=Math.max(peak,(detail.factor-previous)/dt);oldPeak=Math.max(oldPeak,(oldFactor-oldPrevious)/dt);
+  assert.ok(detail.factor>=previous&&detail.factor<=5);previous=detail.factor;oldPrevious=oldFactor;
+ }
+ assert.ok(onset<oldOnset);assert.ok(peak<oldPeak*.75);assert.ok(settled>oldSettled*3&&settled<.8);
+ assert.ok(Math.abs(detail.factor-5)<.00001);
+ const finals=[30,60,120].map(hz=>{const m=new MotionDetail();for(let i=0;i<hz;i++)m.update(640,1/hz);return m.factor;});
+ assert.ok(Math.max(...finals)-Math.min(...finals)<.02);
+});

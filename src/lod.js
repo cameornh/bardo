@@ -4,16 +4,21 @@ export const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 export const sameViewMatrix=(a,b)=>a.elements.every((value,i)=>Math.abs(value-b.elements[i])<1e-6);
 
 export class MotionDetail {
-  constructor(){this.speed=0;this.factor=1;}
+  constructor(){this.speed=0;this.factor=1;this.early=1;this.broad=1;}
   update(pixelSpeed,dt,enabled=true){
     dt=clamp(dt,0,.1);
     // No dwell timer: attack while moving, recover continuously as speed falls.
     const target=enabled?Math.max(0,pixelSpeed):0;
-    this.speed+=(target-this.speed)*(1-Math.exp(-dt/(target>this.speed?.035:.18)));
+    this.speed+=(target-this.speed)*(1-Math.exp(-dt/(target>this.speed?.012:.18)));
     // Each additional 160 render pixels/second adds one unit of coarsening.
     // Keep a linear speed response; smoothing only controls temporal changes.
     const desired=enabled?1+this.speed/160:1;
-    this.factor+=(desired-this.factor)*(1-Math.exp(-dt/(desired>this.factor?.06:.5)));
+    // A small fast shoulder starts coarsening early. Most of the change follows
+    // a broader ramp, reducing the steepest slope without a wait/dwell timer.
+    // Both paths converge to the same speed-proportional footprint.
+    this.early+=(desired-this.early)*(1-Math.exp(-dt/(desired>this.early?.02:.5)));
+    this.broad+=(desired-this.broad)*(1-Math.exp(-dt/(desired>this.broad?.32:.5)));
+    this.factor=.15*this.early+.85*this.broad;
     return this.factor;
   }
 }

@@ -3,7 +3,7 @@ import { OPTICS_MOMENTS_VERTEX } from './optics-shaders.js';
 
 // These boundary equations match light-transport.js. The cache supplies optical
 // radiance and visibility; projected covariance Gaussians supply image coverage.
-const boundaries=`
+export const LIGHT_BOUNDARIES_GLSL=`
 uniform int uVolumeCount;
 uniform vec3 uCentersLT[12],uSizesLT[12];
 uniform vec4 uShapesLT[12],uParamsLT[12]; // type, medium, cos(rotation), sin(rotation)
@@ -23,7 +23,9 @@ float fieldLT(int i,vec3 p){
  return type==3?max(length(p.xy)-s.x,max(d1,d2)):max(max(length(p.xy)-s.x,abs(p.z)-s.z),max(-d1,-d2));
 }
 int mediumLT(vec3 p){int m=0;for(int i=0;i<12;i++){if(i>=uVolumeCount)break;if(int(uShapesLT[i].x)!=5&&fieldLT(i,localLT(i,p))<0.)m=int(uShapesLT[i].y);}return m;}
-vec2 quadraticLT(float a,float b,float c){if(abs(a)<1e-10)return abs(b)<1e-10?vec2(1e6):vec2(-c/(2.*b));float disc=b*b-a*c;if(disc<0.)return vec2(1e6);vec2 t=(-b+vec2(-1,1)*sqrt(disc))/a;return vec2(min(t.x,t.y),max(t.x,t.y));}
+// Stable q-form avoids cancellation for nearly collimated parabola rays and
+// near-surface roots. The naive (-b + sqrt(discriminant))/a invented mirror hits.
+vec2 quadraticLT(float a,float b,float c){if(abs(a)<1e-10)return abs(b)<1e-10?vec2(1e6):vec2(-c/(2.*b));float disc=b*b-a*c;if(disc<0.)return vec2(1e6);float q=-b-(b<0.?-1.:1.)*sqrt(disc);if(abs(q)<1e-20)return vec2(-b/a);vec2 t=vec2(q/a,c/q);return vec2(min(t.x,t.y),max(t.x,t.y));}
 vec2 boxLT(vec3 o,vec3 d,vec3 s){float near=-1e5,far=1e5;for(int k=0;k<3;k++){if(abs(d[k])<1e-9){if(abs(o[k])>s[k])return vec2(1e6,-1e6);}else{float a=(-s[k]-o[k])/d[k],b=(s[k]-o[k])/d[k];near=max(near,min(a,b));far=min(far,max(a,b));}}return vec2(near,far);}
 struct HitLT{float t;int id;vec3 p;vec3 n;int before;int after;};
 void offerLT(float t,int i,vec3 o,vec3 d,inout HitLT hit){
@@ -70,16 +72,20 @@ HitLT nearestLT(vec3 origin,vec3 direction){
 }
 `;
 
+export const LIGHT_MEDIA_GLSL=`
+vec3 absorptionLT(int m){return m==1?vec3(.018,.009,.005):m==2?vec3(.20,.055,.022):vec3(0);}
+float iorLT(int m,int channel){if(m==0)return 1.;if(!uDispersion)return m==1?1.52:1.333;return m==1?(channel==0?1.513:channel==1?1.52:1.535):(channel==0?1.331:channel==1?1.334:1.34);}
+float fresnelLT(float c,float ni,float nt){float s=ni*ni/(nt*nt)*(1.-c*c);if(s>=1.)return 1.;float t=sqrt(1.-s),rs=(ni*c-nt*t)/(ni*c+nt*t),rp=(nt*c-ni*t)/(nt*c+ni*t);return .5*(rs*rs+rp*rp);}
+`;
+
 export const LIGHT_CACHE_FRAGMENT=`precision highp float;
 in vec2 vUv;layout(location=0) out vec4 outRadiance;layout(location=1) out vec4 outHit;
 uniform mat4 uInverseProjection,uCameraMatrix;uniform vec3 uEye,uEnvironmentLT[16];uniform int uSHDegree,uLightView;uniform bool uDispersion,uReflections;
 uniform sampler2D uDirectLT,uCausticLT;
 ${SH_GLSL}
-${boundaries}
+${LIGHT_BOUNDARIES_GLSL}
 vec3 environmentLT(vec3 d){float b[16];basisSH(d,b);vec3 c=vec3(0);for(int i=0;i<16;i++){if(i>=(uSHDegree+1)*(uSHDegree+1))break;c+=b[i]*uEnvironmentLT[i];}return max(c,vec3(.005));}
-vec3 absorptionLT(int m){return m==1?vec3(.018,.009,.005):m==2?vec3(.20,.055,.022):vec3(0);}
-float iorLT(int m,int channel){if(m==0)return 1.;if(!uDispersion)return m==1?1.52:1.333;return m==1?(channel==0?1.513:channel==1?1.52:1.535):(channel==0?1.331:channel==1?1.334:1.34);}
-float fresnelLT(float c,float ni,float nt){float s=ni*ni/(nt*nt)*(1.-c*c);if(s>=1.)return 1.;float t=sqrt(1.-s),rs=(ni*c-nt*t)/(ni*c+nt*t),rp=(nt*c-ni*t)/(nt*c+ni*t);return .5*(rs*rs+rp*rp);}
+${LIGHT_MEDIA_GLSL}
 float checkerIntegralLT(float x){return 1.-abs(mod(x,2.)-1.);}
 vec3 receiverLT(HitLT h){
  vec2 uv=h.id==100?(h.p.xz+6.)/12.:vec2((h.p.x+6.)/12.,h.p.y/6.);uv.y=(uv.y+float(h.id-100))*.5;

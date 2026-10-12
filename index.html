@@ -28,12 +28,14 @@
         <label data-lt="water">Wave phase <output id="lt-phase-value"></output><input id="lt-phase" type="range" min="0" max="6.28" step="0.1"></label>
         <label data-lt="water">Water level (m) <output id="lt-waterHeight-value"></output><input id="lt-waterHeight" type="range" min="0.6" max="1.85" step="0.05"></label>
         <label data-lt="tank">Glass ball shell (m) <output id="lt-shell-value"></output><input id="lt-shell" type="range" min="0.008" max="0.12" step="0.002"></label>
+        <label>Photon compute <select id="lt-backend"><option value="auto">GPU when available</option><option value="cpu">CPU reference worker</option></select></label>
         <label>Photon budget <select id="lt-photons"><option value="4096">4,096</option><option value="16384" selected>16,384</option><option value="65536">65,536</option></select></label>
         <label>Photon gather radius (m) <output id="lt-gather-value"></output><input id="lt-gather" type="range" min="0.02" max="0.15" step="0.005"></label>
         <label>Receiver lighting <select id="lt-view"><option value="0">Direct + caustics</option><option value="1">Direct only</option><option value="2">Caustic irradiance only</option></select></label>
         <label class="check"><input id="lt-dispersion" type="checkbox">RGB dispersion</label>
         <label class="check"><input id="lt-paths" type="checkbox">Trace overlay (x-ray diagnostic)</label>
-        <dl><dt>Photon solution</dt><dd id="lt-state">Starting</dd><dt>Worker build</dt><dd id="lt-ms">—</dd><dt>Received / absorbed / escaped</dt><dd id="lt-energy">—</dd><dt>Path-limit remainder</dt><dd id="lt-remainder">—</dd><dt>Total internal reflections</dt><dd id="lt-tir">—</dd><dt data-lt="tank">Glass balls</dt><dd data-lt="tank" id="lt-floats">—</dd></dl>
+        <dl><dt>Photon solution</dt><dd id="lt-state">Starting</dd><dt>Compute backend</dt><dd id="lt-backend-status">Detecting</dd><dt>Device</dt><dd id="lt-device">—</dd><dt>GPU transport time</dt><dd id="lt-gpu-ms">—</dd><dt>Build + readback</dt><dd id="lt-ms">—</dd><dt>Received / absorbed / escaped</dt><dd id="lt-energy">—</dd><dt>Path-limit remainder</dt><dd id="lt-remainder">—</dd><dt>Total internal reflections</dt><dd id="lt-tir">—</dd><dt data-lt="tank">Glass balls</dt><dd data-lt="tank" id="lt-floats">—</dd></dl>
+        <button id="lt-verify" type="button">Compare GPU / CPU</button><p id="lt-verification" title="1,536 packets, 64 × 128 atlas. Pass limits: ledger error below 1.5% of emitted power, irradiance-map L1 difference below 12% of received power, integrated GPU flux error below 0.1% of emitted power.">Not run</p>
         <p id="lt-note">Static optical snapshot. Wave phase and floating equilibrium rebuild with the photon solution.</p>
       </fieldset>
       <fieldset id="optics-controls" hidden><legend>Subsurface / transmission</legend>
