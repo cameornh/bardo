@@ -16,7 +16,7 @@
       <div class="row"><button id="undo">Undo edit</button><button id="home">Reset camera</button></div>
       <fieldset id="beach-controls" hidden><legend>Beach</legend>
         <div class="row"><button id="beach-shore">Shore</button><button id="beach-pool">Isolated pool</button><button id="beach-grass">Grass</button><button id="beach-sand-view">Sand</button></div>
-        <label>Interaction <select id="beach-tool"><option value="orbit">Inspect / orbit</option><option value="water">Nudge water</option><option value="sediment">Nudge loose sand</option><option value="wind">Wind brush (hold)</option><option value="sand">Mound sand</option><option value="dig">Dig sand</option><option value="carve">Carve SDF volume</option><option value="solid">Add SDF volume</option><option value="ball">Place glass ball</option></select></label>
+        <label>Interaction <select id="beach-tool"><option value="orbit">Inspect / orbit</option><option value="grab">Grab / drop sand or water</option><option value="water">Nudge water</option><option value="sediment">Nudge loose sand</option><option value="wind">Wind brush (hold)</option><option value="sand">Mound sand</option><option value="dig">Dig sand</option><option value="carve">Carve SDF volume</option><option value="solid">Add SDF volume</option><option value="ball">Place glass ball</option></select></label>
         <label>Radius <output id="beach-radius-value">2.0 m</output><input id="beach-radius" type="range" min="0.8" max="5" step="0.2" value="2"></label>
         <div class="row"><button id="beach-spawn">Spawn glass ball</button><button id="beach-clear">Clear balls</button></div>
         <div class="row"><button id="beach-arch">SDF arch</button><button id="beach-undo-volume">Undo volume edit</button><button id="beach-reef">Breaker reef</button></div>
@@ -27,13 +27,13 @@
         <label class="check"><input id="beach-cycle" type="checkbox">Run day / night cycle</label>
         <label>Wind speed <output id="beach-wind-value">7.0 m/s</output><input id="beach-wind" type="range" min="0" max="40" step="0.5" value="7"></label>
         <label>Wind turbulence <output id="beach-turbulence-value">1.00</output><input id="beach-turbulence" type="range" min="0" max="2" step="0.05" value="1"></label>
-        <label>Wind brush speed <output id="beach-jet-value">32 m/s</output><input id="beach-jet" type="range" min="0" max="120" step="2" value="32"></label>
+        <label>Wind brush speed <output id="beach-jet-value">80 m/s</output><input id="beach-jet" type="range" min="0" max="120" step="2" value="80"></label>
         <label>Wind direction <output id="beach-direction-value">0°</output><input id="beach-direction" type="range" min="-180" max="180" step="5" value="0"></label>
         <label class="check"><input id="beach-caustics" type="checkbox" checked>Refracted sunlight / caustics</label>
         <label class="check"><input id="beach-volume-enabled" type="checkbox">3D water in local patch</label><div class="row"><button id="beach-volume-here">Move 3D water patch here</button><button id="beach-wind-test">Storm wind at reef</button><button id="beach-gust-test">Air gust at reef (2 s)</button></div><p id="beach-volume-state"></p><button id="beach-pause">Pause</button>
         <label>Simulation <select id="beach-backend"><option value="gpu">GPU</option><option value="cpu">CPU reference</option></select></label>
         <button id="beach-verify">Compare GPU / CPU</button>
-        <dl><dt>Backend</dt><dd id="beach-state">Starting</dd><dt>Draw</dt><dd id="beach-draw">—</dd><dt>GPU pass times</dt><dd id="beach-gpu-times">—</dd><dt>Local simulation</dt><dd id="beach-cells">—</dd><dt>Loose sand / spray</dt><dd id="beach-parcels">0 / 0</dd><dt>Grass Gaussians</dt><dd id="beach-grass-count">0</dd><dt>Glass balls</dt><dd id="beach-balls">0</dd><dt>Simulated time</dt><dd id="beach-clock">0 s</dd><dt>Sand edits (session)</dt><dd id="beach-edits">0</dd></dl>
+        <dl><dt>Backend</dt><dd id="beach-state">Starting</dd><dt>Draw</dt><dd id="beach-draw">—</dd><dt>GPU pass times</dt><dd id="beach-gpu-times">—</dd><dt>Local simulation</dt><dd id="beach-cells">—</dd><dt>Loose sand / spray</dt><dd id="beach-parcels">0 / 0</dd><dt>Held material</dt><dd id="beach-held">None</dd><dt>Grass Gaussians</dt><dd id="beach-grass-count">0</dd><dt>Glass balls</dt><dd id="beach-balls">0</dd><dt>Simulated time</dt><dd id="beach-clock">0 s</dd><dt>Sand edits (session)</dt><dd id="beach-edits">0</dd></dl>
         <p id="beach-validation">Not run</p>
         <p>Click or drag to interact. Right-drag orbits. WASD travels; Q/E changes height. Wind 0° blows toward the beach. Glass balls are hollow.</p>
       </fieldset>

@@ -10,6 +10,9 @@ export class BeachTerrain extends Terrain{
  distance(p){return terrainCSG(Math.min((p[1]-this.soil(p[0],p[2]))*.35,beachFeatures(p)),...p,this.edits);}
  normal(p){return fieldNormal(q=>this.distance(q),p);}
  projectSphere(p,r){let contact=false,normal=[0,1,0];for(let k=0;k<4;k++){const d=this.distance(p);normal=this.normal(p);const e=.006,g=Math.max(.15,(this.distance(p.map((v,i)=>v+normal[i]*e))-d)/e);if(d/g>=r)break;const push=Math.min(2,r-d/g);for(let i=0;i<3;i++)p[i]+=normal[i]*push;contact=true;}return {contact,normal};}
+ // Mobile sediment usually touches the smooth beach, so reserve the full
+ // iterative CSG projection for parcels near a rock, arch, or edited volume.
+ projectSediment(p,r){if(beachFeatures(p)<r*2||this.edits.some(e=>Math.hypot(...p.map((v,k)=>v-e[k]))<e[3]+r*2))return this.projectSphere(p,r);const height=this.soil(p[0],p[2]);if(p[1]-height>r*1.5)return {contact:false,normal:[0,1,0]};const e=.12,dx=(this.soil(p[0]+e,p[2])-this.soil(p[0]-e,p[2]))/(2*e),dz=(this.soil(p[0],p[2]+e)-this.soil(p[0],p[2]-e))/(2*e),length=Math.hypot(dx,1,dz),normal=[-dx/length,1/length,-dz/length],gap=(p[1]-height)/length;if(gap>=r)return {contact:false,normal};for(let k=0;k<3;k++)p[k]+=normal[k]*(r-gap);return {contact:true,normal};}
  trace(o,d,maxT=250){let t=.02;for(let i=0;i<300&&t<maxT;i++){const p=o.map((v,k)=>v+d[k]*t),f=this.distance(p);if(f<.0015)return p;t+=Math.max(.003,f*.85);}return null;}
  top(x,z){const hit=this.trace([x,20,z],[0,-1,0],40);return hit?.[1]??-20;}
  rebuildSamples(){if(this.sampleRevision===this.revision)return this.samples;const bounds=[[-23,-3,-21,-13,1,-14],[-13,-3,-1,-3,5,5],...this.edits.map(e=>[e[0]-e[3]-.6,e[1]-e[3]-.6,e[2]-e[3]-.6,e[0]+e[3]+.6,e[1]+e[3]+.6,e[2]+e[3]+.6])];const centers=[],normals=[],radii=[];

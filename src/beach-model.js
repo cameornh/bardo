@@ -1,5 +1,5 @@
 import { WATER_MATERIAL } from './water-material.js';
-import { windAt,windPressure,airVelocity,BEACH_WIND_GLSL } from './beach-wind.js';
+import { windAt,windPressure,airVelocity,windJet,windNoise,BEACH_WIND_GLSL } from './beach-wind.js';
 export { windAt } from './beach-wind.js';
 export const BEACH_N=128,BEACH_DX=.65,BEACH_DT=1/75;
 export const BEACH_ROCKS=[[-8,-.7,-12,2.6],[5,-1.1,-19,3.2],[16,-.4,-8,1.8]];
@@ -37,9 +37,10 @@ export function stepBeachReference(flow,aux,bed,n,dx,dt,{wind=0,angle=0,time=0,o
    for(let k=0;k<3;k++)out[k]-=sign*dt/dx*f[k];
   }
   out[0]=Math.max(0,out[0]);const wx=origin[0]+(x+.5)*dx,wz=origin[1]+(z+.5)*dx,air=airVelocity([wx,b+out[0],wz],time,wind,angle,jet,turbulence),w=[air[0],air[2]];
-  const pressure=(x,z)=>{const v=airVelocity([x,b+out[0],z],time,0,angle,jet);return windPressure(x,z,time,wind,angle,turbulence)+.001225*v[1]*v[1];};
+  const pressure=(x,z)=>{const v=airVelocity([x,b+out[0],z],time,0,angle,jet);return windPressure(x,z,time,wind,angle,turbulence)+.001225*v[1]*v[1]+.0003*Math.hypot(...v)**2*turbulence*(windNoise(x*.5-time*1.7,z*.5-time*.9)-.5);};
   const pressureGradient=[(pressure(wx+dx,wz)-pressure(wx-dx,wz))/(2*dx),(pressure(wx,wz+dx)-pressure(wx,wz-dx))/(2*dx)];
-  for(let k=1;k<3;k++)out[k]=(out[k]+dt*(.000003*w[k-1]*Math.hypot(...w)-out[0]*pressureGradient[k-1]))/(1+dt*(.012+.04/Math.max(out[0],.08)));
+  const jetAir=windJet([wx,b+out[0],wz],jet),jetSpeed=Math.hypot(jetAir[0],jetAir[2]),coupling=Math.min(1,out[0]/.12);
+  for(let k=1;k<3;k++)out[k]=(out[k]+dt*(.000003*w[k-1]*Math.hypot(...w)+.0008*jetAir[k===1?0:2]*jetSpeed*coupling-out[0]*pressureGradient[k-1]))/(1+dt*(.012+.04/Math.max(out[0],.08)+.008*jetSpeed));
   if(open&&boundary&&b<0){const border=Math.min(x,z,n-1-x,n-1-z),relax=clamp((10-border)/10,0,1)*dt*4,far=boundary(wx,wz),h=Math.max(0,far.eta-b);out[0]+=(h-out[0])*relax;out[1]+=(far.u*h-out[1])*relax;out[2]+=(far.v*h-out[2])*relax;}
   if(impulses){out[0]=Math.max(0,out[0]+impulses[i]);out[1]+=impulses[i+1];out[2]+=impulses[i+2];}
   const bx=wx-brush[0],bz=wz-brush[1],bw=Math.exp(-(bx*bx+bz*bz)/Math.max(brush[2]*brush[2],.001));out[1]+=bx*bw*brush[3]*out[0]*dt*5;out[2]+=bz*bw*brush[3]*out[0]*dt*5;

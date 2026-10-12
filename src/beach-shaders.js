@@ -26,7 +26,7 @@ void main(){float phi=(vUv.x-.5)*6.283185,theta=(vUv.y-.5)*3.141593;vec3 ray=vec
 `;
 
 export const BEACH_RENDER_WORLD=`
-uniform sampler2D uFlow,uAux,uBed,uOcean,uWaterSurface,uSky,uHits,uSceneTexture,uCaustics,uParticles,uSurfaceCache;
+uniform sampler2D uFlow,uAux,uBed,uOcean,uWaterSurface,uSky,uHits,uSceneTexture,uCaustics,uParticles,uSurfaceCache,uParcelDepth;
 uniform bool uFieldLinear,uReflections,uCausticsEnabled,uGrassFront;uniform vec2 uOrigin,uResolution;
 uniform float uDx,uN,uClock,uWind,uWindAngle,uTurbulence,uTurbidity,uWaterRoughness,uDaylight,uJetLength,uCeiling;
 uniform vec4 uJetOrigin,uJetDirection;uniform vec2 uPhotonOrigin;uniform float uPhotonSize;
@@ -47,11 +47,11 @@ float soilHeight(vec2 p){float w=localWeight(p);if(w<=0.)return beachBed(p);retu
 #else
 float soilHeight(vec2 p){vec2 uv=(p-uOrigin)/(uN*uDx);return beachBed(p)+(all(greaterThanEqual(uv,vec2(0)))&&all(lessThanEqual(uv,vec2(1)))?texture(uSurfaceCache,uv).r:0.);}
 #endif
-float groundHeight(vec2 p){return max(soilHeight(p),rockHeight(p));}
+float groundHeight(vec2 p){return max(soilHeight(p),rockHeight(p))+(localWeight(p)>0.?(uFieldLinear?texture(uBed,(p-uOrigin)/(uN*uDx)).a:fieldRaw(uBed,p).a)*localWeight(p):0.);}
 float terrainField(vec3 p){return beachCSG((p.y-soilHeight(p.xz))*.35,p);}
 #ifdef BEACH_CACHE_BUILD
 vec4 waterState(vec2 p){float bed=groundHeight(p);vec4 far=texture(uOcean,fract((p+256.)/512.));float eta=far.x-8.,w=localWeight(p),foam=0.,presence=1.;vec2 velocity=far.yz/max(far.x,.02);
- if(w>0.){vec4 s=field(uWaterSurface,p),local=field(uFlow,p);float localEta=s.y>.0001?s.x/s.y:bed-.1;eta=mix(eta,localEta,w);presence=mix(1.,smoothstep(.0001,.02,s.y),w);velocity=mix(velocity,s.zw/max(s.y,.0001),w);foam=local.w*w;}
+ if(w>0.){vec4 s=field(uWaterSurface,p),local=field(uFlow,p);float localEta=s.y>.0001?min(s.x/s.y,bed+local.x):bed;eta=mix(eta,localEta,w);presence=mix(1.,smoothstep(.0001,.02,s.y),w);velocity=mix(velocity,s.zw/max(s.y,.0001),w);foam=local.w*w;}
  float h=max(0.,eta-bed)*presence;return vec4(h,eta,presence,foam);}
 #else
 vec4 waterState(vec2 p){vec2 uv=(p-uOrigin)/(uN*uDx);if(all(greaterThanEqual(uv,vec2(0)))&&all(lessThanEqual(uv,vec2(1)))){vec4 c=texture(uSurfaceCache,uv);float eta=c.g/max(c.b,.0001);return vec4(max(0.,eta-groundHeight(p))*smoothstep(.0001,.02,c.b),0,0,c.a);}vec4 far=texture(uOcean,fract((p+256.)/512.));return vec4(max(0.,far.x-8.-groundHeight(p)),0,0,far.w);}
@@ -72,11 +72,22 @@ float shadow(vec3 p,vec3 light){float visibility=1.;for(int i=0;i<uBallCount;i++
 vec3 direct(vec3 p,vec3 n){return uSunColor*max(0.,dot(n,uSun))*shadow(p,uSun)+uMoonColor*max(0.,dot(n,uMoon))*shadow(p,uMoon);}
 vec3 specular(vec3 p,vec3 n,vec3 v,vec3 l,vec3 energy,float rough,float f0){vec3 h=normalize(l+v);float nv=max(.001,dot(n,v)),nl=max(0.,dot(n,l)),nh=max(0.,dot(n,h)),a=max(.025,rough*rough),a2=a*a,den=nh*nh*(a2-1.)+1.,D=a2/(3.141593*den*den),k=(rough+1.)*(rough+1.)/8.,G=nv/(nv*(1.-k)+k)*nl/max(nl*(1.-k)+k,.001),F=f0+(1.-f0)*pow(1.-max(0.,dot(v,h)),5.);return energy*D*G*F/max(4.*nv,.001)*shadow(p,l);}
 float vegetation(vec2 p){float b=beachBed(p);return smoothstep(.7,1.2,b)*(1.-smoothstep(3.3,4.2,b))*smoothstep(.05,.6,rockSDF(vec3(p.x,groundHeight(p),p.y)));}
-vec3 sandColor(vec3 p,vec3 n,float wet){float detail=1.-smoothstep(.012,.065,length(fwidth(p)));vec3 base=sandAlbedo(wet)*(1.+(noise(p.xz*60.)-.5)*.13*detail);float rock=1.-smoothstep(.02,.15,abs(beachFeatures(p)));base=mix(base,vec3(.19,.20,.18),rock);float meadow=vegetation(p.xz)*smoothstep(75.,180.,length(p-uEye))*.62;base=mix(base,vec3(.10,.16,.035),meadow);vec3 v=normalize(uEye-p);float rough=mix(sandRoughness(wet),.85,max(rock,meadow));vec3 lighting=direct(p,n),extra=vec3(0);
+vec3 sandColor(vec3 p,vec3 n,float wet){float detail=1.-smoothstep(.012,.065,length(fwidth(p)));vec3 base=sandAlbedo(wet)*(1.+(noise(p.xz*60.)-.5)*.13*detail);float rock=1.-smoothstep(.02,.15,abs(beachFeatures(p)));base=mix(base,vec3(.19,.20,.18),rock);float meadow=vegetation(p.xz)*smoothstep(110.,260.,length(p-uEye))*.45;base=mix(base,vec3(.10,.16,.035),meadow);vec3 v=normalize(uEye-p);float rough=mix(sandRoughness(wet),.85,max(rock,meadow));vec3 lighting=direct(p,n),extra=vec3(0);
  if(uCausticsEnabled&&localWeight(p.xz)>.01){vec2 uv=(p.xz-uPhotonOrigin)/uPhotonSize;float edge=min(min(uv.x,uv.y),min(1.-uv.x,1.-uv.y)),coverage=smoothstep(0.,.09,edge);vec3 flux=texture(uCaustics,(p.xz-uOrigin)/(uN*uDx)).rgb*max(.2,n.y);if(waterState(p.xz).x>.015)lighting=mix(lighting,flux,coverage);else extra=flux*coverage;}
  vec3 color=base*(lighting+extra+shSky(n)*.75+vec3(.008));
  color+=specular(p,n,v,uSun,uSunColor,rough,.025)+specular(p,n,v,uMoon,uMoonColor,rough,.025);color+=(uReflections?sky(reflect(-v,n)):vec3(0))*(.025+.2*pow(1.-max(0.,dot(n,v)),5.))*wet*(1.-rock);return color;}
-float traceHeightSurface(vec3 origin,vec3 ray,int layer,float maxT){if(ray.y>0.&&origin.y>uCeiling)return 1e5;bool exiting=layer==1&&waterAt3(origin);float sign=exiting?-1.:1.;float t=.03,last=0.;for(int i=0;i<160;i++){vec3 p=origin+ray*t;if(ray.y>0.&&p.y>uCeiling)break;float d=layer==0?terrainField(p):(p.y-surfaceHeight(p.xz,1))*sign;if(d<.002){float a=last,b=t;for(int j=0;j<8;j++){float m=(a+b)*.5;vec3 q=origin+ray*m;float f=layer==0?terrainField(q):(q.y-surfaceHeight(q.xz,1))*sign;if(f>0.)a=m;else b=m;}return (a+b)*.5;}last=t;t+=layer==0?max(.004,d*.85):max(.06,d/max(.25,exiting?ray.y:-ray.y)*.7);if(t>maxT)break;}return 1e5;}
+// Near-field SDF tracing followed by a bracketed distant search. Pure sphere
+// tracing converges too slowly along shallow rays and used to erase the beach.
+float traceHeightSurface(vec3 origin,vec3 ray,int layer,float maxT){
+ if(ray.y>0.&&origin.y>uCeiling)return 1e5;bool exiting=layer==1&&waterAt3(origin);float sign=exiting?-1.:1.;float t=.03,last=0.;
+ for(int i=0;i<224;i++){vec3 p=origin+ray*t;if(ray.y>0.&&p.y>uCeiling)break;float d=layer==0?terrainField(p):(p.y-surfaceHeight(p.xz,1))*sign;
+  if(d<.002){float a=last,b=t;for(int j=0;j<10;j++){float m=(a+b)*.5;vec3 q=origin+ray*m;float f=layer==0?terrainField(q):(q.y-surfaceHeight(q.xz,1))*sign;if(f>0.)a=m;else b=m;}return (a+b)*.5;}
+  last=t;float step=layer==0?max(.004,d*.85):max(.02,d/max(.25,exiting?ray.y:-ray.y)*.7);
+  // Beyond the detailed area, bracket the continuous distant landscape. Keep
+  // short steps near the eye so cavities and small obstacles remain resolved.
+  if(i>=144&&t>45.)step=max(step,max(.5,t*.035));t+=step;if(t>maxT)break;
+ }return 1e5;
+}
 float traceSurface(vec3 o,vec3 d,int layer,float maxT){float t=traceHeightSurface(o,d,layer,maxT);if(layer==0)return t;if(t<90000.&&volumeWeight(o+d*t)>.5)t=1e5;return min(t,traceVolume(o,d,maxT,waterAt3(o)));}
 vec3 waterColor(vec3 p,vec3 n,vec4 state){vec3 v=normalize(uEye-p);if(waterAt3(uEye)){vec3 r=refract(-v,-n,WATER_IOR);vec3 c=length(r)>.01?sky(r):sky(reflect(-v,-n));return waterVolume(c,length(uEye-p),uTurbidity,shSky(vec3(0,1,0)),dot(v,uSun));}vec3 r=refract(-v,n,1./WATER_IOR);float path=min(100.,state.x/max(.08,-r.y));
  for(int i=0;i<3;i++){vec3 q=p+r*path;path=clamp(path+(q.y-groundHeight(q.xz))/max(.1,-r.y)*.7,.001,100.);}
@@ -99,15 +110,15 @@ void main(){outColor=vec4(airlight(rayAt(vUv)),1);}`;
 export const BEACH_SPLAT_VERTEX=`precision highp float;precision highp int;
 uniform int uPass;uniform sampler2D uTerrainSamples;in vec4 aPatch,aSeed;out vec2 vGaussian;out vec3 vPoint,vNormal,vTint;out float vSigma,vKind,vWeight,vSeed,vWidth,vWet;
 ${world.replaceAll('fwidth(p)','vec3(.02)')}
-void main(){if(int(aPatch.w==5.?1.:aPatch.w)!=uPass){gl_Position=vec4(2,2,2,1);return;}vec2 xz=aPatch.xy;float spacing=aPatch.z,kind=aPatch.w==5.?1.:aPatch.w;vec3 n=vec3(0,1,0),p=vec3(xz.x,0,xz.y);float sigma=spacing*.75,thin=sigma*.65;vWet=0.;vTint=vec3(0);
+void main(){if(int(aPatch.w==5.?1.:aPatch.w)!=uPass&&!(aPatch.w==4.&&(uPass>=6))){gl_Position=vec4(2,2,2,1);return;}vec2 xz=aPatch.xy;float spacing=aPatch.z,kind=aPatch.w==5.?1.:aPatch.w;vec3 n=vec3(0,1,0),p=vec3(xz.x,0,xz.y);float sigma=spacing*.75,thin=sigma*.65;vWet=0.;vTint=vec3(0);
  if(kind<2.&&aPatch.w!=5.&&(kind==1.||abs(aSeed.z)<.5)){p.y=surfaceHeight(xz,int(kind));n=surfaceNormal(xz,int(kind),max(.12,spacing*.2));}
  if(aPatch.w==5.){int id=int(aSeed.z);ivec3 cell=ivec3(id%uVolumeSize.x,(id/uVolumeSize.x)%uVolumeSize.y,id/(uVolumeSize.x*uVolumeSize.y));p=volumePoint(cell);float a=surfaceAlpha(cell),lo=a,hi=a;for(int axis=0;axis<3;axis++){lo=min(lo,min(surfaceAlpha(cell+volumeAxis(axis)),surfaceAlpha(cell-volumeAxis(axis))));hi=max(hi,max(surfaceAlpha(cell+volumeAxis(axis)),surfaceAlpha(cell-volumeAxis(axis))));}if(!uVolumeEnabled||volumeFetch(uVolumeSolid,cell).r<=0.||lo>.52||hi<.48||volumeWeight(p)<.01){gl_Position=vec4(2,2,2,1);return;}for(int k=0;k<2;k++){vec3 g=liquidGradient(p);p-=g*clamp((liquidDensity(p)-.5)/max(dot(g,g),.02),-uVolumeDx,uVolumeDx);}n=liquidNormal(p);sigma=uVolumeDx*.85;thin=sigma*.22;if(terrainField(p)<-.03){gl_Position=vec4(2,2,2,1);return;}}
  if(kind==1.&&aPatch.w!=5.&&volumeWeight(p)>.65){gl_Position=vec4(2,2,2,1);return;}
  if(kind==0.&&aSeed.z>.5){vec4 rock=beachRock(int(aSeed.z)-1);float ring=sqrt(max(0.,1.-aSeed.x*aSeed.x));n=vec3(cos(aSeed.y)*ring,aSeed.x,sin(aSeed.y)*ring);p=rock.xyz+n*rock.w;sigma=spacing*rock.w;thin=sigma*.3;}
  if(kind==0.&&aSeed.z<-.5){int id=int(-aSeed.z-1.)*2;vec4 point=texelFetch(uTerrainSamples,ivec2(id%256,id/256),0);p=point.xyz;n=texelFetch(uTerrainSamples,ivec2((id+1)%256,(id+1)/256),0).xyz;sigma=point.w*.9;thin=sigma*.3;}
- if(kind==2.){p.y=groundHeight(xz);float height=aSeed.z,segment=aSeed.y,cluster=step(.01,spacing);vec2 wind=beachWind(xz,uClock,uWind,uWindAngle,uTurbulence);wind+=windJet(p,uJetOrigin,uJetDirection,uJetLength).xz;wind*=.008*length(wind);vec2 bend=mix(wind,field(uAux,xz).yz,localWeight(xz));bend=clamp(bend,vec2(-2),vec2(2));float s=cluster>.5?.5:(segment+.5)/3.;n=normalize(vec3(bend.x*2.*s,1.,bend.y*2.*s));p+=vec3(bend.x*s*s,s*(1.-.22*min(length(bend),1.)),bend.y*s*s)*height;sigma=height*(cluster>.5?.42:.21);thin=cluster>.5?spacing*.37:height*.025;}
+ if(kind==2.){p.y=groundHeight(xz);float height=aSeed.z,segment=aSeed.y,cluster=step(.01,spacing);vec2 wind=beachWind(xz,uClock,uWind,uWindAngle,uTurbulence);wind+=windJet(p,uJetOrigin,uJetDirection,uJetLength).xz;wind*=.008*length(wind);vec2 bend=mix(wind,field(uAux,xz).yz,localWeight(xz));bend/=1.+length(bend);float s=cluster>.5?.5:(segment+.5)/3.;n=normalize(vec3(bend.x*2.*s,1.,bend.y*2.*s));p+=vec3(bend.x*s*s,s*(1.-.22*min(length(bend),1.)),bend.y*s*s)*height;sigma=height*(cluster>.5?.42:.21);thin=cluster>.5?min(spacing*.19,height*.27):height*.01;if(terrainField(vec3(xz.x,p.y-height*s,xz.y))>.12){gl_Position=vec4(2,2,2,1);return;}}
  if(kind==3.){vec4 ball=body(int(aSeed.z));float ring=sqrt(max(0.,1.-aSeed.x*aSeed.x));n=vec3(cos(aSeed.y)*ring,aSeed.x,sin(aSeed.y)*ring);p=ball.xyz+n*ball.w;sigma=spacing*ball.w;thin=sigma*.2;}
- if(kind==4.){int i=int(aSeed.z)*2;vec4 parcel=texelFetch(uParticles,ivec2(i%256,i/256),0),info=texelFetch(uParticles,ivec2((i+1)%256,(i+1)/256),0);p=parcel.xyz;n=normalize(info.xyz+vec3(.001,.001,0));vWet=info.w;sigma=parcel.w*(info.w>1.5?1.2+min(2.,length(info.xyz)*.1):.8);thin=parcel.w*.7;}
+ if(kind==4.){int i=int(aSeed.z)*2;vec4 parcel=texelFetch(uParticles,ivec2(i%256,i/256),0),info=texelFetch(uParticles,ivec2((i+1)%256,(i+1)/256),0);p=parcel.xyz;n=normalize(info.xyz+vec3(.001,.001,0));vWet=info.w;if((uPass==6||uPass==8)!=(vWet>1.5)){gl_Position=vec4(2,2,2,1);return;}sigma=parcel.w*.72;thin=sigma;if(vWet<1.5){float angle=aSeed.y*2.39996323,vertical=1.-2.*(aSeed.y+.5)/7.,ring=sqrt(max(0.,1.-vertical*vertical));vec3 offset=vec3(cos(angle)*ring,vertical,sin(angle)*ring);p+=offset*parcel.w*.35;sigma=parcel.w*.65;thin=sigma*.85;n=normalize(offset+vec3(.001));}}
  if(kind==2.){vec3 green=mix(vec3(.055,.115,.018),vec3(.19,.25,.045),aSeed.x);vTint=green*(direct(p,vec3(0,1,0))+shSky(n)*.85);}
  mat3 covariance=(kind==2.||kind==4.)?mat3(thin*thin)+outerProduct(n,n)*(sigma*sigma-thin*thin):mat3(sigma*sigma)+outerProduct(n,n)*(thin*thin-sigma*sigma);
  // Heightfield samples are spaced in x/z, not along the sloped surface.
@@ -120,16 +131,17 @@ void main(){if(int(aPatch.w==5.?1.:aPatch.w)!=uPass){gl_Position=vec4(2,2,2,1);r
 export const BEACH_SPLAT_FRAGMENT=`precision highp float;precision highp int;
 in vec2 vGaussian;in vec3 vPoint,vNormal,vTint;in float vSigma,vKind,vWeight,vSeed,vWidth,vWet;out vec4 outColor;uniform int uPass;uniform vec2 uAccumResolution;${world}
 ${GRASS_RAY_GLSL}
-void main(){if(int(vKind)!=uPass)discard;vec2 uv=gl_FragCoord.xy/((uPass==0||uPass==1||uPass==3)?uAccumResolution:uResolution);vec3 ray=rayAt(uv);float density=exp(-.5*dot(vGaussian,vGaussian))*vWeight;if(density<.001)discard;vec4 hits=texture(uHits,uv);
+void main(){if(int(vKind)!=uPass&&!(vKind==4.&&(uPass>=6)))discard;vec2 uv=gl_FragCoord.xy/((uPass==0||uPass==1||uPass==3||uPass>=6)?uAccumResolution:uResolution);vec3 ray=rayAt(uv);float density=exp(-.5*dot(vGaussian,vGaussian))*vWeight;if(density<.001)discard;vec4 hits=texture(uHits,uv);
  if(uPass==3){outColor=vec4(0,0,0,density);return;}
- if(uPass==2||uPass==4){vec2 blade=grassRay(ray,uEye-vPoint,vNormal,vSigma,vWidth);float depth=blade.x;density=blade.y*vWeight*smoothstep(.05,.18,depth);if(density<.001||depth>hits.x+.03)discard;
+ if(uPass==2||uPass==4||uPass>=6){vec2 blade=grassRay(ray,uEye-vPoint,vNormal,vSigma,vWidth);float depth=blade.x;density=blade.y*vWeight*smoothstep(.05,.18,depth);if(density<.001||depth>hits.x+.03)discard;
   if(uPass==2&&uGrassFront&&(hits.z>90000.||depth>=hits.z))discard;
-  if(uPass==4&&depth>hits.z)discard;
+  if((uPass==4||uPass>=6)&&depth>hits.z)discard;
+  if(uPass>=6){float front=depth-vWidth*sqrt(max(0.,2.*log(max(density,.001)/.12)));if(uPass>=8){if(density<.12)discard;outColor=vec4(vec3(1./max(.01,front)),1);return;}float nearest=1./max(texture(uParcelDepth,uv).r,.000001);density*=exp(-max(0.,front-nearest)*18.);outColor=vec4(front*density,2.*vWidth*density,vWet*density,density);return;}
   vec3 green=mix(vec3(.055,.115,.018),vec3(.19,.25,.045),vSeed),color=vTint;color+=green*max(dot(ray,uSun),0.)*.35*uDaylight;
   if(uPass==4){
    // Shade the rounded density lobe, retaining Gaussian optical coverage.
    // A single facing normal made displaced grains disappear into the bed.
-   vec3 radial=(uEye+ray*depth-vPoint)/max(vWidth,.001),normal=normalize(radial-ray*.7);
+   vec3 radial=(uEye+ray*depth-vPoint)/max(vWidth,.001),normal=normalize(radial-ray*.7);normal=normalize(normal+vec3(noise(vPoint.xy*110.)-.5,noise(vPoint.yz*110.)-.5,noise(vPoint.xz*110.)-.5)*.3);
    color=vWet>1.5?vec3(.78,.84,.87)*(direct(vPoint,normal)+shSky(normal)):sandColor(vPoint,normal,vWet)*mix(.88,1.08,vSeed);
   }
   if(uView==1)color=vNormal*.5+.5;if(uView==2)color=vec3(.15,.7,.2)*density;float alpha=1.-exp(-density*(uPass==4?3.:2.5));outColor=vec4(fogged(color,vPoint)*alpha,alpha);return;}
@@ -149,3 +161,15 @@ void main(){vec4 hits=texture(uHits,vUv);int id=int(hits.w+.1);float nearest=hit
  vec3 color=sceneRay(point,direction)*exp(-vec3(.09,.025,.015)*glassPath)*(1.-F)+sceneRay(p+n*.003,reflect(ray,n))*F;color+=specular(p,n,-ray,uSun,uSunColor,.065,f0)+specular(p,n,-ray,uMoon,uMoonColor,.065,f0);
  if(hits.y<nearest)color=waterVolume(color,nearest-hits.y,uTurbidity,shSky(vec3(0,1,0))*2.+uSunColor*max(0.,uSun.y),dot(ray,uSun));if(uView==1)color=n*.5+.5;float coverage=1.-exp(-texture(uAccum,vUv).a*3.);outColor=vec4(color*coverage,coverage);}
 `;
+
+// Optical resolve of the accumulated Gaussian liquid density. Nearby parcels
+// share a smooth surface; isolated drops retain the same water IOR/absorption.
+export const BEACH_DROPLET_FRAGMENT=`precision highp float;precision highp int;
+in vec2 vUv;out vec4 outColor;uniform sampler2D uAccum;uniform vec2 uAccumResolution;uniform int uPass;${world}
+float front(vec2 uv,float center){vec4 a=texture(uAccum,uv);return a.a>.03&&abs(a.r/max(a.a,.0001)-center)<.7?a.r/a.a:center;}
+void main(){vec4 a=texture(uAccum,vUv);if(a.a<.015)discard;float t=a.r/a.a;vec3 ray=rayAt(vUv),p=uEye+ray*t;vec2 e=2./uAccumResolution;
+ vec3 left=uEye+rayAt(vUv-vec2(e.x,0))*front(vUv-vec2(e.x,0),t),right=uEye+rayAt(vUv+vec2(e.x,0))*front(vUv+vec2(e.x,0),t),down=uEye+rayAt(vUv-vec2(0,e.y))*front(vUv-vec2(0,e.y),t),up=uEye+rayAt(vUv+vec2(0,e.y))*front(vUv+vec2(0,e.y),t);
+ vec3 n=normalize(cross(right-left,up-down));if(dot(n,-ray)<0.)n=-n;if(uPass==7){float coverage=smoothstep(.035,.85,a.a);vec3 color=sandColor(p,n,clamp(a.b/a.a,0.,1.));outColor=vec4(fogged(color,p)*coverage,coverage);return;}float path=min(3.,a.g*1.4),F=waterFresnel(dot(n,-ray));vec3 rn=mat3(uViewMatrix)*n;vec2 offset=rn.xy*min(.04,path*.025);vec3 behind=texture(uSceneTexture,clamp(vUv-offset,vec2(.001),vec2(.999))).rgb;
+ vec3 illumination=shSky(vec3(0,1,0))*2.+uSunColor*max(0.,uSun.y),color=waterVolume(behind,path,uTurbidity,illumination,dot(-ray,uSun))*(1.-F)+airlight(reflect(ray,n))*F;
+ color+=specular(p,n,-ray,uSun,uSunColor,uWaterRoughness,.02037)+specular(p,n,-ray,uMoon,uMoonColor,uWaterRoughness,.02037);float coverage=smoothstep(.015,.7,a.a);outColor=vec4(fogged(color,p)*coverage,coverage);
+}`;
