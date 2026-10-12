@@ -9,11 +9,38 @@
     <div id="status" role="status" aria-live="polite"></div>
     <details id="controls">
       <summary>Test controls</summary>
-      <label>Scene <select id="test-scene"><option value="beach" selected>10 · Open beach</option><option value="light-test">09 · Refraction / caustics</option><option value="optics">08 · Subsurface / transmission</option><option value="fabric">07 · Fabrics</option><option value="fibers">06 · Fur / hair</option><option value="granular">05 · Gravel / sand / mud</option><option value="fluid">04 · Water / pressure</option><option value="grass">03 · Grass interaction</option><option value="terrain">02 · Streamed terrain</option><option value="materials">01 · Materials / carving</option></select></label>
+      <label>Scene <select id="test-scene"><option value="water-lab">11 · Bounded water laboratory</option><option value="beach" selected>10 · Open beach</option><option value="light-test">09 · Refraction / caustics</option><option value="optics">08 · Subsurface / transmission</option><option value="fabric">07 · Fabrics</option><option value="fibers">06 · Fur / hair</option><option value="granular">05 · Gravel / sand / mud</option><option value="fluid">04 · Water / pressure</option><option value="grass">03 · Grass interaction</option><option value="terrain">02 · Streamed terrain</option><option value="materials">01 · Materials / carving</option></select></label>
       <label id="pov-controls" class="check"><input id="first-person" type="checkbox">First person (click view to capture mouse)</label>
       <label>Tool <select id="tool"><option value="orbit">Inspect / orbit</option><option value="stir">Stir water</option><option value="heat">Heat water</option><option value="carve">Subtract material</option><option value="add">Add terrain</option><option value="push">Impulse probe</option></select></label>
       <label>Brush radius <output id="brush-value">1.25 m</output><input id="brush" type="range" min="0.25" max="3" step="0.05" value="1.25"></label>
       <div class="row"><button id="undo">Undo edit</button><button id="home">Reset camera</button></div>
+      <fieldset id="water-lab-controls" hidden><legend>Water laboratory</legend>
+        <label>Station <select id="wl-station"><option value="pipe">Pipe / impinging jet</option><option value="waterfall">Large waterfall</option><option value="pool">Pool / underwater jets and lights</option><option value="tank">Moving glass tank</option><option value="river">River / sediment / dyes / tannins</option><option value="glass">Spinning drinking glass</option><option value="ocean">Wind-driven ocean basin</option></select></label>
+        <label>Interaction <select id="wl-tool"><option value="orbit">Inspect / orbit</option><option value="grab">Grab / drop water sphere</option><option value="nudge">Push water</option><option value="wind">Wind brush (hold)</option><option value="glass">Throw floating glass ball</option><option value="mirror">Throw neutral mirror ball</option><option value="rock">Throw sinking rock</option><option value="dye">Dissolve blue dye</option><option value="tannin">Dissolve tannins</option></select></label>
+        <label>Interaction radius <output id="wl-radius-value"></output><input id="wl-radius" type="range" min="0.2" max="2" step="0.05" value="0.75"></label>
+        <label>Laminar → turbulent forcing <output id="wl-turbulence-value">0.20</output><input id="wl-turbulence" type="range" min="0" max="2" step="0.05" value="0.2"></label>
+        <label>Pump flow <output id="wl-flow-value">1.00×</output><input id="wl-flow" type="range" min="0" max="2" step="0.05" value="1"></label>
+        <label>Submerged jets <output id="wl-jets-value">1.0×</output><input id="wl-jets" type="range" min="0" max="3" step="0.1" value="1"></label>
+        <label>Underwater lights <output id="wl-lights-value">1.0×</output><input id="wl-lights" type="range" min="0" max="4" step="0.1" value="1"></label>
+        <label>Ambient illumination <output id="wl-ambient-value">1.00</output><input id="wl-ambient" type="range" min="0.05" max="1.5" step="0.05" value="1"></label>
+        <label>Wind speed <output id="wl-wind-value">0 m/s</output><input id="wl-wind" type="range" min="0" max="80" step="1" value="0"></label>
+        <label>Wind brush speed <output id="wl-windStrength-value">60 m/s</output><input id="wl-windStrength" type="range" min="0" max="160" step="5" value="60"></label>
+        <div id="wl-container-controls" hidden>
+          <label>Container horizontal position <output id="wl-x-value">0</output><input id="wl-x" type="range" min="-2" max="2" step="0.05" value="0"></label>
+          <label>Container depth position <output id="wl-z-value">0</output><input id="wl-z" type="range" min="-2" max="2" step="0.05" value="0"></label>
+          <label>Container height <output id="wl-y-value">2</output><input id="wl-y" type="range" min="1.9" max="5" step="0.05" value="2"></label>
+          <label>Container tilt <output id="wl-tilt-value">0°</output><input id="wl-tilt" type="range" min="-150" max="150" step="1" value="0"></label>
+          <label>Axial rotation speed <output id="wl-spin-value">0 rpm</output><input id="wl-spin" type="range" min="-120" max="120" step="1" value="0"></label>
+          <button id="wl-accelerate">Accelerate container sideways</button>
+        </div>
+        <div class="row"><button id="wl-glass">Throw glass</button><button id="wl-mirror">Throw mirror</button><button id="wl-rock">Throw rock</button></div>
+        <div class="row"><button id="wl-dye">Add dye at center</button><button id="wl-tannin">Add tannins at center</button></div>
+        <div class="row"><button id="wl-pause">Pause</button><button id="wl-reset">Reset station</button><button id="wl-clear">Clear bodies</button></div>
+        <label>Fluid constraints <select id="wl-backend"><option value="gpu">GPU</option><option value="cpu">CPU reference</option></select></label>
+        <button id="wl-verify">Compare GPU / CPU</button>
+        <dl><dt>Backend</dt><dd id="wl-state"></dd><dt>Water volume</dt><dd id="wl-volume"></dd><dt>Held volume</dt><dd id="wl-held"></dd><dt>Sediment balance</dt><dd id="wl-sediment"></dd><dt>Rigid bodies</dt><dd id="wl-bodies"></dd><dt>Simulation</dt><dd id="wl-clock"></dd><dt>GPU draw passes</dt><dd id="wl-times"></dd></dl>
+        <p id="wl-validation">Not run</p><p>Click to interact; click again to drop held water. Right-drag orbits. Station changes reset the finite water supply. Pipe, waterfall and river pumps recirculate it. Moving vessels respond to position, tilt and rotation controls.</p>
+      </fieldset>
       <fieldset id="beach-controls" hidden><legend>Beach</legend>
         <div class="row"><button id="beach-shore">Shore</button><button id="beach-pool">Isolated pool</button><button id="beach-grass">Grass</button><button id="beach-sand-view">Sand</button></div>
         <label>Interaction <select id="beach-tool"><option value="orbit">Inspect / orbit</option><option value="grab">Grab / drop sand or water</option><option value="water">Nudge water</option><option value="sediment">Nudge loose sand</option><option value="wind">Wind brush (hold)</option><option value="sand">Mound sand</option><option value="dig">Dig sand</option><option value="carve">Carve SDF volume</option><option value="solid">Add SDF volume</option><option value="ball">Place glass ball</option></select></label>

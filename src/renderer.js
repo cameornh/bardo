@@ -1,3 +1,5 @@
+import {WaterLab} from './water-lab.js';
+import {WaterLabRenderer} from './water-lab-renderer.js';
 import * as THREE from 'three';
 import { BeachRenderer } from './beach-renderer.js';
 import { MATERIALS } from './world.js';
@@ -89,7 +91,7 @@ export class FieldRenderer {
     this.grass=new GrassRenderer(this.uniforms);
     this.soft=new SoftRenderer(this.uniforms);this.optics=new OpticsRenderer(this.uniforms);this.lightTest=new LightTransportRenderer(this.uniforms);
     this.water=new FluidRenderer(this.uniforms);this.fluid=null;this.grains=new FluidRenderer(this.uniforms,{granular:true});this.granular=null;this.proxies=new TerrainProxies(this);this.terrainReady=new Map();
-    this.beach=new BeachRenderer(this);
+    this.beach=new BeachRenderer(this);this.waterLab=new WaterLab(this.renderer);this.waterLabRenderer=new WaterLabRenderer(this,this.waterLab);
     this.addBatch(sampleGround(),6,0);
     for(let id=0;id<world.objects.length;id++)this.rebuild(id);
   }
@@ -112,7 +114,7 @@ export class FieldRenderer {
     this.lastRebuildMs=performance.now()-start;
   }
   resize(width,height){
-    const ratio=Math.min(Math.min(window.devicePixelRatio,1.5)*this.scale,Math.sqrt((this.beach?.enabled?420000:1400000)/(width*height)));
+    const ratio=Math.min(Math.min(window.devicePixelRatio,1.5)*this.scale,Math.sqrt((this.waterLab?.enabled?220000:this.beach?.enabled?420000:1400000)/(width*height)));
     this.renderer.setSize(Math.round(width*ratio),Math.round(height*ratio),false);this.resolution.set(this.renderer.domElement.width,this.renderer.domElement.height);this.target.setSize(this.resolution.x,this.resolution.y);
     this.glassTarget.setSize(this.resolution.x,this.resolution.y);
     this.terrainDepthTarget.setSize(this.resolution.x,this.resolution.y);this.depthValid=false;
@@ -200,6 +202,8 @@ export class FieldRenderer {
     this.world.terrain.edits.forEach((e,i)=>{this.uniforms.uTerrainEdits.value[i].fromArray(e);this.uniforms.uTerrainEditModes.value[i]=e[4];});
     this.world.edits.forEach((e,i)=>this.uniforms.uEdits.value[i].fromArray(e));this.world.objects.forEach((o,i)=>this.uniforms.uCenters.value[i].fromArray(o.center));
     this.uniforms.uProbeRotation.value.setFromMatrix4(this.matrix.makeRotationFromQuaternion(probe.rotation));this.camera.updateMatrixWorld();
+    if(this.waterLab.enabled)return this.waterLabRenderer.render({dt,adaptive,focusDistance});
+    this.waterLabRenderer.count=0;
     if(this.beach.enabled)return this.beach.render(this,{dt,adaptive,focusDistance});
     this.beach.count=0;
     if(this.lightTest.enabled)return this.lightTest.render(this,{dt,adaptive,focusDistance});
