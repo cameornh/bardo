@@ -33,7 +33,7 @@ export class WaterLab {
  // The constraint iterations already project against the solid field on the
  // GPU (or in the CPU reference). Avoid duplicating that work for every parcel.
  const speed=length(v),limit=s*.45/dt;if(speed>limit)for(let k=0;k<3;k++)v[k]*=limit/speed;predicted.set(p.map((x,k)=>x+v[k]*dt),o);}
- const predictDone=performance.now();const next=this.gpu.solve(predicted,s,p=>this.collide(p),3);const solveDone=performance.now();const transport=transportFluid(old,next,this.velocities,this.chem,this.gpu.neighbors,s,scale,dt,this.wind);
+ const predictDone=performance.now();const next=this.gpu.solve(predicted,s,p=>this.collide(p),3);const solveDone=performance.now();const transport=transportFluid(old,next,this.velocities,this.chem,this.gpu.neighbors,s,scale,dt,predicted);
  this.velocities=transport.velocities;this.chem=transport.chem;this.surfaceMetrics=transport.metrics;this.neighborCounts=transport.counts;
  this.positions=next;this.exchangeSediment(dt);if(this.detail.cpu!==this.gpu.cpu){this.detail.cpu=this.gpu.cpu;this.detail.reset();}this.detail.emit(this,dt);this.detailJet=this.jet;if(!deferDetail)this.detail.advance(dt,this);this.timings={predict:predictDone-start,solve:solveDone-predictDone,transport:performance.now()-solveDone};this.steps++;this.jet=null;this.revision++;}
  sampleFastSurface(i){return !this.neighborCounts||this.neighborCounts[i]<25;}
