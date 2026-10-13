@@ -28,7 +28,7 @@ export class LabRain {
   get enabled(){return this.options.enabled;}
   set enabled(value){this.options.enabled=Boolean(value);}
   get rate(){return this.options.rate;}
-  set rate(value){this.options.rate=clamp(Number(value)||0,0,120);}
+  set rate(value){this.options.rate=clamp(Number(value)||0,0,12000);}
   get airborneVolume(){return this.drops.reduce((sum,p)=>sum+p.volume,0);}
   get depositVolume(){let sum=0;for(const p of this.deposits.values())sum+=p.volume;return sum;}
   get unresolvedVolume(){return this.airborneVolume+this.depositVolume;}
