@@ -1,0 +1,66 @@
+<!doctype html><html><body><button id="run">Validate pool and ball shadows</button><button id="off" disabled>Shadows off</button><button id="on" disabled>Shadows on</button><button id="mirror" disabled>Mirror close-up</button><pre id="result" style="max-height:240px;overflow:auto">Ready</pre><script type="module">
+import * as THREE from 'three';
+import {WaterLab} from '../src/water-lab.js';
+import {WaterLabRenderer} from '../src/water-lab-renderer.js';
+import {LabPoolShadows,POOL_SHADOW_GLSL} from '../src/water-lab-pool-shadows.js';
+import {BODY_SHADOW_GLSL,bodyLightTransmission} from '../src/water-lab-body-shadows.js';
+import {LAB_GEOMETRY_GLSL} from '../src/water-lab-model.js';
+import {DETAIL_LIGHT_GLSL,detailResponse,detailRadiance} from '../src/water-lab-detail-optics.js';
+import {MotionDetail} from '../src/lod.js';
+import {QUAD_VERTEX,TONEMAP_FRAGMENT} from '../src/shaders.js';
+const renderer=new THREE.WebGLRenderer({preserveDrawingBuffer:true});renderer.autoClear=false;renderer.setSize(640,480);document.body.append(renderer.domElement);
+renderer.debug.onShaderError=(gl,program,vs,fs)=>{throw new Error(gl.getShaderInfoLog(fs)||gl.getShaderInfoLog(vs)||gl.getProgramInfoLog(program));};
+const lab=new WaterLab(renderer),camera=new THREE.PerspectiveCamera(43,640/480,.01,200),target=new THREE.WebGLRenderTarget(640,480,{type:THREE.FloatType}),output=new THREE.Scene();
+output.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:TONEMAP_FRAGMENT,uniforms:{uImage:{value:target.texture}},depthTest:false,depthWrite:false})));
+const field={renderer,camera,target,output,quadCamera:new THREE.Camera(),resolution:new THREE.Vector2(640,480),motion:new MotionDetail(),minPixelSigma:2,uniforms:{uView:{value:0},uSHDegree:{value:3}},water:{uniforms:{uWaterRoughness:{value:.07},uTurbidity:{value:.02}}}};
+for(const k of ['beach','grass','grains','soft','optics','lightTest'])field[k]={count:0};
+const visual=new WaterLabRenderer(field,lab),result=document.querySelector('#result');
+function readTarget(t){const half=t.texture.type===THREE.HalfFloatType,data=half?new Uint16Array(t.width*t.height*4):new Float32Array(t.width*t.height*4);renderer.readRenderTargetPixels(t,0,0,t.width,t.height,data);return half?Float32Array.from(data,x=>THREE.DataUtils.fromHalfFloat(x)):data;}
+function draw(enabled){visual.poolShadows.enabled=enabled;visual.u.uBodyShadows.value=enabled;visual.render({adaptive:false});const data=new Float32Array(640*480*4);renderer.readRenderTargetPixels(target,0,0,640,480,data);return data;}
+function bind(markers){lab.detail.reset();markers.forEach((item,i)=>item.forEach((values,k)=>lab.detail.fallback[k].image.data.set(values,i*4)));for(const t of lab.detail.fallback)t.needsUpdate=true;lab.detail.count=markers.length;lab.detail.time=.2;lab.detail.bind(lab.detail.fallback);lab.revision++;}
+function query(fragment,uniforms,width){const rt=new THREE.WebGLRenderTarget(width,1,{type:THREE.FloatType}),g=new THREE.PlaneGeometry(2,2),m=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:fragment,uniforms,depthTest:false,depthWrite:false}),scene=new THREE.Scene();scene.add(new THREE.Mesh(g,m));renderer.setRenderTarget(rt);renderer.render(scene,new THREE.Camera());const data=readTarget(rt);renderer.setRenderTarget(null);for(const r of [rt,g,m])r.dispose();return Array.from(data);}
+function comparePool(){
+ lab.configure('pool');bind([[[0,.65,-.75,.2],[1,-2,.5,2],[.14,0,.7,1]],[[.15,.7,-.9,.2],[0,.1,0,2],[.14,2,.6,1]],[[1,.7,-2.65,.2],[0,0,0,2],[.05,1,.8,1]],[[0,1,-.5,3],[0,0,0,2],[.4,0,.9,1]]]);
+ const gpu=new LabPoolShadows(renderer,lab,64),cpu=new LabPoolShadows(renderer,lab,64);cpu.cpu=true;gpu.update();cpu.update();let error=0,peak=0;
+ for(let layer=0;layer<4;layer++){const raw=new Uint16Array(64*64*3*4);renderer.readRenderTargetPixels(gpu.target,0,0,192,64,raw,0,layer);const expected=cpu.fallback[layer].image.data;for(let i=0;i<raw.length;i++){const actual=THREE.DataUtils.fromHalfFloat(raw[i]);error=Math.max(error,Math.abs(actual-expected[i]));peak=Math.max(peak,actual);}}
+ const fragment=`precision highp float;precision highp int;out vec4 outColor;${POOL_SHADOW_GLSL}void main(){vec3 p=gl_FragCoord.x<1.?vec3(0,.65,-2.1):vec3(0,.65,2.);outColor=vec4(sprayPool(p,0),sprayPool(p,1),sprayPool(p,2),1);}`;
+ const transmission=query(fragment,gpu.u,2);lab.detail.enabled=false;gpu.update();const disabled=query(fragment,gpu.u,2);lab.detail.enabled=true;lab.detail.reset();gpu.update();const empty=query(fragment,gpu.u,2);
+ gpu.dispose();cpu.dispose();return {error,peak,transmission,disabled,empty,pass:error<.004&&peak>.01&&transmission.slice(0,3).every(x=>x>.999)&&transmission[5]<.95&&transmission[4]>.99&&transmission[6]>.99&&disabled.every(x=>x===1)&&empty.every(x=>x===1)};
+}
+function compareBodies(){
+ lab.balls=Array.from({length:130},(_,i)=>({position:[50+i,0,0],radius:.35,kind:'rock',velocity:[0,0,0]}));lab.balls[129]={position:[0,0,2],radius:.4,kind:'glass',velocity:[0,0,0]};lab.syncUniforms();
+ const shader=`precision highp float;precision highp int;out vec4 outColor;${LAB_GEOMETRY_GLSL}${BODY_SHADOW_GLSL}void main(){float x=(gl_FragCoord.x-.5)*.02;outColor=vec4(bodyTransmission(vec3(x,0,0),vec3(0,0,1),5.,1.,.06,0.),1);}`;let error=0;const samples={};
+ for(const kind of ['glass','mirror','rock']){lab.balls[129].kind=kind;lab.syncUniforms();const data=query(shader,{...lab.u,uBodyShadows:{value:true}},31);samples[kind]=data[0];for(let i=0;i<31;i++){const expected=bodyLightTransmission([i*.02,0,0],[0,0,1],5,lab.balls);for(let k=0;k<3;k++)error=Math.max(error,Math.abs(data[i*4+k]-expected[k]));}}
+ lab.balls=[];lab.syncUniforms();return {error,samples,pass:error<.0001&&samples.glass>.7&&samples.glass<.95&&samples.mirror===0&&samples.rock===0};
+}
+function compareFoam(){
+ const fragment=`precision highp float;out vec4 outColor;${DETAIL_LIGHT_GLSL}void main(){float kind=floor((gl_FragCoord.x-.5)/2.),side=mod(floor(gl_FragCoord.x),2.);vec3 view=side<.5?normalize(vec3(-1,1,0)):normalize(vec3(1,-1,0)),normal=vec3(0,1,0),light=normalize(vec3(1,1,0));float response=detailResponse(kind,view,normal,light);outColor=vec4(response,detailLight(kind,vec3(.5),0.,vec3(1),1.,response).r,detailDecodeNormal(detailEncodeNormal(normal)).y,1);}`;
+ const actual=query(fragment,{},6);let error=0;for(let i=0;i<6;i++){const kind=Math.floor(i/2),view=i%2?[Math.SQRT1_2,-Math.SQRT1_2,0]:[-Math.SQRT1_2,Math.SQRT1_2,0],response=detailResponse(kind,view,[0,1,0],[Math.SQRT1_2,Math.SQRT1_2,0]),radiance=detailRadiance(kind,[.5,.5,.5],0,0,0,0,1,1,response)[0];error=Math.max(error,Math.abs(actual[i*4]-response),Math.abs(actual[i*4+1]-radiance),Math.abs(actual[i*4+2]-1));}
+ return {error,pass:error<.0001};
+}
+const delta=(off,on)=>{let changed=0,peak=0,finite=true;for(let i=0;i<on.length;i+=4){const d=Math.max(off[i]-on[i],off[i+1]-on[i+1],off[i+2]-on[i+2]);if(d>.003)changed++;peak=Math.max(peak,d);finite&&=Number.isFinite(on[i]+on[i+1]+on[i+2]);}return {changed,peak,finite,pass:changed>50&&peak>.015&&finite};};
+function mirrorReflection(){
+ lab.configure('pool');lab.positions=new Float32Array(0);lab.velocities=new Float32Array(0);lab.chem=new Float32Array(0);lab.neighborCounts=new Uint16Array(0);lab.ambient=.05;lab.lights=0;
+ const ball={kind:'mirror',radius:.65,position:[0,.9,0],velocity:[0,0,0]};lab.balls=[ball];camera.position.set(1.2,2.4,-2.4);camera.lookAt(0,.9,0);draw(true);const off=readTarget(visual.background);lab.lights=2;draw(true);const on=readTarget(visual.background),peak=[0,0,0];let changed=0,colored=0;
+ for(let y=0;y<480;y++)for(let x=0;x<640;x++){const i=(y*640+x)*4,ray=new THREE.Vector3((x+.5)/640*2-1,(y+.5)/480*2-1,.5).unproject(camera).sub(camera.position).normalize(),hit=ray.multiplyScalar(on[i+3]).add(camera.position);if(Math.abs(hit.distanceTo(new THREE.Vector3(...ball.position))-ball.radius)>.02)continue;const d=peak.map((_,k)=>on[i+k]-off[i+k]);if(Math.max(...d)>.02)changed++;if(Math.max(...d)-Math.min(...d)>.02)colored++;for(let k=0;k<3;k++)peak[k]=Math.max(peak[k],d[k]);}
+ return {changed,colored,peak,pass:changed>100&&colored>50&&peak.every(x=>x>.02)};
+}
+function cloud(){const markers=[];for(let i=0;i<1500;i++){const a=i*2.39996,r=Math.sqrt((i+.5)/1500);markers.push([[Math.cos(a)*r*.45,.65+Math.sin(a)*r*.28,-.85+.12*Math.sin(i*.73),.25],[.1,.3,.05,2],[.02,i%2?2:0,.6,1]]);}bind(markers);}
+document.querySelector('#run').onclick=async()=>{document.querySelector('#run').disabled=true;try{
+ const reference=comparePool(),bodies=compareBodies(),foamReference=compareFoam();lab.configure('pool');lab.ambient=0;lab.sunlight=0;lab.lights=0;camera.position.set(7,7,10);camera.lookAt(0,.7,0);cloud();
+ for(let i=0;i<lab.detail.count;i++){lab.detail.fallback[0].image.data[i*4+1]=1.35;lab.detail.fallback[2].image.data[i*4+1]=1;}for(const t of lab.detail.fallback)t.needsUpdate=true;
+ draw(true);const unlit=readTarget(visual.detailRenderer.target);lab.sunlight=1;draw(true);const sunFoam=delta(readTarget(visual.detailRenderer.target),unlit);lab.sunlight=0;lab.lights=2;draw(true);const lampFoam=delta(readTarget(visual.detailRenderer.target),unlit);
+ lab.configure('pool');lab.ambient=.08;lab.lights=2;cloud();
+ draw(false);const floorOff=readTarget(visual.background),waterOff=readTarget(visual.water);draw(true);const floor=delta(floorOff,readTarget(visual.background)),water=delta(waterOff,readTarget(visual.water));
+ const key=visual.poolShadows.key;camera.position.set(-7,7,10);camera.lookAt(0,.7,0);draw(true);const cameraInvariant=visual.poolShadows.key===key;camera.position.set(7,7,10);camera.lookAt(0,.7,0);
+ lab.detail.reset();lab.balls=[{kind:'mirror',radius:.4,position:[-1,.9,-.5],velocity:[0,0,0]},{kind:'rock',radius:.4,position:[1,.9,-.5],velocity:[0,0,0]},{kind:'glass',radius:.4,position:[0,1.8,0],velocity:[0,0,0]}];lab.syncUniforms();draw(false);const ballOff=readTarget(visual.background);draw(true);const ballReceivers=delta(ballOff,readTarget(visual.background));
+ const previous=visual.lastBodyKey;lab.balls[0].position[0]-=.3;draw(true);const movingPaused=previous!==visual.lastBodyKey;
+ const mirror=mirrorReflection();camera.position.set(7,7,10);camera.lookAt(0,.7,0);
+ // Sunlight shadows also work with no whitewater, in every water-lab station.
+ lab.configure('pipe');lab.positions=new Float32Array(0);lab.velocities=new Float32Array(0);lab.chem=new Float32Array(0);lab.neighborCounts=new Uint16Array(0);lab.balls=[{kind:'rock',radius:.55,position:[0,1.1,0],velocity:[0,0,0]}];draw(false);const sunOff=readTarget(visual.background);draw(true);const sun=delta(sunOff,readTarget(visual.background));
+ lab.configure('pool');lab.ambient=.08;lab.lights=2;cloud();lab.balls=[{kind:'mirror',radius:.38,position:[-1.5,.7,0],velocity:[0,0,0]},{kind:'rock',radius:.4,position:[1.3,.4,0],velocity:[0,0,0]},{kind:'glass',radius:.42,position:[-.5,1.5,.8],velocity:[0,0,0]}];draw(true);
+ result.textContent=JSON.stringify({pass:reference.pass&&bodies.pass&&floor.pass&&water.pass&&ballReceivers.pass&&sun.pass&&mirror.pass&&foamReference.pass&&sunFoam.pass&&lampFoam.pass&&cameraInvariant&&movingPaused,reference,bodies,floor,water,ballReceivers,sun,mirror,foamReference,sunFoam,lampFoam,cameraInvariant,movingPaused},null,2);
+ for(const name of ['off','on']){document.querySelector('#'+name).disabled=false;document.querySelector('#'+name).onclick=()=>draw(name==='on');}
+ document.querySelector('#mirror').disabled=false;document.querySelector('#mirror').onclick=()=>mirrorReflection();
+}catch(e){result.textContent='FAIL '+e.stack;}};
+</script></body></html>
