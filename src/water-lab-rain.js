@@ -1,5 +1,8 @@
 import {hash, clamp, rotate, vesselLocal, vesselDistance, normalAt} from './water-lab-model.js';
 
+export const RAIN_PACKET_LIMIT=4096;
+export function rainPacketRate(rate){return rate>0?Math.min(1200,144+96*Math.sqrt(rate/5)):0;}
+
 // Sub-grid precipitation packets carry real water volume. On contact their
 // momentum enters the fluid; local wet deposits become ordinary solver parcels
 // once there is enough volume. No rain water is recycled from the scene.
@@ -159,19 +162,19 @@ export class LabRain {
   step(dt) {
     const lab=this.lab,scale=lab.spec.scale;
     if(this.enabled&&this.rate>0) {
-      this.budget+=dt*72;
+      this.budget+=dt*rainPacketRate(this.rate);
       const available=Math.max(0,(lab.particleBudget-lab.count)*lab.spacing**3-this.unresolvedVolume-this.sourceVolume);
       this.capacityLimited=available<this.flux*dt;
       this.sourceVolume+=Math.min(available,this.flux*dt);
-      const count=Math.floor(this.budget);
+      const count=Math.min(Math.floor(this.budget),RAIN_PACKET_LIMIT-this.drops.length);
       if(count&&this.sourceVolume>0) {
         const volume=this.sourceVolume/count;this.sourceVolume=0;this.budget-=count;
         for(let i=0;i<count;i++) {
           const seq=++this.sequence;
-          // Low-discrepancy sky coverage makes small openings receive their
-          // area-proportional share, even with relatively few rain packets.
-          const x=((seq*.754877666)%1-.5)*9.6,z=((seq*.569840296)%1-.5)*8.4;
-          this.drops.push({position:[x,8.35+hash(seq)*.15,z],velocity:[0,-8/scale,0],volume});
+          // Stable independent sky samples avoid diagonal curtains when the
+          // falling packets become visible. Openings collect by sky area.
+          const x=(hash(seq*2)-.5)*9.6,z=(hash(seq*2+1)-.5)*8.4;
+          this.drops.push({id:seq,position:[x,8.35+hash(seq)*.15,z],velocity:[0,-8/scale,0],volume});
           this.emitted+=volume;
         }
       }

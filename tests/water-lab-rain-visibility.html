@@ -1,0 +1,30 @@
+<!doctype html><html><body><button id="run">Validate falling rain visibility</button><pre id="result">Ready</pre><script type="module">
+import * as THREE from 'three';
+import {WaterLab} from '../src/water-lab.js';
+import {WaterLabRenderer} from '../src/water-lab-renderer.js';
+import {MotionDetail} from '../src/lod.js';
+import {QUAD_VERTEX,TONEMAP_FRAGMENT} from '../src/shaders.js';
+const renderer=new THREE.WebGLRenderer();renderer.autoClear=false;renderer.setSize(480,450);document.body.append(renderer.domElement);
+renderer.debug.onShaderError=(_gl,_program,_vs,fs)=>{throw new Error(renderer.getContext().getShaderInfoLog(fs));};
+const lab=new WaterLab(renderer),camera=new THREE.PerspectiveCamera(43,480/450,.01,200),target=new THREE.WebGLRenderTarget(480,450,{type:THREE.FloatType}),output=new THREE.Scene();
+output.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:TONEMAP_FRAGMENT,uniforms:{uImage:{value:target.texture}},depthTest:false,depthWrite:false})));
+const field={renderer,camera,target,output,quadCamera:new THREE.Camera(),resolution:new THREE.Vector2(480,450),motion:new MotionDetail(),minPixelSigma:2,uniforms:{uView:{value:0},uSHDegree:{value:3}},water:{uniforms:{uWaterRoughness:{value:.07},uTurbidity:{value:.02}}}};
+for(const k of ['beach','grass','grains','soft','optics','lightTest'])field[k]={count:0};
+const visual=new WaterLabRenderer(field,lab),result=document.querySelector('#result');
+function read(){const data=new Float32Array(480*450*4);renderer.readRenderTargetPixels(target,0,0,480,450,data);return data;}
+document.querySelector('#run').onclick=async()=>{document.querySelector('#run').disabled=true;try{
+ const cases=[];
+ for(const kind of ['glass','pool','waterfall']){
+  lab.configure(kind);lab.rain.enabled=true;lab.rain.rate=120;lab.detail.enabled=false;
+  camera.position.fromArray(lab.spec.eye);camera.lookAt(new THREE.Vector3(...lab.spec.target));camera.updateMatrixWorld();
+  for(let i=0;i<180;i++){lab.rain.step(1/60);if(i%30===0){result.textContent='Falling rain: '+kind;await new Promise(r=>setTimeout(r,0));}}lab.revision++;
+  visual.rainMesh.visible=false;visual.render({adaptive:false});const before=read();
+  visual.rainMesh.visible=true;visual.render({adaptive:false});const after=read();let changed=0,peak=0;
+  for(let i=0;i<after.length;i+=4){const d=Math.max(...[0,1,2].map(k=>Math.abs(after[i+k]-before[i+k])));if(d>.02)changed++;peak=Math.max(peak,d);}
+  const error=lab.volume+lab.rain.unresolvedVolume*lab.spec.scale**3-lab.initialVolume-lab.rain.emitted*lab.spec.scale**3;
+  cases.push({kind,airborne:lab.rain.drops.length,drawn:visual.rainGeometry.instanceCount,changedPixels:changed,peakDifference:peak,volumeError:error,finite:after.every(Number.isFinite)});
+  const title=document.createElement('p');title.textContent=kind+' / rain 120 mm/min';document.body.append(title);const img=document.createElement('img');img.src=renderer.domElement.toDataURL();document.body.append(img);
+ }
+ result.textContent=JSON.stringify({cases,pass:cases.every(c=>c.finite&&c.airborne===c.drawn&&c.changedPixels>20&&c.peakDifference>.05&&Math.abs(c.volumeError)<1e-8)},null,2);
+}catch(e){result.textContent=e.stack;}};
+</script></body></html>

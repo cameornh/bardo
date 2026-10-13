@@ -6,7 +6,9 @@ document.querySelector('#run').onclick=async()=>{
  try {
   lab.configure('glass');lab.rain.enabled=true;lab.rain.rate=60;const initial=lab.count;
   document.querySelector('#result').textContent='Accumulating rain…';
-  for(let i=0;i<160;i++){lab.step(Math.sqrt(lab.spec.scale)/70);if(i%4===0)await new Promise(r=>setTimeout(r,0));}
+  // More, smaller sky packets spread deposits over more patches; give those
+  // patches time to join the bulk and cross its GPU allocation boundary.
+  for(let i=0;i<240;i++){lab.step(Math.sqrt(lab.spec.scale)/70);if(i%4===0)await new Promise(r=>setTimeout(r,0));}
   const error=lab.volume+lab.rain.unresolvedVolume*lab.spec.scale**3-lab.initialVolume-lab.rain.emitted*lab.spec.scale**3;
   let ground=0;for(let i=initial;i<lab.count;i++)if(Math.hypot(lab.positions[i*4],lab.positions[i*4+2])>1.5&&lab.positions[i*4+1]<.9)ground++;
   const result={backend:lab.gpu.cpu?'CPU':'GPU',initial,particles:lab.count,hits:lab.rain.hits,groundParcels:ground,added:lab.rain.emitted*lab.spec.scale**3,volumeError:error,finite:lab.positions.every(Number.isFinite),overflows:lab.gpu.overflow};

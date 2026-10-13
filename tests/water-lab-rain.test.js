@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {WaterLab} from '../src/water-lab.js';
 import {LAB_IDS} from '../src/water-lab-model.js';
+import {RAIN_PACKET_LIMIT,rainPacketRate} from '../src/water-lab-rain.js';
 const mock={extensions:{has:()=>false}};
 const ledger=lab=>lab.volume+lab.rain.unresolvedVolume*lab.spec.scale**3-lab.initialVolume-lab.rain.emitted*lab.spec.scale**3;
 
@@ -13,6 +14,27 @@ test('rain has independent station toggles and a common physical depth rate',()=
 
 test('switching rain off stops emission but existing drops still land',()=>{
  const lab=new WaterLab(mock);lab.configure('pool');lab.rain.enabled=true;lab.rain.step(.03);const emitted=lab.rain.emitted,drop=lab.rain.drops[0],y=drop.position[1];lab.rain.enabled=false;lab.rain.step(.1);assert.equal(lab.rain.emitted,emitted);assert.ok(drop.position[1]<y);assert.ok(Math.abs(ledger(lab))<1e-9);
+});
+
+test('heavier rain increases visible packet density without changing the requested physical flux',()=>{
+ const counts=[];
+ for(const rate of [5,120,12000]){
+  const lab=new WaterLab(mock);lab.configure('pool');lab.rain.enabled=true;lab.rain.rate=rate;
+  for(let i=0;i<6;i++)lab.rain.step(1/60);
+  counts.push(lab.rain.drops.length);
+  assert.ok(Math.abs(lab.rain.emitted+lab.rain.sourceVolume-lab.rain.flux*.1)<1e-10);
+  assert.ok(Math.abs(ledger(lab))<1e-9);
+ }
+ assert.ok(counts[0]>=20);assert.ok(counts[1]>counts[0]*2);assert.ok(counts[2]>counts[1]);
+ assert.equal(rainPacketRate(0),0);assert.equal(rainPacketRate(12000),1200);
+});
+
+test('airborne packet budget retains pending water rather than growing rendering work without bound',()=>{
+ const lab=new WaterLab(mock);lab.configure('pool');lab.rain.enabled=true;lab.rain.rate=12000;
+ const volume=1e-8;lab.rain.drops=Array.from({length:RAIN_PACKET_LIMIT},()=>({position:[0,8,0],velocity:[0,-1,0],volume}));
+ lab.rain.emitted=volume*RAIN_PACKET_LIMIT;lab.rain.step(1/60);
+ assert.equal(lab.rain.drops.length,RAIN_PACKET_LIMIT);assert.ok(lab.rain.sourceVolume>0);
+ assert.ok(Math.abs(ledger(lab))<1e-9);
 });
 
 test('rain deposits retain fractional volume then become fresh fluid on dry ground',()=>{
