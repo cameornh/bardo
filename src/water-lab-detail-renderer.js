@@ -1,3 +1,4 @@
+import {SPRAY_SHADOW_GLSL} from './water-lab-spray-shadows.js';
 import {SOLUTE_GLSL} from './water-lab-solutes.js';
 import * as THREE from 'three';
 import {SH_GLSL,QUAD_VERTEX} from './shaders.js';
@@ -41,6 +42,7 @@ ${LAB_GEOMETRY_GLSL}
 ${WATER_MATERIAL_GLSL}
 ${SOLUTE_GLSL}
 ${DETAIL_LIGHT_GLSL}
+${SPRAY_SHADOW_GLSL}
 void main(){
  if(vAlpha<.0001)discard;vec2 uv=gl_FragCoord.xy/uResolution;float opaque=texture(uOpaqueRead,uv).a;if(vDepth>opaque)discard;
  float gaussian=exp(-.5*dot(vQ,vQ)),a=gaussian*vAlpha;if(a<.0001)discard;
@@ -48,7 +50,7 @@ void main(){
  float surface=texture(uWaterSurface,uv).a,viewPath=vDepth>surface+.005?vWaterPath.x:0.;
  vec3 transmission=labTransmission(viewPath,uTurbidity,uTannins);float visibility=max(transmission.x,max(transmission.y,transmission.z));
  float b[16];basisSH(normalize(vDirection),b);vec3 light=vec3(0);for(int i=0;i<16;i++){if(i>=(uSHDegree+1)*(uSHDegree+1))break;light+=uSH[i]*b[i];}
- vec3 white=detailLight(vKindRadiusClearance.x,light,uAmbient)*labTransmission(vWaterPath.y,uTurbidity,uTannins);
+ vec3 white=detailLight(vKindRadiusClearance.x,light,uAmbient,spraySun(vCenter.xyz))*labTransmission(vWaterPath.y,uTurbidity,uTannins);
  if(uStation==2&&vKindRadiusClearance.x>.5){for(int i=0;i<3;i++){vec3 lamp=vec3(float(i-1)*2.7,.65,-2.75);float r=length(vCenter.xyz-lamp);vec3 color=i==0?vec3(4.,.12,.08):i==1?vec3(.1,3.,.5):vec3(.15,.3,5.);white+=color*uLights*labTransmission(r*uScale,uTurbidity,uTannins)/(1.+r*r*.7);}}
  float opacity=vKindRadiusClearance.x>1.5?.5:1.;a*=opacity;
  outColor=vec4(white*transmission*a,a*visibility);
