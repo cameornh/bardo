@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {LabWaterField, LAB_FIELD_GLSL, LAB_FIELD_MIN, fieldLayout} from './water-lab-field.js';
+import {LabWaterField, LAB_FIELD_GLSL, fieldLayout} from './water-lab-field.js';
 import {parcelKernel} from './parcel-field.js';
 import {LAB_GEOMETRY_GLSL, rotate, vesselDistance, wallVelocity, normalAt} from './water-lab-model.js';
 
@@ -14,13 +14,13 @@ export class DetailFlowField {
     for(const [name,uniform] of Object.entries(this.field.u)) this.u[name.replace('uLabField','uFlowTexture').replace('uField','uFlow')]=uniform;
   }
   update(lab,cpu=false) {
-    const s=lab.spacing;this.spacing=s;this.layout=fieldLayout(s,.75);
+    const s=lab.spacing;this.spacing=s;this.layout=fieldLayout(s,.75,lab.fieldBounds);
     this.items=Array.from({length:lab.count},(_,i)=>{
       const o=i*4;return {kind:'water',position:Array.from(lab.positions.subarray(o,o+3)),
         radius:s*(.65+.2*Math.min(1,Math.max(0,((lab.neighborCounts?.[i]||0)-5)/20))),volume:s**3,
         dye:lab.velocities[o],tannin:lab.velocities[o+1],sediment:lab.velocities[o+2]};
     });
-    if(!cpu){this.field.update(this.items,s);return;}
+    if(!cpu){this.field.update(this.items,s,lab.fieldBounds);return;}
     // Lazy lattice samples reproduce GPU trilinear interpolation without
     // constructing a dense atlas on the CPU reference path.
     this.bins=new Map();this.nodes=new Map();this.cellSize=3*s;
@@ -28,13 +28,13 @@ export class DetailFlowField {
       if(!this.bins.has(key))this.bins.set(key,[]);this.bins.get(key).push(p);}
   }
   sample(p) {
-    const {dx,dimensions}=this.layout,q=p.map((v,k)=>(v-LAB_FIELD_MIN[k])/dx);
+    const {dx,dimensions,min}=this.layout,q=p.map((v,k)=>(v-min[k])/dx);
     if(q.some((v,k)=>v<0||v>dimensions[k]-1))return [0,0,0,0];
     const base=q.map(Math.floor),fraction=q.map((v,k)=>v-base[k]),sum=[0,0,0,0];
     for(let corner=0;corner<8;corner++){
       const index=base.map((v,k)=>v+((corner>>k)&1)),key=index.join(',');let value=this.nodes.get(key);
       if(!value){
-        const point=index.map((v,k)=>LAB_FIELD_MIN[k]+v*dx),cell=point.map(v=>Math.floor(v/this.cellSize));value=[0,0,0,0];
+        const point=index.map((v,k)=>min[k]+v*dx),cell=point.map(v=>Math.floor(v/this.cellSize));value=[0,0,0,0];
         for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)for(const item of this.bins.get([cell[0]+x,cell[1]+y,cell[2]+z].join(','))||[]){
           const d=point.map((v,k)=>(v-item.position[k])/item.sigma);if(d.some(v=>Math.abs(v)>3))continue;
           const rho=item.amplitude*Math.exp(-.5*d.reduce((s,v)=>s+v*v,0));
@@ -129,5 +129,5 @@ void detailWetMotion(inout vec3 p,inout vec3 v,inout float kind,float age,float 
 
 export function emptyGeometryUniforms() {
   const zero=new THREE.DataTexture(new Float32Array(4),1,1,THREE.RGBAFormat,THREE.FloatType);zero.needsUpdate=true;
-  return {uLabBed:{value:zero},uBodies:{value:zero},uBodyCount:{value:0},uStation:{value:0},uContainer:{value:new THREE.Vector3(0,2,0)},uTilt:{value:0},uSpin:{value:0}};
+  return {uRiverSlope:{value:.1},uTannins:{value:0},uLabBed:{value:zero},uBodies:{value:zero},uBodyCount:{value:0},uStation:{value:0},uContainer:{value:new THREE.Vector3(0,2,0)},uTilt:{value:0},uSpin:{value:0}};
 }

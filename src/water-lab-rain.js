@@ -38,7 +38,9 @@ export class LabRain {
 
   // All stations receive the same physical rainfall depth. mm/min intentionally
   // exposes accelerated test rainfall rather than quietly changing it by scene.
-  get flux(){return this.rate/60000/this.lab.spec.scale*(9.6*8.4);}
+  get skyDepth(){return this.lab.kind==='river'?37:8.4;}
+  get skyArea(){return 9.6*this.skyDepth;}
+  get flux(){return this.rate/60000/this.lab.spec.scale*this.skyArea;}
   buildSurfaceIndex() {
     const {positions,spacing}=this.lab;
     this.columns=new Map();
@@ -173,8 +175,8 @@ export class LabRain {
           const seq=++this.sequence;
           // Stable independent sky samples avoid diagonal curtains when the
           // falling packets become visible. Openings collect by sky area.
-          const x=(hash(seq*2)-.5)*9.6,z=(hash(seq*2+1)-.5)*8.4;
-          this.drops.push({id:seq,position:[x,8.35+hash(seq)*.15,z],velocity:[0,-8/scale,0],volume});
+          const x=(hash(seq*2)-.5)*9.6,z=(hash(seq*2+1)-.5)*this.skyDepth;
+          this.drops.push({id:seq,position:[x,(lab.kind==='river'?11.5:8.35)+hash(seq)*.15,z],velocity:[0,-8/scale,0],volume});
           this.emitted+=volume;
         }
       }

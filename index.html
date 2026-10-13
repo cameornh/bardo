@@ -15,16 +15,22 @@
       <label>Brush radius <output id="brush-value">1.25 m</output><input id="brush" type="range" min="0.25" max="3" step="0.05" value="1.25"></label>
       <div class="row"><button id="undo">Undo edit</button><button id="home">Reset camera</button></div>
       <fieldset id="water-lab-controls" hidden><legend>Water laboratory</legend>
-        <label>Station <select id="wl-station"><option value="pipe">Pipe / impinging jet</option><option value="waterfall">Large waterfall</option><option value="pool">Pool / underwater jets and lights</option><option value="tank">Moving glass tank</option><option value="river">River / sediment / dyes / tannins</option><option value="glass">Spinning drinking glass</option><option value="ocean">Wind-driven ocean basin</option></select></label>
+        <label>Station <select id="wl-station"><option value="pipe">Pipe / impinging jet</option><option value="waterfall">Large waterfall</option><option value="pool">Pool / underwater jets and lights</option><option value="tank">Moving glass tank</option><option value="river">S-bend river / pond / sediment</option><option value="glass">Spinning drinking glass</option><option value="ocean">Wind-driven ocean basin</option></select></label>
         <label>Water detail target (resets water) <select id="wl-resolution"><option value="1">1× · standard</option><option value="1.5">1.5× · finer sheets</option><option value="2">2× · fine</option><option value="3">3× · fine target</option></select></label>
         <label>Bulk particle budget (resets water) <select id="wl-budget"><option value="8192">8,192</option><option value="16384">16,384</option><option value="32768">32,768 · stress test</option></select></label>
         <label>Physical size (resets water) <output id="wl-scale-value">1×</output><input id="wl-scale" type="range" min="-1" max="1" step="0.05" value="0"></label>
         <label><input id="wl-detail" type="checkbox" checked> Fine spray / bubbles / foam</label>
         <label>Fine particle density <output id="wl-detail-density-value">1×</output><input id="wl-detail-density" type="range" min="0" max="3" step="0.1" value="1"></label>
-        <label>Interaction <select id="wl-tool"><option value="orbit">Inspect / orbit</option><option value="grab">Grab / drop water sphere</option><option value="nudge">Push water</option><option value="wind">Wind brush (hold)</option><option value="glass">Throw floating glass ball</option><option value="mirror">Throw neutral mirror ball</option><option value="rock">Throw sinking rock</option><option value="dye">Dissolve blue dye</option><option value="tannin">Dissolve tannins</option></select></label>
+        <label>Interaction <select id="wl-tool"><option value="orbit">Inspect / orbit</option><option value="grab">Grab / drop water sphere</option><option value="nudge">Push water</option><option value="wind">Wind brush (hold)</option><option value="glass">Throw floating glass ball</option><option value="mirror">Throw neutral mirror ball</option><option value="rock">Throw sinking rock</option><option value="dye">Dissolve blue dye</option></select></label>
         <label>Interaction radius <output id="wl-radius-value"></output><input id="wl-radius" type="range" min="0.2" max="2" step="0.05" value="0.75"></label>
         <label>Laminar → turbulent forcing <output id="wl-turbulence-value">0.20</output><input id="wl-turbulence" type="range" min="0" max="2" step="0.05" value="0.2"></label>
         <label>Pump flow <output id="wl-flow-value">1.00×</output><input id="wl-flow" type="range" min="0" max="2" step="0.05" value="1"></label>
+        <div id="wl-river-controls" hidden>
+          <label>Channel slope (resets river) <output id="wl-slope-value">10%</output><input id="wl-slope" type="range" min="0" max="0.22" step="0.005" value="0.10"></label>
+          <label>Source water speed <output id="wl-source-speed-value">1.5 m/s</output><input id="wl-source-speed" type="range" min="0" max="8" step="0.1" value="1.5"></label>
+          <div class="row"><button id="wl-source-view">View source</button><button id="wl-pond-view">View pond</button><button id="wl-river-view">Whole river</button></div>
+        </div>
+        <label>Tannins / organic load <output id="wl-tannins-value">0.00</output><input id="wl-tannins" type="range" min="0" max="3" step="0.02" value="0"></label>
         <label>Submerged jets <output id="wl-jets-value">1.0×</output><input id="wl-jets" type="range" min="0" max="3" step="0.1" value="1"></label>
         <label>Underwater lights <output id="wl-lights-value">1.0×</output><input id="wl-lights" type="range" min="0" max="4" step="0.1" value="1"></label>
         <label>Ambient illumination <output id="wl-ambient-value">1.00</output><input id="wl-ambient" type="range" min="0.05" max="1.5" step="0.05" value="1"></label>
@@ -41,7 +47,7 @@
           <button id="wl-accelerate">Accelerate container sideways</button>
         </div>
         <div class="row"><button id="wl-glass">Throw glass</button><button id="wl-mirror">Throw mirror</button><button id="wl-rock">Throw rock</button></div>
-        <div class="row"><button id="wl-dye">Add dye at center</button><button id="wl-tannin">Add tannins at center</button></div>
+        <div class="row"><button id="wl-dye">Add dye at center</button></div>
         <div class="row"><button id="wl-pause">Pause</button><button id="wl-reset">Reset station</button><button id="wl-clear">Clear bodies</button></div>
         <label>Fluid constraints <select id="wl-backend"><option value="gpu">GPU</option><option value="cpu">CPU reference</option></select></label>
         <button id="wl-verify">Compare GPU / CPU</button>

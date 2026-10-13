@@ -1,3 +1,4 @@
+import {SOLUTE_GLSL} from './water-lab-solutes.js';
 import {SH_GLSL} from './shaders.js';
 import {WATER_MATERIAL_GLSL} from './water-material.js';
 import {LAB_FIELD_GLSL} from './water-lab-field.js';
@@ -28,9 +29,10 @@ export const RAIN_FRAGMENT=`precision highp float;precision highp int;
 in vec2 vQ;in float vDepth;in vec3 vDirection,vCenter;out vec4 outColor;
 ${SH_GLSL}
 ${WATER_MATERIAL_GLSL}
+${SOLUTE_GLSL}
 ${LAB_FIELD_GLSL}
 uniform vec3 uSH[16],uEye;uniform int uSHDegree;
-uniform highp sampler2D uOpaqueRead,uWaterSurface;uniform vec2 uResolution;uniform float uScale,uAmbient,uTurbidity;
+uniform highp sampler2D uOpaqueRead,uWaterSurface;uniform vec2 uResolution;uniform float uScale,uAmbient,uTurbidity,uTannins;
 void main(){
  vec2 uv=gl_FragCoord.xy/uResolution;if(vDepth>texture(uOpaqueRead,uv).a)discard;
  float a=exp(-.5*dot(vQ,vQ))*.6;if(a<.006)discard;
@@ -40,7 +42,7 @@ void main(){
  float surface=texture(uWaterSurface,uv).a,path=0.;
  if(vDepth>surface){float begin=parcelSample(uEye).x>.18?0.:surface,stepLength=(vDepth-begin)/6.;vec3 ray=normalize(vCenter-uEye);
    for(int i=0;i<6;i++)path+=smoothstep(.08,.22,parcelSample(uEye+ray*(begin+(float(i)+.5)*stepLength)).x)*stepLength*uScale;}
- vec3 trans=waterTransmission(path,uTurbidity);
+ vec3 trans=labTransmission(path,uTurbidity,uTannins);
  vec3 color=(vec3(.6,.7,.8)+max(light,vec3(0))*2.2)*uAmbient;
  outColor=vec4(color*trans*a,a*max(trans.x,max(trans.y,trans.z)));
 }`;

@@ -8,7 +8,7 @@ const ledger=lab=>lab.volume+lab.rain.unresolvedVolume*lab.spec.scale**3-lab.ini
 
 test('rain has independent station toggles and a common physical depth rate',()=>{
  const lab=new WaterLab(mock);
- for(const kind of LAB_IDS){lab.configure(kind);assert.equal(lab.rain.enabled,false);lab.rain.enabled=true;lab.rain.rate=5;for(let i=0;i<6;i++)lab.rain.step(.01);assert.ok(lab.rain.drops.length>0);assert.ok(Math.abs((lab.rain.emitted+lab.rain.sourceVolume)*lab.spec.scale/(9.6*8.4)-5/60000*.06)<1e-12);assert.ok(Math.abs(ledger(lab))<1e-9,kind);}
+ for(const kind of LAB_IDS){lab.configure(kind);assert.equal(lab.rain.enabled,false);lab.rain.enabled=true;lab.rain.rate=5;for(let i=0;i<6;i++)lab.rain.step(.01);assert.ok(lab.rain.drops.length>0);assert.ok(Math.abs((lab.rain.emitted+lab.rain.sourceVolume)*lab.spec.scale/lab.rain.skyArea-5/60000*.06)<1e-12);assert.ok(Math.abs(ledger(lab))<1e-9,kind);}
  lab.configure('tank');assert.equal(lab.rain.enabled,true);lab.rain.enabled=false;lab.configure('pool');assert.equal(lab.rain.enabled,true);lab.configure('tank');assert.equal(lab.rain.enabled,false);
 });
 

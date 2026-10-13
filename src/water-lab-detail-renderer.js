@@ -1,3 +1,4 @@
+import {SOLUTE_GLSL} from './water-lab-solutes.js';
 import * as THREE from 'three';
 import {SH_GLSL,QUAD_VERTEX} from './shaders.js';
 import {LAB_FIELD_GLSL} from './water-lab-field.js';
@@ -34,20 +35,21 @@ float lightStep=uSpacing*.8;for(int i=0;i<8;i++)paths.y+=smoothstep(.08,.22,parc
 outColor=vec4(paths,0,1);}`;
 const fragment=`precision highp float;precision highp int;in vec2 vQ;in float vAlpha,vDepth;in vec3 vDirection;
 flat in vec2 vWaterPath;flat in vec4 vCenter;flat in vec3 vKindRadiusClearance;out vec4 outColor;
-uniform highp sampler2D uOpaqueRead,uWaterSurface;uniform vec2 uResolution;uniform vec3 uSH[16],uEye;uniform int uSHDegree;uniform float uAmbient,uScale,uTurbidity,uLights;uniform mat4 uInverseProjection,uCameraMatrix;
+uniform highp sampler2D uOpaqueRead,uWaterSurface;uniform vec2 uResolution;uniform vec3 uSH[16],uEye;uniform int uSHDegree;uniform float uAmbient,uScale,uTurbidity,uLights,uTannins;uniform mat4 uInverseProjection,uCameraMatrix;
 ${SH_GLSL}
 ${LAB_GEOMETRY_GLSL}
 ${WATER_MATERIAL_GLSL}
+${SOLUTE_GLSL}
 ${DETAIL_LIGHT_GLSL}
 void main(){
  if(vAlpha<.0001)discard;vec2 uv=gl_FragCoord.xy/uResolution;float opaque=texture(uOpaqueRead,uv).a;if(vDepth>opaque)discard;
  float gaussian=exp(-.5*dot(vQ,vQ)),a=gaussian*vAlpha;if(a<.0001)discard;
  if(vKindRadiusClearance.z<vKindRadiusClearance.y*3.){vec4 viewRay=uInverseProjection*vec4(uv*2.-1.,1,1);vec3 viewPoint=viewRay.xyz*(-vCenter.w/viewRay.z),point=uEye+mat3(uCameraMatrix)*viewPoint;if(labSolid(point)<0.)discard;}
  float surface=texture(uWaterSurface,uv).a,viewPath=vDepth>surface+.005?vWaterPath.x:0.;
- vec3 transmission=waterTransmission(viewPath,uTurbidity);float visibility=max(transmission.x,max(transmission.y,transmission.z));
+ vec3 transmission=labTransmission(viewPath,uTurbidity,uTannins);float visibility=max(transmission.x,max(transmission.y,transmission.z));
  float b[16];basisSH(normalize(vDirection),b);vec3 light=vec3(0);for(int i=0;i<16;i++){if(i>=(uSHDegree+1)*(uSHDegree+1))break;light+=uSH[i]*b[i];}
- vec3 white=detailLight(vKindRadiusClearance.x,light,uAmbient)*waterTransmission(vWaterPath.y,uTurbidity);
- if(uStation==2&&vKindRadiusClearance.x>.5){for(int i=0;i<3;i++){vec3 lamp=vec3(float(i-1)*2.7,.65,-2.75);float r=length(vCenter.xyz-lamp);vec3 color=i==0?vec3(4.,.12,.08):i==1?vec3(.1,3.,.5):vec3(.15,.3,5.);white+=color*uLights*waterTransmission(r*uScale,uTurbidity)/(1.+r*r*.7);}}
+ vec3 white=detailLight(vKindRadiusClearance.x,light,uAmbient)*labTransmission(vWaterPath.y,uTurbidity,uTannins);
+ if(uStation==2&&vKindRadiusClearance.x>.5){for(int i=0;i<3;i++){vec3 lamp=vec3(float(i-1)*2.7,.65,-2.75);float r=length(vCenter.xyz-lamp);vec3 color=i==0?vec3(4.,.12,.08):i==1?vec3(.1,3.,.5):vec3(.15,.3,5.);white+=color*uLights*labTransmission(r*uScale,uTurbidity,uTannins)/(1.+r*r*.7);}}
  float opacity=vKindRadiusClearance.x>1.5?.5:1.;a*=opacity;
  outColor=vec4(white*transmission*a,a*visibility);
 }`;

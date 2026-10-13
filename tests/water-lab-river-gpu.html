@@ -1,0 +1,61 @@
+<!doctype html><html><body><button id="run">Validate river</button><pre id="result">Ready</pre><script type="module">
+import * as THREE from 'three';
+import {WaterLab} from '../src/water-lab.js';
+import {WaterLabRenderer} from '../src/water-lab-renderer.js';
+import {parcelDensity} from '../src/parcel-field.js';
+import {RIVER_BOUNDS} from '../src/water-lab-river.js';
+import {LabWaterField} from '../src/water-lab-field.js';
+import {LAB_GEOMETRY_GLSL} from '../src/water-lab-model.js';
+import {riverHeight,riverCenter,riverBottom} from '../src/water-lab-river.js';
+import {MotionDetail} from '../src/lod.js';
+import {QUAD_VERTEX,TONEMAP_FRAGMENT} from '../src/shaders.js';
+const renderer=new THREE.WebGLRenderer();renderer.autoClear=false;renderer.setSize(600,480);document.body.append(renderer.domElement);
+renderer.debug.onShaderError=(gl,program,vs,fs)=>{throw new Error(gl.getShaderInfoLog(fs)||gl.getShaderInfoLog(vs)||gl.getProgramInfoLog(program));};
+const lab=new WaterLab(renderer),camera=new THREE.PerspectiveCamera(43,600/480,.01,200),target=new THREE.WebGLRenderTarget(600,480,{type:THREE.FloatType}),output=new THREE.Scene();
+output.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:TONEMAP_FRAGMENT,uniforms:{uImage:{value:target.texture}},depthTest:false,depthWrite:false})));
+const field={renderer,camera,target,output,quadCamera:new THREE.Camera(),resolution:new THREE.Vector2(600,480),motion:new MotionDetail(),minPixelSigma:2,uniforms:{uView:{value:0},uSHDegree:{value:3}},water:{uniforms:{uWaterRoughness:{value:.07},uTurbidity:{value:.02}}}};
+for(const k of ['beach','grass','grains','soft','optics','lightTest'])field[k]={count:0};
+const visual=new WaterLabRenderer(field,lab),result=document.querySelector('#result');
+function render(){visual.render({adaptive:false});const a=new Float32Array(600*480*4);renderer.readRenderTargetPixels(target,0,0,600,480,a);return a;}
+function geometryCheck(){
+ const points=new Float32Array(256*4);let error=0;
+ const tex=new THREE.DataTexture(points,256,1,THREE.RGBAFormat,THREE.FloatType),rt=new THREE.WebGLRenderTarget(256,1,{type:THREE.FloatType});
+ const scene=new THREE.Scene(),g=new THREE.PlaneGeometry(2,2),m=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:`precision highp float;precision highp int;out vec4 outColor;uniform sampler2D uPoints;${LAB_GEOMETRY_GLSL}void main(){vec3 p=texelFetch(uPoints,ivec2(gl_FragCoord.xy),0).xyz;outColor=vec4(labSolid(p),labFloor(p),0,1);}`,uniforms:{...lab.u,uPoints:{value:tex}},depthTest:false,depthWrite:false});scene.add(new THREE.Mesh(g,m));
+ for(const slope of [0,.1,.22]){
+  lab.riverSlope=slope;
+  for(let i=0;i<lab.bedData.length;i+=4)lab.bedData[i]=.15*Math.sin(i*.011);
+  lab.bedTexture.needsUpdate=true;lab.syncUniforms();
+  for(let i=0;i<256;i++){const z=-18+36*(i/255),x=riverCenter(z)+((i%7)-3)*.7;points.set([x,riverHeight([x,0,z],slope)+((i%5)-2)*.15,z,0],i*4);}
+  tex.needsUpdate=true;renderer.setRenderTarget(rt);renderer.render(scene,new THREE.Camera());const a=new Float32Array(1024);renderer.readRenderTargetPixels(rt,0,0,256,1,a);
+  for(let i=0;i<256;i++){const p=Array.from(points.subarray(i*4,i*4+3));error=Math.max(error,Math.abs(a[i*4]-lab.solid(p)),Math.abs(a[i*4+1]-riverHeight(p,slope)-lab.bedDelta(p)));}
+ }
+ tex.dispose();rt.dispose();g.dispose();m.dispose();renderer.setRenderTarget(null);return {error,pass:error<.002};
+}
+function densityCheck(){
+ const f=new LabWaterField(renderer),items=[{kind:'water',position:[.1,4,-16],radius:.23,volume:.032,dye:.4,tannin:.2,sediment:.1},{kind:'water',position:[-.1,1,14],radius:.23,volume:.032,dye:0,tannin:0,sediment:.2}];
+ f.update(items,.32,RIVER_BOUNDS);let error=0;const l=f.layout;
+ for(const item of items)for(let dz=-2;dz<=2;dz++){
+  const index=item.position.map((v,k)=>Math.round((v-l.min[k])/l.dx));index[2]+=dz;
+  const [x,y,z]=index,point=index.map((v,k)=>l.min[k]+v*l.dx),px=y%l.columns*(l.dimensions[0]+2)+x+1,py=Math.floor(y/l.columns)*(l.dimensions[2]+2)+z+1;
+  const data=new Float32Array(4);renderer.readRenderTargetPixels(f.target,px,py,1,1,data);
+  for(let k=0;k<4;k++){const expected=items.reduce((sum,p)=>sum+parcelDensity([p],point,'water').density*[1,p.dye,p.tannin,p.sediment][k],0);error=Math.max(error,Math.abs(expected-data[k]));}
+ }
+ f.dispose();return {error,pass:error<.0001};
+}
+document.querySelector('#run').onclick=async()=>{document.querySelector('#run').disabled=true;try{
+ lab.configure('river');lab.detail.enabled=false;const geometry=geometryCheck(),density=densityCheck();lab.riverSlope=.1;lab.configure('river');
+ const initial=lab.volume;let overflow=0;
+ for(let i=0;i<240;i++){lab.step(1/60);overflow=Math.max(overflow,lab.gpu.overflow);if(i%8===0){result.textContent=`Simulating river ${i}/240`;await new Promise(resolve=>setTimeout(resolve,0));}}
+ const heights=Array.from({length:lab.bedStock.length},(_,i)=>lab.bedData[i*4]);
+ const physics={finite:lab.positions.every(Number.isFinite),count:lab.count,volume:lab.volume,drift:lab.volume-initial,erosion:lab.eroded*lab.spec.scale**3,deposition:lab.deposited*lab.spec.scale**3,bedMin:Math.min(...heights),bedMax:Math.max(...heights),balance:lab.bedStock.reduce((a,b)=>a+b,0)+lab.suspendedSediment-lab.initialBed,overflow};
+ physics.pass=physics.finite&&physics.drift===0&&physics.erosion>.1&&physics.deposition>.01&&physics.bedMin<-.01&&physics.bedMax>.002&&Math.abs(physics.balance)<1e-5&&overflow===0;
+ camera.position.set(riverCenter(-15)+6,riverBottom(-15)+7,-9);camera.lookAt(riverCenter(-15),riverBottom(-15)+.8,-15);
+ const clean=render();lab.radius=2;lab.addSoluteNear('dye',[riverCenter(-16),riverBottom(-16)+.5,-16]);const dye=render();lab.tannins=1.2;const tannin=render();
+ let dyePixels=0,tanninPixels=0,finite=true;for(let i=0;i<clean.length;i+=4){finite&&=Number.isFinite(clean[i])&&Number.isFinite(dye[i])&&Number.isFinite(tannin[i]);if(Math.abs(dye[i]-clean[i])+Math.abs(dye[i+2]-clean[i+2])>.02)dyePixels++;if(Math.abs(tannin[i]-dye[i])+Math.abs(tannin[i+2]-dye[i+2])>.02)tanninPixels++;}
+ const optics={dyePixels,tanninPixels,finite,pass:finite&&dyePixels>40&&tanninPixels>100};
+ lab.tannins=0;lab.configure('pool');camera.position.fromArray(lab.spec.eye);camera.lookAt(...lab.spec.target);const pool=render(),bounds=visual.density.layout.min;
+ const switching={pass:bounds[2]===-5.5&&pool.every(Number.isFinite)};
+ lab.configure('river');camera.position.fromArray(lab.spec.eye);camera.lookAt(...lab.spec.target);render();
+ result.textContent=JSON.stringify({pass:geometry.pass&&density.pass&&physics.pass&&optics.pass&&switching.pass,geometry,density,physics,optics,switching},null,2);
+}catch(e){result.textContent='FAIL '+e.stack;}};
+</script></body></html>

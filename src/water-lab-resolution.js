@@ -3,7 +3,7 @@
 export function resolutionPlan(spec, baseCount, multiplier=1, quality=1, budget=8192){
   const targetSpacing=Math.min(spec.spacing*spec.scale,.64)/quality;
   const requested=Math.max(1,spec.spacing*spec.scale*multiplier/targetSpacing);
-  const ceiling=Math.max(1,Math.min(Math.cbrt(budget/baseCount)*.97,spec.spacing/.11));
+  const ceiling=Math.max(1,Math.min(Math.cbrt(budget/baseCount)*.97,spec.spacing/(spec.minSpacing||.11)));
   const factor=Math.min(requested,ceiling);
   return {factor,requested,targetSpacing,budget,limited:factor<requested-1e-6};
 }
