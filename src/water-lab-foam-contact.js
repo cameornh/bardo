@@ -27,7 +27,7 @@ export class FoamContactField {
  // Vertex IDs address texture particles; no per-frame vertex upload.
  this.geometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(detail.capacity*3),3));this.scene=new THREE.Scene();const points=new THREE.Points(this.geometry,this.material);points.frustumCulled=false;this.scene.add(points);this.camera=new THREE.Camera();
  }
- update(lab,cpu){this.u.uFoamMin.value.set(-6,-1,lab.kind==='river'?-20:-6);this.u.uFoamExtent.value.set(12,14,lab.kind==='river'?40:12);this.u.uFoamContactEnabled.value=!!lab.count;this.spacing=lab.spacing;this.min=this.u.uFoamMin.value.toArray();this.extent=this.u.uFoamExtent.value.toArray();if(!lab.count)return;
+ update(lab,cpu){this.u.uFoamMin.value.set(-6,-1,lab.kind==='river'?-60:-6);this.u.uFoamExtent.value.set(12,lab.kind==='river'?30:14,lab.kind==='river'?120:12);this.u.uFoamContactEnabled.value=!!lab.count;this.spacing=lab.spacing;this.min=this.u.uFoamMin.value.toArray();this.extent=this.u.uFoamExtent.value.toArray();if(!lab.count)return;
  const d=this.detail;
  if(cpu){this.cells=new Map();const [p,v,info]=d.fallback.map(t=>t.image.data);for(let i=0;i<d.activeSpan;i++){const o=i*4;if(p[o+3]>=v[o+3]||info[o+1]<.5||info[o+1]>2.5)continue;const key=foamCell(p.subarray(o,o+3),this.min,this.extent).join(','),ids=this.cells.get(key);if(ids)ids[1]=i;else this.cells.set(key,[i,i]);}this.previous=d.fallback.map(t=>t.image.data.slice());return;}
  if(!this.target)this.target=new THREE.WebGLRenderTarget(4096,48,{type:THREE.FloatType,depthBuffer:false,minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter});

@@ -19,7 +19,7 @@ float area=sqrt(max(0.,xx*yy-xy*xy));xx+=1.4/(uResolution.x*uResolution.x);yy+=1
 float l=sqrt(max(0.,pow((xx-yy)*.5,2.)+xy*xy)),e1=max(1e-12,(xx+yy)*.5+l),e2=max(1e-12,(xx+yy)*.5-l);vec2 axis=abs(xy)>1e-12?normalize(vec2(e1-yy,xy)):xx>=yy?vec2(1,0):vec2(0,1);vec4 clip=projectionMatrix*p;
 vOptical=texelFetch(uDetailPaths,uv,0);vViewTau=texelFetch(uDetailViewTau,uv,0).rgb;vScatter=texelFetch(uDetailScatter,uv,0).rgb;
 clip.xy+=3.*(axis*sqrt(e1)*position.x+vec2(-axis.y,axis.x)*sqrt(e2)*position.y)*clip.w;gl_Position=clip;
-vAlpha=info.z*smoothstep(0.,.045,age)*(1.-smoothstep(.45,1.,age/life))*min(1.,area/filtered);
+vAlpha=info.z*smoothstep(0.,.045,age)*(1.-smoothstep(info.y>2.5?.12:.45,1.,age/life))*min(1.,area/filtered);
 }`;
 // Lighting and occupied-water view transport are evaluated once per marker.
 // Keeping the shadow maps here also keeps both programs below 16 samplers.
@@ -60,7 +60,7 @@ ${LAB_GEOMETRY_GLSL}
 void main(){
  if(vAlpha<.0001||(uHideMist&&vKindRadiusClearance.x>2.5))discard;vec2 uv=gl_FragCoord.xy/uResolution;float opaque=texture(uOpaqueRead,uv).a;if(vDepth>opaque)discard;
  float gaussian=exp(-.5*dot(vQ,vQ)),a=gaussian*vAlpha;if(a<.0001)discard;
- if(vKindRadiusClearance.z<vKindRadiusClearance.y*3.){vec4 viewRay=uInverseProjection*vec4(uv*2.-1.,1,1);vec3 viewPoint=viewRay.xyz*(-vCenter.w/viewRay.z),point=uEye+mat3(uCameraMatrix)*viewPoint;if(labSolid(point)<0.)discard;}
+ if(vKindRadiusClearance.z<vKindRadiusClearance.y*3.){vec4 viewRay=uInverseProjection*vec4(uv*2.-1.,1,1);vec3 viewPoint=viewRay.xyz*(-vCenter.w/viewRay.z),point=uEye+mat3(uCameraMatrix)*viewPoint;if(labPhysicalSolid(point)<0.)discard;}
  float surface=texture(uWaterSurface,uv).a;bool wet=vOptical.a>0.;
  vec3 radiance=wet?vOptical.rgb*exp(-vViewTau)+vScatter:vOptical.rgb;
  a*=vKindRadiusClearance.x>2.5?.7:vKindRadiusClearance.x>1.5?.5:1.;outColor=vec4(radiance*a,a);

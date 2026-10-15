@@ -50,7 +50,7 @@ ${FOAM_CONTACT_GLSL}
 void main(){ivec2 pixel=ivec2(gl_FragCoord.xy);int i=pixel.y*256+pixel.x,spawn=(i-uSpawnStart+uCapacity)%uCapacity;vec4 p=texelFetch(uDetailP,pixel,0),v=texelFetch(uDetailV,pixel,0),info=texelFetch(uDetailI,pixel,0);
 if(spawn<uSpawnCount){ivec2 s=ivec2(spawn%256,spawn/256);p=texelFetch(uSpawnP,s,0);v=texelFetch(uSpawnV,s,0);info=texelFetch(uSpawnI,s,0);}
 float oldAge=p.w;p.w+=uDt;if(oldAge<v.w){vec3 start=p.xyz;bool born=spawn<uSpawnCount;if(born&&uDetailFlow&&(info.y<1.5||info.y>2.5)){detailProject(p.xyz,info.y>2.5?.025:info.y<.5?.08:.18,info.y>2.5?1.2:.55);detailContact(start,p.xyz,v.xyz,max(.0005,info.x*2.),false);start=p.xyz;}bool wet;detailWetMotion(p.xyz,v.xyz,info.y,p.w,uDt,uScale,wet);if(!wet){vec2 air=beachWind(p.xz*uScale,uTime,uWind,0.,uTurbulence)/uScale;vec3 target=vec3(air.x,0,air.y),q=p.xyz-uBrushOrigin;float along=dot(q,uBrushDirection);if(along>0.)target+=uBrushDirection*uBrushStrength/uScale*exp(-dot(q-uBrushDirection*along,q-uBrushDirection*along)/(uBrushRadius*uBrushRadius))*exp(-along/25.);
-if(uAirEnabled)target=sampleAir(p.xyz);float drag=info.y>2.5?9.:info.y>1.5?3.:info.y>.5?.45:1.1;v.xyz+=(target-v.xyz)*(1.-exp(-drag*uDt));v.y+=(info.y>2.5?-.18:info.y>1.5?.45:info.y>.5?-.12:-9.81)/uScale*uDt;p.xyz+=v.xyz*uDt;}p.w=oldAge+uDt*foamDecay(info.y,wet,wet&&foamTouch(start,info.x,i));detailContact(start,p.xyz,v.xyz,max(.0005,info.x*2.),!born);info.w=uDetailCollision?labSolid(p.xyz):100.;if(info.y>2.5&&(abs(p.x)>5.4||abs(p.z)>(uStation==4?19.4:4.8)||p.y>8.8))p.w=v.w;}
+if(uAirEnabled)target=sampleAir(p.xyz);float drag=info.y>2.5?9.:info.y>1.5?3.:info.y>.5?.45:1.1;v.xyz+=(target-v.xyz)*(1.-exp(-drag*uDt));v.y+=(info.y>2.5?-.18:info.y>1.5?.45:info.y>.5?-.12:-9.81)/uScale*uDt;p.xyz+=v.xyz*uDt;}p.w=oldAge+uDt*foamDecay(info.y,wet,wet&&foamTouch(start,info.x,i));detailContact(start,p.xyz,v.xyz,max(.0005,info.x*2.),!born);info.w=uDetailCollision?labPhysicalSolid(p.xyz):100.;}
 nextPosition=p;nextVelocity=v;nextInfo=info;}`;
 function texture(data){const t=new THREE.DataTexture(data,256,data.length/1024,THREE.RGBAFormat,THREE.FloatType);t.needsUpdate=true;return t;}
 function sourceNoise(position,normal,spacing,time,seed){
@@ -91,7 +91,7 @@ export class LabDetail {
       this.strength[i]+=(target-this.strength[i])*(1-Math.exp(-dt/tau));
       const activity=lab.aerationActivity?Math.max(lab.aerationActivity[i*2],lab.aerationActivity[i*2+1]):null;
       const weight=detailEmissionWeight(s,scale,lab.neighborCounts?.[i]??18,activity),breaking=lab.surfaceBreakup?.[i]||0,exposure=this.strength[i]>.001||breaking>0||this.breakupHistory[i]>.00001?detailAirExposure(lab,i):0;
-      this.weights[i]=weight*exposure;this.exposure[i]=exposure;
+      this.weights[i]=weight*exposure*(lab.player&&lab.playerDistance(point)<s*2?.72:1);this.exposure[i]=exposure;
       // An unresolved breakup releases a finite burst. Remember its connected,
       // air-exposed state briefly after support is lost, instead of suppressing
       // the spray at exactly the moment the liquid separates. Every parcel can
@@ -143,7 +143,7 @@ export class LabDetail {
       // Mist follows sustained, dense emission patches, not uniform wind speed.
       // Keep the fine spray intact and let an airborne veil grow from its hot spots.
       const mistGate=clamp((energy-.45)/.8,0,1)*clamp((activity-.65)/1.4,0,1)*clamp((this.exposure[i]-.35)/.4,0,1);
-      if(this.mistEnabled&&mistGate>0){const births=Math.min(192,Math.floor(count*.65*mistGate*this.mistDensity));for(let j=0;j<births&&this.pending<this.capacity;j++){const id=++this.sequence,point=source.map((v,k)=>v+normal[k]*s*(baseKind===2?1.5:.55)+(hash(id+k)-.5)*s*.18),velocity=[0,1,2].map(k=>lab.velocities[o+k]*.18+normal[k]*.8/scale);this.addMarker(point,velocity,3,detailRadius(s,scale,hash(id+13))*1.8/scale,4.+hash(id+7)*3.,.48);lab.wetting?.trace(point,velocity,3);}}
+      if(this.mistEnabled&&mistGate>0){const births=Math.min(192,Math.floor(count*.65*mistGate*this.mistDensity));for(let j=0;j<births&&this.pending<this.capacity;j++){const id=++this.sequence,point=source.map((v,k)=>v+normal[k]*s*(baseKind===2?1.5:.55)+(hash(id+k)-.5)*s*.18),velocity=[0,1,2].map(k=>lab.velocities[o+k]*.18+normal[k]*.8/scale);this.addMarker(point,velocity,3,detailRadius(s,scale,hash(id+13))*1.8/scale,7.+hash(id+7)*5.,.48);lab.wetting?.trace(point,velocity,3);}}
       this.sources.set(source,history);
     }
   }
@@ -178,7 +178,7 @@ export class LabDetail {
         p[o+3]=oldAge+dt*foamDecay(kind,!!step.wet,!!step.wet&&this.contact.touching(start,info[o],i));
         if(!step.wet)step=detailStep(start,velocity,kind,lab.spec.scale,dt,lab.time,lab.wind,lab.windTurbulence??lab.turbulence,jet,lab.radius,lab.windStrength,lab.air?lab.air.sample(start):null);
         if(u.uDetailCollision.value)step=detailContact(start,step.position,step.velocity,Math.max(.0005,info[o]*2),lab,born?null:this.previousMotion);
-        p.set(step.position,o);v.set(step.velocity,o);info[o+1]=kind;info[o+3]=u.uDetailCollision.value?lab.solid(step.position):100;if(kind===3&&(Math.abs(p[o])>5.4||Math.abs(p[o+2])>(lab.kind==='river'?19.4:4.8)||p[o+1]>8.8))p[o+3]=v[o+3];}
+        p.set(step.position,o);v.set(step.velocity,o);info[o+1]=kind;info[o+3]=u.uDetailCollision.value?lab.solid(step.position,true,false):100;}
       for(const t of this.fallback)t.needsUpdate=true;this.bind(this.fallback);
     }else{
       if(!this.targets)this.targets=[0,1].map(()=>new THREE.WebGLRenderTarget(256,this.capacity/256,{count:3,type:THREE.FloatType,depthBuffer:false,minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter}));

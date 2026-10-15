@@ -23,7 +23,7 @@ export function sprayShadowKernel(position,velocity,info,layout){
  const s=info[0]*(.75+.25*Math.sin(Math.min(1,age/life)*Math.PI)),stretch=info[1]<.5?1.2:0,d=normalize([velocity[0],velocity[1]+1e-8,velocity[2]]),axes=[U,V,SPRAY_LIGHT],axis=axes.map(a=>dot(a,d));
  const a=s*s*(1+stretch*axis[0]**2),b=s*s*stretch*axis[0]*axis[1],c=s*s*(1+stretch*axis[1]**2),xx=a+(layout.span[0]/layout.size*.6)**2,yy=c+(layout.span[1]/layout.size*.6)**2,det=xx*yy-b*b;
  const cross=[s*s*stretch*axis[0]*axis[2],s*s*stretch*axis[1]*axis[2]],coupling=[(cross[0]*yy-cross[1]*b)/det,(cross[1]*xx-cross[0]*b)/det];
- const sigma=Math.sqrt(Math.max(1e-12,s*s*(1+stretch*axis[2]**2)-dot(cross,coupling))),opacity=Math.min(.98,info[2]*smooth(0,.045,age)*(1-smooth(.45,1,age/life))*(info[1]>2.5?.7:info[1]>1.5?.5:1));
+ const sigma=Math.sqrt(Math.max(1e-12,s*s*(1+stretch*axis[2]**2)-dot(cross,coupling))),opacity=Math.min(.98,info[2]*smooth(0,.045,age)*(1-smooth(info[1]>2.5?.12:.45,1,age/life))*(info[1]>2.5?.7:info[1]>1.5?.5:1));
  return {center:axes.map(a=>dot(a,position)),xx,xy:b,yy,det,coupling,sigma,tau:-Math.log(1-opacity)*Math.sqrt((a*c-b*b)/det)};
 }
 export function sprayOpticalDepth(kernel,x,y,depth){
@@ -49,7 +49,7 @@ void main(){int id=gl_InstanceID*uShadowStride;ivec2 uv=ivec2(id%256,id/256);vec
  float a=s*s*(1.+stretch*d.x*d.x),b=s*s*stretch*d.x*d.y,c=s*s*(1.+stretch*d.y*d.y),xx=a+pow(uSpraySpan.x/uShadowSize*.6,2.),yy=c+pow(uSpraySpan.y/uShadowSize*.6,2.),det=xx*yy-b*b;
  vInverse=vec3(yy,-b,xx)/det;vec2 crossDepth=s*s*stretch*d.xy*d.z;vCoupling=vec2(dot(crossDepth,vInverse.xy),dot(crossDepth,vInverse.yz));vSigma=sqrt(max(1e-12,s*s*(1.+stretch*d.z*d.z)-dot(crossDepth,vCoupling)));
  vec3 center=vec3(dot(p.xyz,uSprayU),dot(p.xyz,uSprayV),dot(p.xyz,uSprayL));vDepth=center.z;
- float opacity=min(.98,info.z*smoothstep(0.,.045,p.w)*(1.-smoothstep(.45,1.,p.w/v.w))*(info.y>2.5?.7:info.y>1.5?.5:1.));vTau=-log(1.-opacity)*sqrt((a*c-b*b)/det)*float(min(uShadowStride,uActiveSpan-id));
+ float opacity=min(.98,info.z*smoothstep(0.,.045,p.w)*(1.-smoothstep(info.y>2.5?.12:.45,1.,p.w/v.w))*(info.y>2.5?.7:info.y>1.5?.5:1.));vTau=-log(1.-opacity)*sqrt((a*c-b*b)/det)*float(min(uShadowStride,uActiveSpan-id));
  // Cholesky projects the full covariance onto the light plane without a camera.
  float sx=sqrt(xx);vDelta=vec2(sx*position.x,b/sx*position.x+sqrt(det/xx)*position.y)*3.;vec2 q=(center.xy+vDelta-uSprayMin.xy)/uSpraySpan.xy;gl_Position=vec4(q*2.-1.,0,1);
 }`;

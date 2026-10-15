@@ -1,4 +1,4 @@
-import {riverHeight,riverDistance,riverSeed,RIVER_GLSL} from './water-lab-river.js';
+import {riverHeight,riverDistance,riverSeed,riverRockDistance,RIVER_GLSL} from './water-lab-river.js';
 // Bounded fixtures for one water material. Coordinates are normalized by scale;
 // particle volumes and gravity are converted back to SI at the solver boundary.
 export const LAB_PRESETS={
@@ -6,7 +6,7 @@ export const LAB_PRESETS={
  waterfall:{name:'Waterfall',scale:3,spacing:.32,eye:[10,8,13],target:[0,2.7,0]},
  pool:{name:'Pool / submerged jets',scale:1.5,spacing:.29,eye:[9,7,11],target:[0,1,0]},
  tank:{name:'Moving glass tank',scale:1,spacing:.23,eye:[7,5,9],target:[0,1.7,0]},
- river:{name:'River / sediment / solutes',scale:2,spacing:.32,minSpacing:.18,eye:[22,25,32],target:[0,1.7,0]},
+ river:{name:'River / sediment / solutes',scale:2,spacing:.48,minSpacing:.42,eye:[55,80,80],target:[0,4,0]},
  glass:{name:'Spinning drinking glass',scale:.05,spacing:.19,eye:[5,4,7],target:[0,1.6,0]},
  ocean:{name:'Wind-driven ocean basin',scale:4,spacing:.36,eye:[11,8,13],target:[0,1.1,0]},
  pane:{name:'Movable glass pane',scale:1,spacing:.23,eye:[-5,6,7],target:[0,2,0]},
@@ -23,11 +23,11 @@ export function vesselLocal(p,motion){return rotate(p.map((v,k)=>v-motion.positi
 export function vesselDistance(p,kind,motion){if(!['tank','glass','pane'].includes(kind))return 100;const q=vesselLocal(p,motion);if(kind==='pane')return box(q,[2.4,.045,1.7]);if(kind==='glass'){const r=Math.hypot(q[0],q[2]);return Math.min(Math.max(Math.abs(r-1.1)-.095,Math.abs(q[1]) -1.5),Math.max(r-1.2,Math.abs(q[1]+1.5)-.095));}let d=box([q[0],q[1]+1.7,q[2]],[2.2,.12,1.6]);for(const a of [0,2])for(const side of [-1,1]){const v=q.slice(),b=[2.2,1.7,1.6];v[a]-=side*(a===0?2.1:1.5);b[a]=.12;d=Math.min(d,box(v,b));}return d;}
 export function opaqueDistance(p,kind,bedDelta=0,slope=.1,waterfallHeight=4.8){
  let d=(p[1]-floorHeight(p,kind,slope)-bedDelta)*(kind==='river'?.22:1);
- if(kind==='waterfall')d=Math.min(d,box([p[0],p[1]-waterfallHeight*.5,p[2]+3],[3.2,waterfallHeight*.5,1.8]));
+ if(kind==='river')d=Math.min(d,riverRockDistance(p,slope));if(kind==='waterfall')d=Math.min(d,box([p[0],p[1]-waterfallHeight*.5,p[2]+3],[3.2,waterfallHeight*.5,1.8]));
  if(kind==='pipe')d=Math.min(d,Math.max(Math.abs(Math.hypot(p[1]-3.6,p[2])-.34)-.075,Math.abs(p[0]+4.65)-.85));
  if(kind==='pool')for(const a of [0,2])for(const side of [-1,1]){const q=[p[0],p[1]-1,p[2]],b=[4,1,3.1];q[a]-=side*(a===0?3.9:3);b[a]=.12;d=Math.min(d,box(q,b));}return d;
 }
-export function fixtureDistance(p,kind,motion,bedDelta=0,slope=.1,waterfallHeight=4.8){let d=kind==='river'?riverDistance(p,slope,bedDelta):p[1]-floorHeight(p,kind)-bedDelta;if(kind==='waterfall')d=Math.min(d,box([p[0],p[1]-waterfallHeight*.5,p[2]+3],[3.2,waterfallHeight*.5,1.8]));if(kind==='pool')for(const a of [0,2])for(const side of [-1,1]){const q=[p[0],p[1]-1,p[2]],b=[4,1,3.1];q[a]-=side*(a===0?3.9:3);b[a]=.12;d=Math.min(d,box(q,b));}if(kind==='pipe')d=Math.min(d,opaqueDistance(p,kind));d=Math.min(d,vesselDistance(p,kind,motion));return Math.min(d,5.5-Math.abs(p[0]),(kind==='river'?19.5:4.9)-Math.abs(p[2]),(kind==='river'?12:9)-p[1]);}
+export function fixtureDistance(p,kind,motion,bedDelta=0,slope=.1,waterfallHeight=4.8,bounded=true){let d=kind==='river'?riverDistance(p,slope,bedDelta):p[1]-floorHeight(p,kind)-bedDelta;if(kind==='river')d=Math.min(d,riverRockDistance(p,slope));if(kind==='waterfall')d=Math.min(d,box([p[0],p[1]-waterfallHeight*.5,p[2]+3],[3.2,waterfallHeight*.5,1.8]));if(kind==='pool')for(const a of [0,2])for(const side of [-1,1]){const q=[p[0],p[1]-1,p[2]],b=[4,1,3.1];q[a]-=side*(a===0?3.9:3);b[a]=.12;d=Math.min(d,box(q,b));}if(kind==='pipe')d=Math.min(d,opaqueDistance(p,kind));d=Math.min(d,vesselDistance(p,kind,motion));return bounded?Math.min(d,5.5-Math.abs(p[0]),(kind==='river'?59.5:4.9)-Math.abs(p[2]),(kind==='river'?27:9)-p[1]):d;}
 export function normalAt(p,field){const e=.003,n=[0,1,2].map(k=>{const a=p.slice(),b=p.slice();a[k]+=e;b[k]-=e;return field(a)-field(b);}),l=length(n)||1;return n.map(v=>v/l);}
 export function wallVelocity(p,m){const r=p.map((v,k)=>v-m.position[k]),axis=rotate([0,1,0],m.tilt,0,false,m.pitch),tiltAxis=rotate([0,0,1],0,0,false,m.pitch),omega=tiltAxis.map((v,k)=>v*m.tiltVelocity+axis[k]*m.spinVelocity+(k===0?(m.pitchVelocity||0):0));return [m.velocity[0]+omega[1]*r[2]-omega[2]*r[1],m.velocity[1]+omega[2]*r[0]-omega[0]*r[2],m.velocity[2]+omega[0]*r[1]-omega[1]*r[0]];}
 export function createMotion(){return {position:[0,2,0],velocity:[0,0,0],target:[0,2,0],tilt:0,targetTilt:0,tiltVelocity:0,pitch:0,targetPitch:0,pitchVelocity:0,spin:0,spinVelocity:0,targetSpin:0};}
@@ -56,7 +56,7 @@ export function buildNeighbors(positions,spacing){
 }
 export function kernel(r,h){const q=Math.max(0,1-r*r/(h*h));return 315/(64*Math.PI*h**3)*q**3;}
 export function kernelGradient(d,h){const r=length(d);if(r<1e-6||r>=h)return [0,0,0];const c=-45/(Math.PI*h**6)*(h-r)**2/r;return d.map(x=>x*c);}
-export function densityAt(positions,p,spacing){const h=spacing*2,volume=spacing**3;let d=0;for(let i=0;i<positions.length;i+=4)d+=volume*kernel(Math.hypot(...p.map((v,k)=>v-positions[i+k])),h);return d;}
+export function densityAt(positions,p,spacing){const h2=4*spacing*spacing,w=315/(512*Math.PI);let d=0;for(let i=0;i<positions.length;i+=4){const x=p[0]-positions[i],y=p[1]-positions[i+1],z=p[2]-positions[i+2],q=1-(x*x+y*y+z*z)/h2;if(q>0)d+=w*q*q*q;}return d;}
 export function buoyancyAcceleration(ratio,submerged,scale=1){return 9.81/scale*(submerged/ratio-1);}
 // Integral of the normalized poly6 support occupied by a locally planar
 // solid. Completing this missing support prevents a numerical wall meniscus.
@@ -78,18 +78,21 @@ uniform highp sampler2D uLabBed;uniform int uStation;uniform vec3 uContainer;uni
 float fallHeight(){return uWaterfallHeight>0.?uWaterfallHeight:4.8;}uniform vec4 uPlayer;uniform float uPlayerHeight;uniform int uBodyCount;uniform highp sampler2D uBodies;
 vec3 rotateLab(vec3 p,bool inverse){float c=cos(uTilt),s=sin(uTilt),a=cos(uSpin),b=sin(uSpin);if(inverse){vec3 pitched=vec3(p.x,cos(uPitch)*p.y+sin(uPitch)*p.z,-sin(uPitch)*p.y+cos(uPitch)*p.z);vec3 q=vec3(c*pitched.x+s*pitched.y,-s*pitched.x+c*pitched.y,pitched.z);return vec3(a*q.x-b*q.z,q.y,b*q.x+a*q.z);}vec3 q=vec3(a*p.x+b*p.z,p.y,-b*p.x+a*p.z);vec3 r=vec3(c*q.x-s*q.y,s*q.x+c*q.y,q.z);return vec3(r.x,cos(uPitch)*r.y-sin(uPitch)*r.z,sin(uPitch)*r.y+cos(uPitch)*r.z);}
 float labBox(vec3 p,vec3 b){vec3 q=abs(p)-b;return length(max(q,0.))+min(max(q.x,max(q.y,q.z)),0.);}
-float labFloor(vec3 p){if(uStation==4)return riverBase(p)+texture(uLabBed,p.xz/vec2(12,40)+.5).r;if(uStation==6)return max(-.3,(p.z-1.)*.48);return 0.;}
+float labFloor(vec3 p){if(uStation==4)return riverBase(p)+texture(uLabBed,p.xz/vec2(12,120)+.5).r;if(uStation==6)return max(-.3,(p.z-1.)*.48);return 0.;}
 float vessel(vec3 p){if(uStation!=3&&uStation!=5&&uStation!=7)return 100.;vec3 q=rotateLab(p-uContainer,true);if(uStation==7)return labBox(q,vec3(2.4,.045,1.7));if(uStation==5){float r=length(q.xz);return min(max(abs(r-1.1)-.095,abs(q.y)-1.5),max(r-1.2,abs(q.y+1.5)-.095));}float d=labBox(q+vec3(0,1.7,0),vec3(2.2,.12,1.6));for(int a=0;a<2;a++)for(int j=0;j<2;j++){vec3 v=q,b=vec3(2.2,1.7,1.6);int axis=a==0?0:2;v[axis]-=(j==0?-1.:1.)*(a==0?2.1:1.5);b[axis]=.12;d=min(d,labBox(v,b));}return d;}
 // Visible opaque fixture geometry; simulation-only bounding walls are excluded.
 float labOpaque(vec3 p){float d=(p.y-labFloor(p))*(uStation==4?.22:1.);
- if(uStation==1)d=min(d,labBox(p+vec3(0,-fallHeight()*.5,3),vec3(3.2,fallHeight()*.5,1.8)));
+ if(uStation==4)d=min(d,riverRockDistance(p));if(uStation==1)d=min(d,labBox(p+vec3(0,-fallHeight()*.5,3),vec3(3.2,fallHeight()*.5,1.8)));
  if(uStation==0)d=min(d,max(abs(length(p.yz-vec2(3.6,0))-.34)-.075,abs(p.x+4.65)-.85));
  if(uStation==2)for(int a=0;a<2;a++)for(int s=0;s<2;s++){vec3 q=p-vec3(0,1.,0),b=vec3(4.,1.,3.1);int axis=a==0?0:2;q[axis]-=(s==0?-1.:1.)*(a==0?3.9:3.);b[axis]=.12;d=min(d,labBox(q,b));}return d;
 }
-float fixture(vec3 p){float d=uStation==4?riverDistance(p,texture(uLabBed,p.xz/vec2(12,40)+.5).r):p.y-labFloor(p);if(uStation==1)d=min(d,labBox(p+vec3(0,-fallHeight()*.5,3),vec3(3.2,fallHeight()*.5,1.8)));if(uStation==2)for(int a=0;a<2;a++)for(int s=0;s<2;s++){vec3 q=p-vec3(0,1.,0),b=vec3(4.,1.,3.1);int axis=a==0?0:2;q[axis]-=(s==0?-1.:1.)*(a==0?3.9:3.);b[axis]=.12;d=min(d,labBox(q,b));}if(uStation==0)d=min(d,labOpaque(p));return min(d,vessel(p));}
+float fixture(vec3 p){float d=uStation==4?riverDistance(p,texture(uLabBed,p.xz/vec2(12,120)+.5).r):p.y-labFloor(p);if(uStation==4)d=min(d,riverRockDistance(p));if(uStation==1)d=min(d,labBox(p+vec3(0,-fallHeight()*.5,3),vec3(3.2,fallHeight()*.5,1.8)));if(uStation==2)for(int a=0;a<2;a++)for(int s=0;s<2;s++){vec3 q=p-vec3(0,1.,0),b=vec3(4.,1.,3.1);int axis=a==0?0:2;q[axis]-=(s==0?-1.:1.)*(a==0?3.9:3.);b[axis]=.12;d=min(d,labBox(q,b));}if(uStation==0)d=min(d,labOpaque(p));return min(d,vessel(p));}
 vec4 labBody(int i){return texelFetch(uBodies,ivec2((i*2)%256,(i*2)/256),0);}
 float playerDistance(vec3 p){vec3 q=p-uPlayer.xyz;q.y-=clamp(q.y,0.,uPlayerHeight);return uPlayer.w>0.?length(q)-uPlayer.w:100.;}
-float labSolid(vec3 p){float d=min(fixture(p),min(5.5-abs(p.x),min((uStation==4?19.5:4.9)-abs(p.z),(uStation==4?12.:9.)-p.y)));for(int i=0;i<uBodyCount;i++){vec4 b=labBody(i);d=min(d,length(p-b.xyz)-b.w);}return min(d,playerDistance(p));}
+float labPhysicalSolid(vec3 p){float d=fixture(p);for(int i=0;i<uBodyCount;i++){vec4 b=labBody(i);d=min(d,length(p-b.xyz)-b.w);}return min(d,playerDistance(p));}
+float labSolid(vec3 p){return min(labPhysicalSolid(p),min(5.5-abs(p.x),min((uStation==4?59.5:4.9)-abs(p.z),(uStation==4?27.:9.)-p.y)));}
+vec3 labPhysicalNormal(vec3 p){float e=.003;return normalize(vec3(labPhysicalSolid(p+vec3(e,0,0))-labPhysicalSolid(p-vec3(e,0,0)),labPhysicalSolid(p+vec3(0,e,0))-labPhysicalSolid(p-vec3(0,e,0)),labPhysicalSolid(p+vec3(0,0,e))-labPhysicalSolid(p-vec3(0,0,e))));}
+
 vec3 labNormal(vec3 p){float e=.003;return normalize(vec3(labSolid(p+vec3(e,0,0))-labSolid(p-vec3(e,0,0)),labSolid(p+vec3(0,e,0))-labSolid(p-vec3(0,e,0)),labSolid(p+vec3(0,0,e))-labSolid(p-vec3(0,0,e))));}
 vec3 labCollide(vec3 p,float radius){for(int i=0;i<3;i++){float d=labSolid(p);if(d>=radius)break;p+=labNormal(p)*(radius-d);}return p;}
 `;

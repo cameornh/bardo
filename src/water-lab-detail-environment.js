@@ -75,7 +75,7 @@ export function detailFluidMotion(p,v,kind,dt,scale,spacing,flow,age=Infinity) {
 }
 
 export function detailContact(start,end,velocity,radius,lab,previousMotion=null) {
-  const solid=p=>lab.solid(p),m=lab.motion;
+  const solid=p=>lab.solid(p,true,false),m=lab.motion;
   if(previousMotion&&m&&(['tank','glass','pane'].includes(lab.kind))){
     const local=rotate(start.map((v,k)=>v-previousMotion.position[k]),previousMotion.tilt,previousMotion.spin,true,previousMotion.pitch);
     // Sweep in the current vessel frame: a thin moving wall can cross a
@@ -111,10 +111,10 @@ void detailContact(in vec3 start,inout vec3 end,inout vec3 velocity,float radius
   if(!uDetailCollision)return;
   if(moveStart&&(uStation==3||uStation==5||uStation==7))start=rotateLab(previousLocal(start),false)+uContainer;
   vec3 delta=end-start;float distance=length(delta),t=0.;vec3 direction=delta/max(distance,1e-9),p=start;bool hit=false;
-  for(int step=0;step<32;step++){p=start+direction*t;float d=labSolid(p)-radius;if(d<.0002){hit=true;break;}if(t>=distance)break;t=min(distance,t+max(.0001,d*.8));}
-  end=p;if(!hit)return;vec3 n=labNormal(p);float d=labSolid(p);end+=n*max(0.,radius+max(.001,radius*.25)-d);vec3 wall=vec3(0);
-  if(abs(vessel(end)-labSolid(end))<.02){vec3 omega=vec3(uWallPitchSpeed,-sin(uPitch)*uWallTiltSpeed,cos(uPitch)*uWallTiltSpeed)+rotateLab(vec3(0,1,0),false)*uWallSpinSpeed;wall=uWallVelocity+cross(omega,end-uContainer);}
-  for(int i=0;i<uBodyCount;i++){vec4 body=labBody(i);if(abs(length(end-body.xyz)-body.w-labSolid(end))<.02)wall=texelFetch(uBodies,ivec2((i*2+1)%256,(i*2+1)/256),0).xyz;}
+  for(int step=0;step<32;step++){p=start+direction*t;float d=labPhysicalSolid(p)-radius;if(d<.0002){hit=true;break;}if(t>=distance)break;t=min(distance,t+max(.0001,d*.8));}
+  end=p;if(!hit)return;vec3 n=labPhysicalNormal(p);float d=labPhysicalSolid(p);end+=n*max(0.,radius+max(.001,radius*.25)-d);vec3 wall=vec3(0);
+  if(abs(vessel(end)-labPhysicalSolid(end))<.02){vec3 omega=vec3(uWallPitchSpeed,-sin(uPitch)*uWallTiltSpeed,cos(uPitch)*uWallTiltSpeed)+rotateLab(vec3(0,1,0),false)*uWallSpinSpeed;wall=uWallVelocity+cross(omega,end-uContainer);}
+  for(int i=0;i<uBodyCount;i++){vec4 body=labBody(i);if(abs(length(end-body.xyz)-body.w-labPhysicalSolid(end))<.02)wall=texelFetch(uBodies,ivec2((i*2+1)%256,(i*2+1)/256),0).xyz;}
   vec3 relative=velocity-wall;float vn=dot(relative,n);velocity=wall+(relative-min(0.,vn)*n)*.75;
 }
 void detailProject(inout vec3 p,float target,float limit){

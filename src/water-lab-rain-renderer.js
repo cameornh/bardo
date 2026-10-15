@@ -11,7 +11,7 @@ import {LAB_FIELD_GLSL} from './water-lab-field.js';
 export function rainVisualCopies(scale,resolution=1){return Math.min(64,Math.max(1,Math.ceil(8*Math.pow(scale,.65)*Math.pow(resolution,1.35))));}
 export function rainVisualRadius(scale,random){return Math.min(.16,(.00065+.00135*random)/scale);}
 export const RAIN_VERTEX=`precision highp float;precision highp int;
-in vec4 aRain;in vec3 aFall;in float aRainSeed;uniform vec2 uResolution;uniform vec3 uEye;
+in vec4 aRain;in vec3 aFall;in float aRainSeed;in float aRainSpread;in float aRainAge;uniform vec2 uResolution;uniform vec3 uEye;
 uniform int uRainCopies;uniform float uScale,uSpacing,uAmbient,uSunlight,uLights;
 uniform vec3 uSH[16];uniform int uSHDegree;
 out vec2 vQ;out float vDepth,vAlpha,vBlob;flat out vec3 vLight;
@@ -26,7 +26,9 @@ float rh(float n){return fract(sin(n*91.173+18.17)*43758.54);}
 void main(){
  float child=float(gl_InstanceID%uRainCopies),seed=aRainSeed*67.+child*19.;
  vec3 jitter=vec3(rh(seed),rh(seed+7.),rh(seed+13.))-.5;
- vec3 center=aRain.xyz+jitter*min(.65,uSpacing*2.);
+ // Stable independent columns; no visible bunch of children around a packet.
+ vec3 center=aRain.xyz+vec3(jitter.x*2.8,-rh(seed+7.)*1.8,jitter.z*2.8)*aRainSpread;
+ float rainFade=mix(1.,smoothstep(0.,.10,aRainAge),aRainSpread);
  vec4 p=viewMatrix*vec4(center,1);float z=max(.05,-p.z),s=aRain.w*(.65+.7*rh(seed+23.));
  vec3 fall=mat3(viewMatrix)*aFall,direction=normalize(fall+vec3(0,1e-8,0));
  vec3 jx=vec3(projectionMatrix[0][0]/z,0,projectionMatrix[0][0]*p.x/(z*z))*uResolution.x*.5;
@@ -43,7 +45,7 @@ void main(){
  vec2 axis=abs(xy)>1e-8?normalize(vec2(e1-yy,xy)):xx>=yy?vec2(1,0):vec2(0,1);
  vec4 clip=projectionMatrix*p;clip.xy+=6.*(axis*sqrt(e1)*position.x+vec2(-axis.y,axis.x)*sqrt(e2)*position.y)/uResolution*clip.w;
  if(p.z>-.05||labOpaque(center)<0.||vessel(center)<0.)clip=vec4(2,2,2,1);
- gl_Position=clip;vQ=position.xy*3.;vDepth=length(p.xyz);vAlpha=.28+.28*rh(seed+29.);
+ gl_Position=clip;vQ=position.xy*3.;vDepth=length(p.xyz);vAlpha=(.28+.28*rh(seed+29.))*rainFade;
  float basis[16];basisSH(normalize(uEye-center),basis);vec3 light=vec3(0);
  for(int i=0;i<16;i++){if(i>=(uSHDegree+1)*(uSHDegree+1))break;light+=uSH[i]*basis[i];}
  vLight=max(light,vec3(0))*uAmbient*mediumSky(center)+LAB_SUN*uSunlight*sunTransmission(center,uScale);

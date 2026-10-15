@@ -40,7 +40,7 @@ export class LabRain {
 
   // All stations receive the same physical rainfall depth. mm/min intentionally
   // exposes accelerated test rainfall rather than quietly changing it by scene.
-  get skyDepth(){return this.lab.kind==='river'?37:8.4;}
+  get skyDepth(){return this.lab.kind==='river'?117:8.4;}
   get skyArea(){return 9.6*this.skyDepth;}
   get flux(){return this.rate/60000/this.lab.spec.scale*this.skyArea;}
   buildSurfaceIndex() {
@@ -234,7 +234,7 @@ export class LabRain {
           // Stable independent sky samples avoid diagonal curtains when the
           // falling packets become visible. Openings collect by sky area.
           const x=(hash(seq*2)-.5)*9.6,z=(hash(seq*2+1)-.5)*this.skyDepth;
-          this.drops.push({id:seq,position:[x,(lab.kind==='river'?11.5:8.35)+hash(seq)*.15,z],velocity:[0,-8/scale,0],volume});
+          this.drops.push({id:seq,sky:true,age:0,position:[x,(lab.kind==='river'?26.5:8.35)+hash(seq)*.15,z],velocity:[0,-8/scale,0],volume});
           this.emitted+=volume;
         }
       }
@@ -244,6 +244,7 @@ export class LabRain {
       this.buildSurfaceIndex();
       const alive=[];
       for(const p of this.drops) {
+        p.age=(p.age||0)+dt;
         // Gravity / terminal fall plus the same ambient wind and cursor jet.
         p.velocity[1]=Math.max(-9/scale,p.velocity[1]-9.81/scale*dt);
         const air=lab.wind||lab.jet?labAirVelocity(p.position,lab):[0,0,0];for(let k=0;k<3;k++)p.velocity[k]+=(air[k]-p.velocity[k])*(1-Math.exp(-dt*.7))*(k===1?.08:1);
