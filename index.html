@@ -19,6 +19,7 @@
         <label>Water detail target (resets water) <select id="wl-resolution"><option value="1">1× · standard</option><option value="1.5">1.5× · finer sheets</option><option value="2">2× · fine</option><option value="3">3× · fine target</option></select></label>
         <label>Bulk particle budget (resets water) <select id="wl-budget"><option value="8192">8,192</option><option value="16384">16,384</option><option value="32768">32,768 · stress test</option></select></label>
         <label>Physical size (resets water) <output id="wl-scale-value">1×</output><input id="wl-scale" type="range" min="-1" max="1" step="0.05" value="0"></label>
+        <label><input id="wl-adaptive-resolution" type="checkbox" checked> Adapt image resolution to GPU load</label>
         <label><input id="wl-detail" type="checkbox" checked> Fine particles (spray / foam / bubbles / mist)</label>
         <label>Fine particle density <output id="wl-detail-density-value">1×</output><input id="wl-detail-density" type="range" min="0" max="20" step="0.1" value="1"></label>
         <label><input id="wl-mist" type="checkbox" checked> Airborne mist</label>
@@ -29,6 +30,7 @@
         <label>Interaction radius <output id="wl-radius-value"></output><input id="wl-radius" type="range" min="0.2" max="2" step="0.05" value="0.75"></label>
         <label>Laminar → turbulent forcing <output id="wl-turbulence-value">0.20</output><input id="wl-turbulence" type="range" min="0" max="2" step="0.05" value="0.2"></label>
         <label>Pump flow <output id="wl-flow-value">1.00×</output><input id="wl-flow" type="range" min="0" max="2" step="0.05" value="1"></label>
+        <label id="wl-waterfall-controls" hidden>Waterfall height (resets water) <output id="wl-waterfall-height-value">14.4 m</output><input id="wl-waterfall-height" type="range" min="1.2" max="7.2" step="0.1" value="4.8"></label>
         <div id="wl-river-controls" hidden>
           <label>Channel slope (resets river) <output id="wl-slope-value">10%</output><input id="wl-slope" type="range" min="0" max="0.22" step="0.005" value="0.10"></label>
           <label>Source water speed <output id="wl-source-speed-value">1.5 m/s</output><input id="wl-source-speed" type="range" min="0" max="8" step="0.1" value="1.5"></label>

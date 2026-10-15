@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {sprayCDF} from './water-lab-spray-shadows.js';
+import {sprayCDF,shadowStride} from './water-lab-spray-shadows.js';
 
 // Wall-mounted lights emit into the pool's forward hemisphere. A paraboloid
 // covers its full 180 degrees without cube-face seams or a perspective cutoff.
@@ -30,14 +30,14 @@ float sprayPool(vec3 p,int lamp){
 }
 `;
 const vertex=`precision highp float;precision highp int;
-uniform highp sampler2D uDetailP,uDetailV,uDetailI;uniform int uCapacity;uniform float uPoolShadowSize;
+uniform highp sampler2D uDetailP,uDetailV,uDetailI;uniform int uCapacity,uShadowStride,uActiveSpan;uniform float uPoolShadowSize;
 out vec2 vDelta,vPoint;flat out vec3 vInverse;flat out vec2 vCoupling;flat out float vSigma,vDepth,vTau;flat out int vLamp;
-void main(){vLamp=gl_InstanceID/uCapacity;int id=gl_InstanceID%uCapacity;ivec2 uv=ivec2(id%256,id/256);vec4 p=texelFetch(uDetailP,uv,0),v=texelFetch(uDetailV,uv,0),info=texelFetch(uDetailI,uv,0);gl_Position=vec4(2,2,2,1);vTau=0.;if(v.w<=0.||p.w>=v.w||info.x<=0.)return;
+void main(){vLamp=gl_InstanceID/uCapacity;int id=(gl_InstanceID%uCapacity)*uShadowStride;ivec2 uv=ivec2(id%256,id/256);vec4 p=texelFetch(uDetailP,uv,0),v=texelFetch(uDetailV,uv,0),info=texelFetch(uDetailI,uv,0);gl_Position=vec4(2,2,2,1);vTau=0.;if(v.w<=0.||p.w>=v.w||info.x<=0.)return;
  float s=info.x*(.75+.25*sin(min(1.,p.w/v.w)*3.14159265359)),stretch=info.y<.5?1.2:0.;vec3 q=p.xyz-vec3(float(vLamp-1)*2.7,.65,-2.75);float r=length(q);if(q.z < -3.*s||r<.03)return;vec3 radial=q/r,d=normalize(v.xyz+vec3(0,1e-8,0));float w=max(.001,r+q.z);
  vec3 jx=vec3(1,0,0)/w-q.x/(w*w)*(radial+vec3(0,0,1)),jy=vec3(0,1,0)/w-q.y/(w*w)*(radial+vec3(0,0,1));
  float a=s*s*(dot(jx,jx)+stretch*pow(dot(jx,d),2.)),b=s*s*(dot(jx,jy)+stretch*dot(jx,d)*dot(jy,d)),c=s*s*(dot(jy,jy)+stretch*pow(dot(jy,d),2.)),xx=a+pow(1.2/uPoolShadowSize,2.),yy=c+pow(1.2/uPoolShadowSize,2.),det=xx*yy-b*b;
  vInverse=vec3(yy,-b,xx)/det;vec2 crossDepth=s*s*(vec2(dot(jx,radial),dot(jy,radial))+stretch*vec2(dot(jx,d),dot(jy,d))*dot(radial,d));vCoupling=vec2(dot(crossDepth,vInverse.xy),dot(crossDepth,vInverse.yz));vSigma=sqrt(max(1e-12,s*s*(1.+stretch*pow(dot(radial,d),2.))-dot(crossDepth,vCoupling)));vDepth=r;
- float opacity=min(.98,info.z*smoothstep(0.,.045,p.w)*(1.-smoothstep(.45,1.,p.w/v.w))*(info.y>2.5?.7:info.y>1.5?.5:1.));vTau=-log(1.-opacity)*sqrt(max(0.,a*c-b*b)/det);
+ float opacity=min(.98,info.z*smoothstep(0.,.045,p.w)*(1.-smoothstep(.45,1.,p.w/v.w))*(info.y>2.5?.7:info.y>1.5?.5:1.));vTau=-log(1.-opacity)*sqrt(max(0.,a*c-b*b)/det)*float(min(uShadowStride,uActiveSpan-id));
  float sx=sqrt(xx);vDelta=vec2(sx*position.x,b/sx*position.x+sqrt(det/xx)*position.y)*3.;vPoint=q.xy/w+vDelta;gl_Position=vec4((vPoint.x+1.+float(vLamp)*2.)/3.-1.,vPoint.y,0,1);
 }`;
 const fragment=`precision highp float;precision highp int;in vec2 vDelta,vPoint;flat in vec3 vInverse;flat in vec2 vCoupling;flat in float vSigma,vDepth,vTau;flat in int vLamp;uniform float uPoolShadowSize;
@@ -48,17 +48,17 @@ export class LabPoolShadows{
  constructor(renderer,lab,size=POOL_SHADOW_SIZE){
   this.renderer=renderer;this.lab=lab;this.size=size;this.enabled=true;this.cpu=!renderer.extensions.has('EXT_color_buffer_float');this.u={uPoolShadows:{value:false},uPoolShadowSize:{value:size}};
   this.target=new THREE.WebGLRenderTarget(size*3,size,{count:4,type:THREE.HalfFloatType,depthBuffer:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});for(let i=0;i<4;i++)this.u['uPoolShadow'+i]={value:this.target.textures[i]};
-  this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:vertex,fragmentShader:fragment,uniforms:{...this.u,uCapacity:{value:lab.detail.capacity},uDetailP:lab.detail.u.uDetailP,uDetailV:lab.detail.u.uDetailV,uDetailI:lab.detail.u.uDetailI},depthTest:false,depthWrite:false,transparent:true,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor});
+  this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:vertex,fragmentShader:fragment,uniforms:{...this.u,uShadowStride:{value:1},uActiveSpan:{value:lab.detail.capacity},uCapacity:{value:lab.detail.capacity},uDetailP:lab.detail.u.uDetailP,uDetailV:lab.detail.u.uDetailV,uDetailI:lab.detail.u.uDetailI},depthTest:false,depthWrite:false,transparent:true,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor});
   this.geometry=new THREE.InstancedBufferGeometry();this.geometry.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));this.geometry.setIndex([0,1,2,0,2,3]);this.geometry.instanceCount=lab.detail.capacity*3;const mesh=new THREE.Mesh(this.geometry,this.material);mesh.frustumCulled=false;this.scene=new THREE.Scene();this.scene.add(mesh);this.camera=new THREE.Camera();
  }
  update(){
-  const {lab}=this,d=lab.detail;this.u.uPoolShadows.value=this.enabled&&lab.kind==='pool'&&lab.lights>0&&d.enabled&&d.count>0;if(!this.u.uPoolShadows.value)return false;
+  const {lab}=this,d=lab.detail;const span=d.activeSpan||d.capacity;const stride=shadowStride(span),samples=Math.ceil(span/stride);this.geometry.instanceCount=samples*3;this.material.uniforms.uCapacity.value=samples;this.material.uniforms.uShadowStride.value=stride;this.material.uniforms.uActiveSpan.value=span;this.u.uPoolShadows.value=this.enabled&&lab.kind==='pool'&&lab.lights>0&&d.enabled&&d.count>0;if(!this.u.uPoolShadows.value)return false;
   const key=[lab.kind,d.time,d.count,lab.revision].join();if(this.key===key)return false;this.key=key;if(this.cpu){this.updateCPU();return true;}
   for(let i=0;i<4;i++)this.u['uPoolShadow'+i].value=this.target.textures[i];const r=this.renderer,old=r.getRenderTarget(),color=r.getClearColor(new THREE.Color()),alpha=r.getClearAlpha();r.setRenderTarget(this.target);r.setClearColor(0,0);r.clear();r.render(this.scene,this.camera);r.setRenderTarget(old);r.setClearColor(color,alpha);return true;
  }
  updateCPU(){
   const size=this.size,d=this.lab.detail,[p,v,info]=d.fallback.map(t=>t.image.data),data=Array.from({length:4},()=>new Float32Array(size*size*3*4));
-  for(let i=0;i<d.capacity;i++)for(let lamp=0;lamp<3;lamp++){const o=i*4,k=poolShadowKernel(p.subarray(o,o+4),v.subarray(o,o+4),info.subarray(o,o+4),lamp,size);if(!k)continue;const radii=[3*Math.sqrt(k.xx),3*Math.sqrt(k.yy)],lo=radii.map((r,a)=>Math.max(0,Math.floor(((k.center[a]-r)*.5+.5)*size))),hi=radii.map((r,a)=>Math.min(size-1,Math.ceil(((k.center[a]+r)*.5+.5)*size)));
+  const span=d.activeSpan||d.capacity,stride=shadowStride(span);for(let i=0;i<span;i+=stride)for(let lamp=0;lamp<3;lamp++){const o=i*4,k=poolShadowKernel(p.subarray(o,o+4),v.subarray(o,o+4),info.subarray(o,o+4),lamp,size);if(!k)continue;k.tau*=Math.min(stride,span-i);const radii=[3*Math.sqrt(k.xx),3*Math.sqrt(k.yy)],lo=radii.map((r,a)=>Math.max(0,Math.floor(((k.center[a]-r)*.5+.5)*size))),hi=radii.map((r,a)=>Math.min(size-1,Math.ceil(((k.center[a]+r)*.5+.5)*size)));
    for(let y=lo[1];y<=hi[1];y++)for(let x=lo[0];x<=hi[0];x++)for(let z=0;z<16;z++)data[z>>2][(y*size*3+lamp*size+x)*4+z%4]+=poolOpticalDepth(k,(x+.5)/size*2-1,(y+.5)/size*2-1,POOL_SHADOW_FAR*(z/15)**2);
   }
   if(!this.fallback)this.fallback=data.map(a=>{const t=new THREE.DataTexture(a,size*3,size,THREE.RGBAFormat,THREE.FloatType);t.minFilter=t.magFilter=this.renderer.extensions.has('OES_texture_float_linear')?THREE.LinearFilter:THREE.NearestFilter;return t;});this.fallback.forEach((t,i)=>{t.image.data.set(data[i]);t.needsUpdate=true;this.u['uPoolShadow'+i].value=t;});

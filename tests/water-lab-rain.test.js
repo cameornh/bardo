@@ -25,8 +25,8 @@ test('heavier rain increases visible packet density without changing the request
   assert.ok(Math.abs(lab.rain.emitted+lab.rain.sourceVolume-lab.rain.flux*.1)<1e-10);
   assert.ok(Math.abs(ledger(lab))<1e-9);
  }
- assert.ok(counts[0]>=20);assert.ok(counts[1]>counts[0]*2);assert.ok(counts[2]>counts[1]);
- assert.equal(rainPacketRate(0),0);assert.equal(rainPacketRate(12000),1200);
+ assert.ok(counts[0]>=10);assert.ok(counts[1]>counts[0]*1.7);assert.ok(counts[2]>counts[1]);
+ assert.equal(rainPacketRate(0),0);assert.equal(rainPacketRate(12000),480);
 });
 
 test('airborne packet budget retains pending water rather than growing rendering work without bound',()=>{

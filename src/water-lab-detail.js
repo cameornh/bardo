@@ -1,3 +1,4 @@
+import {FoamContactField,FOAM_CONTACT_GLSL,foamDecay} from './water-lab-foam-contact.js';
 import {AIR_SAMPLE_GLSL} from './water-lab-air.js';
 import * as THREE from 'three';
 import {DetailFlowField,DETAIL_ENVIRONMENT_GLSL,detailFluidMotion,projectDetailSurface,detailContact,emptyGeometryUniforms} from './water-lab-detail-environment.js';
@@ -45,10 +46,11 @@ uniform vec3 uBrushOrigin,uBrushDirection;
 ${BEACH_WIND_GLSL}
 ${DETAIL_ENVIRONMENT_GLSL}
 ${AIR_SAMPLE_GLSL}
+${FOAM_CONTACT_GLSL}
 void main(){ivec2 pixel=ivec2(gl_FragCoord.xy);int i=pixel.y*256+pixel.x,spawn=(i-uSpawnStart+uCapacity)%uCapacity;vec4 p=texelFetch(uDetailP,pixel,0),v=texelFetch(uDetailV,pixel,0),info=texelFetch(uDetailI,pixel,0);
 if(spawn<uSpawnCount){ivec2 s=ivec2(spawn%256,spawn/256);p=texelFetch(uSpawnP,s,0);v=texelFetch(uSpawnV,s,0);info=texelFetch(uSpawnI,s,0);}
-p.w+=uDt;if(p.w<v.w){vec3 start=p.xyz;bool born=spawn<uSpawnCount;if(born&&uDetailFlow&&info.y<1.5){detailProject(p.xyz,info.y<.5?.08:.18,.55);detailContact(start,p.xyz,v.xyz,max(.0005,info.x*2.),false);start=p.xyz;}bool wet;detailWetMotion(p.xyz,v.xyz,info.y,p.w,uDt,uScale,wet);if(!wet){vec2 air=beachWind(p.xz*uScale,uTime,uWind,0.,uTurbulence)/uScale;vec3 target=vec3(air.x,0,air.y),q=p.xyz-uBrushOrigin;float along=dot(q,uBrushDirection);if(along>0.)target+=uBrushDirection*uBrushStrength/uScale*exp(-dot(q-uBrushDirection*along,q-uBrushDirection*along)/(uBrushRadius*uBrushRadius))*exp(-along/25.);
-if(uAirEnabled)target=sampleAir(p.xyz);float drag=info.y>2.5?9.:info.y>1.5?3.:info.y>.5?.45:1.1;v.xyz+=(target-v.xyz)*(1.-exp(-drag*uDt));v.y+=(info.y>2.5?-.18:info.y>1.5?.45:info.y>.5?-.12:-9.81)/uScale*uDt;p.xyz+=v.xyz*uDt;}detailContact(start,p.xyz,v.xyz,max(.0005,info.x*2.),!born);info.w=uDetailCollision?labSolid(p.xyz):100.;if(info.y>2.5&&(abs(p.x)>5.4||abs(p.z)>(uStation==4?19.4:4.8)||p.y>8.8))p.w=v.w;}
+float oldAge=p.w;p.w+=uDt;if(oldAge<v.w){vec3 start=p.xyz;bool born=spawn<uSpawnCount;if(born&&uDetailFlow&&(info.y<1.5||info.y>2.5)){detailProject(p.xyz,info.y>2.5?.025:info.y<.5?.08:.18,info.y>2.5?1.2:.55);detailContact(start,p.xyz,v.xyz,max(.0005,info.x*2.),false);start=p.xyz;}bool wet;detailWetMotion(p.xyz,v.xyz,info.y,p.w,uDt,uScale,wet);if(!wet){vec2 air=beachWind(p.xz*uScale,uTime,uWind,0.,uTurbulence)/uScale;vec3 target=vec3(air.x,0,air.y),q=p.xyz-uBrushOrigin;float along=dot(q,uBrushDirection);if(along>0.)target+=uBrushDirection*uBrushStrength/uScale*exp(-dot(q-uBrushDirection*along,q-uBrushDirection*along)/(uBrushRadius*uBrushRadius))*exp(-along/25.);
+if(uAirEnabled)target=sampleAir(p.xyz);float drag=info.y>2.5?9.:info.y>1.5?3.:info.y>.5?.45:1.1;v.xyz+=(target-v.xyz)*(1.-exp(-drag*uDt));v.y+=(info.y>2.5?-.18:info.y>1.5?.45:info.y>.5?-.12:-9.81)/uScale*uDt;p.xyz+=v.xyz*uDt;}p.w=oldAge+uDt*foamDecay(info.y,wet,wet&&foamTouch(start,info.x,i));detailContact(start,p.xyz,v.xyz,max(.0005,info.x*2.),!born);info.w=uDetailCollision?labSolid(p.xyz):100.;if(info.y>2.5&&(abs(p.x)>5.4||abs(p.z)>(uStation==4?19.4:4.8)||p.y>8.8))p.w=v.w;}
 nextPosition=p;nextVelocity=v;nextInfo=info;}`;
 function texture(data){const t=new THREE.DataTexture(data,256,data.length/1024,THREE.RGBAFormat,THREE.FloatType);t.needsUpdate=true;return t;}
 function sourceNoise(position,normal,spacing,time,seed){
@@ -69,9 +71,9 @@ export class LabDetail {
     this.spawn=Array.from({length:3},()=>texture(new Float32Array(this.capacity*4)));
     this.fallback=Array.from({length:3},()=>texture(new Float32Array(this.capacity*4)));
     ['P','V','I'].forEach((k,i)=>this.u['uSpawn'+k].value=this.spawn[i]);
-    this.expiry=new Float64Array(this.capacity);this.geometry=new THREE.PlaneGeometry(2,2);this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:simulation,uniforms:this.u,depthTest:false,depthWrite:false});this.scene=new THREE.Scene();this.scene.add(new THREE.Mesh(this.geometry,this.material));this.camera=new THREE.Camera();this.reset();
+    this.expiry=new Float64Array(this.capacity);this.geometry=new THREE.PlaneGeometry(2,2);this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:simulation,uniforms:this.u,depthTest:false,depthWrite:false});this.scene=new THREE.Scene();this.scene.add(new THREE.Mesh(this.geometry,this.material));this.camera=new THREE.Camera();this.contact=new FoamContactField(renderer,this);Object.assign(this.u,this.contact.u);this.reset();
   }
-  reset(){this.previousMotion=null;this.cursor=0;this.pending=0;this.count=0;this.time=0;this.sequence=0;this.emitted=0;this.mistEmitted=0;this.breakupEmitted=0;this.overwritten=0;this.expiry.fill(0);this.budget=new Float32Array(0);this.sprayBudget=new Float32Array(0);this.breakupHistory=new Float32Array(0);this.breakupBudget=new Float32Array(0);this.breakupNormals=new Float32Array(0);this.strength=new Float32Array(0);this.weights=new Float32Array(0);this.exposure=new Float32Array(0);this.sources=new Float32Array(0);for(const t of this.fallback){t.image.data.fill(0);t.needsUpdate=true;}this.clear=true;this.current=0;this.bind(this.fallback);}
+  reset(){this.activeSpan=0;this.previousMotion=null;this.cursor=0;this.pending=0;this.count=0;this.time=0;this.sequence=0;this.emitted=0;this.mistEmitted=0;this.breakupEmitted=0;this.overwritten=0;this.expiry.fill(0);this.budget=new Float32Array(0);this.sprayBudget=new Float32Array(0);this.breakupHistory=new Float32Array(0);this.breakupBudget=new Float32Array(0);this.breakupNormals=new Float32Array(0);this.strength=new Float32Array(0);this.weights=new Float32Array(0);this.exposure=new Float32Array(0);this.sources=new Float32Array(0);for(const t of this.fallback){t.image.data.fill(0);t.needsUpdate=true;}this.clear=true;this.current=0;this.bind(this.fallback);}
   bind(textures){['P','V','I'].forEach((k,i)=>this.u['uDetail'+k].value=textures[i]);}
   emit(lab,dt){
     if(!this.enabled||this.density===0||!lab.surfaceMetrics)return;
@@ -135,17 +137,31 @@ export class LabDetail {
         const isBreakup=j>=baseCount+extra,kind=j<baseCount?baseKind:isBreakup&&this.exposure[i]<.25?2:0,id=++this.sequence,p=this.pending*4,along=(j+hash(id+61))/Math.max(1,count),spread=Math.min(2.5,Math.sqrt(Math.max(energy,lab.surfaceBreakup?.[i]||0))*.6)/scale,life=(kind===1?.55+hash(i+93)*.9:kind===2?.6+hash(i+93)*1.2:.3+hash(i+93))*(.92+.16*hash(id+91))*Math.min(1,Math.max(.18,Math.sqrt(s*scale/.25)));
         for(let k=0;k<3;k++){const jitter=hash(id*7+k+119)-.5;this.spawn[0].image.data[p+k]=this.sources[history+k]*(1-along)+source[k]*along+jitter*s*.10-(isBreakup&&kind===2&&baseKind!==2?normal[k]*s*.92:0);this.spawn[1].image.data[p+k]=lab.velocities[o+k]+(kind===0?(patch[k]*.25+normal[k])*spread:0)+jitter*.025/scale;}
         this.spawn[0].image.data[p+3]=0;this.spawn[1].image.data[p+3]=life;this.spawn[2].image.data.set([detailRadius(s,scale,hash(id+11))/scale,kind,.45+.4*hash(id+13),r],p);
-        const slot=(this.cursor+this.pending)%this.capacity;if(this.expiry[slot]>this.time)this.overwritten++;this.expiry[slot]=this.time+life;
+        const slot=(this.cursor+this.pending)%this.capacity;if(this.expiry[slot]>this.time)this.overwritten++;this.expiry[slot]=this.time+life*40;
         if(kind===0)lab.wetting?.traceData(this.spawn[0].image.data,this.spawn[1].image.data,p,kind);this.pending++;this.emitted++;if(isBreakup)this.breakupEmitted++;
       }
-      if(this.mistEnabled&&activity>.4&&this.exposure[i]>.4){const births=Math.min(128,Math.floor(count*.75*this.mistDensity));for(let j=0;j<births;j++){const id=++this.sequence,point=source.map((v,k)=>v+normal[k]*s*.15+(hash(id+k)-.5)*s*.18),velocity=[0,1,2].map(k=>lab.velocities[o+k]+normal[k]*.35/scale);this.addMarker(point,velocity,3,detailRadius(s,scale,hash(id+13))*.4/scale,1.8+hash(id+7)*2.2,.35);lab.wetting?.trace(point,velocity,3);}}
+      // Mist follows sustained, dense emission patches, not uniform wind speed.
+      // Keep the fine spray intact and let an airborne veil grow from its hot spots.
+      const mistGate=clamp((energy-.45)/.8,0,1)*clamp((activity-.65)/1.4,0,1)*clamp((this.exposure[i]-.35)/.4,0,1);
+      if(this.mistEnabled&&mistGate>0){const births=Math.min(192,Math.floor(count*.65*mistGate*this.mistDensity));for(let j=0;j<births&&this.pending<this.capacity;j++){const id=++this.sequence,point=source.map((v,k)=>v+normal[k]*s*(baseKind===2?1.5:.55)+(hash(id+k)-.5)*s*.18),velocity=[0,1,2].map(k=>lab.velocities[o+k]*.18+normal[k]*.8/scale);this.addMarker(point,velocity,3,detailRadius(s,scale,hash(id+13))*1.8/scale,4.+hash(id+7)*3.,.48);lab.wetting?.trace(point,velocity,3);}}
       this.sources.set(source,history);
     }
   }
-  addMarker(point,velocity,kind,radius,life,opacity=.5){if(!this.enabled||this.pending>=this.capacity)return;const p=this.pending*4;this.spawn[0].image.data.set([...point,0],p);this.spawn[1].image.data.set([...velocity,life],p);this.spawn[2].image.data.set([radius,kind,opacity,100],p);const slot=(this.cursor+this.pending)%this.capacity;if(this.expiry[slot]>this.time)this.overwritten++;this.expiry[slot]=this.time+life;this.pending++;this.emitted++;if(kind===3)this.mistEmitted++;}
-  impact(point,normal,velocity,volume,lab){if(!this.enabled)return;const energy=Math.max(0,-velocity.reduce((a,v,k)=>a+v*normal[k],0))*lab.spec.scale;const n=Math.min(24,Math.floor(Math.sqrt(volume*lab.spec.scale**3)*energy*120*this.density));for(let i=0;i<n;i++){const id=++this.sequence,kind=this.mistEnabled&&hash(id+19)<Math.min(.7,this.mistDensity*.25)?3:0;const v=velocity.map((v,k)=>v*.12+normal[k]*energy*.28/lab.spec.scale+(hash(id+k)-.5)*energy*.25/lab.spec.scale),p=point.map((v,k)=>v+normal[k]*lab.spacing*.12);this.addMarker(p,v,kind,detailRadius(lab.spacing,lab.spec.scale,hash(id+7))*(kind===3?.32:1)/lab.spec.scale,kind===3?2.8:.65,kind===3?.24:.55);lab.wetting?.trace(p,v,kind);}}
+  addMarker(point,velocity,kind,radius,life,opacity=.5){if(!this.enabled||this.pending>=this.capacity)return;const p=this.pending*4;this.spawn[0].image.data.set([...point,0],p);this.spawn[1].image.data.set([...velocity,life],p);this.spawn[2].image.data.set([radius,kind,opacity,100],p);const slot=(this.cursor+this.pending)%this.capacity;if(this.expiry[slot]>this.time)this.overwritten++;this.expiry[slot]=this.time+life*40;this.pending++;this.emitted++;if(kind===3)this.mistEmitted++;}
+  impact(point,normal,velocity,volume,lab){
+    if(!this.enabled)return;const scale=lab.spec.scale,energy=Math.max(0,-velocity.reduce((a,v,k)=>a+v*normal[k],0))*scale;
+    const n=Math.min(72,Math.floor(Math.sqrt(volume*scale**3)*energy*180*this.density));
+    for(let i=0;i<n;i++){const id=++this.sequence,theta=hash(id+21)*Math.PI*2,ring=[Math.cos(theta),0,Math.sin(theta)],kind=this.mistEnabled&&n>30&&energy>10&&hash(id+19)<Math.min(.3,this.mistDensity*.12)?3:0;
+      const v=velocity.map((v,k)=>v*.08+normal[k]*energy*(.20+.16*hash(id+11))/scale+ring[k]*energy*.24/scale),p=point.map((v,k)=>v+normal[k]*lab.spacing*.18+ring[k]*lab.spacing*.15);
+      this.addMarker(p,v,kind,detailRadius(lab.spacing,scale,hash(id+7))*(kind===3?1.8:1)/scale,kind===3?4:.9,kind===3?.4:.65);lab.wetting?.trace(p,v,kind);
+    }
+  }
   advance(dt,lab,jet=lab.jet){
     if(!dt)return;
+    // Trim work before the ring first fills; vacant texture rows need no
+    // simulation, optical integration, or shadow instances.
+    this.activeSpan=Math.min(this.capacity,Math.max(this.activeSpan,this.cursor+this.pending));
+    this.contact.update(lab,this.cpu);
     const u=this.u;u.uDetailFlow.value=!!lab.count&&(this.count>0||this.pending>0);u.uDetailCollision.value=!!lab.u&&!!lab.solid;u.uDetailSpacing.value=lab.spacing||.25;
     if(u.uDetailFlow.value)this.flow.update(lab,this.cpu);
     if(lab.u)Object.assign(u,lab.u);if(lab.air){lab.air.update(lab,jet);Object.assign(u,lab.air.u);}else u.uAirEnabled.value=false;
@@ -155,10 +171,11 @@ export class LabDetail {
     if(this.cpu){
       const [p,v,info]=this.fallback.map(t=>t.image.data);
       for(let j=0;j<this.pending;j++){const o=(this.cursor+j)%this.capacity*4;for(let k=0;k<3;k++)this.fallback[k].image.data.set(this.spawn[k].image.data.subarray(j*4,j*4+4),o);}
-      for(let i=0;i<this.capacity;i++){const o=i*4;p[o+3]+=dt;if(p[o+3]>=v[o+3])continue;let start=Array.from(p.subarray(o,o+3)),velocity=Array.from(v.subarray(o,o+3)),kind=info[o+1];const born=(i-this.cursor+this.capacity)%this.capacity<this.pending;
-        if(born&&lab.count&&kind<1.5){let point=projectDetailSurface(start,lab.spacing,this.flow,kind<.5?.08:.18,.55);if(u.uDetailCollision.value){const contact=detailContact(start,point,velocity,Math.max(.0005,info[o]*2),lab);point=contact.position;velocity=contact.velocity;}start=point;}
+      for(let i=0;i<this.activeSpan;i++){const o=i*4,oldAge=p[o+3];p[o+3]+=dt;if(oldAge>=v[o+3])continue;let start=Array.from(p.subarray(o,o+3)),velocity=Array.from(v.subarray(o,o+3)),kind=info[o+1];const born=(i-this.cursor+this.capacity)%this.capacity<this.pending;
+        if(born&&lab.count&&(kind<1.5||kind===3)){let point=projectDetailSurface(start,lab.spacing,this.flow,kind===3?.025:kind<.5?.08:.18,kind===3?1.2:.55);if(u.uDetailCollision.value){const contact=detailContact(start,point,velocity,Math.max(.0005,info[o]*2),lab);point=contact.position;velocity=contact.velocity;}start=point;}
         let step=lab.count?detailFluidMotion(start,velocity,kind,dt,lab.spec.scale,lab.spacing,this.flow,p[o+3]):{wet:false};
         if(lab.count)kind=step.kind;
+        p[o+3]=oldAge+dt*foamDecay(kind,!!step.wet,!!step.wet&&this.contact.touching(start,info[o],i));
         if(!step.wet)step=detailStep(start,velocity,kind,lab.spec.scale,dt,lab.time,lab.wind,lab.windTurbulence??lab.turbulence,jet,lab.radius,lab.windStrength,lab.air?lab.air.sample(start):null);
         if(u.uDetailCollision.value)step=detailContact(start,step.position,step.velocity,Math.max(.0005,info[o]*2),lab,born?null:this.previousMotion);
         p.set(step.position,o);v.set(step.velocity,o);info[o+1]=kind;info[o+3]=u.uDetailCollision.value?lab.solid(step.position):100;if(kind===3&&(Math.abs(p[o])>5.4||Math.abs(p[o+2])>(lab.kind==='river'?19.4:4.8)||p[o+1]>8.8))p[o+3]=v[o+3];}
@@ -166,12 +183,12 @@ export class LabDetail {
     }else{
       if(!this.targets)this.targets=[0,1].map(()=>new THREE.WebGLRenderTarget(256,this.capacity/256,{count:3,type:THREE.FloatType,depthBuffer:false,minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter}));
       if(this.clear){this.bind(this.fallback);this.clear=false;}
-      const r=this.renderer,old=r.getRenderTarget(),target=this.targets[this.current];r.setRenderTarget(target);r.render(this.scene,this.camera);r.setRenderTarget(old);this.bind(target.textures);this.current=1-this.current;
+      const r=this.renderer,old=r.getRenderTarget(),target=this.targets[this.current];r.setRenderTarget(target);r.setScissor(0,0,256,Math.ceil(this.activeSpan/256));r.setScissorTest(true);r.render(this.scene,this.camera);r.setScissorTest(false);r.setRenderTarget(old);this.bind(target.textures);this.current=1-this.current;
     }
     if(lab.motion)this.previousMotion={position:lab.motion.position.slice(),tilt:lab.motion.tilt,spin:lab.motion.spin,pitch:lab.motion.pitch};
     this.cursor=(this.cursor+this.pending)%this.capacity;this.pending=0;this.count=0;for(const expiry of this.expiry)if(expiry>this.time)this.count++;
   }
-  dispose(){this.flow.dispose();this.geometryDefaults.uLabBed.value.dispose();for(const t of [...this.spawn,...this.fallback,...(this.targets||[]),this.geometry,this.material])t.dispose();}
+  dispose(){this.contact.dispose();this.flow.dispose();this.geometryDefaults.uLabBed.value.dispose();for(const t of [...this.spawn,...this.fallback,...(this.targets||[]),this.geometry,this.material])t.dispose();}
   static async verify(renderer){
     const gpu=new LabDetail(renderer,1024),cpu=new LabDetail(renderer,1024);cpu.cpu=true;
     const lab={spec:{scale:.2},time:0,wind:7,turbulence:.8,radius:1,windStrength:20,jet:{origin:[-2,1,0],direction:[1,0,0]}};

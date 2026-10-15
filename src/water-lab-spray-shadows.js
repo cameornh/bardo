@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import {LAB_FIELD_MIN,LAB_FIELD_MAX} from './water-lab-field.js';
 
+export const SHADOW_MARKER_BUDGET=16384;
+export const shadowStride=span=>2**Math.max(0,Math.ceil(Math.log2(Math.max(1,span)/SHADOW_MARKER_BUDGET)));
 export const SPRAY_SHADOW_SIZE=256,SPRAY_SHADOW_LAYERS=16;
 const normalize=v=>{const l=Math.hypot(...v);return v.map(x=>x/l);},dot=(a,b)=>a.reduce((s,v,k)=>s+v*b[k],0);
 export const SPRAY_LIGHT=normalize([-.4,1,.3]);
@@ -40,14 +42,14 @@ float spraySun(vec3 p){
 }
 `;
 const vertex=`precision highp float;precision highp int;
-uniform highp sampler2D uDetailP,uDetailV,uDetailI;uniform vec3 uSprayU,uSprayV,uSprayL,uSprayMin,uSpraySpan;uniform float uShadowSize;
+uniform highp sampler2D uDetailP,uDetailV,uDetailI;uniform vec3 uSprayU,uSprayV,uSprayL,uSprayMin,uSpraySpan;uniform float uShadowSize;uniform int uShadowStride,uActiveSpan;
 out vec2 vDelta;flat out vec3 vInverse;flat out vec2 vCoupling;flat out float vSigma,vDepth,vTau;
-void main(){ivec2 uv=ivec2(gl_InstanceID%256,gl_InstanceID/256);vec4 p=texelFetch(uDetailP,uv,0),v=texelFetch(uDetailV,uv,0),info=texelFetch(uDetailI,uv,0);gl_Position=vec4(2,2,2,1);vTau=0.;if(v.w<=0.||p.w>=v.w||info.x<=0.)return;
+void main(){int id=gl_InstanceID*uShadowStride;ivec2 uv=ivec2(id%256,id/256);vec4 p=texelFetch(uDetailP,uv,0),v=texelFetch(uDetailV,uv,0),info=texelFetch(uDetailI,uv,0);gl_Position=vec4(2,2,2,1);vTau=0.;if(v.w<=0.||p.w>=v.w||info.x<=0.)return;
  float s=info.x*(.75+.25*sin(min(1.,p.w/v.w)*3.14159265359)),stretch=info.y<.5?1.2:0.;vec3 direction=normalize(v.xyz+vec3(0,1e-8,0)),d=vec3(dot(direction,uSprayU),dot(direction,uSprayV),dot(direction,uSprayL));
  float a=s*s*(1.+stretch*d.x*d.x),b=s*s*stretch*d.x*d.y,c=s*s*(1.+stretch*d.y*d.y),xx=a+pow(uSpraySpan.x/uShadowSize*.6,2.),yy=c+pow(uSpraySpan.y/uShadowSize*.6,2.),det=xx*yy-b*b;
  vInverse=vec3(yy,-b,xx)/det;vec2 crossDepth=s*s*stretch*d.xy*d.z;vCoupling=vec2(dot(crossDepth,vInverse.xy),dot(crossDepth,vInverse.yz));vSigma=sqrt(max(1e-12,s*s*(1.+stretch*d.z*d.z)-dot(crossDepth,vCoupling)));
  vec3 center=vec3(dot(p.xyz,uSprayU),dot(p.xyz,uSprayV),dot(p.xyz,uSprayL));vDepth=center.z;
- float opacity=min(.98,info.z*smoothstep(0.,.045,p.w)*(1.-smoothstep(.45,1.,p.w/v.w))*(info.y>2.5?.7:info.y>1.5?.5:1.));vTau=-log(1.-opacity)*sqrt((a*c-b*b)/det);
+ float opacity=min(.98,info.z*smoothstep(0.,.045,p.w)*(1.-smoothstep(.45,1.,p.w/v.w))*(info.y>2.5?.7:info.y>1.5?.5:1.));vTau=-log(1.-opacity)*sqrt((a*c-b*b)/det)*float(min(uShadowStride,uActiveSpan-id));
  // Cholesky projects the full covariance onto the light plane without a camera.
  float sx=sqrt(xx);vDelta=vec2(sx*position.x,b/sx*position.x+sqrt(det/xx)*position.y)*3.;vec2 q=(center.xy+vDelta-uSprayMin.xy)/uSpraySpan.xy;gl_Position=vec4(q*2.-1.,0,1);
 }`;
@@ -61,12 +63,12 @@ export class LabSprayShadows{
   this.u={uSprayShadows:{value:false},uSprayU:{value:new THREE.Vector3(...U)},uSprayV:{value:new THREE.Vector3(...V)},uSprayL:{value:new THREE.Vector3(...SPRAY_LIGHT)},uSprayMin:{value:new THREE.Vector3()},uSpraySpan:{value:new THREE.Vector3()}};
   this.target=new THREE.WebGLRenderTarget(size,size,{count:4,type:THREE.HalfFloatType,depthBuffer:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
   for(let i=0;i<4;i++)this.u['uSprayShadow'+i]={value:this.target.textures[i]};
-  this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:vertex,fragmentShader:fragment,uniforms:{...this.u,uShadowSize:{value:size},uDetailP:lab.detail.u.uDetailP,uDetailV:lab.detail.u.uDetailV,uDetailI:lab.detail.u.uDetailI},depthTest:false,depthWrite:false,transparent:true,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor});
+  this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:vertex,fragmentShader:fragment,uniforms:{...this.u,uShadowStride:{value:1},uActiveSpan:{value:lab.detail.capacity},uShadowSize:{value:size},uDetailP:lab.detail.u.uDetailP,uDetailV:lab.detail.u.uDetailV,uDetailI:lab.detail.u.uDetailI},depthTest:false,depthWrite:false,transparent:true,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor});
   this.geometry=new THREE.InstancedBufferGeometry();this.geometry.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));this.geometry.setIndex([0,1,2,0,2,3]);this.geometry.instanceCount=lab.detail.capacity;
   const mesh=new THREE.Mesh(this.geometry,this.material);mesh.frustumCulled=false;this.scene=new THREE.Scene();this.scene.add(mesh);this.camera=new THREE.Camera();
  }
  update(){
-  const {lab}=this,d=lab.detail;this.u.uSprayShadows.value=this.enabled&&d.enabled&&d.count>0;if(!this.u.uSprayShadows.value)return false;
+  const {lab}=this,d=lab.detail;const span=d.activeSpan||d.capacity,stride=shadowStride(span);this.geometry.instanceCount=Math.ceil(span/stride);this.material.uniforms.uShadowStride.value=stride;this.material.uniforms.uActiveSpan.value=span;this.u.uSprayShadows.value=this.enabled&&d.enabled&&d.count>0;if(!this.u.uSprayShadows.value)return false;
   const key=[lab.kind,d.time,d.count,lab.revision].join();if(this.key===key)return false;this.key=key;
   const layout=this.layout=sprayShadowLayout(lab.fieldBounds,this.size);this.u.uSprayMin.value.fromArray(layout.min);this.u.uSpraySpan.value.fromArray(layout.span);
   if(this.cpu){this.updateCPU();return true;}
@@ -75,7 +77,7 @@ export class LabSprayShadows{
  }
  updateCPU(){
   const l=this.layout,size=this.size,d=this.lab.detail,[p,v,info]=d.fallback.map(t=>t.image.data),data=Array.from({length:4},()=>new Float32Array(size*size*4));
-  for(let i=0;i<d.capacity;i++){const o=i*4,k=sprayShadowKernel(p.subarray(o,o+4),v.subarray(o,o+4),info.subarray(o,o+4),l);if(!k)continue;const rx=3*Math.sqrt(k.xx),ry=3*Math.sqrt(k.yy),lo=[rx,ry].map((r,a)=>Math.max(0,Math.floor((k.center[a]-r-l.min[a])/l.span[a]*size))),hi=[rx,ry].map((r,a)=>Math.min(size-1,Math.ceil((k.center[a]+r-l.min[a])/l.span[a]*size)));
+  const span=d.activeSpan||d.capacity,stride=shadowStride(span);for(let i=0;i<span;i+=stride){const o=i*4,k=sprayShadowKernel(p.subarray(o,o+4),v.subarray(o,o+4),info.subarray(o,o+4),l);if(!k)continue;k.tau*=Math.min(stride,span-i);const rx=3*Math.sqrt(k.xx),ry=3*Math.sqrt(k.yy),lo=[rx,ry].map((r,a)=>Math.max(0,Math.floor((k.center[a]-r-l.min[a])/l.span[a]*size))),hi=[rx,ry].map((r,a)=>Math.min(size-1,Math.ceil((k.center[a]+r-l.min[a])/l.span[a]*size)));
    for(let y=lo[1];y<=hi[1];y++)for(let x=lo[0];x<=hi[0];x++)for(let z=0;z<16;z++)data[z>>2][(y*size+x)*4+z%4]+=sprayOpticalDepth(k,l.min[0]+(x+.5)/size*l.span[0],l.min[1]+(y+.5)/size*l.span[1],l.min[2]+z/15*l.span[2]);
   }
   if(!this.fallback)this.fallback=data.map(a=>{const t=new THREE.DataTexture(a,size,size,THREE.RGBAFormat,THREE.FloatType);t.minFilter=t.magFilter=this.renderer.extensions.has('OES_texture_float_linear')?THREE.LinearFilter:THREE.NearestFilter;return t;});

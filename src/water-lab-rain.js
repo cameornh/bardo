@@ -2,7 +2,7 @@ import {labAirVelocity} from './water-lab-air.js';
 import {hash, clamp, rotate, vesselLocal, vesselDistance, normalAt} from './water-lab-model.js';
 
 export const RAIN_PACKET_LIMIT=4096;
-export function rainPacketRate(rate){return rate>0?Math.min(1200,144+96*Math.sqrt(rate/5)):0;}
+export function rainPacketRate(rate){return rate>0?Math.min(480,72+44*Math.log2(1+rate/5)):0;}
 
 // Sub-grid precipitation packets carry real water volume. On contact their
 // momentum enters the fluid; local wet deposits become ordinary solver parcels
@@ -24,6 +24,7 @@ export class LabRain {
     this.budget=0;
     this.sourceVolume=0;
     this.capacityLimited=false;
+    this.releaseClock=0;this.releaseCursor=0;this.work={releaseCandidates:0};
   }
   get options() {
     if(!this.settings.has(this.kind))this.settings.set(this.kind,{enabled:false,rate:5});
@@ -44,21 +45,21 @@ export class LabRain {
   get flux(){return this.rate/60000/this.lab.spec.scale*this.skyArea;}
   buildSurfaceIndex() {
     const {positions,spacing}=this.lab;
-    this.columns=new Map();
+    this.columns=new Map();this.columnTops=new Map();this.top=-Infinity;
     for(let i=0;i<positions.length/4;i++) {
       const o=i*4,key=`${Math.floor(positions[o]/spacing)},${Math.floor(positions[o+2]/spacing)}`;
       let column=this.columns.get(key);
       if(!column)this.columns.set(key,column=[]);
-      column.push(i);
+      column.push(i);const top=positions[o+1]+spacing*.42;this.top=Math.max(this.top,top);this.columnTops.set(key,Math.max(this.columnTops.get(key)??-Infinity,top));
     }
   }
   waterHit(a,b) {
     const lab=this.lab,s=lab.spacing,p=lab.positions,dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2];
-    if(dy>=0)return null;
+    if(dy>=0||Math.min(a[1],b[1])>this.top)return null;
     const x0=Math.floor((Math.min(a[0],b[0])-s)/s),x1=Math.floor((Math.max(a[0],b[0])+s)/s);
     const z0=Math.floor((Math.min(a[2],b[2])-s)/s),z1=Math.floor((Math.max(a[2],b[2])+s)/s);
     let best=null;
-    for(let z=z0;z<=z1;z++)for(let x=x0;x<=x1;x++)for(const i of this.columns.get(`${x},${z}`)||[]) {
+    for(let z=z0;z<=z1;z++)for(let x=x0;x<=x1;x++)for(const i of (b[1]>this.columnTops.get(`${x},${z}`)?[]:this.columns.get(`${x},${z}`))||[]) {
       const o=i*4,t=(p[o+1]+s*.42-a[1])/dy;
       if(t<0||t>1||best&&t>=best.t)continue;
       const point=[a[0]+dx*t,a[1]+dy*t,a[2]+dz*t];
@@ -81,7 +82,7 @@ export class LabRain {
         return {t:hi/length,point:p,normal:normalAt(p,field),particle:-1};
       }
       previous=distance;
-      distance+=Math.max(.001,Math.min(.15,d*.65));
+      distance+=Math.max(.001,d*.65);
     }
     return null;
   }
@@ -98,12 +99,22 @@ export class LabRain {
     if(hit.particle>=0) {
       // Distribute a mass-weighted impulse, rather than draw a ripple texture.
       const targets=[];let sum=0;
-      for(let i=0;i<lab.count;i++) {
+      if(!this.columns)this.buildSurfaceIndex();
+      const cx=Math.floor(hit.point[0]/s),cz=Math.floor(hit.point[2]/s);
+      for(let z=-2;z<=2;z++)for(let x=-2;x<=2;x++)for(const i of this.columns.get(`${cx+x},${cz+z}`)||[]) {
         const o=i*4;if(lab.positions[o+3])continue;
-        const d=Math.hypot(lab.positions[o]-hit.point[0],lab.positions[o+1]-hit.point[1],lab.positions[o+2]-hit.point[2]);
-        const w=Math.max(0,1-d/(s*2));if(w){targets.push([o,w]);sum+=w;}
+        const dx=lab.positions[o]-hit.point[0],dy=lab.positions[o+1]-hit.point[1],dz=lab.positions[o+2]-hit.point[2];
+        const d=Math.hypot(dx,dy,dz),w=Math.max(0,1-d/(s*2));
+        if(w){const radial=Math.hypot(dx,dz)/s,crown=[dx/s,(radial-.65)*1.7,dz/s];targets.push({o,w,crown});sum+=w;}
       }
-      if(sum)for(const [o,w] of targets)for(let k=0;k<3;k++)lab.velocities[o+k]+=drop.velocity[k]*Math.min(drop.volume/(s**3),sum*.25)*w/sum;
+      if(sum){
+        const mass=drop.volume/s**3,impulse=Math.min(mass,sum*.25),mean=[0,0,0];
+        for(const t of targets)for(let k=0;k<3;k++)mean[k]+=t.crown[k]*t.w/sum;
+        // Redistribute the impact into a central depression and an outward,
+        // rising rim. Subtract the mean so the crown adds NO net momentum.
+        const speed=Math.hypot(...drop.velocity),kick=Math.min(speed*.65,Math.sqrt(9.81*s/lab.spec.scale)*3);
+        for(const {o,w,crown} of targets)for(let k=0;k<3;k++)lab.velocities[o+k]+=(drop.velocity[k]+kick*(crown[k]-mean[k]))*impulse*w/sum;
+      }
     }
     const onVessel=hit.particle<0&&vesselDistance(hit.point,lab.kind,lab.motion)<.015;
     const q=onVessel?vesselLocal(hit.point,lab.motion):hit.point;
@@ -124,26 +135,35 @@ export class LabRain {
     for(const name of ['positions','velocities','chem']) {const a=new Float32Array(n*4);a.set(lab[name]);lab[name]=a;}
     const counts=new Uint16Array(n);counts.set(lab.neighborCounts);lab.neighborCounts=counts;
     items.forEach((p,j)=>{lab.positions.set(p.position,(old+j)*4);lab.velocities.set(p.velocity,(old+j)*4);});
-    this.transferred+=items.length*lab.spacing**3;
+    this.transferred+=items.length*lab.spacing**3;this.columns=null;
   }
   // A bounded, separation-aware surface insertion. Existing AND newly queued
   // parcels occupy space; choose the lowest available local surface, rather
   // than repeatedly stacking parcels above the first impacted particle.
   releaseDeposits() {
-    const lab=this.lab,s=lab.spacing,pv=s**3,items=[],bins=new Map(),columns=new Map(),reservoirs=new Map(),points=new Map();
+    const lab=this.lab,s=lab.spacing,pv=s**3;
+    this.work.releaseCandidates=0;
+    if(this.depositVolume+1e-12<pv||lab.count>=lab.particleBudget)return;
+    const items=[],bins=new Map(),columns=new Map(),reservoirs=new Map(),points=new Map();
     for(const p of this.deposits.values()){const point=this.depositPoint(p);points.set(p,point);const id=point.map(v=>Math.floor(v/(s*6))).join(',');if(!reservoirs.has(id))reservoirs.set(id,[]);reservoirs.get(id).push(p);}
     const nearby=point=>{const c=point.map(v=>Math.floor(v/(s*6))),out=[];for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)out.push(...(reservoirs.get([c[0]+x,c[1]+y,c[2]+z].join(','))||[]));return out;};
     const key=p=>p.map(v=>Math.floor(v/s)).join(',');
     const insert=p=>{const id=key(p);if(!bins.has(id))bins.set(id,[]);bins.get(id).push(p);const col=Math.floor(p[0]/s)+','+Math.floor(p[2]/s);columns.set(col,Math.max(columns.get(col)??-Infinity,p[1]));};
     for(let i=0;i<lab.count;i++)insert(Array.from(lab.positions.subarray(i*4,i*4+3)));
     const clear=p=>{const c=p.map(v=>Math.floor(v/s));for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)for(const q of bins.get([c[0]+x,c[1]+y,c[2]+z].join(','))||[])if(Math.hypot(...p.map((v,k)=>v-q[k]))<s*.86)return false;return true;};
-    for(const p of this.deposits.values()) {
-      if(p.volume<1e-12||items.length>=64)continue;
+    const candidates=Array.from(this.deposits.values()),workLimit=Math.min(24,candidates.length);
+    for(let attempt=0;attempt<workLimit&&items.length<12;attempt++) {
+      const p=candidates[(this.releaseCursor+attempt)%candidates.length];this.work.releaseCandidates++;
+      if(p.volume<1e-12)continue;
       const point=points.get(p),normal=this.depositNormal(p);
       if(p.local&&(p.age<.8||normal[1]<.65))continue;
       const group=[p];let volume=p.volume;
-      if((p.particle>=0||p.local)&&volume<pv)for(const q of nearby(point)) {
-        if(q===p||q.volume<1e-12||Boolean(q.local)!==Boolean(p.local)||(!p.local&&q.particle<0))continue;
+      // Most shallow rain patches do not yet contain a solver parcel. Sum
+      // candidate volumes before any swept SDF queries or insertion searches.
+      const close=volume<pv?nearby(point).filter(q=>q!==p&&q.volume>1e-12&&Boolean(q.local)===Boolean(p.local)&&(p.local||((q.particle>=0)===(p.particle>=0)))&&(!q.local||q.age>=.8)&&Math.hypot(...point.map((v,k)=>v-points.get(q)[k]))<=s*6):[];
+      if(volume+close.reduce((a,q)=>a+q.volume,0)+1e-12<pv)continue;
+      if(volume<pv)for(const q of close) {
+        if(q===p||q.volume<1e-12||Boolean(q.local)!==Boolean(p.local)||(!p.local&&(q.particle>=0)!==(p.particle>=0)))continue;
         if(p.local&&q.age<.8)continue;
         const other=points.get(q);
         if(Math.hypot(...point.map((v,k)=>v-other[k]))>s*6||this.solidHit(point.map((v,k)=>v+normal[k]*.01),other.map((v,k)=>v+normal[k]*.01)))continue;
@@ -151,8 +171,8 @@ export class LabRain {
       }
       if(volume+1e-12<pv||lab.count+items.length>=lab.particleBudget)continue;
       let position=null,best=Infinity;
-      for(let j=0;j<48;j++){
-        const radius=s*Math.sqrt(j)*.65,angle=j*2.39996323,q=[point[0]+Math.cos(angle)*radius,point[1]+normal[1]*s*.42,point[2]+Math.sin(angle)*radius];
+      for(let j=0;j<12;j++){
+        const radius=s*Math.sqrt(j)*1.1,angle=j*2.39996323,q=[point[0]+Math.cos(angle)*radius,point[1]+normal[1]*s*.42,point[2]+Math.sin(angle)*radius];
         const cx=Math.floor(q[0]/s),cz=Math.floor(q[2]/s);let top=-Infinity;
         for(let z=-1;z<=1;z++)for(let x=-1;x<=1;x++)top=Math.max(top,columns.get([cx+x,cz+z].join(','))??-Infinity);
         if(Number.isFinite(top))q[1]=Math.max(q[1],top+s*.9);
@@ -165,6 +185,7 @@ export class LabRain {
       items.push({position,velocity});insert(position);
       const remaining=Math.max(0,1-pv/volume);for(const q of group)q.volume*=remaining;
     }
+    this.releaseCursor=(this.releaseCursor+workLimit)%Math.max(1,candidates.length);
     for(const [key,p] of this.deposits)if(p.volume<1e-12)this.deposits.delete(key);
     this.appendParcels(items);
   }
@@ -199,7 +220,7 @@ export class LabRain {
     return items;
   }
   step(dt) {
-    const lab=this.lab,scale=lab.spec.scale;
+    const started=performance.now(),lab=this.lab,scale=lab.spec.scale;
     if(this.enabled&&this.rate>0) {
       this.budget+=dt*rainPacketRate(this.rate);
       const available=Math.max(0,(lab.particleBudget-lab.count)*lab.spacing**3-this.unresolvedVolume-this.sourceVolume);
@@ -225,7 +246,7 @@ export class LabRain {
       for(const p of this.drops) {
         // Gravity / terminal fall plus the same ambient wind and cursor jet.
         p.velocity[1]=Math.max(-9/scale,p.velocity[1]-9.81/scale*dt);
-        const air=labAirVelocity(p.position,lab);for(let k=0;k<3;k++)p.velocity[k]+=(air[k]-p.velocity[k])*(1-Math.exp(-dt*.7))*(k===1?.08:1);
+        const air=lab.wind||lab.jet?labAirVelocity(p.position,lab):[0,0,0];for(let k=0;k<3;k++)p.velocity[k]+=(air[k]-p.velocity[k])*(1-Math.exp(-dt*.7))*(k===1?.08:1);
         const next=p.position.map((v,k)=>v+p.velocity[k]*dt),water=this.waterHit(p.position,next),solid=this.solidHit(p.position,next);
         lab.wetting?.hitLens(p.position,next);
         const hit=solid&&(!water||solid.t<water.t)?solid:water;
@@ -233,6 +254,11 @@ export class LabRain {
       }
       this.drops=alive;
     }
-    this.slideDeposits(dt);this.releaseDeposits();
+    const impactsDone=performance.now();this.slideDeposits(dt);this.releaseClock+=dt;
+    // Reservoir conversion is independent of frame rate and visual LOD. Keep
+    // fractional mass between batches, rather than doing a full insertion
+    // search for every droplet on every fluid step.
+    if(this.releaseClock>=.04){this.releaseClock%=.04;this.releaseDeposits();}
+    this.timings={fall:impactsDone-started,deposits:performance.now()-impactsDone};
   }
 }
