@@ -8,7 +8,7 @@ export function detailRadiance(kind,environment,ambient,viewPath,lightPath,turbi
   const view=waterTransmittance(viewPath,turbidity),incoming=waterTransmittance(lightPath,turbidity);
   return environment.map((value,k)=>{
     const sun=Array.isArray(sunVisibility)?sunVisibility[k]:sunVisibility;
-    const direct=(kind===0?1:kind===1?.85:.55)*LAB_SUN[k]*sun*sunlight*response,indirect=Math.max(0,value)*(kind===2?.35:1)*ambient;
+    const direct=(kind===0||kind===3?1:kind===1?.85:.55)*LAB_SUN[k]*sun*sunlight*response,indirect=Math.max(0,value)*(kind===2?.35:1)*ambient;
     return (direct*incoming[k]+indirect)*view[k];
   });
 }
@@ -27,17 +27,17 @@ void detailTransportStep(inout vec3 tau,inout vec3 radiance,vec3 extinction,vec3
 vec2 detailEncodeNormal(vec3 n){n/=abs(n.x)+abs(n.y)+abs(n.z);return n.z>=0.?n.xy:(1.-abs(n.yx))*mix(vec2(1),vec2(-1),lessThan(n.xy,vec2(0)));}
 vec3 detailDecodeNormal(vec2 p){vec3 n=vec3(p,1.-abs(p.x)-abs(p.y));if(n.z<0.)n.xy=(1.-abs(n.yx))*mix(vec2(1),vec2(-1),lessThan(n.xy,vec2(0)));return normalize(n);}
 float detailResponse(float kind,vec3 view,vec3 normal,vec3 light){
- float cosine=-dot(view,light),g=kind>1.5?.45:.55,phase=(1.-g*g)/pow(1.+g*g-2.*g*cosine,1.5);if(kind<.5||kind>1.5)return .45+.55*phase;
+ float cosine=-dot(view,light),g=kind>2.5?.55:kind>1.5?.45:.55,phase=(1.-g*g)/pow(1.+g*g-2.*g*cosine,1.5);if(kind<.5||kind>1.5)return .45+.55*phase;
  vec3 h=view+light;if(length(h)<1e-6)return .18*max(0.,-dot(normal,light));h=normalize(h);float nv=max(.05,dot(normal,view)),nl=max(0.,dot(normal,light)),nh=max(0.,dot(normal,h)),vh=max(0.,dot(view,h)),a2=pow(.35,4.),d=a2/(3.14159265*pow(nh*nh*(a2-1.)+1.,2.)),k=.228;
  float geometry=nv/(nv*(1.-k)+k)*nl/(nl*(1.-k)+k),f=.02+.98*pow(1.-vh,5.),specular=d*geometry*f/(4.*nv);return .8*nl+.18*max(0.,-dot(normal,light))+6.28318531*specular;
 }
-float detailAlbedo(float kind){return kind<.5?1.:kind<1.5?.85:.55;}
+float detailAlbedo(float kind){return kind>2.5?1.:kind<.5?1.:kind<1.5?.85:.55;}
 // Bounded diffusion approximation within a nearly conservative whitewater
 // cluster. Only the foam shadow is softened; water, walls and body extinction
 // still attenuate all incident energy. No source means no scattered light.
 float detailClusterResponse(float response,float transmission){float tau=-log(max(1e-7,transmission));return response*transmission+.35*(1.-transmission)/(1.+.75*tau);}
 vec3 detailLight(float kind,vec3 environment,float ambient,vec3 sunVisibility,float sunlight,float response){
- return detailAlbedo(kind)*LAB_SUN*sunVisibility*sunlight*response+max(environment,vec3(0))*(kind>1.5?.35:1.)*ambient;
+ return detailAlbedo(kind)*LAB_SUN*sunVisibility*sunlight*response+max(environment,vec3(0))*(kind>1.5&&kind<2.5?.35:1.)*ambient;
 }
 `;
 

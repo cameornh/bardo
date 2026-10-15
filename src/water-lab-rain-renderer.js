@@ -46,7 +46,7 @@ void main(){
  for(int i=0;i<16;i++){if(i>=(uSHDegree+1)*(uSHDegree+1))break;light+=uSH[i]*basis[i];}
  // Test actual reconstructed water, not the conservative bulk-splat bounds.
  float surface=texture(uWaterSurface,uv).a,path=0.;
- if(vDepth>surface){float begin=parcelSample(uEye).x>.18?0.:surface,stepLength=(vDepth-begin)/6.;vec3 ray=normalize(vCenter-uEye);
+ if(vDepth>surface||parcelSample(uEye).x>.18){float begin=parcelSample(uEye).x>.18?0.:surface,stepLength=(vDepth-begin)/6.;vec3 ray=normalize(vCenter-uEye);
    for(int i=0;i<6;i++)path+=smoothstep(.08,.22,parcelSample(uEye+ray*(begin+(float(i)+.5)*stepLength)).x)*stepLength*uScale;}
  vec3 trans=labTransmission(path,uTurbidity,uTannins);
  vec3 color=max(light,vec3(0))*uAmbient*mediumSky(vCenter)+LAB_SUN*uSunlight*sunTransmission(vCenter,uScale);if(uStation==2)for(int i=0;i<3;i++)color+=poolColor(i)*3.*uLights*poolFalloff(vCenter,poolLamp(i))*poolTransmission(vCenter,i,uScale);

@@ -15,12 +15,16 @@
       <label>Brush radius <output id="brush-value">1.25 m</output><input id="brush" type="range" min="0.25" max="3" step="0.05" value="1.25"></label>
       <div class="row"><button id="undo">Undo edit</button><button id="home">Reset camera</button></div>
       <fieldset id="water-lab-controls" hidden><legend>Water laboratory</legend>
-        <label>Station <select id="wl-station"><option value="pipe">Pipe / impinging jet</option><option value="waterfall">Large waterfall</option><option value="pool">Pool / underwater jets and lights</option><option value="tank">Moving glass tank</option><option value="river">S-bend river / pond / sediment</option><option value="glass">Spinning drinking glass</option><option value="ocean">Wind-driven ocean basin</option></select></label>
+        <label>Station <select id="wl-station"><option value="pipe">Pipe / impinging jet</option><option value="waterfall">Large waterfall</option><option value="pool">Pool / underwater jets and lights</option><option value="tank">Moving glass tank</option><option value="river">S-bend river / pond / sediment</option><option value="glass">Spinning drinking glass</option><option value="ocean">Wind-driven ocean basin</option><option value="pane">Movable glass pane / surface wetting</option></select></label>
         <label>Water detail target (resets water) <select id="wl-resolution"><option value="1">1× · standard</option><option value="1.5">1.5× · finer sheets</option><option value="2">2× · fine</option><option value="3">3× · fine target</option></select></label>
         <label>Bulk particle budget (resets water) <select id="wl-budget"><option value="8192">8,192</option><option value="16384">16,384</option><option value="32768">32,768 · stress test</option></select></label>
         <label>Physical size (resets water) <output id="wl-scale-value">1×</output><input id="wl-scale" type="range" min="-1" max="1" step="0.05" value="0"></label>
-        <label><input id="wl-detail" type="checkbox" checked> Fine spray / bubbles / foam</label>
+        <label><input id="wl-detail" type="checkbox" checked> Fine particles (spray / foam / bubbles / mist)</label>
         <label>Fine particle density <output id="wl-detail-density-value">1×</output><input id="wl-detail-density" type="range" min="0" max="20" step="0.1" value="1"></label>
+        <label><input id="wl-mist" type="checkbox" checked> Airborne mist</label>
+        <label>Mist density <output id="wl-mist-density-value">1×</output><input id="wl-mist-density" type="range" min="0" max="4" step="0.1" value="1"></label>
+        <label><input id="wl-camera-wet" type="checkbox" checked> Camera water droplets</label><button id="wl-wipe">Wipe camera</button>
+        <button id="wl-pane-splash" hidden>Splash pane</button>
         <label>Interaction <select id="wl-tool"><option value="orbit">Inspect / orbit</option><option value="grab">Grab / drop water sphere</option><option value="nudge">Push water</option><option value="wind">Wind brush (hold)</option><option value="glass">Throw floating glass ball</option><option value="mirror">Throw neutral mirror ball</option><option value="rock">Throw sinking rock</option><option value="dye">Dissolve blue dye</option></select></label>
         <label>Interaction radius <output id="wl-radius-value"></output><input id="wl-radius" type="range" min="0.2" max="2" step="0.05" value="0.75"></label>
         <label>Laminar → turbulent forcing <output id="wl-turbulence-value">0.20</output><input id="wl-turbulence" type="range" min="0" max="2" step="0.05" value="0.2"></label>
@@ -36,6 +40,7 @@
         <label>Direct sunlight <output id="wl-sunlight-value">1.00</output><input id="wl-sunlight" type="range" min="0" max="3" step="0.05" value="1"></label>
         <label>Sky dome / ambient <output id="wl-ambient-value">1.00</output><input id="wl-ambient" type="range" min="0" max="1.5" step="0.05" value="1"></label>
         <label>Wind speed <output id="wl-wind-value">0 m/s</output><input id="wl-wind" type="range" min="0" max="80" step="1" value="0"></label>
+        <label>Wind turbulence <output id="wl-windTurbulence-value">1.00</output><input id="wl-windTurbulence" type="range" min="0" max="4" step="0.05" value="1"></label>
         <label>Wind brush speed <output id="wl-windStrength-value">60 m/s</output><input id="wl-windStrength" type="range" min="0" max="160" step="5" value="60"></label>
         <label><input id="wl-rain" type="checkbox"> Rain</label>
         <label>Rain rate <output id="wl-rain-rate-value">5 mm/min</output><input id="wl-rain-rate" type="range" min="1" max="12000" step="1" value="5"></label>
@@ -44,6 +49,8 @@
           <label>Container depth position <output id="wl-z-value">0</output><input id="wl-z" type="range" min="-2" max="2" step="0.05" value="0"></label>
           <label>Container height <output id="wl-y-value">2</output><input id="wl-y" type="range" min="1.9" max="5" step="0.05" value="2"></label>
           <label>Container tilt <output id="wl-tilt-value">0°</output><input id="wl-tilt" type="range" min="-150" max="150" step="1" value="0"></label>
+          <label>Container pitch <output id="wl-pitch-value">0°</output><input id="wl-pitch" type="range" min="-150" max="150" step="1" value="0"></label>
+          <label>Axial orientation <output id="wl-orientation-value">0°</output><input id="wl-orientation" type="range" min="-180" max="180" step="1" value="0"></label>
           <label>Axial rotation speed <output id="wl-spin-value">0 rpm</output><input id="wl-spin" type="range" min="-120" max="120" step="1" value="0"></label>
           <button id="wl-accelerate">Accelerate container sideways</button>
         </div>

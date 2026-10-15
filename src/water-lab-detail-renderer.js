@@ -49,8 +49,8 @@ vec3 white=detailLight(kind,detailEnvironment(kind>.5&&kind<1.5?normal:vec3(0,1,
 if(uStation==2)for(int i=0;i<3;i++){vec3 lamp=poolLamp(i),delta=lamp-source.xyz;float r=length(delta),response=detailClusterResponse(detailResponse(kind,-ray,normal,delta/max(r,.0001)),sprayPool(source.xyz,i));white+=poolColor(i)*3.*uLights*poolFalloff(source.xyz,lamp)*detailAlbedo(kind)*response*bodyTransmission(source.xyz,delta/max(r,.0001),r,uScale,.06,0.)*mediumPool(source.xyz,i);}
 // Retain the water's foreground scattering when a translucent marker covers
 // it. Extinction alone incorrectly paints a dark decal over this radiance.
-float lengthStep=(depth-begin)/8.,path=0.;
-for(int i=0;i<8;i++){vec3 q=uEye+ray*(begin+(float(i)+.5)*lengthStep);vec4 a=parcelSample(q);float wet=smoothstep(.12,.24,a.x)*lengthStep*uScale;if(wet<=0.)continue;vec3 c=a.yzw/max(a.x,.0001),ext=soluteExtinction(c,uTannins,uTurbidity);detailTransportStep(outTau.rgb,outScatter.rgb,ext,soluteScatter(c,uTannins,uTurbidity),detailIncident(q,ray),wet);path+=wet;}
+float lengthStep=(depth-begin)/16.,path=0.;
+for(int i=0;i<16;i++){vec3 q=uEye+ray*(begin+(float(i)+.5)*lengthStep);vec4 a=parcelSample(q);float wet=smoothstep(.12,.24,a.x)*lengthStep*uScale;if(wet<=0.)continue;vec3 c=a.yzw/max(a.x,.0001),ext=soluteExtinction(c,uTannins,uTurbidity);detailTransportStep(outTau.rgb,outScatter.rgb,ext,soluteScatter(c,uTannins,uTurbidity),detailIncident(q,ray),wet);path+=wet;}
 outColor=vec4(white,path);
 }`;
 const fragment=`precision highp float;precision highp int;in vec2 vQ;in float vAlpha,vDepth;
@@ -61,9 +61,9 @@ void main(){
  if(vAlpha<.0001)discard;vec2 uv=gl_FragCoord.xy/uResolution;float opaque=texture(uOpaqueRead,uv).a;if(vDepth>opaque)discard;
  float gaussian=exp(-.5*dot(vQ,vQ)),a=gaussian*vAlpha;if(a<.0001)discard;
  if(vKindRadiusClearance.z<vKindRadiusClearance.y*3.){vec4 viewRay=uInverseProjection*vec4(uv*2.-1.,1,1);vec3 viewPoint=viewRay.xyz*(-vCenter.w/viewRay.z),point=uEye+mat3(uCameraMatrix)*viewPoint;if(labSolid(point)<0.)discard;}
- float surface=texture(uWaterSurface,uv).a;bool wet=vDepth>surface+.005&&vOptical.a>0.;
+ float surface=texture(uWaterSurface,uv).a;bool wet=vOptical.a>0.;
  vec3 radiance=wet?vOptical.rgb*exp(-vViewTau)+vScatter:vOptical.rgb;
- a*=vKindRadiusClearance.x>1.5?.5:1.;outColor=vec4(radiance*a,a);
+ a*=vKindRadiusClearance.x>2.5?.7:vKindRadiusClearance.x>1.5?.5:1.;outColor=vec4(radiance*a,a);
 }`;
 // Accumulate optical density with only a short reconstruction footprint.
 // Coherent emission creates the shape; no broad halo is added around it.

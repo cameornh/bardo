@@ -52,7 +52,7 @@ export class DetailFlowField {
 export function detailFluidState(kind,density){
   if(density>(kind===2?.22:.34))return 2;
   if(density>(kind===1?.065:.11))return 1;
-  return 0;
+  return kind===3?3:0;
 }
 export function projectDetailSurface(p,spacing,flow,target=.18,limit=.22) {
   const e=spacing*.4,rho=flow.sample(p)[0],gradient=[0,1,2].map(k=>{
@@ -65,9 +65,9 @@ export function projectDetailSurface(p,spacing,flow,target=.18,limit=.22) {
 export function detailFluidMotion(p,v,kind,dt,scale,spacing,flow,age=Infinity) {
   // Give newly shed spray time to leave its source kernel. Reclassifying it
   // inside the coarse kernel halo immediately would swallow every splash.
-  if(kind===0&&age<.075)return {position:p,velocity:v,kind,wet:false};
+  if((kind===0||kind===3)&&age<.1)return {position:p,velocity:v,kind,wet:false};
   const sample=flow.sample(p);kind=detailFluidState(kind,sample[0]);
-  if(kind===0)return {position:p,velocity:v,kind,wet:false};
+  if(kind===0||kind===3)return {position:p,velocity:v,kind,wet:false};
   const target=sample.slice(1).map(x=>x/Math.max(sample[0],1e-6));if(kind===2)target[1]+=.18/scale;
   const mix=1-Math.exp(-dt*(kind===2?9:18));v=v.map((x,k)=>x+(target[k]-x)*mix);p=p.map((x,k)=>x+v[k]*dt);
   if(kind===1)p=projectDetailSurface(p,spacing,flow);
@@ -76,11 +76,11 @@ export function detailFluidMotion(p,v,kind,dt,scale,spacing,flow,age=Infinity) {
 
 export function detailContact(start,end,velocity,radius,lab,previousMotion=null) {
   const solid=p=>lab.solid(p),m=lab.motion;
-  if(previousMotion&&m&&(lab.kind==='tank'||lab.kind==='glass')){
-    const local=rotate(start.map((v,k)=>v-previousMotion.position[k]),previousMotion.tilt,previousMotion.spin,true);
+  if(previousMotion&&m&&(['tank','glass','pane'].includes(lab.kind))){
+    const local=rotate(start.map((v,k)=>v-previousMotion.position[k]),previousMotion.tilt,previousMotion.spin,true,previousMotion.pitch);
     // Sweep in the current vessel frame: a thin moving wall can cross a
     // marker even when both world-space endpoints lie outside the wall.
-    start=rotate(local,m.tilt,m.spin).map((v,k)=>v+m.position[k]);
+    start=rotate(local,m.tilt,m.spin,false,m.pitch).map((v,k)=>v+m.position[k]);
   }
   const delta=end.map((v,k)=>v-start[k]),distance=Math.hypot(...delta),direction=delta.map(v=>v/Math.max(distance,1e-9));
   let t=0,p=start.slice(),hit=false;
@@ -103,17 +103,17 @@ export function detailContact(start,end,velocity,radius,lab,previousMotion=null)
 export const DETAIL_ENVIRONMENT_GLSL = `
 ${LAB_GEOMETRY_GLSL}
 ${DETAIL_FLOW_GLSL}
-uniform bool uDetailFlow,uDetailCollision;uniform float uDetailSpacing,uPreviousTilt,uPreviousSpin,uWallTiltSpeed,uWallSpinSpeed;
+uniform bool uDetailFlow,uDetailCollision;uniform float uDetailSpacing,uPreviousTilt,uPreviousSpin,uPreviousPitch,uWallTiltSpeed,uWallSpinSpeed,uWallPitchSpeed;
 uniform vec3 uPreviousContainer,uWallVelocity;
-int detailState(int kind,float density){if(density>(kind==2?.22:.34))return 2;if(density>(kind==1?.065:.11))return 1;return 0;}
-vec3 previousLocal(vec3 p){p-=uPreviousContainer;float c=cos(uPreviousTilt),s=sin(uPreviousTilt),a=cos(uPreviousSpin),b=sin(uPreviousSpin);vec3 q=vec3(c*p.x+s*p.y,-s*p.x+c*p.y,p.z);return vec3(a*q.x-b*q.z,q.y,b*q.x+a*q.z);}
+int detailState(int kind,float density){if(density>(kind==2?.22:.34))return 2;if(density>(kind==1?.065:.11))return 1;return kind==3?3:0;}
+vec3 previousLocal(vec3 p){p-=uPreviousContainer;p.yz=vec2(cos(uPreviousPitch)*p.y+sin(uPreviousPitch)*p.z,-sin(uPreviousPitch)*p.y+cos(uPreviousPitch)*p.z);float c=cos(uPreviousTilt),s=sin(uPreviousTilt),a=cos(uPreviousSpin),b=sin(uPreviousSpin);vec3 q=vec3(c*p.x+s*p.y,-s*p.x+c*p.y,p.z);return vec3(a*q.x-b*q.z,q.y,b*q.x+a*q.z);}
 void detailContact(in vec3 start,inout vec3 end,inout vec3 velocity,float radius,bool moveStart){
   if(!uDetailCollision)return;
-  if(moveStart&&(uStation==3||uStation==5))start=rotateLab(previousLocal(start),false)+uContainer;
+  if(moveStart&&(uStation==3||uStation==5||uStation==7))start=rotateLab(previousLocal(start),false)+uContainer;
   vec3 delta=end-start;float distance=length(delta),t=0.;vec3 direction=delta/max(distance,1e-9),p=start;bool hit=false;
   for(int step=0;step<32;step++){p=start+direction*t;float d=labSolid(p)-radius;if(d<.0002){hit=true;break;}if(t>=distance)break;t=min(distance,t+max(.0001,d*.8));}
   end=p;if(!hit)return;vec3 n=labNormal(p);float d=labSolid(p);end+=n*max(0.,radius+max(.001,radius*.25)-d);vec3 wall=vec3(0);
-  if(abs(vessel(end)-labSolid(end))<.02){vec3 omega=vec3(0,0,uWallTiltSpeed)+rotateLab(vec3(0,1,0),false)*uWallSpinSpeed;wall=uWallVelocity+cross(omega,end-uContainer);}
+  if(abs(vessel(end)-labSolid(end))<.02){vec3 omega=vec3(uWallPitchSpeed,-sin(uPitch)*uWallTiltSpeed,cos(uPitch)*uWallTiltSpeed)+rotateLab(vec3(0,1,0),false)*uWallSpinSpeed;wall=uWallVelocity+cross(omega,end-uContainer);}
   for(int i=0;i<uBodyCount;i++){vec4 body=labBody(i);if(abs(length(end-body.xyz)-body.w-labSolid(end))<.02)wall=texelFetch(uBodies,ivec2((i*2+1)%256,(i*2+1)/256),0).xyz;}
   vec3 relative=velocity-wall;float vn=dot(relative,n);velocity=wall+(relative-min(0.,vn)*n)*.75;
 }
@@ -121,7 +121,7 @@ void detailProject(inout vec3 p,float target,float limit){
   float e=uDetailSpacing*.4,rho=detailFlowSample(p).x;vec3 g=vec3(detailFlowSample(p+vec3(e,0,0)).x-detailFlowSample(p-vec3(e,0,0)).x,detailFlowSample(p+vec3(0,e,0)).x-detailFlowSample(p-vec3(0,e,0)).x,detailFlowSample(p+vec3(0,0,e)).x-detailFlowSample(p-vec3(0,0,e)).x)/(2.*e);float g2=dot(g,g);if(g2>1e-6){vec3 delta=g*(target-rho)/g2;p+=delta*min(1.,uDetailSpacing*limit/max(length(delta),1e-9));}
 }
 void detailWetMotion(inout vec3 p,inout vec3 v,inout float kind,float age,float dt,float scale,out bool wet){
-  wet=false;if(!uDetailFlow||(kind<.5&&age<.075))return;vec4 f=detailFlowSample(p);kind=float(detailState(int(kind),f.x));if(kind<.5)return;wet=true;
+  wet=false;if(!uDetailFlow||((kind<.5||kind>2.5)&&age<.1))return;vec4 f=detailFlowSample(p);kind=float(detailState(int(kind),f.x));if(kind<.5||kind>2.5)return;wet=true;
   vec3 target=f.yzw/max(f.x,1e-6);if(kind>1.5)target.y+=.18/scale;v+=(target-v)*(1.-exp(-dt*(kind>1.5?9.:18.)));p+=v*dt;
   if(kind<1.5)detailProject(p,.18,.22);
 }
@@ -129,5 +129,5 @@ void detailWetMotion(inout vec3 p,inout vec3 v,inout float kind,float age,float 
 
 export function emptyGeometryUniforms() {
   const zero=new THREE.DataTexture(new Float32Array(4),1,1,THREE.RGBAFormat,THREE.FloatType);zero.needsUpdate=true;
-  return {uRiverSlope:{value:.1},uTannins:{value:0},uLabBed:{value:zero},uBodies:{value:zero},uBodyCount:{value:0},uStation:{value:0},uContainer:{value:new THREE.Vector3(0,2,0)},uTilt:{value:0},uSpin:{value:0}};
+  return {uPlayer:{value:new THREE.Vector4(0,0,0,0)},uPlayerHeight:{value:0},uRiverSlope:{value:.1},uTannins:{value:0},uLabBed:{value:zero},uBodies:{value:zero},uBodyCount:{value:0},uStation:{value:0},uContainer:{value:new THREE.Vector3(0,2,0)},uPitch:{value:0},uTilt:{value:0},uSpin:{value:0}};
 }

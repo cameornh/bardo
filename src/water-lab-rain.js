@@ -1,3 +1,4 @@
+import {labAirVelocity} from './water-lab-air.js';
 import {hash, clamp, rotate, vesselLocal, vesselDistance, normalAt} from './water-lab-model.js';
 
 export const RAIN_PACKET_LIMIT=4096;
@@ -66,18 +67,18 @@ export class LabRain {
     }
     return best;
   }
-  solidHit(a,b) {
+  solidHit(a,b,field=q=>this.lab.solid(q)) {
     const delta=b.map((v,k)=>v-a[k]),length=Math.hypot(...delta);
     if(length<1e-9)return null;
     const direction=delta.map(v=>v/length);
     let distance=0,previous=0;
     for(let i=0;i<96&&distance<=length;i++) {
-      const point=a.map((v,k)=>v+direction[k]*distance),d=this.lab.solid(point);
+      const point=a.map((v,k)=>v+direction[k]*distance),d=field(point);
       if(d<.003) {
         let lo=previous,hi=distance;
-        for(let j=0;j<8;j++) {const mid=(lo+hi)*.5;if(this.lab.solid(a.map((v,k)=>v+direction[k]*mid))>.003)lo=mid;else hi=mid;}
+        for(let j=0;j<8;j++) {const mid=(lo+hi)*.5;if(field(a.map((v,k)=>v+direction[k]*mid))>.003)lo=mid;else hi=mid;}
         const p=a.map((v,k)=>v+direction[k]*hi);
-        return {t:hi/length,point:p,normal:normalAt(p,q=>this.lab.solid(q)),particle:-1};
+        return {t:hi/length,point:p,normal:normalAt(p,field),particle:-1};
       }
       previous=distance;
       distance+=Math.max(.001,Math.min(.15,d*.65));
@@ -86,11 +87,11 @@ export class LabRain {
   }
   depositPoint(p) {
     const lab=this.lab;
-    if(p.local)return rotate(p.local,lab.motion.tilt,lab.motion.spin).map((v,k)=>v+lab.motion.position[k]);
-    if(p.particle>=0) return p.offset.map((v,k)=>v+lab.positions[p.particle*4+k]);
+    if(p.local)return rotate(p.local,lab.motion.tilt,lab.motion.spin,false,lab.motion.pitch).map((v,k)=>v+lab.motion.position[k]);
+    // Wet reservoirs stay at the impact patch, not attached to a rising parcel.
     return p.point.slice();
   }
-  depositNormal(p) {return p.localNormal?rotate(p.localNormal,this.lab.motion.tilt,this.lab.motion.spin):p.normal;}
+  depositNormal(p) {return p.localNormal?rotate(p.localNormal,this.lab.motion.tilt,this.lab.motion.spin,false,this.lab.motion.pitch):p.normal;}
   impact(drop,hit) {
     const lab=this.lab,s=lab.spacing;
     this.hits++;
@@ -102,19 +103,20 @@ export class LabRain {
         const d=Math.hypot(lab.positions[o]-hit.point[0],lab.positions[o+1]-hit.point[1],lab.positions[o+2]-hit.point[2]);
         const w=Math.max(0,1-d/(s*2));if(w){targets.push([o,w]);sum+=w;}
       }
-      if(sum)for(const [o,w] of targets)for(let k=0;k<3;k++)lab.velocities[o+k]+=drop.velocity[k]*drop.volume/(s**3)*w/sum;
+      if(sum)for(const [o,w] of targets)for(let k=0;k<3;k++)lab.velocities[o+k]+=drop.velocity[k]*Math.min(drop.volume/(s**3),sum*.25)*w/sum;
     }
     const onVessel=hit.particle<0&&vesselDistance(hit.point,lab.kind,lab.motion)<.015;
     const q=onVessel?vesselLocal(hit.point,lab.motion):hit.point;
-    const cell=s*3,key=`${onVessel?'v':hit.particle>=0?'w':'g'}:${q.map(v=>Math.floor(v/cell)).join(',')}`;
+    const cell=onVessel?Math.max(.025,.018/lab.spec.scale):s*1.5,key=`${onVessel?'v':hit.particle>=0?'w':'g'}:${q.map(v=>Math.floor(v/cell)).join(',')}`;
     let p=this.deposits.get(key);
     if(!p) {
-      p={volume:0,point:hit.point.slice(),normal:hit.normal.slice(),particle:hit.particle};
-      if(onVessel){p.local=q;p.localNormal=rotate(hit.normal,lab.motion.tilt,lab.motion.spin,true);}
+      p={age:0,slide:[0,0,0],volume:0,point:hit.point.slice(),normal:hit.normal.slice(),particle:hit.particle};
+      if(onVessel){p.local=q;p.localNormal=rotate(hit.normal,lab.motion.tilt,lab.motion.spin,true,lab.motion.pitch);}
       if(hit.particle>=0)p.offset=hit.point.map((v,k)=>v-lab.positions[hit.particle*4+k]);
       this.deposits.set(key,p);
     }
     p.volume+=drop.volume;
+    lab.detail?.impact(hit.point,hit.normal,drop.velocity,drop.volume,lab);
   }
   appendParcels(items) {
     if(!items.length)return;
@@ -124,36 +126,71 @@ export class LabRain {
     items.forEach((p,j)=>{lab.positions.set(p.position,(old+j)*4);lab.velocities.set(p.velocity,(old+j)*4);});
     this.transferred+=items.length*lab.spacing**3;
   }
+  // A bounded, separation-aware surface insertion. Existing AND newly queued
+  // parcels occupy space; choose the lowest available local surface, rather
+  // than repeatedly stacking parcels above the first impacted particle.
   releaseDeposits() {
-    const lab=this.lab,pv=lab.spacing**3,items=[];
+    const lab=this.lab,s=lab.spacing,pv=s**3,items=[],bins=new Map(),columns=new Map(),reservoirs=new Map(),points=new Map();
+    for(const p of this.deposits.values()){const point=this.depositPoint(p);points.set(p,point);const id=point.map(v=>Math.floor(v/(s*6))).join(',');if(!reservoirs.has(id))reservoirs.set(id,[]);reservoirs.get(id).push(p);}
+    const nearby=point=>{const c=point.map(v=>Math.floor(v/(s*6))),out=[];for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)out.push(...(reservoirs.get([c[0]+x,c[1]+y,c[2]+z].join(','))||[]));return out;};
+    const key=p=>p.map(v=>Math.floor(v/s)).join(',');
+    const insert=p=>{const id=key(p);if(!bins.has(id))bins.set(id,[]);bins.get(id).push(p);const col=Math.floor(p[0]/s)+','+Math.floor(p[2]/s);columns.set(col,Math.max(columns.get(col)??-Infinity,p[1]));};
+    for(let i=0;i<lab.count;i++)insert(Array.from(lab.positions.subarray(i*4,i*4+3)));
+    const clear=p=>{const c=p.map(v=>Math.floor(v/s));for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)for(const q of bins.get([c[0]+x,c[1]+y,c[2]+z].join(','))||[])if(Math.hypot(...p.map((v,k)=>v-q[k]))<s*.86)return false;return true;};
     for(const p of this.deposits.values()) {
-      if(p.volume<1e-12)continue;
-      const point=this.depositPoint(p),normal=this.depositNormal(p);
-      // Wet impacts share a local reservoir through open liquid. This lets
-      // many tiny impacts raise the resolved level promptly, rather than wait
-      // for an entire coarse parcel to land on each individual patch.
+      if(p.volume<1e-12||items.length>=64)continue;
+      const point=points.get(p),normal=this.depositNormal(p);
+      if(p.local&&(p.age<.8||normal[1]<.65))continue;
       const group=[p];let volume=p.volume;
-      if(p.particle>=0&&volume<pv)for(const q of this.deposits.values()) {
-        if(q===p||q.particle<0||q.volume<1e-12)continue;
-        const other=this.depositPoint(q);
-        if(Math.hypot(...point.map((v,k)=>v-other[k]))>lab.spacing*4)continue;
-        if(this.solidHit(point,other))continue;
-        group.push(q);volume+=q.volume;
+      if((p.particle>=0||p.local)&&volume<pv)for(const q of nearby(point)) {
+        if(q===p||q.volume<1e-12||Boolean(q.local)!==Boolean(p.local)||(!p.local&&q.particle<0))continue;
+        if(p.local&&q.age<.8)continue;
+        const other=points.get(q);
+        if(Math.hypot(...point.map((v,k)=>v-other[k]))>s*6||this.solidHit(point.map((v,k)=>v+normal[k]*.01),other.map((v,k)=>v+normal[k]*.01)))continue;
+        group.push(q);volume+=q.volume;if(volume>=pv)break;
       }
-      if(volume+1e-12>=pv && lab.count+items.length<lab.particleBudget) {
-        const position=lab.collide(point.map((v,k)=>v+normal[k]*lab.spacing*.42));
-        const velocity=p.particle>=0?Array.from(lab.velocities.subarray(p.particle*4,p.particle*4+3)):[0,0,0];
-        items.push({position,velocity});
-        const remaining=Math.max(0,1-pv/volume);
-        for(const q of group)q.volume*=remaining;
+      if(volume+1e-12<pv||lab.count+items.length>=lab.particleBudget)continue;
+      let position=null,best=Infinity;
+      for(let j=0;j<48;j++){
+        const radius=s*Math.sqrt(j)*.65,angle=j*2.39996323,q=[point[0]+Math.cos(angle)*radius,point[1]+normal[1]*s*.42,point[2]+Math.sin(angle)*radius];
+        const cx=Math.floor(q[0]/s),cz=Math.floor(q[2]/s);let top=-Infinity;
+        for(let z=-1;z<=1;z++)for(let x=-1;x<=1;x++)top=Math.max(top,columns.get([cx+x,cz+z].join(','))??-Infinity);
+        if(Number.isFinite(top))q[1]=Math.max(q[1],top+s*.9);
+        const candidate=lab.collide(q);if(!clear(candidate)||Math.hypot(candidate[0]-q[0],candidate[2]-q[2])>s*.5)continue;
+        if(this.solidHit(point.map((v,k)=>v+normal[k]*s*.45),candidate))continue;
+        const score=candidate[1]+radius*.035;if(score<best){position=candidate;best=score;}
       }
+      if(!position)continue;
+      const velocity=p.particle>=0&&p.particle<lab.count?Array.from(lab.velocities.subarray(p.particle*4,p.particle*4+3)):[0,0,0];
+      items.push({position,velocity});insert(position);
+      const remaining=Math.max(0,1-pv/volume);for(const q of group)q.volume*=remaining;
     }
     for(const [key,p] of this.deposits)if(p.volume<1e-12)this.deposits.delete(key);
     this.appendParcels(items);
   }
+  slideDeposits(dt){
+    const lab=this.lab,scale=lab.spec.scale;
+    for(const [key,p] of this.deposits){p.age=(p.age||0)+dt;if(!p.local)continue;
+      const point=this.depositPoint(p),n=this.depositNormal(p),radius=Math.cbrt(p.volume*3/(4*Math.PI))*scale;
+      // Contact-line pinning below the capillary length, followed by viscous
+      // runoff. A large numerical parcel does not set a drop's adhesion size.
+      const mobility=clamp((radius-.0027)/.012,0,1),speed=mobility*Math.min(.22,.012+radius)*Math.min(1,p.age/.8)/scale;
+      const tangent=[n[0]*n[1],-1+n[1]*n[1],n[2]*n[1]],next=point.map((v,k)=>v+tangent[k]*speed*dt);
+      const d=vesselDistance(next,lab.kind,lab.motion),newN=normalAt(next,q=>vesselDistance(q,lab.kind,lab.motion));
+      if(d>.035||n[1]<-.25&&p.age>1.2&&mobility>.1){
+        if(this.drops.length>=RAIN_PACKET_LIMIT)continue;this.drops.push({id:++this.sequence,position:point.map((v,k)=>v+n[k]*.018),velocity:[0,-.15/scale,0],volume:p.volume});this.deposits.delete(key);continue;
+      }
+      p.local=rotate(next.map((v,k)=>v-newN[k]*(d-.004)-lab.motion.position[k]),lab.motion.tilt,lab.motion.spin,true,lab.motion.pitch);
+      p.localNormal=rotate(newN,lab.motion.tilt,lab.motion.spin,true,lab.motion.pitch);
+    }
+  }
+  douse(){const count=Math.min(32,RAIN_PACKET_LIMIT-this.drops.length);if(count<=0)return;const lab=this.lab,pv=lab.spacing**3,volume=Math.min(pv*12,Math.max(0,(lab.particleBudget-lab.count)*pv-this.unresolvedVolume));if(!volume)return;
+    for(let i=0;i<count;i++){const q=[(hash(i+this.sequence)-.5)*3,1.2+hash(i+6)*.4,(hash(i+13)-.5)*2],point=rotate(q,lab.motion.tilt,lab.motion.spin,false,lab.motion.pitch).map((v,k)=>v+lab.motion.position[k]),velocity=rotate([0,-2/lab.spec.scale,0],lab.motion.tilt,lab.motion.spin,false,lab.motion.pitch);this.drops.push({id:++this.sequence,position:point,velocity,volume:volume/count});}this.emitted+=volume;
+  }
   fieldItems() {
     const items=[];
     for(const p of this.deposits.values()) {
+      if(p.local)continue;
       const radius=Math.cbrt(p.volume)*.65,point=this.depositPoint(p),normal=this.depositNormal(p);
       // These small wet deposits use the same volume-normalized Gaussian field
       // as the fluid, keeping their water visible before parcel conversion.
@@ -168,7 +205,7 @@ export class LabRain {
       const available=Math.max(0,(lab.particleBudget-lab.count)*lab.spacing**3-this.unresolvedVolume-this.sourceVolume);
       this.capacityLimited=available<this.flux*dt;
       this.sourceVolume+=Math.min(available,this.flux*dt);
-      const count=Math.min(Math.floor(this.budget),RAIN_PACKET_LIMIT-this.drops.length);
+      const count=Math.min(Math.floor(this.budget),Math.max(0,RAIN_PACKET_LIMIT-this.drops.length));
       if(count&&this.sourceVolume>0) {
         const volume=this.sourceVolume/count;this.sourceVolume=0;this.budget-=count;
         for(let i=0;i<count;i++) {
@@ -188,19 +225,14 @@ export class LabRain {
       for(const p of this.drops) {
         // Gravity / terminal fall plus the same ambient wind and cursor jet.
         p.velocity[1]=Math.max(-9/scale,p.velocity[1]-9.81/scale*dt);
-        p.velocity[0]+=(lab.wind*.06/scale-p.velocity[0])*(1-Math.exp(-dt*.7));
-        if(lab.jet) {
-          const q=p.position.map((v,k)=>v-lab.jet.origin[k]),t=q.reduce((sum,v,k)=>sum+v*lab.jet.direction[k],0);
-          const r=Math.hypot(...q.map((v,k)=>v-t*lab.jet.direction[k]));
-          const w=t>0?Math.exp(-r*r/lab.radius**2)*Math.exp(-t/25):0;
-          for(let k=0;k<3;k++)p.velocity[k]+=lab.jet.direction[k]*lab.windStrength/scale*w*dt;
-        }
+        const air=labAirVelocity(p.position,lab);for(let k=0;k<3;k++)p.velocity[k]+=(air[k]-p.velocity[k])*(1-Math.exp(-dt*.7))*(k===1?.08:1);
         const next=p.position.map((v,k)=>v+p.velocity[k]*dt),water=this.waterHit(p.position,next),solid=this.solidHit(p.position,next);
+        lab.wetting?.hitLens(p.position,next);
         const hit=solid&&(!water||solid.t<water.t)?solid:water;
         if(hit)this.impact(p,hit);else{p.position=next;alive.push(p);}
       }
       this.drops=alive;
     }
-    this.releaseDeposits();
+    this.slideDeposits(dt);this.releaseDeposits();
   }
 }
