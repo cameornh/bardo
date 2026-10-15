@@ -1,5 +1,7 @@
 # Bardo
 
+Previous tests are development snapshots. Do not change their behavior or implementation unless the user explicitly requests it. New experiments belong in isolated modules; shared changes must not silently alter previous tests.
+
 This is a local engine experiment. Keep the interface limited to functional test controls and diagnostics; avoid branding, promotional copy, and decorative UI.
 
 Use actual covariance-projected Gaussian primitives, with spherical harmonics for directional environment response. Keep simulation independent of camera motion and visual LOD. Preserve the user's saved clay and terrain edits when adding isolated test scenes.
