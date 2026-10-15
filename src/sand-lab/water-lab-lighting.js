@@ -1,14 +1,15 @@
+import {atmosphereSky} from './atmosphere-model.js';
 // Linear radiance shared by every lab material. SH contains only the sky dome;
 // the sun is a separate directional source. Diffuse SH is cosine-convolved.
 export const LAB_SUN=[1.9,1.75,1.45];
-export function labSky(d){const t=Math.max(0,Math.min(1,(d[1]+.05)/.85)),s=t*t*(3-2*t);return [.66,.77,.81].map((v,k)=>v+([.12,.3,.55][k]-v)*s);}
+export const labSky=atmosphereSky;
 export function diffuseSHBand(i){return i===0?1:i<4?2/3:i<9?1/4:0;}
 export function phaseHG(cosine,g=.55){return (1-g*g)/(4*Math.PI*(1+g*g-2*g*cosine)**1.5);}
 export const LAB_LIGHTING_GLSL=`
-uniform vec3 uDaySun,uDayTint,uSolarDirection;uniform float uDaySky;
+uniform vec3 uDaySun,uDayTint,uSolarDirection;uniform float uDaySky;uniform highp sampler2D uAtmosphere;
 #define LAB_SUN (vec3(1.9,1.75,1.45)*uDayTint)
 vec3 labSunDirection(){return uDaySun;}
-vec3 labSky(vec3 d){return mix(vec3(.66,.77,.81),vec3(.12,.3,.55),smoothstep(-.05,.8,d.y));}
+vec3 labSky(vec3 d){d=normalize(d);float el=asin(clamp(d.y,-1.,1.))/1.570796327;vec2 uv=vec2(atan(d.x,d.z)/6.283185307+.5,.5+.5*sign(el)*sqrt(abs(el)));return texture(uAtmosphere,uv).rgb;}
 float diffuseSHBand(int i){return i==0?1.:i<4?2./3.:i<9?.25:0.;}
 float phaseHG(float cosine,float g){return (1.-g*g)/(12.56637061*pow(max(.001,1.+g*g-2.*g*cosine),1.5));}
 // GGX returns BRDF * cosine. No constant direct fill on back-facing surfaces.
