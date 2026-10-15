@@ -9,9 +9,10 @@ export class Walker {
    if(step===0&&jump&&this.grounded&&this.submerged<.05){v[1]=4.6;this.grounded=false;}
    const length=Math.hypot(forward[0],forward[2])||1,fx=forward[0]/length,fz=forward[2]/length,m=Math.max(1,Math.hypot(...move)),speed=(sprint?5.5:3.2)*(1-.55*this.submerged),target=[(fx*move[1]-fz*move[0])*speed/m,(fz*move[1]+fx*move[0])*speed/m];
    const response=1-Math.exp(-h*(this.grounded?14:6));v[0]+=(target[0]-v[0])*response;v[2]+=(target[1]-v[2])*response;
-   // Slightly denser than water normally; holding Space lowers effective density.
+   // Sink by default. Space supports the body at partial immersion, with
+   // upward acceleration capped so a fully submerged swimmer is not launched.
    const resting=this.grounded&&this.submerged<.05&&Math.hypot(...move)<.001&&!jump;if(resting)v.fill(0);
-   if(!resting)v[1]+=h*9.81*((buoyant?1.5:.82)*this.submerged-1);v[1]/=1+h*1.8*this.submerged;
+   if(!resting)v[1]+=h*9.81*((buoyant?Math.min(1.5,2.2*this.submerged):.82*this.submerged)-1);v[1]/=1+h*1.8*this.submerged;
    for(let k=0;k<3;k++)p[k]+=v[k]*h;this.grounded=false;
    for(let iteration=0;iteration<4;iteration++)for(const offset of [.28,.82,1.36]){
     const q=[p[0],p[1]-this.eyeHeight+offset,p[2]],hit=solid(q);if(!hit||hit.distance>=this.radius+.002)continue;const n=hit.normal,push=Math.max(0,Math.min(.5,this.radius-hit.distance+.0001));for(let k=0;k<3;k++)p[k]+=n[k]*push;const vn=v.reduce((a,x,k)=>a+x*n[k],0);if(vn<0)for(let k=0;k<3;k++)v[k]-=vn*n[k];if(n[1]>.5){this.grounded=true;if(Math.hypot(...move)<.001&&this.submerged<.05)v.fill(0);}

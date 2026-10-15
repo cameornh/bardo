@@ -8,9 +8,9 @@ import {buildNeighbors} from '../src/water-lab-model.js';
 const mock={extensions:{has:()=>false}};
 
 test('pending GPU frames retain elapsed time and update camera droplets at the requested speed',async()=>{
- const lab=new WaterLab({...mock,readRenderTargetPixelsAsync(){}}),camera=new PerspectiveCamera();lab.enabled=true;lab.gpu.cpu=false;lab.simulationSpeed=.5;camera.position.set(0,5,7);
+ const lab=new WaterLab({...mock,readRenderTargetPixelsAsync(){}}),camera=new PerspectiveCamera();lab.enabled=true;lab.asyncSimulation=true;lab.gpu.cpu=false;lab.simulationSpeed=.5;camera.position.set(0,5,7);
  let complete;lab.gpu.solve=()=>new Promise(resolve=>complete=resolve);lab.finishStep=()=>{};
- lab.wetting.addLens(1,[.5,.5]);lab.advance(.06,camera);assert.ok(lab.asyncPending);
+ lab.wetting.addLens(1,[.5,.5]);lab.advance(lab.timestep*2+.001,camera);assert.ok(lab.asyncPending);
  const before=lab.accumulator,age=lab.wetting.lens[0].age;lab.advance(.1,camera);
  assert.ok(Math.abs(lab.accumulator-before-.05)<1e-8);assert.ok(Math.abs(lab.wetting.lens[0].age-age-.05)<1e-8);
  lab.enabled=false;complete(lab.positions.slice());await lab.asyncPending;

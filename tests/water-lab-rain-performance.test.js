@@ -46,7 +46,7 @@ test('rain crown redistributes momentum radially without adding a net horizontal
 });
 
 test('a station reset discards pending GPU results and never launches overlapping solves',async()=>{
- const {PerspectiveCamera}=await import('three');const lab=new WaterLab({...mock,readRenderTargetPixelsAsync(){}}),camera=new PerspectiveCamera();lab.enabled=true;lab.gpu.cpu=false;
+ const {PerspectiveCamera}=await import('three');const lab=new WaterLab({...mock,readRenderTargetPixelsAsync(){}}),camera=new PerspectiveCamera();lab.enabled=true;lab.asyncSimulation=true;lab.gpu.cpu=false;
  let resolve,calls=0;lab.gpu.solve=()=>{calls++;return new Promise(r=>resolve=r);};lab.advance(.04,camera);assert.equal(calls,1);assert.ok(lab.asyncPending);
  const stale=lab.positions.slice();lab.configure('pane');const empty=lab.positions;lab.advance(.04,camera);assert.equal(calls,1);resolve(stale);await lab.asyncPending;
  assert.equal(lab.kind,'pane');assert.equal(lab.positions,empty);assert.equal(lab.count,0);assert.equal(lab.asyncPending,null);
@@ -58,7 +58,7 @@ test('dense foam shadow sampling has a fixed budget and retains its total optica
 });
 
  test('backend changes wait for the outstanding solve and paused clicks survive it',async()=>{
- const {PerspectiveCamera}=await import('three');const lab=new WaterLab({...mock,readRenderTargetPixelsAsync(){}}),camera=new PerspectiveCamera();lab.enabled=true;lab.gpu.cpu=false;
+ const {PerspectiveCamera}=await import('three');const lab=new WaterLab({...mock,readRenderTargetPixelsAsync(){}}),camera=new PerspectiveCamera();lab.enabled=true;lab.asyncSimulation=true;lab.gpu.cpu=false;
  let resolve,calls=0;lab.gpu.solve=()=>{calls++;return new Promise(r=>resolve=r);};lab.advance(.04,camera);lab.gpu.cpu=true;lab.tool='rock';lab.interact([0,3,0],[0,0,-1]);lab.advance(.04,camera);assert.equal(calls,1);assert.equal(lab.balls.length,0);
  // Isolate scheduling from the numerical solver in this unit test.
  lab.finishStep=()=>{};resolve(lab.positions.slice());await lab.asyncPending;lab.paused=true;lab.advance(.04,camera);assert.equal(calls,1);assert.equal(lab.balls.length,1);assert.equal(lab.queuedInteractions.length,0);

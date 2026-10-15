@@ -91,7 +91,7 @@ export class LabDetail {
       this.strength[i]+=(target-this.strength[i])*(1-Math.exp(-dt/tau));
       const activity=lab.aerationActivity?Math.max(lab.aerationActivity[i*2],lab.aerationActivity[i*2+1]):null;
       const weight=detailEmissionWeight(s,scale,lab.neighborCounts?.[i]??18,activity),breaking=lab.surfaceBreakup?.[i]||0,exposure=this.strength[i]>.001||breaking>0||this.breakupHistory[i]>.00001?detailAirExposure(lab,i):0;
-      this.weights[i]=weight*exposure*(lab.player&&lab.playerDistance(point)<s*2?.72:1);this.exposure[i]=exposure;
+      this.weights[i]=weight*exposure*(lab.player&&lab.playerDistance(point)<s*2?.2:1);this.exposure[i]=exposure;
       // An unresolved breakup releases a finite burst. Remember its connected,
       // air-exposed state briefly after support is lost, instead of suppressing
       // the spray at exactly the moment the liquid separates. Every parcel can
@@ -138,7 +138,7 @@ export class LabDetail {
         for(let k=0;k<3;k++){const jitter=hash(id*7+k+119)-.5;this.spawn[0].image.data[p+k]=this.sources[history+k]*(1-along)+source[k]*along+jitter*s*.10-(isBreakup&&kind===2&&baseKind!==2?normal[k]*s*.92:0);this.spawn[1].image.data[p+k]=lab.velocities[o+k]+(kind===0?(patch[k]*.25+normal[k])*spread:0)+jitter*.025/scale;}
         this.spawn[0].image.data[p+3]=0;this.spawn[1].image.data[p+3]=life;this.spawn[2].image.data.set([detailRadius(s,scale,hash(id+11))/scale,kind,.45+.4*hash(id+13),r],p);
         const slot=(this.cursor+this.pending)%this.capacity;if(this.expiry[slot]>this.time)this.overwritten++;this.expiry[slot]=this.time+life*40;
-        if(kind===0)lab.wetting?.traceData(this.spawn[0].image.data,this.spawn[1].image.data,p,kind);this.pending++;this.emitted++;if(isBreakup)this.breakupEmitted++;
+        lab.wetting?.traceData(this.spawn[0].image.data,this.spawn[1].image.data,p,kind);this.pending++;this.emitted++;if(isBreakup)this.breakupEmitted++;
       }
       // Mist follows sustained, dense emission patches, not uniform wind speed.
       // Keep the fine spray intact and let an airborne veil grow from its hot spots.

@@ -1,3 +1,4 @@
+import {detailOpacity,DETAIL_OPACITY_GLSL} from './water-lab-detail-opacity.js';
 import * as THREE from 'three';
 import {sprayCDF,shadowStride} from './water-lab-spray-shadows.js';
 
@@ -12,7 +13,7 @@ export function poolShadowKernel(p,v,info,lamp,size=POOL_SHADOW_SIZE){
  const q=poolLamp(lamp).map((x,k)=>p[k]-x),r=Math.hypot(...q),s=info[0]*(.75+.25*Math.sin(Math.min(1,p[3]/v[3])*Math.PI));if(q[2]<-3*s||r<.03)return null;
  const radial=q.map(x=>x/r),w=Math.max(.001,r+q[2]),j=[0,1].map(a=>q.map((x,k)=>(k===a?1/w:0)-q[a]/(w*w)*(radial[k]+(k===2?1:0)))),direction=[v[0],v[1]+1e-8,v[2]],speed=Math.hypot(...direction),d=direction.map(x=>x/speed),stretch=info[1]<.5?1.2:0;
  const cov=(a,b)=>s*s*(dot(a,b)+stretch*dot(a,d)*dot(b,d)),a=cov(j[0],j[0]),b=cov(j[0],j[1]),c=cov(j[1],j[1]),xx=a+(1.2/size)**2,yy=c+(1.2/size)**2,det=xx*yy-b*b,cross=j.map(axis=>cov(axis,radial)),coupling=[(cross[0]*yy-cross[1]*b)/det,(cross[1]*xx-cross[0]*b)/det];
- const opacity=Math.min(.98,info[2]*smooth(0,.045,p[3])*(1-smooth(info[1]>2.5?.12:.45,1,p[3]/v[3]))*(info[1]>2.5?.7:info[1]>1.5?.5:1));
+ const opacity=Math.min(.98,detailOpacity(info[1],p[3],v[3],info[2]));
  return {center:[q[0]/w,q[1]/w,r],xx,xy:b,yy,det,coupling,sigma:Math.sqrt(Math.max(1e-12,cov(radial,radial)-dot(cross,coupling))),tau:-Math.log(1-opacity)*Math.sqrt(Math.max(0,a*c-b*b)/det)};
 }
 export function poolOpticalDepth(k,x,y,depth){
@@ -30,6 +31,7 @@ float sprayPool(vec3 p,int lamp){
 }
 `;
 const vertex=`precision highp float;precision highp int;
+${DETAIL_OPACITY_GLSL}
 uniform highp sampler2D uDetailP,uDetailV,uDetailI;uniform int uCapacity,uShadowStride,uActiveSpan;uniform float uPoolShadowSize;
 out vec2 vDelta,vPoint;flat out vec3 vInverse;flat out vec2 vCoupling;flat out float vSigma,vDepth,vTau;flat out int vLamp;
 void main(){vLamp=gl_InstanceID/uCapacity;int id=(gl_InstanceID%uCapacity)*uShadowStride;ivec2 uv=ivec2(id%256,id/256);vec4 p=texelFetch(uDetailP,uv,0),v=texelFetch(uDetailV,uv,0),info=texelFetch(uDetailI,uv,0);gl_Position=vec4(2,2,2,1);vTau=0.;if(v.w<=0.||p.w>=v.w||info.x<=0.)return;
@@ -37,7 +39,7 @@ void main(){vLamp=gl_InstanceID/uCapacity;int id=(gl_InstanceID%uCapacity)*uShad
  vec3 jx=vec3(1,0,0)/w-q.x/(w*w)*(radial+vec3(0,0,1)),jy=vec3(0,1,0)/w-q.y/(w*w)*(radial+vec3(0,0,1));
  float a=s*s*(dot(jx,jx)+stretch*pow(dot(jx,d),2.)),b=s*s*(dot(jx,jy)+stretch*dot(jx,d)*dot(jy,d)),c=s*s*(dot(jy,jy)+stretch*pow(dot(jy,d),2.)),xx=a+pow(1.2/uPoolShadowSize,2.),yy=c+pow(1.2/uPoolShadowSize,2.),det=xx*yy-b*b;
  vInverse=vec3(yy,-b,xx)/det;vec2 crossDepth=s*s*(vec2(dot(jx,radial),dot(jy,radial))+stretch*vec2(dot(jx,d),dot(jy,d))*dot(radial,d));vCoupling=vec2(dot(crossDepth,vInverse.xy),dot(crossDepth,vInverse.yz));vSigma=sqrt(max(1e-12,s*s*(1.+stretch*pow(dot(radial,d),2.))-dot(crossDepth,vCoupling)));vDepth=r;
- float opacity=min(.98,info.z*smoothstep(0.,.045,p.w)*(1.-smoothstep(info.y>2.5?.12:.45,1.,p.w/v.w))*(info.y>2.5?.7:info.y>1.5?.5:1.));vTau=-log(1.-opacity)*sqrt(max(0.,a*c-b*b)/det)*float(min(uShadowStride,uActiveSpan-id));
+ float opacity=min(.98,detailOpacity(info.y,p.w,v.w,info.z));vTau=-log(1.-opacity)*sqrt(max(0.,a*c-b*b)/det)*float(min(uShadowStride,uActiveSpan-id));
  float sx=sqrt(xx);vDelta=vec2(sx*position.x,b/sx*position.x+sqrt(det/xx)*position.y)*3.;vPoint=q.xy/w+vDelta;gl_Position=vec4((vPoint.x+1.+float(vLamp)*2.)/3.-1.,vPoint.y,0,1);
 }`;
 const fragment=`precision highp float;precision highp int;in vec2 vDelta,vPoint;flat in vec3 vInverse;flat in vec2 vCoupling;flat in float vSigma,vDepth,vTau;flat in int vLamp;uniform float uPoolShadowSize;
