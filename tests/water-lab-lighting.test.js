@@ -5,7 +5,7 @@ import {mediumOpticalDepth} from '../src/water-lab-medium-shadows.js';
 import {vesselDistance,createMotion} from '../src/water-lab-model.js';
 import {phaseHG,labSky,diffuseSHBand} from '../src/water-lab-lighting.js';
 import {projectSH,evaluateSH} from '../src/sh.js';
-import {detailRadiance,detailResponse} from '../src/water-lab-detail-optics.js';
+import {detailRadiance,detailResponse,detailViewTransport,detailClusterResponse} from '../src/water-lab-detail-optics.js';
 
 test('medium shadows obey Beer law and ignore the air part of a lamp path',()=>{
  const options={sample:p=>p[2]>=1&&p[2]<3?[1,0,0,0]:[0,0,0,0],step:.025};
@@ -53,4 +53,18 @@ test('ambient transport preserves unoccluded dome light beside absorbing water',
  assert.ok(dome.every(v=>v>.3&&v<.85),`partial sky visibility: ${dome}`);
  assert.ok(dome.every((v,k)=>v>zenith[k]*1.3));
  assert.deepEqual(dome,mediumSkyDepth([-.04,0,0],limit,options).map(v=>Math.exp(-v)));
+});
+
+
+test('sunlit submerged markers retain transmitted and foreground scattered light with zero ambient',()=>{
+ const incoming=detailRadiance(2,[0,0,0],0,0,1,0,1,3),segment={length:2,incident:[2,2,2]},lit=detailViewTransport(incoming,[segment]);
+ assert.ok(lit.radiance.every(v=>v>.15));assert.ok(lit.radiance[2]>lit.radiance[0]);assert.ok(lit.scatter.every(v=>v>0));
+ const split=detailViewTransport(incoming,[{...segment,length:.7},{...segment,length:1.3}]);lit.radiance.forEach((v,k)=>assert.ok(Math.abs(v-split.radiance[k])<1e-12));
+ const dark=detailViewTransport([0,0,0],[{...segment,incident:[0,0,0]}]);assert.deepEqual(dark.radiance,[0,0,0]);
+ const organic=detailViewTransport(incoming,[{...segment,organic:3}]);assert.ok(organic.transmission.every((v,k)=>v<lit.transmission[k]));
+});
+test('whitewater diffusion vanishes without intervening foam and stays bounded in dense clusters',()=>{
+ assert.equal(detailClusterResponse(.8,1),.8);
+ for(const t of [.8,.5,.1,.01])assert.ok(detailClusterResponse(.8,t)>.8*t&&detailClusterResponse(.8,t)<.8);
+ assert.ok(detailClusterResponse(0,.1)>0);assert.ok(detailClusterResponse(.8,0)<.03);
 });

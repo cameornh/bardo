@@ -36,16 +36,16 @@ async function wetReference(){
 document.querySelector('#run').onclick=async()=>{document.querySelector('#run').disabled=true;try{
   result.textContent='Comparing GPU/CPU air and wet advection, swept and moving walls…';
   const air=await LabDetail.verify(renderer),wet=await wetReference(),cases=[];
-  for(const kind of ['glass','pool','tank','pipe','waterfall']){
-    lab.configure(kind);camera.position.fromArray(lab.spec.eye);camera.lookAt(new THREE.Vector3(...lab.spec.target));camera.updateMatrixWorld();const volume=lab.volume;
-    for(let i=0;i<75;i++){
+  for(const kind of ['glass','pool','tank','pipe','waterfall','ocean']){
+    lab.configure(kind);if(kind==='ocean'){lab.wind=67;lab.sunlight=3;lab.ambient=0;}camera.position.fromArray(lab.spec.eye);camera.lookAt(new THREE.Vector3(...lab.spec.target));camera.updateMatrixWorld();const volume=lab.volume;
+    const steps=kind==='ocean'?240:75;for(let i=0;i<steps;i++){
       if(kind==='tank'||kind==='glass'){lab.motion.target[0]=Math.sin(i*.1)*.6;lab.motion.targetTilt=Math.sin(i*.08)*.25;}
-      lab.step(lab.timestep);if(i%5===0){result.textContent=JSON.stringify({air,wet,cases,progress:kind+' '+i+'/75'},null,2);await new Promise(r=>setTimeout(r,0));}
+      lab.step(lab.timestep);if(i%5===0){result.textContent=JSON.stringify({air,wet,cases,progress:kind+' '+i+'/'+steps},null,2);await new Promise(r=>setTimeout(r,0));}
     }
     visual.render({adaptive:false});const p=read(lab.detail,0),v=read(lab.detail,1),info=read(lab.detail,2),kinds=[0,0,0];let penetrations=0;
     for(let i=0;i<lab.detail.capacity;i++)if(p[i*4+3]<v[i*4+3]){kinds[Math.round(info[i*4+1])]++;if(lab.solid(Array.from(p.subarray(i*4,i*4+3)))<-.005)penetrations++;}
     const pixels=new Float32Array(480*450*4);renderer.readRenderTargetPixels(target,0,0,480,450,pixels);
-    cases.push({kind,kinds,penetrations,emitted:lab.detail.emitted,volumeDrift:lab.volume-volume,finite:p.every(Number.isFinite)&&pixels.every(Number.isFinite)});
+    cases.push({kind,kinds,penetrations,emitted:lab.detail.emitted,breakupEmitted:lab.detail.breakupEmitted,volumeDrift:lab.volume-volume,finite:p.every(Number.isFinite)&&pixels.every(Number.isFinite)});
     const title=document.createElement('p');title.textContent=kind;document.body.append(title);const img=document.createElement('img');img.src=renderer.domElement.toDataURL();img.width=480;document.body.append(img);
   }
   result.textContent=JSON.stringify({air,wet,cases,pass:air.pass&&wet.pass&&cases.every(c=>c.finite&&c.volumeDrift===0&&c.penetrations===0)},null,2);

@@ -26,11 +26,12 @@ test('merged transport retains reciprocal solute diffusion and held points',()=>
  for(let i=0;i<6;i++)for(let k=0;k<3;k++)assert.ok(Math.abs(expected[i*4+k]-result.chem[i*4+k])<1e-6);
  assert.deepEqual(Array.from(result.velocities.slice(0,3)),[0,0,0]);assert.equal(result.metrics[3],0);
 });
-function surfaceFlow(velocity,incoming=velocity){
+function surfaceFlow(velocity,incoming=velocity,full=false){
  const p=[];for(let y=0;y<3;y++)for(let z=-2;z<=2;z++)for(let x=-2;x<=2;x++)p.push(x*.2,1+y*.2,z*.2,0);
  const next=new Float32Array(p),old=next.slice(),v=next.slice().fill(0),predicted=next.slice(),c=v.slice(),dt=.01;
  for(let i=0;i<p.length;i+=4){const current=velocity(...p.slice(i,i+3)),before=incoming(...p.slice(i,i+3));for(let k=0;k<3;k++){old[i+k]-=current[k]*dt;v[i+k]=before[k];predicted[i+k]=old[i+k]+before[k]*dt;}}
  const result=transportFluid(old,next,v,c,buildNeighbors(next,.23).data,.23,1,dt,predicted);
+ if(full)return result;
  return Math.max(...Array.from(result.metrics).filter((_,i)=>i%4===3));
 }
 test('translation, free fall and rigid rotation do not create whitewater by speed alone',()=>{
@@ -94,4 +95,32 @@ test('exposed horizontal breakup appends spray while preserving the existing foa
  const before=kinds(reference),after=kinds(active);assert.equal(control.pending,0);assert.equal(before[0],0);assert.ok(after[0]>30);assert.equal(after[1],before[1]);assert.equal(after[2],before[2]);
  active.density=20;for(let i=0;i<40;i++)active.emit(lab,.05);assert.equal(active.pending,active.capacity);assert.ok(active.spawn.every(t=>t.image.data.every(Number.isFinite)));
  for(const system of [control,active,reference])system.dispose();
+});
+
+test('surface separation senses an extending crest but rejects coherent travel and rotation',()=>{
+ for(const velocity of [()=>[8,-3,2],(x,y)=>[-y*8,x*8,0]])assert.equal(Math.max(...surfaceFlow(velocity,velocity,true).breakup),0);
+ const expanding=(x,y,z)=>[x*12,(y-1)*10,z*8],boosted=(x,y,z)=>expanding(x,y,z).map((v,k)=>v+[9,-4,2][k]);
+ const a=surfaceFlow(expanding,expanding,true).breakup,b=surfaceFlow(boosted,boosted,true).breakup;
+ assert.ok(Math.max(...a)>.5);assert.ok(Math.max(...a.map((v,k)=>Math.abs(v-b[k])))<.0001);
+ // Turning an incoming stream sideways still entrains air without speed loss.
+ assert.ok(surfaceFlow(()=>[5,0,0],()=>[0,-5,0])>1);
+});
+
+test('breakup continues briefly through pinch-off, then stops on a coasting isolated blob',()=>{
+ const count=128,lab={count,spacing:.25,spec:{scale:1},positions:new Float32Array(count*4),velocities:new Float32Array(count*4),surfaceMetrics:new Float32Array(count*4),surfaceBreakup:new Float32Array(count).fill(2),neighborCounts:new Uint16Array(count).fill(18),aerationActivity:new Float32Array(count*2).fill(2)};
+ for(let i=0;i<count;i++)lab.surfaceMetrics.set([0,1,0,0],i*4);
+ const detail=new LabDetail(mock);detail.emit(lab,.03);assert.ok(detail.breakupEmitted>100);
+ lab.surfaceBreakup.fill(0);lab.neighborCounts.fill(0);lab.surfaceMetrics.fill(0);lab.aerationActivity.fill(0);detail.pending=0;const before=detail.breakupEmitted;detail.emit(lab,.03);
+ assert.ok(detail.breakupEmitted>before,'spray follows a newly detached blob');assert.ok(detail.spawn.every(t=>t.image.data.every(Number.isFinite)));
+ for(let i=0;i<100;i++){detail.pending=0;detail.emit(lab,.02);}const settled=detail.breakupEmitted;detail.emit(lab,.1);assert.equal(detail.breakupEmitted,settled);
+ // Already isolated water has no stored breakup event or continuing source.
+ detail.reset();lab.surfaceBreakup.fill(3);lab.aerationActivity.fill(3);detail.emit(lab,.1);assert.equal(detail.pending,0);detail.dispose();
+});
+
+test('held parcels and recirculated parcels discard breakup history',()=>{
+ const count=128,lab={count,spacing:.25,spec:{scale:1},positions:new Float32Array(count*4),velocities:new Float32Array(count*4),surfaceMetrics:new Float32Array(count*4),surfaceBreakup:new Float32Array(count).fill(2),neighborCounts:new Uint16Array(count).fill(18)};
+ for(let i=0;i<count;i++)lab.surfaceMetrics.set([0,1,0,0],i*4);
+ const detail=new LabDetail(mock);detail.emit(lab,.03);assert.ok(detail.pending>100);detail.pending=0;lab.surfaceBreakup.fill(0);
+ for(let i=0;i<count;i++)if(i%2)lab.positions[i*4]=20;else lab.positions[i*4+3]=1;
+ detail.emit(lab,.03);assert.equal(detail.pending,0);assert.ok(detail.breakupHistory.every(v=>v===0));detail.dispose();
 });

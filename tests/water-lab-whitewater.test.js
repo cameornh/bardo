@@ -73,6 +73,17 @@ test('coarse flow interpolation retains a constant liquid velocity',()=>{
 test('water attenuates marker illumination spectrally; bubbles are not luminous white foam',()=>{
   const clear=detailRadiance(1,[.5,.5,.5],1,0,0),deep=detailRadiance(1,[.5,.5,.5],1,3,2),bubble=detailRadiance(2,[.5,.5,.5],1,3,2);
   assert.ok(deep.every((v,k)=>v<clear[k]));assert.ok(deep[2]>deep[0]*2);
-  assert.ok(bubble.every((v,k)=>v<deep[k]*.4));
+  assert.ok(bubble.every((v,k)=>v<deep[k]&&v>deep[k]*.35));
   assert.deepEqual(detailRadiance(0,[.5,.5,.5],1,0,0),[2.4,2.25,1.95]);
+});
+
+
+test('a closing free surface entrains the remembered breakup burst, buried turbulence alone does not',()=>{
+ const count=128,lab={count,spacing:.25,spec:{scale:1},positions:new Float32Array(count*4),velocities:new Float32Array(count*4),surfaceMetrics:new Float32Array(count*4),surfaceBreakup:new Float32Array(count).fill(2),neighborCounts:new Uint16Array(count).fill(18)};
+ for(let i=0;i<count;i++)lab.surfaceMetrics.set([0,1,0,0],i*4);
+ const detail=new LabDetail(mock);detail.emit(lab,.03);assert.ok(detail.pending>100);detail.pending=0;
+ // Previously open air closes as more water covers this interface.
+ lab.gpu={neighbors:buildNeighbors(lab.positions,.25).data};lab.surfaceBreakup.fill(0);detail.emit(lab,.03);
+ assert.ok(detail.pending>0);for(let i=0;i<detail.pending;i++)assert.equal(detail.spawn[2].image.data[i*4+1],2);
+ detail.reset();lab.surfaceBreakup.fill(2);detail.emit(lab,.03);assert.equal(detail.pending,0);detail.dispose();
 });
