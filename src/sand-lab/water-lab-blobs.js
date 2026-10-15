@@ -58,7 +58,13 @@ export class LabBlobFamilies {
     if (lab.kind !== this.kind || lab.spacing !== this.spacing || lab.time < this.time || lab.positions.length < this.length) this.active.clear();
     const dt = Math.min(.05, Math.max(0, lab.time - (this.time ?? lab.time)));
     this.kind = lab.kind; this.spacing = lab.spacing; this.time = lab.time; this.length = lab.positions.length;
-    const target = i => lab.positions[i * 4 + 3] > .5 ? 0 : clamp((7 - (lab.neighborCounts?.[i] ?? 25)) / 4);
+    const target = i => {
+      const value=lab.positions[i*4+3]>.5?0:clamp((7-(lab.neighborCounts?.[i]??25))/4);
+      // Sparse contact sheets are still attached water, not detached droplets.
+      // Keep their tangent-aligned Gaussian reconstruction at the shoreline.
+      if(value&&lab.solid&&lab.solid(Array.from(lab.positions.subarray(i*4,i*4+3)),false,false)<lab.spacing*.9)return 0;
+      return value;
+    };
     for (const [id, blend] of this.active) {
       const next = blend + (target(id) - blend) * (1 - Math.exp(-dt / .16));
       if (next < .002 && target(id) === 0) this.active.delete(id); else this.active.set(id, next);

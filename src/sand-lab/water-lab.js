@@ -71,7 +71,7 @@ export class WaterLab {
   // Keep a bounded debt after a suspended tab; report overload, never increase gravity.
   const wall=Math.min(.25,Math.max(0,elapsed));
   if(!this.paused){const added=wall*this.simulationSpeed,owed=this.accumulator+added;this.droppedTime+=Math.max(0,owed-.5);this.accumulator=Math.min(.5,owed);this.wetting.stepLens(added);}
-  this.rateWall+=wall;this.rateSim+=this.completedDt;this.completedDt=0;
+  this.rateWall+=Math.max(0,elapsed);this.rateSim+=this.completedDt;this.completedDt=0;
   if(this.rateWall>=.4){this.simRate=this.rateSim/this.rateWall;this.rateWall=0;this.rateSim=0;}
   if(this.asyncPending)return;
   const interactions=this.queuedInteractions.splice(0);for(const event of interactions){const tool=this.tool;this.tool=event.tool;this.interact(event.origin,event.direction);this.tool=tool;}

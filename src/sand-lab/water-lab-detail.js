@@ -82,7 +82,9 @@ export class LabDetail {
     let totalEnergy=0;
     for(let i=0;i<lab.count;i++){
       if(hash(i+235)>=.16&&!(lab.surfaceBreakup?.[i]>0)&&this.breakupHistory[i]<.00001){this.breakupHistory[i]=0;this.sources.fill(NaN,i*3,i*3+3);continue;}
-      const o=i*4,history=i*3,point=[0,1,2].map(k=>lab.positions[o+k]+lab.surfaceMetrics[o+k]*s*.8),teleported=Number.isFinite(this.sources[history])&&Math.hypot(...point.map((v,k)=>v-this.sources[history+k]))>s*2;
+      const o=i*4,history=i*3;
+      if(lab.surfaceMetrics[o+3]<.12&&this.strength[i]<.00001&&!(lab.surfaceBreakup?.[i]>0)&&this.breakupHistory[i]<.00001){this.weights[i]=0;continue;}
+      const point=[0,1,2].map(k=>lab.positions[o+k]+lab.surfaceMetrics[o+k]*s*.8),teleported=Number.isFinite(this.sources[history])&&Math.hypot(...point.map((v,k)=>v-this.sources[history+k]))>s*2;
       // A missing fluid neighbor can be a wall, not air. Do not seed foam
       // under the floor, inside a vessel wall or against a submerged body.
       if(lab.positions[o+3]||lab.solid&&lab.solid(point)<s*.08){this.strength[i]=0;this.sprayBudget[i]=0;this.breakupHistory[i]=0;this.breakupBudget[i]=0;this.sources.fill(NaN,history,history+3);continue;}
@@ -145,6 +147,15 @@ export class LabDetail {
       const mistGate=clamp((energy-.45)/.8,0,1)*clamp((activity-.65)/1.4,0,1)*clamp((this.exposure[i]-.35)/.4,0,1);
       if(this.mistEnabled&&mistGate>0){const births=Math.min(192,Math.floor(count*.65*mistGate*this.mistDensity));for(let j=0;j<births&&this.pending<this.capacity;j++){const id=++this.sequence,point=source.map((v,k)=>v+normal[k]*s*(baseKind===2?1.5:.55)+(hash(id+k)-.5)*s*.18),velocity=[0,1,2].map(k=>lab.velocities[o+k]*.18+normal[k]*.8/scale);this.addMarker(point,velocity,3,detailRadius(s,scale,hash(id+13))*1.8/scale,7.+hash(id+7)*5.,.48);lab.wetting?.trace(point,velocity,3);}}
       this.sources.set(source,history);
+    }
+  }
+  remapEmitters(indices){
+    // Carving compacts the bulk array. Reindex attached emission histories;
+    // airborne spray and bubbles keep their independent positions/lifetimes.
+    for(const key of ['budget','sprayBudget','breakupHistory','breakupBudget','strength','weights','exposure','breakupNormals','sources']){
+      const stride=key==='sources'||key==='breakupNormals'?3:1,old=this[key],next=new Float32Array(indices.length*stride);
+      if(key==='sources')next.fill(NaN);
+      indices.forEach((id,i)=>{if((id+1)*stride<=old.length)next.set(old.subarray(id*stride,(id+1)*stride),i*stride);});this[key]=next;
     }
   }
   addMarker(point,velocity,kind,radius,life,opacity=.5){if(!this.enabled||this.pending>=this.capacity)return;const p=this.pending*4;this.spawn[0].image.data.set([...point,0],p);this.spawn[1].image.data.set([...velocity,life],p);this.spawn[2].image.data.set([radius,kind,opacity,100],p);const slot=(this.cursor+this.pending)%this.capacity;if(this.expiry[slot]>this.time)this.overwritten++;this.expiry[slot]=this.time+life*40;this.pending++;this.emitted++;if(kind===3)this.mistEmitted++;}

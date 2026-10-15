@@ -47,12 +47,21 @@ export function seedWater(kind,spec=LAB_PRESETS[kind]){const s=spec.spacing,resu
 // Symmetric lists: both particles accept a pair or neither does. Diffusion
 // therefore exchanges equal solute mass; no directional nearest-N truncation.
 export function buildNeighbors(positions,spacing){
- const n=positions.length/4,reach=spacing*2.65,r2max=reach*reach,bins=new Map(),cells=new Int32Array(n*3),lists=Array.from({length:n},()=>[]);
- const key=(x,y,z)=>Math.max(Math.abs(x),Math.abs(y),Math.abs(z))<512?(x+512)+(y+512)*1024+(z+512)*1048576:`${x},${y},${z}`;
- for(let i=0;i<n;i++){const o=i*4,x=Math.floor(positions[o]/reach),y=Math.floor(positions[o+1]/reach),z=Math.floor(positions[o+2]/reach);cells.set([x,y,z],i*3);const id=key(x,y,z),bin=bins.get(id);if(bin)bin.push(i);else bins.set(id,[i]);}
+ const n=positions.length/4,reach=spacing*2.65,r2max=reach*reach,bins=new Map(),counts=new Uint16Array(n),data=new Float32Array(n*NEIGHBORS);data.fill(-1);
+ const key=(x,y,z)=>(x+512)+(y+512)*1024+(z+512)*1048576;
+ for(let i=0;i<n;i++){const o=i*4,x=Math.floor(positions[o]/reach),y=Math.floor(positions[o+1]/reach),z=Math.floor(positions[o+2]/reach),id=key(x,y,z);let bin=bins.get(id);if(!bin){bin={x,y,z,ids:[]};bins.set(id,bin);}bin.ids.push(i);}
  let overflow=0;
- for(let i=0;i<n;i++){const o=i*4,c=i*3,xi=positions[o],yi=positions[o+1],zi=positions[o+2];for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++){const bin=bins.get(key(cells[c]+x,cells[c+1]+y,cells[c+2]+z));if(!bin)continue;for(const j of bin){if(j<=i)continue;const q=j*4,dx=xi-positions[q],dy=yi-positions[q+1],dz=zi-positions[q+2];if(dx*dx+dy*dy+dz*dz>=r2max)continue;if(lists[i].length===NEIGHBORS||lists[j].length===NEIGHBORS){overflow++;continue;}lists[i].push(j);lists[j].push(i);}}}
- const data=new Float32Array(n*NEIGHBORS);data.fill(-1);lists.forEach((l,i)=>data.set(l,i*NEIGHBORS));return {data,overflow};
+ const pair=(i,j)=>{const a=i*4,b=j*4,x=positions[a]-positions[b],y=positions[a+1]-positions[b+1],z=positions[a+2]-positions[b+2];if(x*x+y*y+z*z>=r2max)return;if(counts[i]===NEIGHBORS||counts[j]===NEIGHBORS){overflow++;return;}data[i*NEIGHBORS+counts[i]++]=j;data[j*NEIGHBORS+counts[j]++]=i;};
+ // Visit each occupied cell pair once. Symmetric typed lists avoid N temporary
+ // neighbor arrays and 27 hash lookups per particle on every rebuild.
+ for(const bin of bins.values()){
+  const ids=bin.ids;for(let a=0;a<ids.length;a++)for(let b=a+1;b<ids.length;b++)pair(ids[a],ids[b]);
+  for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++){
+   if(z<0||z===0&&y<0||z===0&&y===0&&x<=0)continue;
+   const other=bins.get(key(bin.x+x,bin.y+y,bin.z+z));if(!other)continue;for(const i of ids)for(const j of other.ids)pair(i,j);
+  }
+ }
+ return {data,overflow};
 }
 export function kernel(r,h){const q=Math.max(0,1-r*r/(h*h));return 315/(64*Math.PI*h**3)*q**3;}
 export function kernelGradient(d,h){const r=length(d);if(r<1e-6||r>=h)return [0,0,0];const c=-45/(Math.PI*h**6)*(h-r)**2/r;return d.map(x=>x*c);}
@@ -80,7 +89,15 @@ vec3 rotateLab(vec3 p,bool inverse){float c=cos(uTilt),s=sin(uTilt),a=cos(uSpin)
 float labBox(vec3 p,vec3 b){vec3 q=abs(p)-b;return length(max(q,0.))+min(max(q.x,max(q.y,q.z)),0.);}
 uniform highp sampler2D uSand,uBodyExtra,uSandParcels,uSandBins;
 uniform int uSandCount;uniform vec3 uSandMin,uSandMax;
-float labFloor(vec3 p){if(uStation==4)return riverBase(p)+texture(uLabBed,p.xz/vec2(12,120)+.5).r;if(uStation==6)return texture(uSand,clamp((p.xz+vec2(5.5,4.9))/vec2(11.,9.8),0.,1.)*vec2(64./65.)+vec2(.5/65.)).r;return 0.;}
+// Cubic B-spline reconstruction with four hardware-linear texture reads.
+// This is the same positive, partition-of-unity kernel as SandBed.height.
+float sandHeight(vec2 p){
+ vec2 q=clamp((p+vec2(5.5,4.9))/vec2(11.,9.8)*64.,0.,64.),base=floor(q),f=fract(q),a=1.-f;
+ vec2 w0=a*a*a/6.,w1=(3.*f*f*f-6.*f*f+4.)/6.,w2=(-3.*f*f*f+3.*f*f+3.*f+1.)/6.,w3=f*f*f/6.;
+ vec2 g0=w0+w1,g1=w2+w3,h0=(base-1.+w1/g0+.5)/65.,h1=(base+1.+w3/g1+.5)/65.;
+ return g0.y*(g0.x*texture(uSand,h0).r+g1.x*texture(uSand,vec2(h1.x,h0.y)).r)+g1.y*(g0.x*texture(uSand,vec2(h0.x,h1.y)).r+g1.x*texture(uSand,h1).r);
+}
+float labFloor(vec3 p){if(uStation==4)return riverBase(p)+texture(uLabBed,p.xz/vec2(12,120)+.5).r;if(uStation==6)return sandHeight(p.xz);return 0.;}
 
 vec4 bodyExtra(int i,int j){return texelFetch(uBodyExtra,ivec2((i*3+j)%256,(i*3+j)/256),0);}
 vec3 bodyLocal(vec3 p,int i){vec4 r=bodyExtra(i,1);vec3 q=p-texelFetch(uBodies,ivec2((i*2)%256,(i*2)/256),0).xyz;float cp=cos(r.z),sp=sin(r.z),c=cos(r.x),s=sin(r.x),a=cos(r.y),b=sin(r.y);q=vec3(q.x,cp*q.y+sp*q.z,-sp*q.y+cp*q.z);q=vec3(c*q.x+s*q.y,-s*q.x+c*q.y,q.z);return vec3(a*q.x-b*q.z,q.y,b*q.x+a*q.z);}

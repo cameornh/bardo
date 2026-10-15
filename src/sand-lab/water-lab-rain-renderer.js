@@ -45,7 +45,7 @@ void main(){
  vec2 axis=abs(xy)>1e-8?normalize(vec2(e1-yy,xy)):xx>=yy?vec2(1,0):vec2(0,1);
  vec4 clip=projectionMatrix*p;clip.xy+=6.*(axis*sqrt(e1)*position.x+vec2(-axis.y,axis.x)*sqrt(e2)*position.y)/uResolution*clip.w;
  if(p.z>-.05||labOpaque(center)<0.||vessel(center)<0.)clip=vec4(2,2,2,1);
- gl_Position=clip;vQ=position.xy*3.;vDepth=length(p.xyz);vAlpha=(.17+.17*rh(seed+29.))*rainFade;
+ gl_Position=clip;vQ=position.xy*3.;vDepth=length(p.xyz);vAlpha=(.17+.17*rh(seed+29.))*rainFade*smoothstep(1.5,5.,-p.z/max(s,trail));
  float basis[16];basisSH(normalize(uEye-center),basis);vec3 light=vec3(0);
  for(int i=0;i<16;i++){if(i>=(uSHDegree+1)*(uSHDegree+1))break;light+=uSH[i]*basis[i];}
  vLight=max(light,vec3(0))*uAmbient*mediumSky(center)+LAB_SUN*uSunlight*sunTransmission(center,uScale);

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {LabWaterField, LAB_FIELD_GLSL, fieldLayout} from './water-lab-field.js';
-import {parcelKernel} from '../parcel-field.js';
+import {reconstructionKernel as parcelKernel} from './reconstruction.js';
 import {LAB_GEOMETRY_GLSL, rotate, vesselDistance, wallVelocity, normalAt} from './water-lab-model.js';
 
 export const DETAIL_FLOW_GLSL = LAB_FIELD_GLSL.replaceAll('uLabField','uFlowTexture').replaceAll('uField','uFlow')
@@ -36,7 +36,7 @@ export class DetailFlowField {
       if(!value){
         const point=index.map((v,k)=>min[k]+v*dx),cell=point.map(v=>Math.floor(v/this.cellSize));value=[0,0,0,0];
         for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)for(const item of this.bins.get([cell[0]+x,cell[1]+y,cell[2]+z].join(','))||[]){
-          const d=point.map((v,k)=>(v-item.position[k])/item.sigma);if(d.some(v=>Math.abs(v)>3))continue;
+          const d=point.map((v,k)=>(v-item.position[k])/item.sigma);if(d.reduce((a,v)=>a+v*v,0)>9)continue;
           const rho=item.amplitude*Math.exp(-.5*d.reduce((s,v)=>s+v*v,0));
           [1,item.dye,item.tannin,item.sediment].forEach((v,k)=>value[k]+=rho*v);
         }
