@@ -1,3 +1,6 @@
+import {LAB_LIGHTING_GLSL} from './water-lab-lighting.js';
+import {LAB_LIGHT_VISIBILITY_GLSL} from './water-lab-light-visibility.js';
+import {LAB_GEOMETRY_GLSL} from './water-lab-model.js';
 import {SOLUTE_GLSL} from './water-lab-solutes.js';
 import {SH_GLSL} from './shaders.js';
 import {WATER_MATERIAL_GLSL} from './water-material.js';
@@ -31,8 +34,11 @@ ${SH_GLSL}
 ${WATER_MATERIAL_GLSL}
 ${SOLUTE_GLSL}
 ${LAB_FIELD_GLSL}
+${LAB_GEOMETRY_GLSL}
+${LAB_LIGHTING_GLSL}
+${LAB_LIGHT_VISIBILITY_GLSL}
 uniform vec3 uSH[16],uEye;uniform int uSHDegree;
-uniform highp sampler2D uOpaqueRead,uWaterSurface;uniform vec2 uResolution;uniform float uScale,uAmbient,uTurbidity,uTannins;
+uniform highp sampler2D uOpaqueRead,uWaterSurface;uniform vec2 uResolution;uniform float uScale,uAmbient,uTurbidity,uTannins,uSunlight,uLights;
 void main(){
  vec2 uv=gl_FragCoord.xy/uResolution;if(vDepth>texture(uOpaqueRead,uv).a)discard;
  float a=exp(-.5*dot(vQ,vQ))*.6;if(a<.006)discard;
@@ -43,6 +49,6 @@ void main(){
  if(vDepth>surface){float begin=parcelSample(uEye).x>.18?0.:surface,stepLength=(vDepth-begin)/6.;vec3 ray=normalize(vCenter-uEye);
    for(int i=0;i<6;i++)path+=smoothstep(.08,.22,parcelSample(uEye+ray*(begin+(float(i)+.5)*stepLength)).x)*stepLength*uScale;}
  vec3 trans=labTransmission(path,uTurbidity,uTannins);
- vec3 color=(vec3(.6,.7,.8)+max(light,vec3(0))*2.2)*uAmbient;
+ vec3 color=max(light,vec3(0))*uAmbient*mediumSky(vCenter)+LAB_SUN*uSunlight*sunTransmission(vCenter,uScale);if(uStation==2)for(int i=0;i<3;i++)color+=poolColor(i)*3.*uLights*poolFalloff(vCenter,poolLamp(i))*poolTransmission(vCenter,i,uScale);
  outColor=vec4(color*trans*a,a*max(trans.x,max(trans.y,trans.z)));
 }`;

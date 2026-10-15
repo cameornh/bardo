@@ -1,0 +1,54 @@
+<!doctype html><html><body><button id="run">Validate material lighting</button><button id="off" disabled>Shadows off</button><button id="on" disabled>Shadows on</button><button id="pool">Pool</button><button id="tank">Tank</button><button id="glass">Cup</button><button id="river">River</button><button id="depth">Submerged glass</button><button id="clear">Clear water</button><button id="tannin">High organic load</button><pre id="result" style="max-height:240px;overflow:auto">Ready</pre><script type="module">
+import {MEDIUM_INTEGRATE_GLSL,mediumOpticalDepth,LabMediumShadows} from '../src/water-lab-medium-shadows.js';
+import {SOLUTE_GLSL} from '../src/water-lab-solutes.js';
+import {vesselDistance,createMotion} from '../src/water-lab-model.js';
+import * as THREE from 'three';
+import {WaterLab} from '../src/water-lab.js';
+import {WaterLabRenderer} from '../src/water-lab-renderer.js';
+import {LabPoolShadows,POOL_SHADOW_GLSL} from '../src/water-lab-pool-shadows.js';
+import {BODY_SHADOW_GLSL,bodyLightTransmission} from '../src/water-lab-body-shadows.js';
+import {LAB_GEOMETRY_GLSL} from '../src/water-lab-model.js';
+import {DETAIL_LIGHT_GLSL,detailResponse,detailRadiance} from '../src/water-lab-detail-optics.js';
+import {MotionDetail} from '../src/lod.js';
+import {QUAD_VERTEX,TONEMAP_FRAGMENT} from '../src/shaders.js';
+const renderer=new THREE.WebGLRenderer({preserveDrawingBuffer:true});renderer.autoClear=false;renderer.setSize(640,480);document.body.append(renderer.domElement);
+renderer.debug.onShaderError=(gl,program,vs,fs)=>{throw new Error(gl.getShaderInfoLog(fs)||gl.getShaderInfoLog(vs)||gl.getProgramInfoLog(program));};
+const lab=new WaterLab(renderer),camera=new THREE.PerspectiveCamera(43,640/480,.01,200),target=new THREE.WebGLRenderTarget(640,480,{type:THREE.FloatType}),output=new THREE.Scene();
+output.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:TONEMAP_FRAGMENT,uniforms:{uImage:{value:target.texture}},depthTest:false,depthWrite:false})));
+const field={renderer,camera,target,output,quadCamera:new THREE.Camera(),resolution:new THREE.Vector2(640,480),motion:new MotionDetail(),minPixelSigma:2,uniforms:{uView:{value:0},uSHDegree:{value:3}},water:{uniforms:{uWaterRoughness:{value:.07},uTurbidity:{value:.02}}}};
+for(const k of ['beach','grass','grains','soft','optics','lightTest'])field[k]={count:0};
+const visual=new WaterLabRenderer(field,lab),result=document.querySelector('#result');
+function readTarget(t){const half=t.texture.type===THREE.HalfFloatType,data=half?new Uint16Array(t.width*t.height*4):new Float32Array(t.width*t.height*4);renderer.readRenderTargetPixels(t,0,0,t.width,t.height,data);return half?Float32Array.from(data,x=>THREE.DataUtils.fromHalfFloat(x)):data;}
+function draw(enabled){visual.poolShadows.enabled=enabled;visual.u.uBodyShadows.value=enabled;visual.render({adaptive:false});const data=new Float32Array(640*480*4);renderer.readRenderTargetPixels(target,0,0,640,480,data);return data;}
+function bind(markers){lab.detail.reset();markers.forEach((item,i)=>item.forEach((values,k)=>lab.detail.fallback[k].image.data.set(values,i*4)));for(const t of lab.detail.fallback)t.needsUpdate=true;lab.detail.count=markers.length;lab.detail.time=.2;lab.detail.bind(lab.detail.fallback);lab.revision++;}
+function query(fragment,uniforms,width){const rt=new THREE.WebGLRenderTarget(width,1,{type:THREE.FloatType}),g=new THREE.PlaneGeometry(2,2),m=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:fragment,uniforms,depthTest:false,depthWrite:false}),scene=new THREE.Scene();scene.add(new THREE.Mesh(g,m));renderer.setRenderTarget(rt);renderer.render(scene,new THREE.Camera());const data=readTarget(rt);renderer.setRenderTarget(null);for(const r of [rt,g,m])r.dispose();return Array.from(data);}
+function compareMedium(){
+ const fragment=`precision highp float;precision highp int;out vec4 outColor;uniform int testKind;
+ float labOpaque(vec3 p){return testKind==3?abs(p.z-2.)-.3:100.;}
+ float vessel(vec3 p){return testKind==2?abs(p.z-2.)-.12:100.;}
+ vec4 parcelSample(vec3 p){return testKind<2&&p.z>=1.&&p.z<3.?vec4(1,0,0,0):vec4(0);}
+ ${SOLUTE_GLSL}${MEDIUM_INTEGRATE_GLSL}
+ void main(){vec3 tau=mediumOpticalDepth(vec3(0,0,(gl_FragCoord.x-.5)*.04),vec3(0,0,1),4.,.06);outColor=vec4(tau,1);}`;
+ let error=0;const cases=[];
+ for(let kind=0;kind<4;kind++){const organic=kind===1?3:0,actual=query(fragment,{testKind:{value:kind},uScale:{value:1},uTannins:{value:organic},uTurbidity:{value:.02}},32);
+ for(let i=0;i<32;i++){const expected=mediumOpticalDepth([0,0,i*.04],[0,0,1],4,{sample:p=>kind<2&&p[2]>=1&&p[2]<3?[1,0,0,0]:[0,0,0,0],solid:p=>kind===3?Math.abs(p[2]-2)-.3:100,glass:p=>kind===2?Math.abs(p[2]-2)-.12:100,organic,turbidity:.02,step:.06});expected.forEach((v,k)=>error=Math.max(error,Math.abs(v-actual[i*4+k])));}cases.push(actual.slice(0,3));}
+ return {error,cases,pass:error<.001};
+}
+const delta=(a,b)=>{let changed=0,peak=0;for(let i=0;i<a.length;i+=4){const d=Math.max(Math.abs(a[i]-b[i]),Math.abs(a[i+1]-b[i+1]),Math.abs(a[i+2]-b[i+2]));if(d>.002)changed++;peak=Math.max(peak,d);}return {changed,peak,pass:changed>40&&peak>.01};};
+function station(kind){lab.configure(kind);lab.detail.enabled=false;lab.ambient=.5;lab.sunlight=1;lab.lights=1;lab.tannins=0;camera.position.fromArray(lab.spec.eye);camera.lookAt(...lab.spec.target);draw(true);}
+function sources(){station('pool');lab.ambient=lab.sunlight=lab.lights=0;draw(true);const dark=readTarget(target);let darkPeak=0;for(let i=0;i<dark.length;i++)if(i%4!==3)darkPeak=Math.max(darkPeak,Math.abs(dark[i]));
+ const layers=[];for(const k of ['ambient','sunlight','lights']){lab[k]=1;draw(true);layers.push(readTarget(target));lab[k]=0;}lab.ambient=lab.sunlight=lab.lights=1;draw(true);const together=readTarget(target);let error=0;for(let i=0;i<together.length;i++)if(i%4!==3)error=Math.max(error,Math.abs(together[i]-layers.reduce((sum,a)=>sum+a[i],0)));return {darkPeak,error,sources:layers.map(a=>delta(a,dark)),pass:darkPeak<.00001&&error<.0001&&layers.every(a=>delta(a,dark).pass)};}
+function shadows(kind,empty=false){station(kind);if(empty){lab.positions=new Float32Array(0);lab.velocities=new Float32Array(0);lab.chem=new Float32Array(0);lab.neighborCounts=new Uint16Array(0);lab.revision++;}
+ lab.ambient=0;lab.sunlight=1;visual.mediumShadows.enabled=false;draw(true);const off=readTarget(visual.background);visual.mediumShadows.enabled=true;draw(true);const on=readTarget(visual.background),result=delta(off,on);if(!empty){lab.tannins=3;draw(true);result.organic=delta(on,readTarget(visual.background));result.pass&&=result.organic.pass;}return result;}
+function markerSources(){station('pool');lab.detail.enabled=true;const markers=[];for(let i=0;i<450;i++){const a=i*2.39996,r=Math.sqrt((i+.5)/450);markers.push([[Math.cos(a)*r*.45,1.4,-.5+Math.sin(a)*r*.4,.25],[.1,.3,.05,2],[.025,1,.6,1]]);}bind(markers);lab.ambient=lab.sunlight=lab.lights=0;draw(true);const dark=readTarget(visual.detailRenderer.target),layers=[];for(const k of ['ambient','sunlight','lights']){lab[k]=1;draw(true);layers.push(delta(readTarget(visual.detailRenderer.target),dark));lab[k]=0;}return {layers,pass:layers.every(v=>v.pass)};}
+function glassOrdering(){station('pool');lab.ambient=.5;lab.sunlight=.7;camera.position.set(2.5,3.4,4.5);camera.lookAt(0,1,0);draw(true);const without=readTarget(visual.water);const ball={kind:'glass',position:[0,1.1,0],radius:.55,velocity:[0,0,0]};lab.balls=[ball];draw(true);const water=readTarget(visual.resolvedWater),final=readTarget(target);let covered=0,error=0;
+ for(let y=0;y<480;y++)for(let x=0;x<640;x++){const i=(y*640+x)*4,ray=new THREE.Vector3((x+.5)/640*2-1,(y+.5)/480*2-1,.5).unproject(camera).sub(camera.position).normalize(),oc=camera.position.clone().sub(new THREE.Vector3(...ball.position)),q=oc.dot(ray),h=q*q-oc.lengthSq()+ball.radius**2;if(h<0)continue;const depth=-q-Math.sqrt(h);if(depth>water[i+3]+.01&&water[i+3]<9999){covered++;for(let k=0;k<3;k++)error=Math.max(error,Math.abs(final[i+k]-water[i+k]));}}
+ const refracted=delta(without,water);return {covered,error,refracted,pass:covered>100&&error<.00001&&refracted.pass};}
+async function compareAtlas(){station('glass');const data=readTarget(visual.density.target);visual.density.fallback={image:{data}};const small=new LabMediumShadows(renderer,lab,visual.density,visual.u);small.u.uMediumSize.value.set(8,6,8);small.update();const gpu=readTarget(small.target);small.cpu=true;small.update();const cpu=small.fallback.image.data;let error=0;for(let i=0;i<cpu.length;i++)error=Math.max(error,Math.abs(Math.exp(-cpu[i])-Math.exp(-gpu[i])));small.dispose();delete visual.density.fallback;return {error,pass:error<.012};}
+document.querySelector('#run').onclick=async()=>{try{result.textContent='Running';const reference=compareMedium(),atlas=await compareAtlas(),independent=sources(),foam=markerSources(),water=shadows('pool'),tank=shadows('tank',true),glass=shadows('glass',true),glassDepth=glassOrdering();station('tank');lab.tannins=1;draw(true);result.textContent=JSON.stringify({pass:[reference,atlas,independent,foam,water,tank,glass,glassDepth].every(v=>v.pass),reference,atlas,independent,foam,water,tank,glass,glassDepth},null,2);}catch(e){result.textContent='FAIL '+e.stack;}};
+for(const kind of ['pool','tank','glass','river'])document.querySelector('#'+kind).onclick=()=>station(kind);
+document.querySelector('#depth').onclick=()=>glassOrdering();
+document.querySelector('#clear').onclick=()=>{lab.tannins=0;draw(true);};document.querySelector('#tannin').onclick=()=>{lab.tannins=3;draw(true);};
+for(const name of ['off','on']){document.querySelector('#'+name).disabled=false;document.querySelector('#'+name).onclick=()=>{visual.mediumShadows.enabled=name==='on';draw(true);};}
+station('tank');
+</script></body></html>

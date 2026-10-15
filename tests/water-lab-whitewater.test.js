@@ -74,5 +74,5 @@ test('water attenuates marker illumination spectrally; bubbles are not luminous 
   const clear=detailRadiance(1,[.5,.5,.5],1,0,0),deep=detailRadiance(1,[.5,.5,.5],1,3,2),bubble=detailRadiance(2,[.5,.5,.5],1,3,2);
   assert.ok(deep.every((v,k)=>v<clear[k]));assert.ok(deep[2]>deep[0]*2);
   assert.ok(bubble.every((v,k)=>v<deep[k]*.4));
-  assert.deepEqual(detailRadiance(0,[.5,.5,.5],1,0,0),[2.9,2.9,2.9]);
+  assert.deepEqual(detailRadiance(0,[.5,.5,.5],1,0,0),[2.4,2.25,1.95]);
 });

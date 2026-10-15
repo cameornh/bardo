@@ -20,6 +20,12 @@ export function box(p,b){const q=p.map((v,k)=>Math.abs(v)-b[k]);return length(q.
 export function floorHeight(p,kind,slope=.1){if(kind==='river')return riverHeight(p,slope);if(kind==='ocean')return Math.max(-.3,(p[2]-1)*.48);return 0;}
 export function vesselLocal(p,motion){return rotate(p.map((v,k)=>v-motion.position[k]),motion.tilt,motion.spin,true);}
 export function vesselDistance(p,kind,motion){if(kind!=='tank'&&kind!=='glass')return 100;const q=vesselLocal(p,motion);if(kind==='glass'){const r=Math.hypot(q[0],q[2]);return Math.min(Math.max(Math.abs(r-1.1)-.095,Math.abs(q[1]) -1.5),Math.max(r-1.2,Math.abs(q[1]+1.5)-.095));}let d=box([q[0],q[1]+1.7,q[2]],[2.2,.12,1.6]);for(const a of [0,2])for(const side of [-1,1]){const v=q.slice(),b=[2.2,1.7,1.6];v[a]-=side*(a===0?2.1:1.5);b[a]=.12;d=Math.min(d,box(v,b));}return d;}
+export function opaqueDistance(p,kind,bedDelta=0,slope=.1){
+ let d=(p[1]-floorHeight(p,kind,slope)-bedDelta)*(kind==='river'?.22:1);
+ if(kind==='waterfall')d=Math.min(d,box([p[0],p[1]-2.4,p[2]+3],[3.2,2.4,1.8]));
+ if(kind==='pipe')d=Math.min(d,Math.max(Math.abs(Math.hypot(p[1]-3.6,p[2])-.34)-.075,Math.abs(p[0]+4.65)-.85));
+ if(kind==='pool')for(const a of [0,2])for(const side of [-1,1]){const q=[p[0],p[1]-1,p[2]],b=[4,1,3.1];q[a]-=side*(a===0?3.9:3);b[a]=.12;d=Math.min(d,box(q,b));}return d;
+}
 export function fixtureDistance(p,kind,motion,bedDelta=0,slope=.1){let d=kind==='river'?riverDistance(p,slope,bedDelta):p[1]-floorHeight(p,kind)-bedDelta;if(kind==='waterfall')d=Math.min(d,box([p[0],p[1]-2.4,p[2]+3],[3.2,2.4,1.8]));if(kind==='pool')for(const a of [0,2])for(const side of [-1,1]){const q=[p[0],p[1]-1,p[2]],b=[4,1,3.1];q[a]-=side*(a===0?3.9:3);b[a]=.12;d=Math.min(d,box(q,b));}d=Math.min(d,vesselDistance(p,kind,motion));return Math.min(d,5.5-Math.abs(p[0]),(kind==='river'?19.5:4.9)-Math.abs(p[2]),(kind==='river'?12:9)-p[1]);}
 export function normalAt(p,field){const e=.003,n=[0,1,2].map(k=>{const a=p.slice(),b=p.slice();a[k]+=e;b[k]-=e;return field(a)-field(b);}),l=length(n)||1;return n.map(v=>v/l);}
 export function wallVelocity(p,m){const r=p.map((v,k)=>v-m.position[k]),axis=rotate([0,1,0],m.tilt,0),omega=[0,0,m.tiltVelocity].map((v,k)=>v+axis[k]*m.spinVelocity);return [m.velocity[0]+omega[1]*r[2]-omega[2]*r[1],m.velocity[1]+omega[2]*r[0]-omega[0]*r[2],m.velocity[2]+omega[0]*r[1]-omega[1]*r[0]];}
@@ -61,6 +67,12 @@ vec3 rotateLab(vec3 p,bool inverse){float c=cos(uTilt),s=sin(uTilt),a=cos(uSpin)
 float labBox(vec3 p,vec3 b){vec3 q=abs(p)-b;return length(max(q,0.))+min(max(q.x,max(q.y,q.z)),0.);}
 float labFloor(vec3 p){if(uStation==4)return riverBase(p)+texture(uLabBed,p.xz/vec2(12,40)+.5).r;if(uStation==6)return max(-.3,(p.z-1.)*.48);return 0.;}
 float vessel(vec3 p){if(uStation!=3&&uStation!=5)return 100.;vec3 q=rotateLab(p-uContainer,true);if(uStation==5){float r=length(q.xz);return min(max(abs(r-1.1)-.095,abs(q.y)-1.5),max(r-1.2,abs(q.y+1.5)-.095));}float d=labBox(q+vec3(0,1.7,0),vec3(2.2,.12,1.6));for(int a=0;a<2;a++)for(int j=0;j<2;j++){vec3 v=q,b=vec3(2.2,1.7,1.6);int axis=a==0?0:2;v[axis]-=(j==0?-1.:1.)*(a==0?2.1:1.5);b[axis]=.12;d=min(d,labBox(v,b));}return d;}
+// Visible opaque fixture geometry; simulation-only bounding walls are excluded.
+float labOpaque(vec3 p){float d=(p.y-labFloor(p))*(uStation==4?.22:1.);
+ if(uStation==1)d=min(d,labBox(p+vec3(0,-2.4,3),vec3(3.2,2.4,1.8)));
+ if(uStation==0)d=min(d,max(abs(length(p.yz-vec2(3.6,0))-.34)-.075,abs(p.x+4.65)-.85));
+ if(uStation==2)for(int a=0;a<2;a++)for(int s=0;s<2;s++){vec3 q=p-vec3(0,1.,0),b=vec3(4.,1.,3.1);int axis=a==0?0:2;q[axis]-=(s==0?-1.:1.)*(a==0?3.9:3.);b[axis]=.12;d=min(d,labBox(q,b));}return d;
+}
 float fixture(vec3 p){float d=uStation==4?riverDistance(p,texture(uLabBed,p.xz/vec2(12,40)+.5).r):p.y-labFloor(p);if(uStation==1)d=min(d,labBox(p+vec3(0,-2.4,3),vec3(3.2,2.4,1.8)));if(uStation==2)for(int a=0;a<2;a++)for(int s=0;s<2;s++){vec3 q=p-vec3(0,1.,0),b=vec3(4.,1.,3.1);int axis=a==0?0:2;q[axis]-=(s==0?-1.:1.)*(a==0?3.9:3.);b[axis]=.12;d=min(d,labBox(q,b));}return min(d,vessel(p));}
 vec4 labBody(int i){return texelFetch(uBodies,ivec2((i*2)%256,(i*2)/256),0);}
 float labSolid(vec3 p){float d=min(fixture(p),min(5.5-abs(p.x),min((uStation==4?19.5:4.9)-abs(p.z),(uStation==4?12.:9.)-p.y)));for(int i=0;i<uBodyCount;i++){vec4 b=labBody(i);d=min(d,length(p-b.xyz)-b.w);}return d;}

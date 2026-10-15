@@ -1,0 +1,43 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {soluteCoefficients} from '../src/water-lab-solutes.js';
+import {mediumOpticalDepth} from '../src/water-lab-medium-shadows.js';
+import {vesselDistance,createMotion} from '../src/water-lab-model.js';
+import {phaseHG,labSky,diffuseSHBand} from '../src/water-lab-lighting.js';
+import {projectSH,evaluateSH} from '../src/sh.js';
+import {detailRadiance,detailResponse} from '../src/water-lab-detail-optics.js';
+
+test('medium shadows obey Beer law and ignore the air part of a lamp path',()=>{
+ const options={sample:p=>p[2]>=1&&p[2]<3?[1,0,0,0]:[0,0,0,0],step:.025};
+ const tau=mediumOpticalDepth([0,0,0],[0,0,1],5,options),tau2=mediumOpticalDepth([0,0,-1],[0,0,1],6,{...options,step:.05});
+ const ext=soluteCoefficients([0,0,0]).extinction;
+ ext.forEach((e,k)=>{assert.ok(Math.abs(tau[k]-2*e)<.015);assert.ok(Math.abs(tau[k]-tau2[k])<.02);});
+ const half=mediumOpticalDepth([0,0,0],[0,0,1],5,{...options,scale:.5});tau.forEach((v,k)=>assert.ok(Math.abs(half[k]*2-v)<1e-9));
+});
+test('organic load is absorption dominated at high values, with amber transmitted shadows',()=>{
+ const clear=soluteCoefficients([0,0,0]),low=soluteCoefficients([0,0,0],.3),high=soluteCoefficients([0,0,0],3);
+ for(let k=0;k<3;k++){assert.ok(high.scatter[k]>low.scatter[k]);assert.ok(high.scatter[k]/high.extinction[k]<low.scatter[k]/low.extinction[k]);assert.ok(high.absorption[k]>clear.absorption[k]);}
+ const tau=mediumOpticalDepth([0,0,0],[0,0,1],2,{sample:()=>[1,0,0,0],organic:3,step:.1});assert.ok(tau[2]>tau[1]&&tau[1]>tau[0]);assert.ok(Math.exp(-tau[2])<.001);
+ const local=soluteCoefficients([0,3,0]);assert.deepEqual(local,high);
+});
+test('empty cups and tanks transmit partial shadows and move with the container',()=>{
+ for(const kind of ['tank','glass']){const m=createMotion(),sample=()=>[0,0,0,0],glass=p=>vesselDistance(p,kind,m),ray=[1,0,0],origin=[-3,2,0],query=()=>mediumOpticalDepth(origin,ray,6,{sample,glass,step:.08});
+ const tau=query();assert.ok(tau.every(v=>v>.12&&v<1),`${kind}: ${tau}`);m.position[2]=6;assert.deepEqual(query(),[0,0,0]);}
+});
+test('a blocker darkens only downstream light and open water is not an opaque occluder',()=>{
+ const sample=()=>[0,0,0,0],solid=p=>Math.abs(p[2]-2)-.3;
+ assert.deepEqual(mediumOpticalDepth([0,0,0],[0,0,1],5,{sample,solid}),[16,16,16]);
+ assert.deepEqual(mediumOpticalDepth([0,0,3],[0,0,1],2,{sample,solid}),[0,0,0]);
+});
+test('sky SH is a cosine-convolved dome with no sunlight baked in',()=>{
+ const coeff=projectSH(labSky);for(let i=0;i<16;i++)for(let k=0;k<3;k++)coeff[i*3+k]*=diffuseSHBand(i);
+ for(const n of [[0,1,0],[0,-1,0],[1,0,0]])assert.ok(evaluateSH(coeff,n).every(v=>v>0&&v<1));
+ assert.equal(diffuseSHBand(12),0);
+ // HG is normalized over the sphere; a sun phase should not invent energy.
+ let integral=0;const count=10000;for(let i=0;i<count;i++)integral+=phaseHG(-1+2*(i+.5)/count)*4*Math.PI/count;assert.ok(Math.abs(integral-1)<1e-6);
+});
+test('foam direct light is directional and sunlight cannot extinguish independent sky fill',()=>{
+ assert.equal(detailResponse(1,[0,1,0],[0,1,0],[0,-1,0]),.18);assert.equal(detailResponse(1,[0,1,0],[0,1,0],[1,0,0]),0);
+ const sky=detailRadiance(1,[.3,.4,.5],1,0,100,0,0,0);assert.deepEqual(sky,[.3,.4,.5]);
+ assert.deepEqual(detailRadiance(0,[.3,.4,.5],0,0,0,0,1,0),[0,0,0]);
+});
