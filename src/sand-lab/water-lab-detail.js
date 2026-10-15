@@ -93,7 +93,7 @@ export class LabDetail {
       this.strength[i]+=(target-this.strength[i])*(1-Math.exp(-dt/tau));
       const activity=lab.aerationActivity?Math.max(lab.aerationActivity[i*2],lab.aerationActivity[i*2+1]):null;
       const weight=detailEmissionWeight(s,scale,lab.neighborCounts?.[i]??18,activity),breaking=lab.surfaceBreakup?.[i]||0,exposure=this.strength[i]>.001||breaking>0||this.breakupHistory[i]>.00001?detailAirExposure(lab,i):0;
-      this.weights[i]=weight*exposure*(lab.player&&lab.playerDistance(point)<s*2?.2:1);this.exposure[i]=exposure;
+      this.weights[i]=weight*exposure*(lab.player&&lab.playerDistance(point)<s*2?.3:1);this.exposure[i]=exposure;
       // An unresolved breakup releases a finite burst. Remember its connected,
       // air-exposed state briefly after support is lost, instead of suppressing
       // the spray at exactly the moment the liquid separates. Every parcel can

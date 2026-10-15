@@ -45,7 +45,7 @@ export class WaterLab {
  if(this.kind==='pool'&&this.jets){for(const side of [-1,1]){const d=length([p[0]-side*3.3,p[1]-.7,p[2]+.8]),w=Math.exp(-d*d/.7)*this.jets;v[0]+=-side*w*dt*12/scale;v[2]+=w*dt*2/scale;}}
  // Contact projection carries normal wall motion; only physical viscosity
  // transfers tangential motion. A fixed drag created sticky, raised edges.
- if(this.player&&this.playerDistance(p)<s){const n=normalAt(p,q=>this.playerDistance(q)),relative=this.player.velocity.reduce((a,x,k)=>a+(x-v[k])*n[k],0),w=clamp(1-this.playerDistance(p)/s,0,1);if(relative>0)for(let k=0;k<3;k++)v[k]+=n[k]*relative*w*.18;}
+ if(this.player&&this.playerDistance(p)<s){const n=normalAt(p,q=>this.playerDistance(q)),relative=this.player.velocity.reduce((a,x,k)=>a+(x-v[k])*n[k],0),w=clamp(1-this.playerDistance(p)/s,0,1);if(relative>0)for(let k=0;k<3;k++)v[k]+=n[k]*relative*w*.22;}
  const vd=vesselDistance(p,this.kind,this.motion);if(vd<s*.9){const wall=wallVelocity(p,this.motion),weight=(1-clamp(vd/(s*.9),0,1))*(1-Math.exp(-6*WATER_MATERIAL.kinematicViscosity*dt/(scale*Math.max(s*.25,vd))**2));for(let k=0;k<3;k++)v[k]+=(wall[k]-v[k])*weight;}
  // The constraint iterations already project against the solid field on the
  // GPU (or in the CPU reference). Avoid duplicating that work for every parcel.

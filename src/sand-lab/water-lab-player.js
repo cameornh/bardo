@@ -15,5 +15,5 @@ export function playerImmersion(positions,eye,radius,height,spacing){
 // velocity introduced when the kinematic player projects a parcel away.
 export function softenPlayerImpulse(velocity,predictedVelocity,normal,weight){
  const outward=Math.max(0,velocity.reduce((sum,v,k)=>sum+(v-predictedVelocity[k])*normal[k],0));
- return velocity.map((v,k)=>v-normal[k]*outward*.8*weight);
+ return velocity.map((v,k)=>v-normal[k]*outward*.75*weight);
 }

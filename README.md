@@ -612,3 +612,13 @@ The sky now integrates wavelength-dependent Rayleigh single scattering and a sma
 A cached 192 × 96 GPU sky texture supplies the background and water/glass/mirror reflections. CPU projection of 64 directions updates the shared spherical harmonics for sand, objects, foam and rain only when the solar angle changes. Existing **Time of day**, **Day / night cycle**, **Sky ambient**, and **Direct sunlight** controls remain separate. Diagnostics show the sky backend; the CPU reference backend builds a smaller 48 × 24 sky texture with the same equations. Tests 01–11 remain unchanged.
 
 All 254 Node tests and the production build pass. GPU/CPU comparison across 18 daytime, grazing-angle and twilight rays measured maximum linear-radiance error 2.27e-6 (tolerance 1e-4). Daylight, sunset, night, reflected sky and the CPU sky fallback were checked in the local preview, with no shader errors.
+
+### Test 12 — air-supported cups and player splashes
+
+Cup buoyancy now integrates the submerged outer volume at its current orientation and includes the mass of water actually inside the cavity. The surrounding surface is estimated from nearby bulk-water parcels outside the cup; it is not inferred from the empty interior. Filling replaces buoyant air space with carried water, and draining releases that load. Parcel mass is neither created nor deleted. This is a local hydrostatic buoyancy approximation with a planar exterior surface, not a compressible gas-pressure or sealed diving-bell solver. Body buoyancy and sampling run on the CPU against the existing local fluid index; water constraints and transport remain on the GPU.
+
+Rock density is now 1.30 times water density in this test. Rock spheres remain negatively buoyant, while the empty cup's outer-volume/shell-volume ratio (~1.65) provides enough displacement to float. A flooded rock cup sinks. The latest cup's air and water volumes appear in diagnostics. Numerical tests cover dry equilibrium with the rim above water, flooding, rotated displacement, scale invariance, and interior/exterior parcel sampling. In the live six-second release, the cup retained its dry cavity and remained 0.39 simulation units above the bed; tilting it 80° subsequently flooded the cavity and the cup sank. The bulk count stayed at 12,852.
+
+Player contact transfers slightly more momentum and allows more nearby spray: incoming push weight is 0.22 (previously 0.18), residual outward projection velocity is 25% (previously 20%), and the local spray weight is 0.30 (previously 0.20). Earlier test snapshots retain their original tuning.
+
+All 259 numerical tests and the production build pass. The GPU sky comparison, dry-cup release and subsequent flooding were checked in the local preview with no console errors.
