@@ -7,6 +7,22 @@ export const beachHeight=(x,z)=>Math.max(-.3,(z-1)*.48)+.045*Math.sin(x*.6)*Math
 export function aggregateDensity(wet){return SAND.looseDensity+(SAND.wetDensity-SAND.looseDensity)*clamp(wet);}
 export function moisture(wet,contact,dt,rain=0){return contact?1-(1-wet)*Math.exp(-dt/SAND.wettingSeconds):clamp(wet*Math.exp(-dt/SAND.dryingSeconds)+rain*dt);}
 export const cubicWeights=t=>[(1-t)**3/6,(3*t**3-6*t*t+4)/6,(-3*t**3+3*t*t+3*t+1)/6,t**3/6];
+export const aggregateRadius=p=>Math.cbrt(p.mass/(p.packing*4*Math.PI/3));
+// Transfer stock between nearby clumps to vary size, then offset once at
+// creation. Mass, moisture and occupied volume travel together; no frame noise.
+function mergeStock(to,from,amount){
+ const before=to.mass,total=before+amount,volume=before/to.packing+amount/from.packing;
+ to.wet=(to.wet*before+from.wet*amount)/total;to.packing=total/volume;
+ to.memory=Math.max(to.memory,from.memory);to.mass=total;from.mass-=amount;
+}
+function irregularize(parcels,dx,dz){
+ const unused=new Set(parcels);
+ for(const p of parcels){if(!unused.delete(p))continue;let q=null,best=Infinity;
+  for(const candidate of unused){const d=candidate.position.reduce((sum,v,k)=>sum+(v-p.position[k])**2,0);if(d<best){best=d;q=candidate;}}
+  if(q){unused.delete(q);const donor=noise(p.id+73)<.5?p:q,receiver=donor===p?q:p;mergeStock(receiver,donor,donor.mass*(.18+.42*noise(p.id+127)));}
+ }
+ for(const p of parcels){const r=aggregateRadius(p);p.position[0]+=dx*(noise(p.id+19)-.5)*.85;p.position[2]+=dz*(noise(p.id+47)-.5)*.85;p.position[1]+=Math.min(r,dx,dz)*(noise(p.id+83)-.5)*.4;}
+}
 export class SandBed{
  constructor(n=65){this.n=n;this.dx=11/(n-1);this.dz=9.8/(n-1);this.area=this.dx*this.dz;this.mass=new Float64Array(n*n);this.wet=new Float64Array(n*n);this.packing=new Float64Array(n*n).fill(SAND.packing);this.memory=new Float64Array(n*n);this.base=new Float64Array(n*n);this.data=new Float32Array(n*n*4);this.parcels=[];this.nextId=1;this.revision=0;for(let j=0;j<n;j++)for(let i=0;i<n;i++){const k=j*n+i;this.base[k]=beachHeight(i*this.dx-5.5,j*this.dz-4.9)-.7;this.mass[k]=.7*SAND.packing*this.area;}this.removedMass=0;this.initialMass=this.totalMass();this.update();}
  weights(x,z){const a=clamp((x+5.5)/this.dx,0,this.n-1),b=clamp((z+4.9)/this.dz,0,this.n-1),i=Math.min(this.n-2,Math.floor(a)),j=Math.min(this.n-2,Math.floor(b)),u=a-i,v=b-j;return [[j*this.n+i,(1-u)*(1-v)],[j*this.n+i+1,u*(1-v)],[(j+1)*this.n+i,(1-u)*v],[(j+1)*this.n+i+1,u*v]];}
@@ -15,6 +31,8 @@ export class SandBed{
   const a=clamp((x+5.5)/this.dx,0,this.n-1),b=clamp((z+4.9)/this.dz,0,this.n-1),i=Math.floor(a),j=Math.floor(b),wx=cubicWeights(a-i),wz=cubicWeights(b-j);let h=0;
   for(let z0=0;z0<4;z0++)for(let x0=0;x0<4;x0++)h+=this.heightAt(clamp(j+z0-1,0,this.n-1)*this.n+clamp(i+x0-1,0,this.n-1))*wx[x0]*wz[z0];return h;
  }
+ distance(p){let d=(p[1]-this.height(p[0],p[2]))*.65;for(const a of this.parcels){if(a.held)continue;const r=aggregateRadius(a),q=Math.hypot(...p.map((v,k)=>v-a.position[k]))-r,k=Math.min(.08,r*.5),h=Math.max(k-Math.abs(d-q),0)/Math.max(k,.00001);d=Math.min(d,q)-h*h*k*.25;}return d;}
+ materialAt(p){let d=(p[1]-this.height(p[0],p[2]))*.65,wet=this.sample(p[0],p[2]);for(const a of this.parcels){const r=aggregateRadius(a),q=Math.hypot(...p.map((v,k)=>v-a.position[k]))-r,k=Math.min(.08,r*.5),h=clamp(.5+.5*(d-q)/Math.max(k,.00001));wet=wet*(1-h)+a.wet*h;d=d*(1-h)+q*h-k*h*(1-h);}return wet;}
  sample(x,z,array=this.wet){return this.weights(x,z).reduce((s,[k,w])=>s+array[k]*w,0);}
  totalMass(){return this.mass.reduce((a,b)=>a+b,0)+this.parcels.reduce((a,b)=>a+b.mass,0);}
  update(){this.dirty=false;for(let k=0;k<this.mass.length;k++)this.data.set([this.heightAt(k),this.wet[k],this.packing[k],this.memory[k]],k*4);this.revision++;}
@@ -22,8 +40,11 @@ export class SandBed{
  footprint(x,z,r){const result=[];const a=Math.max(0,Math.floor((x-r+5.5)/this.dx)),b=Math.min(this.n-1,Math.ceil((x+r+5.5)/this.dx)),c=Math.max(0,Math.floor((z-r+4.9)/this.dz)),d=Math.min(this.n-1,Math.ceil((z+r+4.9)/this.dz));for(let j=c;j<=d;j++)for(let i=a;i<=b;i++){const distance=Math.hypot(i*this.dx-5.5-x,j*this.dz-4.9-z);if(distance<r)result.push([j*this.n+i,(1-(distance/r)**2)**3]);}return result.length?result:this.weights(x,z);}
  extract(point,radius,velocity=[0,0,0],held=false,fraction=1){const created=[];for(const [k,w] of this.footprint(point[0],point[2],radius)){const top=this.heightAt(k),x=(k%this.n)*this.dx-5.5,z=Math.floor(k/this.n)*this.dz-4.9,radial=Math.hypot(x-point[0],z-point[2]),half=Math.sqrt(Math.max(0,radius*radius-radial*radial)),depth=Math.max(0,Math.min(top,point[1]+half)-Math.max(this.base[k],point[1]-half)),amount=Math.min(this.mass[k],depth*this.packing[k]*this.area*fraction);if(amount<1e-8)continue;this.mass[k]-=amount;created.push({position:[x,top-depth*.5,z],mass:amount,wet:this.wet[k],packing:this.packing[k],memory:this.memory[k],velocity:velocity.slice(),held,id:this.nextId++});}
  // Combine adjacent extracted cells into bounded, unequal aggregates without losing mass.
- while(created.length>24){let small=0;for(let i=1;i<created.length;i++)if(created[i].mass<created[small].mass)small=i;const p=created.splice(small,1)[0];let q=created[0],best=Infinity;for(const candidate of created){const distance=candidate.position.reduce((sum,v,k)=>sum+(v-p.position[k])**2,0);if(distance<best){best=distance;q=candidate;}}const m=q.mass+p.mass;for(let k=0;k<3;k++)q.position[k]=(q.position[k]*q.mass+p.position[k]*p.mass)/m;q.wet=(q.wet*q.mass+p.wet*p.mass)/m;q.memory=Math.max(q.memory,p.memory);q.mass=m;}
- this.parcels.push(...created);this.update();return created;}
+ while(created.length>24){let small=0;for(let i=1;i<created.length;i++)if(created[i].mass<created[small].mass)small=i;const p=created.splice(small,1)[0];let q=created[0],best=Infinity;for(const candidate of created){const distance=candidate.position.reduce((sum,v,k)=>sum+(v-p.position[k])**2,0);if(distance<best){best=distance;q=candidate;}}const m=q.mass+p.mass;for(let k=0;k<3;k++)q.position[k]=(q.position[k]*q.mass+p.position[k]*p.mass)/m;mergeStock(q,p,p.mass);}
+ irregularize(created,this.dx,this.dz);
+ const existing=held?this.parcels.filter(p=>!p.held&&Math.hypot(...p.position.map((v,k)=>v-point[k]))<radius+aggregateRadius(p)):[];
+ for(const p of existing){p.held=true;p.velocity.fill(0);}
+ this.parcels.push(...created);this.update();return [...created,...existing];}
  carve(point,radius){
   // Subtract the sphere's intersection with the exposed column stock. This
   // is a surface crater in the current sand model, not an underground tunnel.
