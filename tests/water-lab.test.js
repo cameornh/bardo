@@ -16,3 +16,10 @@ test('wind brush changes local water momentum and solute injection finds the mov
  const volume=lab.volume;assert.ok(lab.addSoluteNear('dye',[0,10,0])>0);const dye=lab.chem[4];lab.jet={origin:[-4,2,0],direction:[1,0,0]};lab.step(1/120);
  assert.ok(lab.velocities[4]>.1);assert.ok(lab.velocities[5]<0);assert.equal(lab.volume,volume);assert.ok(Math.abs(lab.chem[4]-dye)<1e-6);
 });
+
+test('wall density completion has the correct support and analytic gradient',async()=>{
+ const {boundaryKernel}=await import('../src/water-lab-model.js');const h=.46;
+ assert.equal(boundaryKernel(0,h).density,.5);assert.ok(Math.abs(boundaryKernel(h,h).density)<1e-10);
+ assert.ok(Math.abs(boundaryKernel(2*h,h).gradient)<1e-12);
+ for(const q of [.1,.3,.5,.8]){const d=h*q,e=1e-6,b=boundaryKernel(d,h),derivative=(boundaryKernel(d+e,h).density-boundaryKernel(d-e,h).density)/(2*e);assert.ok(b.density>0&&b.density<.5);assert.ok(Math.abs(b.gradient-derivative)<1e-8);}
+});

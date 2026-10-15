@@ -3,6 +3,7 @@ import {QUAD_VERTEX} from './shaders.js';
 import {LAB_GEOMETRY_GLSL, vesselDistance, opaqueDistance} from './water-lab-model.js';
 import {LAB_FIELD_GLSL} from './water-lab-field.js';
 import {SOLUTE_GLSL,soluteCoefficients} from './water-lab-solutes.js';
+import {labSky,LAB_LIGHTING_GLSL} from './water-lab-lighting.js';
 import {poolLamp} from './water-lab-pool-shadows.js';
 
 const clamp=x=>Math.max(0,Math.min(1,x));
@@ -21,6 +22,16 @@ export function mediumOpticalDepth(p,d,limit,{sample,solid=()=>100,glass=()=>100
  }
  return tau.map(v=>Math.min(16,v));
 }
+// Fixed cosine-weighted quadrature of the whole upper hemisphere. Average
+// transmitted radiance, not optical depth: unblocked sky must remain visible
+// beside an absorbing volume. No camera-dependent or temporally random rays.
+export const SKY_SAMPLES=8;
+export function skyDirection(i){const r=Math.sqrt((i+.5)/SKY_SAMPLES),a=i*2.399963229728653;return [r*Math.cos(a),Math.sqrt(1-r*r),r*Math.sin(a)];}
+export function mediumSkyDepth(p,limit,options){
+ const light=[0,0,0],total=[0,0,0];
+ for(let i=0;i<SKY_SAMPLES;i++){const d=skyDirection(i),sky=labSky(d),tau=mediumOpticalDepth(p,d,limit(d),options);for(let k=0;k<3;k++){light[k]+=sky[k]*Math.exp(-tau[k]);total[k]+=sky[k];}}
+ return light.map((v,k)=>-Math.log(Math.max(Math.exp(-16),v/total[k])));
+}
 export const MEDIUM_INTEGRATE_GLSL=`
 uniform float uScale,uTannins,uTurbidity;
 vec3 mediumOpticalDepth(vec3 p,vec3 d,float limit,float stepSize){
@@ -37,18 +48,18 @@ export const MEDIUM_SHADOW_GLSL=`
 uniform bool uMediumShadows;uniform sampler2D uMediumTransport;
 uniform vec3 uMediumMin,uMediumMax,uMediumSize;uniform float uMediumStep;
 vec3 mediumSlice(vec3 q,float y,float light){vec2 uv=vec2((q.x+.5+(y+light*uMediumSize.y)*uMediumSize.x)/(uMediumSize.x*uMediumSize.y*5.),(q.z+.5)/uMediumSize.z);return texture(uMediumTransport,uv).rgb;}
-vec3 mediumLookup(vec3 p,float light){vec3 q=clamp((p-uMediumMin)/(uMediumMax-uMediumMin),0.,1.)*(uMediumSize-1.);float y=floor(q.y);return mix(mediumSlice(q,y,light),mediumSlice(q,min(y+1.,uMediumSize.y-1.),light),fract(q.y));}
+vec3 mediumLookup(vec3 p,float light){vec3 grid=(p-uMediumMin)/(uMediumMax-uMediumMin)*(uMediumSize-1.),outside=max(vec3(0),max(-grid,grid-(uMediumSize-1.)));float fade=1.-smoothstep(0.,2.,max(outside.x,max(outside.y,outside.z)));if(fade<=0.)return vec3(0);vec3 q=clamp(grid,vec3(0),uMediumSize-1.);float y=floor(q.y);return mix(mediumSlice(q,y,light),mediumSlice(q,min(y+1.,uMediumSize.y-1.),light),fract(q.y))*fade;}
 vec3 mediumSun(vec3 p){return uMediumShadows?exp(-mediumLookup(p,0.)):vec3(1);}
 vec3 mediumPool(vec3 p,int i){return uMediumShadows?exp(-mediumLookup(p,float(i+1))):vec3(1);}
 vec3 mediumSky(vec3 p){return uMediumShadows?exp(-mediumLookup(p,4.)):vec3(1);}
 `;
 const fragment=`precision highp float;precision highp int;
-${LAB_GEOMETRY_GLSL}${LAB_FIELD_GLSL}${SOLUTE_GLSL}${MEDIUM_INTEGRATE_GLSL}
+${LAB_GEOMETRY_GLSL}${LAB_FIELD_GLSL}${SOLUTE_GLSL}${LAB_LIGHTING_GLSL}${MEDIUM_INTEGRATE_GLSL}
 uniform vec3 uMediumMin,uMediumMax,uMediumSize;uniform float uMediumStep;out vec4 outColor;
 float distanceToEdge(vec3 p,vec3 d){vec3 edge=mix(uMediumMin,uMediumMax,greaterThanEqual(d,vec3(0)));vec3 t=(edge-p)/(d+vec3(1e-8));return max(.01,min(t.x,min(t.y,t.z)));}
 void main(){float light=floor(gl_FragCoord.x/(uMediumSize.x*uMediumSize.y)),column=mod(floor(gl_FragCoord.x),uMediumSize.x*uMediumSize.y);vec3 cell=vec3(mod(column,uMediumSize.x),floor(column/uMediumSize.x),floor(gl_FragCoord.y)),p=mix(uMediumMin,uMediumMax,cell/(uMediumSize-1.)),d=normalize(vec3(-.4,1,.3));outColor=vec4(0);
  if(light<.5)outColor.rgb=mediumOpticalDepth(p,d,distanceToEdge(p,d),uMediumStep);
- else if(light>3.5)outColor.rgb=mediumOpticalDepth(p,vec3(0,1,0),uMediumMax.y-p.y,uMediumStep);
+ else if(light>3.5){vec3 transmitted=vec3(0),total=vec3(0);for(int i=0;i<8;i++){float r=sqrt((float(i)+.5)/8.),a=float(i)*2.399963229728653;vec3 skyRay=vec3(r*cos(a),sqrt(1.-r*r),r*sin(a)),radiance=labSky(skyRay);transmitted+=radiance*exp(-mediumOpticalDepth(p,skyRay,distanceToEdge(p,skyRay),uMediumStep));total+=radiance;}outColor.rgb=-log(max(vec3(exp(-16.)),transmitted/total));}
  else if(uStation==2){vec3 delta=vec3((light-2.)*2.7,.65,-2.75)-p;float r=length(delta);outColor.rgb=p.z< -2.8?vec3(16):mediumOpticalDepth(p,delta/max(r,.0001),r,uMediumStep);}
 }`;
 export function sampleFieldCPU(data,l,p){
@@ -63,7 +74,7 @@ export class LabMediumShadows{
  if(!this.target)this.target=new THREE.WebGLRenderTarget(width,height,{type:THREE.HalfFloatType,depthBuffer:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
 
  if(this.cpu){const data=this.density.fallback?.image.data;if(!data)throw new Error('CPU medium lighting requires the CPU density field');const array=new Float32Array(width*height*4);const options={sample:p=>sampleFieldCPU(data,l,p),solid:p=>opaqueDistance(p,lab.kind,lab.bedDelta(p),lab.riverSlope),glass:p=>vesselDistance(p,lab.kind,lab.motion),scale:lab.spec.scale,organic:lab.tannins,turbidity:this.uniforms.uTurbidity.value,step};
- for(let z=0;z<size[2];z++)for(let y=0;y<size[1];y++)for(let x=0;x<size[0];x++){const p=[x,y,z].map((v,k)=>min[k]+(max[k]-min[k])*v/(size[k]-1)),d=[-.4,1,.3].map(v=>v/Math.sqrt(1.25)),limit=Math.min(...d.map((v,k)=>((v>=0?max[k]:min[k])-p[k])/v)),sky=mediumOpticalDepth(p,[0,1,0],max[1]-p[1],options),offset=(z*width+y*size[0]+x)*4;array.set([...mediumOpticalDepth(p,d,limit,options),0],offset);array.set([...sky,0],offset+tileWidth*16);for(let i=0;i<3;i++){const delta=poolLamp(i).map((v,k)=>v-p[k]),r=Math.hypot(...delta),tau=lab.kind==='pool'?(p[2]<-2.8?[16,16,16]:mediumOpticalDepth(p,delta.map(v=>v/r),r,options)):[0,0,0];array.set([...tau,0],offset+(i+1)*tileWidth*4);}}
+ for(let z=0;z<size[2];z++)for(let y=0;y<size[1];y++)for(let x=0;x<size[0];x++){const p=[x,y,z].map((v,k)=>min[k]+(max[k]-min[k])*v/(size[k]-1)),d=[-.4,1,.3].map(v=>v/Math.sqrt(1.25)),limit=Math.min(...d.map((v,k)=>((v>=0?max[k]:min[k])-p[k])/v)),sky=mediumSkyDepth(p,d=>Math.max(.01,Math.min(...d.map((v,k)=>((v>=0?max[k]:min[k])-p[k])/(v+1e-8)))),options),offset=(z*width+y*size[0]+x)*4;array.set([...mediumOpticalDepth(p,d,limit,options),0],offset);array.set([...sky,0],offset+tileWidth*16);for(let i=0;i<3;i++){const delta=poolLamp(i).map((v,k)=>v-p[k]),r=Math.hypot(...delta),tau=lab.kind==='pool'?(p[2]<-2.8?[16,16,16]:mediumOpticalDepth(p,delta.map(v=>v/r),r,options)):[0,0,0];array.set([...tau,0],offset+(i+1)*tileWidth*4);}}
  this.fallback?.dispose();this.fallback=new THREE.DataTexture(array,width,height,THREE.RGBAFormat,THREE.FloatType);this.fallback.minFilter=this.fallback.magFilter=THREE.LinearFilter;this.fallback.needsUpdate=true;this.u.uMediumTransport.value=this.fallback;
  }else{const old=this.renderer.getRenderTarget();this.renderer.setRenderTarget(this.target);this.renderer.render(this.scene,this.camera);this.renderer.setRenderTarget(old);this.u.uMediumTransport.value=this.target.texture;}}
 

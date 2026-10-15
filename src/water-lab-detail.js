@@ -68,11 +68,11 @@ export class LabDetail {
     ['P','V','I'].forEach((k,i)=>this.u['uSpawn'+k].value=this.spawn[i]);
     this.expiry=new Float64Array(this.capacity);this.geometry=new THREE.PlaneGeometry(2,2);this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:simulation,uniforms:this.u,depthTest:false,depthWrite:false});this.scene=new THREE.Scene();this.scene.add(new THREE.Mesh(this.geometry,this.material));this.camera=new THREE.Camera();this.reset();
   }
-  reset(){this.previousMotion=null;this.cursor=0;this.pending=0;this.count=0;this.time=0;this.sequence=0;this.emitted=0;this.overwritten=0;this.expiry.fill(0);this.budget=new Float32Array(0);this.strength=new Float32Array(0);this.weights=new Float32Array(0);this.sources=new Float32Array(0);for(const t of this.fallback){t.image.data.fill(0);t.needsUpdate=true;}this.clear=true;this.current=0;this.bind(this.fallback);}
+  reset(){this.previousMotion=null;this.cursor=0;this.pending=0;this.count=0;this.time=0;this.sequence=0;this.emitted=0;this.overwritten=0;this.expiry.fill(0);this.budget=new Float32Array(0);this.sprayBudget=new Float32Array(0);this.strength=new Float32Array(0);this.weights=new Float32Array(0);this.sources=new Float32Array(0);for(const t of this.fallback){t.image.data.fill(0);t.needsUpdate=true;}this.clear=true;this.current=0;this.bind(this.fallback);}
   bind(textures){['P','V','I'].forEach((k,i)=>this.u['uDetail'+k].value=textures[i]);}
   emit(lab,dt){
     if(!this.enabled||this.density===0||!lab.surfaceMetrics)return;
-    if(this.budget.length<lab.count){const b=new Float32Array(lab.count);b.set(this.budget);for(let i=this.budget.length;i<b.length;i++)b[i]=hash(i+35);this.budget=b;const strength=new Float32Array(lab.count);strength.set(this.strength);this.strength=strength;this.weights=new Float32Array(lab.count);const history=new Float32Array(lab.count*3);history.fill(NaN);history.set(this.sources);this.sources=history;}
+    if(this.budget.length<lab.count){const b=new Float32Array(lab.count);b.set(this.budget);for(let i=this.budget.length;i<b.length;i++)b[i]=hash(i+35);this.budget=b;const sprayBudget=new Float32Array(lab.count);sprayBudget.set(this.sprayBudget);this.sprayBudget=sprayBudget;const strength=new Float32Array(lab.count);strength.set(this.strength);this.strength=strength;this.weights=new Float32Array(lab.count);const history=new Float32Array(lab.count*3);history.fill(NaN);history.set(this.sources);this.sources=history;}
     const s=lab.spacing,scale=lab.spec.scale;
     let totalEnergy=0;
     for(let i=0;i<lab.count;i++){
@@ -80,8 +80,8 @@ export class LabDetail {
       const o=i*4,history=i*3,point=[0,1,2].map(k=>lab.positions[o+k]+lab.surfaceMetrics[o+k]*s*.8),teleported=Number.isFinite(this.sources[history])&&Math.hypot(...point.map((v,k)=>v-this.sources[history+k]))>s*2;
       // A missing fluid neighbor can be a wall, not air. Do not seed foam
       // under the floor, inside a vessel wall or against a submerged body.
-      if(lab.positions[o+3]||lab.solid&&lab.solid(point)<s*.08){this.strength[i]=0;this.sources.fill(NaN,history,history+3);continue;}
-      if(teleported){this.strength[i]=0;this.sources.fill(NaN,history,history+3);}
+      if(lab.positions[o+3]||lab.solid&&lab.solid(point)<s*.08){this.strength[i]=0;this.sprayBudget[i]=0;this.sources.fill(NaN,history,history+3);continue;}
+      if(teleported){this.strength[i]=0;this.sprayBudget[i]=0;this.sources.fill(NaN,history,history+3);}
       const signal=Math.max(0,lab.surfaceMetrics[o+3]-.12),target=signal*signal,tau=target>this.strength[i]?.055:.18;
       this.strength[i]+=(target-this.strength[i])*(1-Math.exp(-dt/tau));
       const activity=lab.aerationActivity?Math.max(lab.aerationActivity[i*2],lab.aerationActivity[i*2+1]):null;
@@ -94,23 +94,30 @@ export class LabDetail {
       // Let a small, intense patch use more of the existing global budget.
       // Discard throttled visual-marker debt so a spent impact cannot keep
       // emitting a backlog long after its activity has decayed.
-      const count=Math.min(2048,Math.floor(this.budget[i]));this.budget[i]=Math.min(.999,this.budget[i]-count);
+      const baseCount=Math.min(2048,Math.floor(this.budget[i]));this.budget[i]=Math.min(.999,this.budget[i]-baseCount);
       // Persistent emitter patches trace the moving free surface. Small
       // markers retain coherent trajectories and accumulate into connected
       // strands without enlarging each marker.
       const r=hash(i+817),theta=hash(i+41)*Math.PI*2,z=hash(i+73)*2-1,xy=Math.sqrt(1-z*z),patch=[Math.cos(theta)*xy,z,Math.sin(theta)*xy],normal=Array.from(lab.surfaceMetrics.subarray(o,o+3));
       // Surface foam belongs on a reasonably upward-facing interface.
       // Falling sheets shed ballistic spray instead of floating foam trails.
-      const vertical=lab.velocities[o+1]*scale,kind=normal[1]>.35&&vertical>-.7&&vertical<1.5?(r<.18&&energy>.8?2:1):0;
+      const vertical=lab.velocities[o+1]*scale,baseKind=normal[1]>.35&&vertical>-.7&&vertical<1.5?(r<.18&&energy>.8?2:1):0;
+      // Keep the existing foam supply and append a modest ballistic fraction
+      // at actively deforming/impacting exposed surfaces. Horizontal runback
+      // can shed spray even though its normal still points upward.
+      const activity=lab.aerationActivity?Math.max(lab.aerationActivity[i*2],lab.aerationActivity[i*2+1]):0;
+      const activation=clamp((energy-.18)/1.1,0,1)*clamp(activity/Math.max(.1,Math.sqrt(9.81*s*scale)*.3),0,1);
+      if(baseKind===1)this.sprayBudget[i]+=baseCount*.4*activation;
+      const extra=baseKind===1?Math.floor(this.sprayBudget[i]):0,count=Math.min(2048,baseCount+extra);this.sprayBudget[i]-=extra;
       const tangent=patch.reduce((sum,v,k)=>sum+v*normal[k],0);for(let k=0;k<3;k++)patch[k]-=normal[k]*tangent;
-      const source=normal.map((v,k)=>lab.positions[o+k]+patch[k]*s*.35+v*s*(kind===2?-.12:.8)),history=i*3;
+      const source=normal.map((v,k)=>lab.positions[o+k]+patch[k]*s*.35+v*s*(baseKind===2?-.12:.8)),history=i*3;
       const drift=sourceNoise(source,normal,s,lab.time??this.time,i),noisy=source.map((v,k)=>v+drift[k]);
       if(!lab.solid||lab.solid(noisy)>0)for(let k=0;k<3;k++)source[k]=noisy[k];
       // Pump recycling teleports a parcel to the inlet. Never connect that
       // discontinuity with an artificial spray strand across the fixture.
       if(!Number.isFinite(this.sources[history])||Math.hypot(...source.map((v,k)=>v-this.sources[history+k]))>s*2)this.sources.set(source,history);
       for(let j=0;j<count&&this.pending<this.capacity;j++){
-        const id=++this.sequence,p=this.pending*4,along=(j+hash(id+61))/Math.max(1,count),spread=Math.min(2.5,Math.sqrt(energy)*.6)/scale,life=(kind===1?.55+hash(i+93)*.9:kind===2?.6+hash(i+93)*1.2:.3+hash(i+93))*(.92+.16*hash(id+91))*Math.min(1,Math.max(.18,Math.sqrt(s*scale/.25)));
+        const kind=j<baseCount?baseKind:0,id=++this.sequence,p=this.pending*4,along=(j+hash(id+61))/Math.max(1,count),spread=Math.min(2.5,Math.sqrt(energy)*.6)/scale,life=(kind===1?.55+hash(i+93)*.9:kind===2?.6+hash(i+93)*1.2:.3+hash(i+93))*(.92+.16*hash(id+91))*Math.min(1,Math.max(.18,Math.sqrt(s*scale/.25)));
         for(let k=0;k<3;k++){const jitter=hash(id*7+k+119)-.5;this.spawn[0].image.data[p+k]=this.sources[history+k]*(1-along)+source[k]*along+jitter*s*.10;this.spawn[1].image.data[p+k]=lab.velocities[o+k]+(kind===0?(patch[k]*.25+normal[k])*spread:0)+jitter*.025/scale;}
         this.spawn[0].image.data[p+3]=0;this.spawn[1].image.data[p+3]=life;this.spawn[2].image.data.set([detailRadius(s,scale,hash(id+11))/scale,kind,.45+.4*hash(id+13),r],p);
         const slot=(this.cursor+this.pending)%this.capacity;if(this.expiry[slot]>this.time)this.overwritten++;this.expiry[slot]=this.time+life;

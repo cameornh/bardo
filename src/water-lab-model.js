@@ -56,9 +56,19 @@ export function kernel(r,h){const q=Math.max(0,1-r*r/(h*h));return 315/(64*Math.
 export function kernelGradient(d,h){const r=length(d);if(r<1e-6||r>=h)return [0,0,0];const c=-45/(Math.PI*h**6)*(h-r)**2/r;return d.map(x=>x*c);}
 export function densityAt(positions,p,spacing){const h=spacing*2,volume=spacing**3;let d=0;for(let i=0;i<positions.length;i+=4)d+=volume*kernel(Math.hypot(...p.map((v,k)=>v-positions[i+k])),h);return d;}
 export function buoyancyAcceleration(ratio,submerged,scale=1){return 9.81/scale*(submerged/ratio-1);}
-export function solveDensity(positions,neighbors,spacing,iterations=3,collide=p=>p){const n=positions.length/4,h=spacing*2,volume=spacing**3;let pos=positions.slice();const lambdas=new Float32Array(n),density=new Float32Array(n);for(let iteration=0;iteration<iterations;iteration++){
- for(let i=0;i<n;i++){let rho=volume*kernel(0,h),sum=0,gradient=[0,0,0];for(let a=0;a<NEIGHBORS;a++){const j=neighbors[i*NEIGHBORS+a];if(j<0)break;const d=[0,1,2].map(k=>pos[i*4+k]-pos[j*4+k]),g=kernelGradient(d,h).map(x=>x*volume);rho+=volume*kernel(length(d),h);sum+=dot(g,g);gradient=gradient.map((v,k)=>v+g[k]);}density[i]=rho;lambdas[i]=-Math.max(0,rho-1)/(sum+dot(gradient,gradient)+.04/(h*h));}
- const next=pos.slice();for(let i=0;i<n;i++){if(pos[i*4+3]>.5)continue;let delta=[0,0,0];for(let a=0;a<NEIGHBORS;a++){const j=neighbors[i*NEIGHBORS+a];if(j<0)break;const d=[0,1,2].map(k=>pos[i*4+k]-pos[j*4+k]),g=kernelGradient(d,h),r=length(d),scorr=-.00015*Math.pow(kernel(r,h)/kernel(.3*h,h),4);for(let k=0;k<3;k++)delta[k]+=(lambdas[i]+lambdas[j]+scorr)*volume*g[k];}const limit=Math.min(1,spacing*.2/(length(delta)||1)),p=collide([0,1,2].map(k=>pos[i*4+k]+delta[k]*limit));next.set(p,i*4);}pos=next;}return {positions:pos,density};}
+// Integral of the normalized poly6 support occupied by a locally planar
+// solid. Completing this missing support prevents a numerical wall meniscus.
+// The solid has no movable particle gradient: its contribution is to self only.
+export function boundaryKernel(distance,h){
+ const q=clamp(distance/h,0,1),q2=q*q;
+ return {density:.5-315/256*q*(1-q2*(4/3-q2*(6/5-q2*(4/7-q2/9)))),gradient:-315/(256*h)*(1-q2)**4};
+}
+export const BOUNDARY_KERNEL_GLSL=`
+vec2 boundaryKernel(float distance,float h){float q=clamp(distance/h,0.,1.),q2=q*q;return vec2(.5-315./256.*q*(1.-q2*(4./3.-q2*(6./5.-q2*(4./7.-q2/9.)))),-315./(256.*h)*pow(1.-q2,4.));}
+`;
+export function solveDensity(positions,neighbors,spacing,iterations=3,collide=p=>p,boundary=null){const n=positions.length/4,h=spacing*2,volume=spacing**3;let pos=positions.slice();const lambdas=new Float32Array(n),density=new Float32Array(n),wallGradient=new Float32Array(n*3);for(let iteration=0;iteration<iterations;iteration++){
+ for(let i=0;i<n;i++){let rho=volume*kernel(0,h),sum=0,gradient=[0,0,0];for(let a=0;a<NEIGHBORS;a++){const j=neighbors[i*NEIGHBORS+a];if(j<0)break;const d=[0,1,2].map(k=>pos[i*4+k]-pos[j*4+k]),g=kernelGradient(d,h).map(x=>x*volume);rho+=volume*kernel(length(d),h);sum+=dot(g,g);gradient=gradient.map((v,k)=>v+g[k]);}if(boundary){const p=Array.from(pos.subarray(i*4,i*4+3)),wall=boundaryKernel(boundary(p),h),g=wall.density>1e-6?normalAt(p,boundary).map(v=>v*wall.gradient):[0,0,0];rho+=wall.density;wallGradient.set(g,i*3);gradient=gradient.map((v,k)=>v+g[k]);}density[i]=rho;lambdas[i]=-Math.max(0,rho-1)/(sum+dot(gradient,gradient)+.04/(h*h));}
+ const next=pos.slice();for(let i=0;i<n;i++){if(pos[i*4+3]>.5)continue;let delta=[0,1,2].map(k=>lambdas[i]*wallGradient[i*3+k]);for(let a=0;a<NEIGHBORS;a++){const j=neighbors[i*NEIGHBORS+a];if(j<0)break;const d=[0,1,2].map(k=>pos[i*4+k]-pos[j*4+k]),g=kernelGradient(d,h),r=length(d),scorr=-.00015*Math.pow(kernel(r,h)/kernel(.3*h,h),4);for(let k=0;k<3;k++)delta[k]+=(lambdas[i]+lambdas[j]+scorr)*volume*g[k];}const limit=Math.min(1,spacing*.2/(length(delta)||1)),p=collide([0,1,2].map(k=>pos[i*4+k]+delta[k]*limit));next.set(p,i*4);}pos=next;}return {positions:pos,density};}
 export function diffuseChemistry(chem,neighbors,positions,spacing,dt){const out=chem.slice(),n=positions.length/4,h=spacing*2;for(let i=0;i<n;i++)for(let a=0;a<NEIGHBORS;a++){const j=neighbors[i*NEIGHBORS+a];if(j<0)break;if(j<=i)continue;const a0=i*4,b0=j*4,r=Math.hypot(positions[a0]-positions[b0],positions[a0+1]-positions[b0+1],positions[a0+2]-positions[b0+2]),w=Math.max(0,1-r/h)*Math.min(.006,dt*.12);for(let k=0;k<3;k++){const exchange=(chem[j*4+k]-chem[i*4+k])*w;out[i*4+k]+=exchange;out[j*4+k]-=exchange;}}return out;}
 export const LAB_GEOMETRY_GLSL=`
 ${RIVER_GLSL}

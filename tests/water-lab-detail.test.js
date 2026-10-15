@@ -81,3 +81,17 @@ test('neighbor cache rebuilds before motion can exhaust the support margin',()=>
  close[0]+=.04;assert.notEqual(gpu.neighborList(close,.2),first);assert.equal(gpu.neighborReused,false);
  gpu.neighborList(new Float32Array(12),.2);assert.equal(gpu.neighborReused,false);
 });
+
+test('exposed horizontal breakup appends spray while preserving the existing foam supply',()=>{
+ const count=128,lab={count,spacing:.2,spec:{scale:1},positions:new Float32Array(count*4),velocities:new Float32Array(count*4),surfaceMetrics:new Float32Array(count*4),aerationActivity:new Float32Array(count*2)};
+ for(let i=0;i<count;i++){lab.surfaceMetrics.set([0,1,0,2],i*4);lab.velocities[i*4]=-.8;}
+ const control=new LabDetail(mock),active=new LabDetail(mock);control.emit(lab,.05);
+ lab.aerationActivity.fill(1);active.emit(lab,.05);
+ const kinds=system=>{const out=[0,0,0];for(let i=0;i<system.pending;i++)out[system.spawn[2].image.data[i*4+1]]++;return out;};
+ // Zero activity is below the capillary cutoff; a separate saturated reference
+ // avoids that cutoff when comparing the preexisting foam count.
+ const reference=new LabDetail(mock),withoutActivity={...lab};delete withoutActivity.aerationActivity;reference.emit(withoutActivity,.05);
+ const before=kinds(reference),after=kinds(active);assert.equal(control.pending,0);assert.equal(before[0],0);assert.ok(after[0]>30);assert.equal(after[1],before[1]);assert.equal(after[2],before[2]);
+ active.density=20;for(let i=0;i<40;i++)active.emit(lab,.05);assert.equal(active.pending,active.capacity);assert.ok(active.spawn.every(t=>t.image.data.every(Number.isFinite)));
+ for(const system of [control,active,reference])system.dispose();
+});

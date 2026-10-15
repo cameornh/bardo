@@ -1,0 +1,21 @@
+<!doctype html><html><body>
+<button id="run">Settle tilted tank</button><button id="verify">Verify boundary solver</button><pre id="result" style="max-height:180px;overflow:auto">Ready</pre><script type="module">
+import * as THREE from 'three';
+import {WaterLab} from '../src/water-lab.js';
+import {WaterLabRenderer} from '../src/water-lab-renderer.js';
+import {MotionDetail} from '../src/lod.js';
+import {QUAD_VERTEX,TONEMAP_FRAGMENT} from '../src/shaders.js';
+const renderer=new THREE.WebGLRenderer({preserveDrawingBuffer:true});renderer.autoClear=false;renderer.setSize(640,480);document.body.append(renderer.domElement);
+renderer.debug.onShaderError=(gl,p,v,f)=>{throw new Error(gl.getShaderInfoLog(f)||gl.getProgramInfoLog(p));};
+const lab=new WaterLab(renderer),camera=new THREE.PerspectiveCamera(43,640/480,.01,200),target=new THREE.WebGLRenderTarget(640,480,{type:THREE.FloatType}),output=new THREE.Scene();
+output.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:TONEMAP_FRAGMENT,uniforms:{uImage:{value:target.texture}},depthTest:false,depthWrite:false})));
+const field={renderer,camera,target,output,quadCamera:new THREE.Camera(),resolution:new THREE.Vector2(640,480),motion:new MotionDetail(),minPixelSigma:2,uniforms:{uView:{value:0},uSHDegree:{value:3}},water:{uniforms:{uWaterRoughness:{value:.07},uTurbidity:{value:.02}}}};
+for(const k of ['beach','grass','grains','soft','optics','lightTest'])field[k]={count:0};
+const visual=new WaterLabRenderer(field,lab),result=document.querySelector('#result');
+function draw(){visual.render({adaptive:false});}
+function reset(){lab.configure('tank');lab.detail.enabled=false;lab.ambient=1.5;lab.sunlight=0;lab.tannins=2.62;lab.motion.targetTilt=44*Math.PI/180;camera.position.set(6,4.5,8);camera.lookAt(0,1.5,0);draw();}
+function stats(){let minClearance=Infinity,energy=0;const bins=Array.from({length:16},()=>[-Infinity,-Infinity]);for(let i=0;i<lab.count;i++){const o=i*4,p=Array.from(lab.positions.subarray(o,o+3));minClearance=Math.min(minClearance,lab.solid(p));energy+=lab.velocities[o]**2+lab.velocities[o+1]**2+lab.velocities[o+2]**2;const b=Math.floor((p[0]+3)/.35),az=Math.abs(p[2]);if(b<0||b>=bins.length)continue;if(az<.5)bins[b][0]=Math.max(bins[b][0],p[1]);if(az>.95&&az<1.35)bins[b][1]=Math.max(bins[b][1],p[1]);}
+const edgeExcess=bins.filter(b=>b.every(Number.isFinite)).map(b=>b[1]-b[0]);return {count:lab.count,volume:lab.volume,finite:lab.positions.every(Number.isFinite),minClearance,rmsSpeed:Math.sqrt(energy/lab.count),edgeExcess,peakEdgeExcess:Math.max(...edgeExcess)};}
+document.querySelector('#run').onclick=async()=>{try{reset();const initial=lab.volume;for(let i=0;i<560;i++){lab.step(lab.timestep,true);if(i%16===0){result.textContent=`Settling ${i}/560`;await new Promise(requestAnimationFrame);}}draw();const s=stats();result.textContent=JSON.stringify({...s,pass:s.finite&&s.volume===initial&&s.minClearance>lab.spacing*.35&&s.peakEdgeExcess<.1},null,2);}catch(e){result.textContent=e.stack;}};
+document.querySelector('#verify').onclick=()=>{result.textContent=JSON.stringify(lab.verify(),null,2);};reset();
+</script></body></html>

@@ -41,3 +41,16 @@ test('foam direct light is directional and sunlight cannot extinguish independen
  const sky=detailRadiance(1,[.3,.4,.5],1,0,100,0,0,0);assert.deepEqual(sky,[.3,.4,.5]);
  assert.deepEqual(detailRadiance(0,[.3,.4,.5],0,0,0,0,1,0),[0,0,0]);
 });
+
+test('ambient transport preserves unoccluded dome light beside absorbing water',async()=>{
+ const {mediumSkyDepth,skyDirection,SKY_SAMPLES}=await import('../src/water-lab-medium-shadows.js');
+ const options={sample:()=>[0,0,0,0],step:.06,organic:3},limit=d=>2/d[1];
+ assert.ok(mediumSkyDepth([0,0,0],limit,options).every(v=>Math.abs(v)<1e-10));
+ for(let i=0;i<SKY_SAMPLES;i++){const d=skyDirection(i);assert.ok(d[1]>0);assert.ok(Math.abs(Math.hypot(...d)-1)<1e-12);}
+ options.sample=p=>p[0]<0&&p[1]>.35&&p[1]<1.5?[1,0,0,0]:[0,0,0,0];
+ const dome=mediumSkyDepth([-.04,0,0],limit,options).map(v=>Math.exp(-v));
+ const zenith=mediumOpticalDepth([-.04,0,0],[0,1,0],2,options).map(v=>Math.exp(-v));
+ assert.ok(dome.every(v=>v>.3&&v<.85),`partial sky visibility: ${dome}`);
+ assert.ok(dome.every((v,k)=>v>zenith[k]*1.3));
+ assert.deepEqual(dome,mediumSkyDepth([-.04,0,0],limit,options).map(v=>Math.exp(-v)));
+});
