@@ -14,7 +14,7 @@ test('sand extraction, partial deposition and residual exchange conserve solid v
 test('wet compaction reduces volume without deleting mass and has a finite density limit',()=>{const b=new SandBed(33);b.wet.fill(1);const initial=b.totalMass(),height=b.height(0,2);for(let i=0;i<50;i++)b.compact(0,2,1,10);assert.ok(b.height(0,2)<height);near(b.totalMass(),initial);assert.ok(b.packing.every(v=>v<=SAND.maxPacking+1e-10));const packed=b.height(0,2);b.compact(0,2,1,100);near(b.height(0,2),packed,1e-6);});
 test('slow drying preserves compacted shape and plastic memory',()=>{const b=new SandBed(17);b.wet.fill(1);b.compact(0,3,1,10);const height=b.height(0,3);b.wet.fill(moisture(1,false,1200));assert.ok(b.wet[0]>.1);near(b.height(0,3),height);assert.ok(b.memory.some(v=>v>.9));});
 test('dry aggregates start buoyant and become negatively buoyant after saturation',()=>{assert.ok(aggregateDensity(0)<1);assert.ok(aggregateDensity(moisture(0,true,12))>1);assert.ok(moisture(1,false,30)>.9);});
-test('settling returns aggregate mass gradually and never deletes a final residue',()=>{const b=new SandBed(17),initial=b.totalMass(),p=b.extract([0,b.height(0,3),3],.6)[0];assert.ok(p);p.wet=1;p.position[1]=b.height(p.position[0],p.position[2]);const original=p.mass;b.step(.03,()=>({density:0,velocity:[0,0,0]}),()=>[0,0,0]);assert.ok(p.mass>0&&p.mass<original);for(let i=0;i<180;i++)b.step(1/30,()=>({density:0,velocity:[0,0,0]}),()=>[0,0,0]);near(b.totalMass(),initial,1e-8);assert.ok(b.mass.every(v=>v>=0));});
+test('dry landing transfers all grain stock into the terrain in one step',()=>{const b=new SandBed(17),initial=b.totalMass(),p=b.extract([0,b.height(0,3),3],.6)[0];assert.ok(p);p.position[1]=b.height(p.position[0],p.position[2]);b.step(.03,()=>({density:0,velocity:[0,0,0]}),()=>[0,0,0]);assert.equal(p.mass,0);assert.ok(!b.parcels.includes(p));near(b.totalMass(),initial,1e-8);assert.ok(b.mass.every(v=>v>=0));});
 test('cups have an open interior and a closed bottom in any orientation',()=>{const b=makeBody('glass','cup',1,[0,2,0]);assert.ok(bodyDistance([0,2,0],b)>.5);assert.ok(bodyDistance([0,1,0],b)<0);assert.ok(bodyDistance([.84,2,0],b)<0);assert.ok(bodyDistance([0,3.3,0],b)>0);b.tilt=Math.PI/2;assert.ok(bodyDistance([1,2,0],b)<0);assert.ok(bodyDistance([0,2,0],b)>.5);});
 test('color edits only the most recently spawned material instance',()=>{const a=makeBody('mirror','sphere',1,[0,0,0]),b=makeBody('light','cup',1,[2,0,0]),before=a.color.slice();recolorLatest([a,b],[.1,.8,.2]);assert.deepEqual(a.color,before);assert.deepEqual(b.color,[.1,.8,.2]);assert.equal(a.ratio,1);assert.equal(b.ratio,1);});
 
@@ -40,8 +40,8 @@ test('sand reconstruction has continuous slope across cell boundaries',()=>{
  const left=(bed.height(x,z)-bed.height(x-e,z))/e,right=(bed.height(x+e,z)-bed.height(x,z))/e;
  assert.ok(Math.abs(left-right)<.003);assert.ok(Number.isFinite(left));
 });
-test('a settling deposit distributes across cells with bounded peak height',()=>{
- const bed=new SandBed(65),initial=bed.totalMass(),p={position:[0,0,0],mass:.003,packing:.56,wet:.6,memory:.6};const before=bed.height(0,0);bed.parcels.push(p);bed.deposit(p,p.mass);
+test('a dry deposit distributes across cells with bounded peak height',()=>{
+ const bed=new SandBed(65),initial=bed.totalMass(),p={position:[0,0,0],mass:.003,packing:.56,wet:0,memory:0};const before=bed.height(0,0);bed.parcels.push(p);bed.deposit(p,p.mass);
  near(bed.totalMass(),initial+.003);assert.ok(bed.height(0,0)-before<.04);assert.ok(bed.mass.every(v=>v>=0));
 });
 test('boundary water kernels flatten in the normal direction and preserve volume normalization',()=>{

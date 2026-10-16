@@ -23,4 +23,19 @@ export function cupHydrostatics(b,surface,containedWater=0){
 
 // Support of the hollow cup's outside wall and bottom, including orientation.
 export function bodySupport(b,direction){if(b.shape!=='cup')return b.radius;const axis=rotate([0,1,0],b.tilt||0,b.spin||0,false,b.pitch||0),along=axis.reduce((sum,v,k)=>sum+v*direction[k],0),radial=b.radius*Math.sqrt(Math.max(0,1-along*along));return Math.max(radial+b.radius*Math.abs(along),radial-b.radius*along+b.radius*.16*Math.abs(along));}
-export function resolveSandContacts(parcels,bodies,dt){for(const p of parcels){if(p.held)continue;const r=Math.cbrt(p.mass/(p.packing*4*Math.PI/3));for(const b of bodies){if(Math.hypot(...p.position.map((v,k)=>v-b.position[k]))>b.radius*1.5+r)continue;for(let iteration=0;iteration<3;iteration++){const d=bodyDistance(p.position,b);if(d>=r)break;const n=bodyNormal(p.position,b),vn=p.velocity.reduce((sum,v,k)=>sum+(v-b.velocity[k])*n[k],0);for(let k=0;k<3;k++){p.position[k]+=n[k]*(r-d+.0001);if(vn<0){const impulse=-vn*n[k];p.velocity[k]+=impulse;if(!b.held)b.velocity[k]-=impulse*Math.min(.25,p.mass/(bodyVolume(b)*b.ratio));}}}}}}
+export function resolveSandContacts(parcels,bodies,dt){
+ for(const p of parcels){if(p.held||p.mass<=0)continue;const r=Math.cbrt(p.mass/(p.packing*4*Math.PI/3));
+  for(const b of bodies){if(Math.hypot(...p.position.map((v,k)=>v-b.position[k]))>b.radius*1.5+r)continue;
+   for(let iteration=0;iteration<3;iteration++){const d=bodyDistance(p.position,b);if(d>=r)break;const n=bodyNormal(p.position,b);
+    if(p.anchored){
+     // Bonded sand is terrain: move the free body out of the deposit instead
+     // of reviving/moving the clay's individual SDF support primitives.
+     if(b.held)break;const inward=b.velocity.reduce((sum,v,k)=>sum+v*n[k],0);
+     for(let k=0;k<3;k++){b.position[k]-=n[k]*(r-d+.0001);if(inward>0)b.velocity[k]-=inward*n[k];}
+    }else{const vn=p.velocity.reduce((sum,v,k)=>sum+(v-b.velocity[k])*n[k],0);
+     for(let k=0;k<3;k++){p.position[k]+=n[k]*(r-d+.0001);if(vn<0){const impulse=-vn*n[k];p.velocity[k]+=impulse;if(!b.held)b.velocity[k]-=impulse*Math.min(.25,p.mass/(bodyVolume(b)*b.ratio));}}
+    }
+   }
+  }
+ }
+}

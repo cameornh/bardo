@@ -28,7 +28,7 @@ test('wet sand retains moisture through carrying, dropping, regrabbing and depos
  lab.tool='grab-sand';SandLab.prototype.interact.call(lab,[2,3,3],[0,0,-1]);assert.equal(lab.sandHeld,null);assert.ok(pieces.every(p=>!p.held&&p.wet>.89));
  const picked=sand.extract(pieces[0].position,.8,[0,0,0],true);assert.ok(picked.includes(pieces[0]));assert.ok(picked.every(p=>p.wet>.89));near(sand.totalMass(),initial);
  for(const p of picked){p.held=false;p.position=[2,sand.height(2,3),3];sand.deposit(p,p.mass);}
- assert.ok(sand.sample(2,3)>.01);near(sand.totalMass(),initial);
+ assert.ok(picked.every(p=>p.anchored&&p.wet>.89));assert.ok(sand.materialAt([2,sand.height(2,3)+.08,3])>.85);near(sand.totalMass(),initial);
 });
 
 test('rays hit near solids before hidden objects and water, without phantom sky hits',()=>{

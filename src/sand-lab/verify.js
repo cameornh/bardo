@@ -21,12 +21,13 @@ export function verifyBeachGPU(renderer,base){
 
 export function verifySandMaterialGPU(renderer,base){
  const sand=new SandBed(),u={...base,...createSandUniforms(),uStation:{value:6}};
- sand.wet.fill(.15);sand.update();sand.parcels=[{position:[0,1.2,0],mass:.045,packing:.62,wet:.92},{position:[.3,1.15,0],mass:.026,packing:.56,wet:.35}];
+ sand.wet.fill(.15);sand.update();sand.parcels=[{position:[0,1.2,0],mass:.045,packing:.62,wet:.92},{position:[.3,1.15,0],mass:.026,packing:.56,wet:.35},{position:[0,-.12,0],mass:.024,packing:.62,wet:.95,memory:.95}];
+ sand.deposit(sand.parcels[2],sand.parcels[2].mass);
  u.uSand.value.image.data=sand.data;u.uSand.value.needsUpdate=true;u.uSandCount.value=sand.parcels.length;u.uSandMin.value.set(-1,-1,-1);u.uSandMax.value.set(1,2,1);
  sand.parcels.forEach((p,i)=>{u.uSandParcels.value.image.data.set([...p.position,Math.cbrt(p.mass/(p.packing*4*Math.PI/3)),p.wet,p.packing,0,0],i*8);});
- const bins=u.uSandBins.value.image.data;for(let cell=0;cell<32*32;cell++){bins[cell*16]=0;bins[cell*16+1]=1;}
+ const bins=u.uSandBins.value.image.data;for(let cell=0;cell<32*32;cell++){bins[cell*16]=0;bins[cell*16+1]=1;bins[cell*16+2]=2;}
  for(const key of ['uSandParcels','uSandBins'])u[key].value.needsUpdate=true;
- const data=new Float32Array(32*4);for(let i=0;i<32;i++)data.set([-.4+i/31*.95,i<16?1.2:-.25,0,0],i*4);
+ const data=new Float32Array(32*4);for(let i=0;i<32;i++)data.set([-.4+(i%16)/15*.95,i<16?1.2:.04,0,0],i*4);
  const probe=floatTexture(data,32,1),target=new THREE.WebGLRenderTarget(32,1,{type:THREE.FloatType,depthBuffer:false}),scene=new THREE.Scene(),geometry=new THREE.PlaneGeometry(2,2),material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:`precision highp float;precision highp int;out vec4 outputValue;uniform sampler2D uProbe;${LAB_GEOMETRY_GLSL}void main(){vec3 p=texelFetch(uProbe,ivec2(gl_FragCoord.xy),0).xyz;outputValue=vec4(sandWetness(p),sandDistance(p),0,1);}`,uniforms:{...u,uProbe:{value:probe}},depthTest:false,depthWrite:false});scene.add(new THREE.Mesh(geometry,material));const old=renderer.getRenderTarget(),actual=new Float32Array(data.length);
  try{renderer.setRenderTarget(target);renderer.render(scene,new THREE.Camera());renderer.readRenderTargetPixels(target,0,0,32,1,actual);let error=0,distanceError=0;for(let i=0;i<32;i++){const p=Array.from(data.subarray(i*4,i*4+3));error=Math.max(error,Math.abs(actual[i*4]-sand.materialAt(p)));distanceError=Math.max(distanceError,Math.abs(actual[i*4+1]-sand.distance(p)));}return {samples:32,maxMoistureError:error,maxDistanceError:distanceError,pass:error<1e-4&&distanceError<1e-4};}
  finally{renderer.setRenderTarget(old);for(const x of [probe,target,geometry,material])x.dispose();for(const key of ['uSand','uBodyExtra','uSandParcels','uSandBins'])u[key].value.dispose();}
