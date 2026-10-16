@@ -49,3 +49,24 @@ test('loose aggregates can be picked at their visible surface above the bed',()=
  const sand=new SandBed(),p={position:[0,3,0],mass:.05,packing:.56,wet:.9,memory:.9,held:false};sand.parcels.push(p);
  const hit=solidRayHit(sand,[],[0,3,3],[0,0,-1]);assert.equal(hit.kind,'sand');near(hit.point[2],aggregateRadius(p),.008);
 });
+
+import {scrollHeldDistance,heldDistance} from '../src/sand-lab/interaction.js';
+test('wheel distance moves all held materials along the view ray without changing the tool',()=>{
+ const fixtures=[
+  {heldBody:makeBody('rock','cup',.3,[0,0,0]),objectDistance:1},
+  {sandHeld:[{offset:[.1,0,0],mass:.01,packing:.56}],sandHoldDistance:1},
+  {held:{ids:[0],offsets:[[.1,0,0]],distance:1}}
+ ];
+ for(const state of fixtures){const lab={...state,spec:{scale:10},spacing:.1,tool:'grab-sand'},before=heldDistance(lab);
+  assert.equal(scrollHeldDistance(lab,-100),true);assert.ok(heldDistance(lab)>before);assert.equal(lab.tool,'grab-sand');
+  assert.equal(scrollHeldDistance(lab,100),true);near(heldDistance(lab),before);
+  for(let i=0;i<50;i++)scrollHeldDistance(lab,500);assert.ok(heldDistance(lab)>.18);
+  for(let i=0;i<50;i++)scrollHeldDistance(lab,-500);assert.ok(heldDistance(lab)<=10);
+ }
+});
+test('empty hands leave wheel navigation alone and trackpad/line wheel deltas agree',()=>{
+ const empty={spec:{scale:10}};assert.equal(scrollHeldDistance(empty,-100),false);assert.equal(heldDistance(empty),null);
+ const make=()=>({spec:{scale:10},spacing:.1,held:{ids:[0],offsets:[[0,0,0]],distance:1}}),pixel=make(),line=make();
+ scrollHeldDistance(pixel,-48,0);scrollHeldDistance(line,-3,1);near(heldDistance(pixel),heldDistance(line));
+ const before=heldDistance(line);scrollHeldDistance(line,0);scrollHeldDistance(line,NaN);near(heldDistance(line),before);
+});
