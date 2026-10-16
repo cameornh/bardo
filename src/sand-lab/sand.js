@@ -43,10 +43,17 @@ export class SandBed{
  update(){this.dirty=false;for(let k=0;k<this.mass.length;k++)this.data.set([this.heightAt(k),this.wet[k],this.packing[k],this.memory[k]],k*4);this.revision++;}
  compact(x,z,radius,load){this.dirty=true;let displaced=0;for(const [k,w] of this.footprint(x,z,radius)){const before=this.heightAt(k),capacity=SAND.maxPacking-this.packing[k],gain=capacity*(1-Math.exp(-load*w*this.wet[k]*3));this.packing[k]+=gain;this.memory[k]=Math.max(this.memory[k],this.wet[k]);displaced+=(before-this.heightAt(k))*this.area;}return displaced;}
  footprint(x,z,r){const result=[];const a=Math.max(0,Math.floor((x-r+5.5)/this.dx)),b=Math.min(this.n-1,Math.ceil((x+r+5.5)/this.dx)),c=Math.max(0,Math.floor((z-r+4.9)/this.dz)),d=Math.min(this.n-1,Math.ceil((z+r+4.9)/this.dz));for(let j=c;j<=d;j++)for(let i=a;i<=b;i++){const distance=Math.hypot(i*this.dx-5.5-x,j*this.dz-4.9-z);if(distance<r)result.push([j*this.n+i,(1-(distance/r)**2)**3]);}return result.length?result:this.weights(x,z);}
- extract(point,radius,velocity=[0,0,0],held=false,fraction=1){const created=[];for(const [k,w] of this.footprint(point[0],point[2],radius)){const top=this.heightAt(k),x=(k%this.n)*this.dx-5.5,z=Math.floor(k/this.n)*this.dz-4.9,radial=Math.hypot(x-point[0],z-point[2]),half=Math.sqrt(Math.max(0,radius*radius-radial*radial)),depth=Math.max(0,Math.min(top,point[1]+half)-Math.max(this.base[k],point[1]-half)),amount=Math.min(this.mass[k],depth*this.packing[k]*this.area*fraction);if(amount<1e-8)continue;this.mass[k]-=amount;created.push({position:[x,top-depth*.5,z],mass:amount,wet:this.wet[k],packing:this.packing[k],memory:this.memory[k],velocity:velocity.slice(),held,id:this.nextId++});}
+ takeSmallSphere(point,radius,fraction=1){
+  const top=this.height(point[0],point[2]),weights=this.weights(point[0],point[2]),bottom=weights.reduce((sum,[k,w])=>sum+this.base[k]*w,0);
+  const cap=y=>{const h=clamp(y-point[1]+radius,0,2*radius);return Math.PI*h*h*(radius-h/3);};
+  const volume=Math.max(0,cap(top)-cap(bottom))*clamp(fraction);let mass=0,occupied=0,water=0,memory=0;
+  for(const [k,w] of weights){const amount=Math.min(this.mass[k],volume*w*this.packing[k]);this.mass[k]-=amount;mass+=amount;occupied+=amount/this.packing[k];water+=amount*this.wet[k];if(amount>0)memory=Math.max(memory,this.memory[k]);}
+  return mass>1e-14?{position:[point[0],Math.min(point[1],top-radius*.25),point[2]],mass,wet:water/mass,packing:mass/occupied,memory}:null;
+ }
+ extract(point,radius,velocity=[0,0,0],held=false,fraction=1){const created=[],small=radius<Math.min(this.dx,this.dz)*.7;if(small){const p=this.takeSmallSphere(point,radius,fraction);if(p)created.push({...p,velocity:velocity.slice(),held,id:this.nextId++});}else for(const [k,w] of this.footprint(point[0],point[2],radius)){const top=this.heightAt(k),x=(k%this.n)*this.dx-5.5,z=Math.floor(k/this.n)*this.dz-4.9,radial=Math.hypot(x-point[0],z-point[2]),half=Math.sqrt(Math.max(0,radius*radius-radial*radial)),depth=Math.max(0,Math.min(top,point[1]+half)-Math.max(this.base[k],point[1]-half)),amount=Math.min(this.mass[k],depth*this.packing[k]*this.area*fraction);if(amount<1e-8)continue;this.mass[k]-=amount;created.push({position:[x,top-depth*.5,z],mass:amount,wet:this.wet[k],packing:this.packing[k],memory:this.memory[k],velocity:velocity.slice(),held,id:this.nextId++});}
  // Combine adjacent extracted cells into bounded, unequal aggregates without losing mass.
  while(created.length>24){let small=0;for(let i=1;i<created.length;i++)if(created[i].mass<created[small].mass)small=i;const p=created.splice(small,1)[0];let q=created[0],best=Infinity;for(const candidate of created){const distance=candidate.position.reduce((sum,v,k)=>sum+(v-p.position[k])**2,0);if(distance<best){best=distance;q=candidate;}}const m=q.mass+p.mass;for(let k=0;k<3;k++)q.position[k]=(q.position[k]*q.mass+p.position[k]*p.mass)/m;mergeStock(q,p,p.mass);}
- irregularize(created,this.dx,this.dz);
+ if(!small)irregularize(created,this.dx,this.dz);
  const existing=[];
  for(const p of this.parcels.slice())if(!p.held&&p.mass>0&&Math.hypot(...p.position.map((v,k)=>v-point[k]))<radius+aggregateRadius(p)){
   if(held){p.held=true;p.anchored=false;p.velocity.fill(0);existing.push(p);}
@@ -57,7 +64,7 @@ export class SandBed{
  carve(point,radius){
   // Subtract the sphere's intersection with the exposed column stock. This
   // is a surface crater in the current sand model, not an underground tunnel.
-  let removed=0;for(const [k] of this.footprint(point[0],point[2],radius)){const x=k%this.n*this.dx-5.5,z=Math.floor(k/this.n)*this.dz-4.9,rr=radius*radius-(x-point[0])**2-(z-point[2])**2;if(rr<=0)continue;const top=this.heightAt(k),half=Math.sqrt(rr),low=Math.max(this.base[k],point[1]-half),high=Math.min(top,point[1]+half),amount=Math.max(0,high-low)*this.packing[k]*this.area;this.mass[k]-=amount;removed+=amount;}
+  const small=radius<Math.min(this.dx,this.dz)*.7;let removed=small?(this.takeSmallSphere(point,radius)?.mass||0):0;if(!small)for(const [k] of this.footprint(point[0],point[2],radius)){const x=k%this.n*this.dx-5.5,z=Math.floor(k/this.n)*this.dz-4.9,rr=radius*radius-(x-point[0])**2-(z-point[2])**2;if(rr<=0)continue;const top=this.heightAt(k),half=Math.sqrt(rr),low=Math.max(this.base[k],point[1]-half),high=Math.min(top,point[1]+half),amount=Math.max(0,high-low)*this.packing[k]*this.area;this.mass[k]-=amount;removed+=amount;}
   this.removedMass+=removed;this.update();return removed;
  }
  deposit(parcel,amount){amount=Math.min(parcel.mass,amount);if(amount<=0)return;

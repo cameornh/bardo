@@ -12,6 +12,9 @@ export const LAB_PRESETS={
  pane:{name:'Movable glass pane',scale:1,spacing:.23,eye:[-5,6,7],target:[0,2,0]},
 };
 export const LAB_IDS=Object.keys(LAB_PRESETS),NEIGHBORS=128;
+// Parcels are quadrature samples, not hard spheres of half a grid cell.
+// Boundary support supplies pressure; this small skin only prevents crossing.
+export const WATER_CONTACT_SKIN=.12;
 export const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 export const dot=(a,b)=>a.reduce((v,x,k)=>v+x*b[k],0);
 export const length=a=>Math.hypot(...a);
@@ -29,6 +32,10 @@ export function opaqueDistance(p,kind,bedDelta=0,slope=.1,waterfallHeight=4.8){
 }
 export function fixtureDistance(p,kind,motion,bedDelta=0,slope=.1,waterfallHeight=4.8,bounded=true){let d=kind==='river'?riverDistance(p,slope,bedDelta):p[1]-floorHeight(p,kind)-bedDelta;if(kind==='river')d=Math.min(d,riverRockDistance(p,slope));if(kind==='waterfall')d=Math.min(d,box([p[0],p[1]-waterfallHeight*.5,p[2]+3],[3.2,waterfallHeight*.5,1.8]));if(kind==='pool')for(const a of [0,2])for(const side of [-1,1]){const q=[p[0],p[1]-1,p[2]],b=[4,1,3.1];q[a]-=side*(a===0?3.9:3);b[a]=.12;d=Math.min(d,box(q,b));}if(kind==='pipe')d=Math.min(d,opaqueDistance(p,kind));d=Math.min(d,vesselDistance(p,kind,motion));return bounded?Math.min(d,5.5-Math.abs(p[0]),(kind==='river'?59.5:4.9)-Math.abs(p[2]),(kind==='river'?27:9)-p[1]):d;}
 export function normalAt(p,field){const e=.003,n=[0,1,2].map(k=>{const a=p.slice(),b=p.slice();a[k]+=e;b[k]-=e;return field(a)-field(b);}),l=length(n)||1;return n.map(v=>v/l);}
+// Geometry fields may be conservative distance bounds (the sand uses .65).
+// Kernel support and parcel clearance need metric distance, not that bound.
+export function boundaryMetric(p,field,reach=Infinity){const e=.003,d=field(p);if(d>=reach)return {distance:d,normal:[0,0,0]};const g=[0,1,2].map(k=>{const a=p.slice(),b=p.slice();a[k]+=e;b[k]-=e;return (field(a)-field(b))/(2*e);}),m=Math.max(.05,Math.hypot(...g));return {distance:d/m,normal:g.map(v=>v/m)};}
+export function collideBoundary(p,radius,field){for(let i=0;i<3;i++){const b=boundaryMetric(p,field,radius);if(b.distance>=radius)break;p=p.map((v,k)=>v+b.normal[k]*(radius-b.distance));}return p;}
 export function wallVelocity(p,m){const r=p.map((v,k)=>v-m.position[k]),axis=rotate([0,1,0],m.tilt,0,false,m.pitch),tiltAxis=rotate([0,0,1],0,0,false,m.pitch),omega=tiltAxis.map((v,k)=>v*m.tiltVelocity+axis[k]*m.spinVelocity+(k===0?(m.pitchVelocity||0):0));return [m.velocity[0]+omega[1]*r[2]-omega[2]*r[1],m.velocity[1]+omega[2]*r[0]-omega[0]*r[2],m.velocity[2]+omega[0]*r[1]-omega[1]*r[0]];}
 export function createMotion(){return {position:[0,2,0],velocity:[0,0,0],target:[0,2,0],tilt:0,targetTilt:0,tiltVelocity:0,pitch:0,targetPitch:0,pitchVelocity:0,spin:0,spinVelocity:0,targetSpin:0};}
 export function stepMotion(m,dt){for(let k=0;k<3;k++){m.velocity[k]+=(25*(m.target[k]-m.position[k])-9*m.velocity[k])*dt;m.position[k]+=m.velocity[k]*dt;}m.tiltVelocity+=(25*(m.targetTilt-m.tilt)-9*m.tiltVelocity)*dt;m.tilt+=m.tiltVelocity*dt;m.pitchVelocity+=(25*(m.targetPitch-m.pitch)-9*m.pitchVelocity)*dt;m.pitch+=m.pitchVelocity*dt;m.spinVelocity+=(m.targetSpin-m.spinVelocity)*(1-Math.exp(-dt*3));m.spin+=m.spinVelocity*dt;}
@@ -78,7 +85,7 @@ export const BOUNDARY_KERNEL_GLSL=`
 vec2 boundaryKernel(float distance,float h){float q=clamp(distance/h,0.,1.),q2=q*q;return vec2(.5-315./256.*q*(1.-q2*(4./3.-q2*(6./5.-q2*(4./7.-q2/9.)))),-315./(256.*h)*pow(1.-q2,4.));}
 `;
 export function solveDensity(positions,neighbors,spacing,iterations=3,collide=p=>p,boundary=null){const n=positions.length/4,h=spacing*2,volume=spacing**3;let pos=positions.slice();const lambdas=new Float32Array(n),density=new Float32Array(n),wallGradient=new Float32Array(n*3);for(let iteration=0;iteration<iterations;iteration++){
- for(let i=0;i<n;i++){let rho=volume*kernel(0,h),sum=0,gradient=[0,0,0];for(let a=0;a<NEIGHBORS;a++){const j=neighbors[i*NEIGHBORS+a];if(j<0)break;const d=[0,1,2].map(k=>pos[i*4+k]-pos[j*4+k]),g=kernelGradient(d,h).map(x=>x*volume);rho+=volume*kernel(length(d),h);sum+=dot(g,g);gradient=gradient.map((v,k)=>v+g[k]);}if(boundary){const p=Array.from(pos.subarray(i*4,i*4+3)),wall=boundaryKernel(boundary(p),h),g=wall.density>1e-6?normalAt(p,boundary).map(v=>v*wall.gradient):[0,0,0];rho+=wall.density;wallGradient.set(g,i*3);gradient=gradient.map((v,k)=>v+g[k]);}density[i]=rho;lambdas[i]=-Math.max(0,rho-1)/(sum+dot(gradient,gradient)+.04/(h*h));}
+ for(let i=0;i<n;i++){let rho=volume*kernel(0,h),sum=0,gradient=[0,0,0];for(let a=0;a<NEIGHBORS;a++){const j=neighbors[i*NEIGHBORS+a];if(j<0)break;const d=[0,1,2].map(k=>pos[i*4+k]-pos[j*4+k]),g=kernelGradient(d,h).map(x=>x*volume);rho+=volume*kernel(length(d),h);sum+=dot(g,g);gradient=gradient.map((v,k)=>v+g[k]);}if(boundary){const p=Array.from(pos.subarray(i*4,i*4+3)),metric=boundaryMetric(p,boundary,h),wall=boundaryKernel(metric.distance,h),g=wall.density>1e-6?metric.normal.map(v=>v*wall.gradient):[0,0,0];rho+=wall.density;wallGradient.set(g,i*3);gradient=gradient.map((v,k)=>v+g[k]);}density[i]=rho;lambdas[i]=-Math.max(0,rho-1)/(sum+dot(gradient,gradient)+.04/(h*h));}
  const next=pos.slice();for(let i=0;i<n;i++){if(pos[i*4+3]>.5)continue;let delta=[0,1,2].map(k=>lambdas[i]*wallGradient[i*3+k]);for(let a=0;a<NEIGHBORS;a++){const j=neighbors[i*NEIGHBORS+a];if(j<0)break;const d=[0,1,2].map(k=>pos[i*4+k]-pos[j*4+k]),g=kernelGradient(d,h),r=length(d),scorr=-.00015*Math.pow(kernel(r,h)/kernel(.3*h,h),4);for(let k=0;k<3;k++)delta[k]+=(lambdas[i]+lambdas[j]+scorr)*volume*g[k];}const limit=Math.min(1,spacing*.2/(length(delta)||1)),p=collide([0,1,2].map(k=>pos[i*4+k]+delta[k]*limit));next.set(p,i*4);}pos=next;}return {positions:pos,density};}
 export function diffuseChemistry(chem,neighbors,positions,spacing,dt){const out=chem.slice(),n=positions.length/4,h=spacing*2;for(let i=0;i<n;i++)for(let a=0;a<NEIGHBORS;a++){const j=neighbors[i*NEIGHBORS+a];if(j<0)break;if(j<=i)continue;const a0=i*4,b0=j*4,r=Math.hypot(positions[a0]-positions[b0],positions[a0+1]-positions[b0+1],positions[a0+2]-positions[b0+2]),w=Math.max(0,1-r/h)*Math.min(.006,dt*.12);for(let k=0;k<3;k++){const exchange=(chem[j*4+k]-chem[i*4+k])*w;out[i*4+k]+=exchange;out[j*4+k]-=exchange;}}return out;}
 export const LAB_GEOMETRY_GLSL=`
@@ -92,9 +99,9 @@ uniform int uSandCount;uniform vec3 uSandMin,uSandMax;
 // Cubic B-spline reconstruction with four hardware-linear texture reads.
 // This is the same positive, partition-of-unity kernel as SandBed.height.
 float sandHeight(vec2 p){
- vec2 q=clamp((p+vec2(5.5,4.9))/vec2(11.,9.8)*64.,0.,64.),base=floor(q),f=fract(q),a=1.-f;
+ float size=float(textureSize(uSand,0).x),last=size-1.;vec2 q=clamp((p+vec2(5.5,4.9))/vec2(11.,9.8)*last,0.,last),base=floor(q),f=fract(q),a=1.-f;
  vec2 w0=a*a*a/6.,w1=(3.*f*f*f-6.*f*f+4.)/6.,w2=(-3.*f*f*f+3.*f*f+3.*f+1.)/6.,w3=f*f*f/6.;
- vec2 g0=w0+w1,g1=w2+w3,h0=(base-1.+w1/g0+.5)/65.,h1=(base+1.+w3/g1+.5)/65.;
+ vec2 g0=w0+w1,g1=w2+w3,h0=(base-1.+w1/g0+.5)/size,h1=(base+1.+w3/g1+.5)/size;
  return g0.y*(g0.x*texture(uSand,h0).r+g1.x*texture(uSand,vec2(h1.x,h0.y)).r)+g1.y*(g0.x*texture(uSand,vec2(h0.x,h1.y)).r+g1.x*texture(uSand,h1).r);
 }
 float labFloor(vec3 p){if(uStation==4)return riverBase(p)+texture(uLabBed,p.xz/vec2(12,120)+.5).r;if(uStation==6)return sandHeight(p.xz);return 0.;}
@@ -108,7 +115,7 @@ float sandDistance(vec3 p){float d=(p.y-labFloor(p))*.65;if(uSandCount==0||any(l
 // The material follows the same smooth union as geometry, so wet airborne
 // clumps keep their own moisture instead of inheriting the bed below them.
 float sandWetness(vec3 p){
- float wet=texture(uSand,clamp((p.xz+vec2(5.5,4.9))/vec2(11.,9.8),0.,1.)*vec2(64./65.)+vec2(.5/65.)).g;
+ float size=float(textureSize(uSand,0).x);float wet=texture(uSand,clamp((p.xz+vec2(5.5,4.9))/vec2(11.,9.8),0.,1.)*((size-1.)/size)+vec2(.5/size)).g;
  if(uSandCount==0||any(lessThan(p,uSandMin))||any(greaterThan(p,uSandMax)))return wet;
  float d=(p.y-labFloor(p))*.65;ivec2 c=ivec2(clamp((p.xz+vec2(5.5,4.9))/vec2(11.,9.8)*32.,0.,31.));
  bool overflow=texelFetch(uSandBins,ivec2(c.x*16+15,c.y),0).r< -1.5;int count=overflow?uSandCount:16;
@@ -133,5 +140,6 @@ float labSolid(vec3 p){return min(labPhysicalSolid(p),min(5.5-abs(p.x),min((uSta
 vec3 labPhysicalNormal(vec3 p){float e=.003;return normalize(vec3(labPhysicalSolid(p+vec3(e,0,0))-labPhysicalSolid(p-vec3(e,0,0)),labPhysicalSolid(p+vec3(0,e,0))-labPhysicalSolid(p-vec3(0,e,0)),labPhysicalSolid(p+vec3(0,0,e))-labPhysicalSolid(p-vec3(0,0,e))));}
 
 vec3 labNormal(vec3 p){float e=.003;return normalize(vec3(labSolid(p+vec3(e,0,0))-labSolid(p-vec3(e,0,0)),labSolid(p+vec3(0,e,0))-labSolid(p-vec3(0,e,0)),labSolid(p+vec3(0,0,e))-labSolid(p-vec3(0,0,e))));}
-vec3 labCollide(vec3 p,float radius){for(int i=0;i<3;i++){float d=labSolid(p);if(d>=radius)break;p+=labNormal(p)*(radius-d);}return p;}
+vec4 labBoundaryMetric(vec3 p,float reach){float e=.003,d=labSolid(p);if(d>=reach)return vec4(0,0,0,d);vec3 g=vec3(labSolid(p+vec3(e,0,0))-labSolid(p-vec3(e,0,0)),labSolid(p+vec3(0,e,0))-labSolid(p-vec3(0,e,0)),labSolid(p+vec3(0,0,e))-labSolid(p-vec3(0,0,e)))/(2.*e);float m=max(.05,length(g));return vec4(g/m,d/m);}
+vec3 labCollide(vec3 p,float radius){for(int i=0;i<3;i++){vec4 b=labBoundaryMetric(p,radius);if(b.w>=radius)break;p+=b.xyz*(radius-b.w);}return p;}
 `;

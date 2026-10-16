@@ -57,7 +57,7 @@ vec3 floorColor(vec3 p,vec3 n){vec3 color=surfaceColor(p,n);for(int i=0;i<uBodyC
  // visible at pixel scale. Their paths share the particle/body shadow queries.
  if(uStation==2)for(int lamp=0;lamp<3;lamp++){vec3 delta=vec3(float(lamp-1)*2.7,.65,-2.87)-p;float t=dot(delta,rd),miss=length(delta-rd*t),width=max(.008,fwidth(miss));float coverage=(t>0.&&p.z>-2.75&&t<rt+.2)?1.-smoothstep(.15-width,.15+width,miss):0.;vec3 radiance=poolColor(lamp)*uLights*poolTransmission(p,lamp,uScale);color=mix(color,radiance,coverage);}
  if(rt>9999.)color+=LAB_SUN*uSunlight*600.*smoothstep(.99994,.99998,dot(rd,sun()))*sunTransmission(origin,uScale);color*=bodyExtra(i,0).rgb;break;}}return color;}
-float traceWater(vec3 o,vec3 d,float begin,float end){float t=begin,last=t;for(int i=0;i<512;i++){if(rho(o+d*t)>=PARCEL_ISO){float a=last,b=t;for(int j=0;j<5;j++){float m=(a+b)*.5;if(rho(o+d*m)<PARCEL_ISO)a=m;else b=m;}return (a+b)*.5;}last=t;t+=uSpacing*mix(.28,.55,smoothstep(8.,35.,t));if(t>end)break;}return 1e4;}
+float traceWater(vec3 o,vec3 d,float begin,float end){float t=begin,last=t;if(begin>end)return 1e4;for(int i=0;i<512;i++){if(rho(o+d*t)>=PARCEL_ISO){float a=last,b=t;for(int j=0;j<5;j++){float m=(a+b)*.5;if(rho(o+d*m)<PARCEL_ISO)a=m;else b=m;}return (a+b)*.5;}last=t;t+=uSpacing*mix(.28,.55,smoothstep(8.,35.,t));if(t>end)break;}return 1e4;}
 // The water shader queries glass along its refracted ray. The final shell pass
 // handles only glass in front of the liquid, so submerged glass cannot cover it.
 float traceGlass(vec3 origin,vec3 ray,float limit,out vec3 normal){

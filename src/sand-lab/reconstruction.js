@@ -5,8 +5,10 @@ export function reconstructionKernel(p){
  return {sigma,ratio,normal:p.normal||[0,1,0],amplitude:p.volume/((2*Math.PI)**1.5*sigma**3*ratio)};
 }
 export function boundaryShape(clearance,sigma){
- const near=Math.max(0,Math.min(1,1-clearance/(sigma*2.4)));
- return {widen:1+.18*near,flatten:Math.max(.26,Math.min(1,clearance/(sigma*1.65)))};
+ // Compress toward the boundary by spreading the same kernel volume along
+ // it. Keeping the covariance determinant fixed avoids a dense raised bead.
+ const compression=Math.max(.35,Math.min(1,clearance/(sigma*1.65)));
+ return {widen:1/Math.sqrt(compression),flatten:compression**1.5};
 }
 export function reconstructionSample(p,point){
  const {sigma,ratio,normal,amplitude}=reconstructionKernel(p),q=point.map((v,k)=>(v-p.position[k])/sigma),along=q.reduce((a,v,k)=>a+v*normal[k],0);

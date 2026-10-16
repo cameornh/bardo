@@ -648,3 +648,13 @@ All 275 numerical tests and the production build pass, including previous-scene 
 Camera droplets now fade smoothly over roughly 4–8 simulation seconds after their last wetting, with larger merged beads lasting longer. Fresh rain or spray refreshes the affected bead without restarting its appearance fade-in. The bounded CPU droplet update feeds the existing GPU lens effect; surface wetting elsewhere and earlier test snapshots are unchanged.
 
 All 21 relevant numerical tests and the production build pass. The local preview verified a 51-drop camera splash clearing after eight seconds, with no console errors. QA controls can apply a camera splash and advance its drying in two-second steps.
+
+### Test 12 — resting shoreline and shared material resolution
+
+Water contact and boundary-density completion now use the local metric distance of the conservative terrain field. The contact skin is smaller, and boundary Gaussians spread tangentially while preserving their covariance determinant and peak density, reducing the raised contact bead. Water tracing also rejects intervals already behind the opaque sand. The original initial volume and startup sloshing remain unchanged. Coarse samples still limit the smoothness of the resting edge; this is not an exact hydrostatic free-surface solve.
+
+**Water / sand resolution** now controls both materials, based on the actual budget-limited water spacing. At 1×, 2.2× and 3×, the sand has 31×31, 66×66 and 89×89 nodes respectively; the grid is capped at 129×129. The GPU reads texture dimensions dynamically. The interaction-radius minimum scales with water spacing, down to about 4.7 cm at the default 110 m beach. Small sand tools remove conserved subcell stock while retaining its moisture; the resulting bed depression is still limited by the sand grid. Water tools smaller than a parcel select one existing parcel and do not silently increase simulation resolution.
+
+**Water highlight roughness** controls the width of direct sun and lamp highlights. It does not change waves, blur refraction, or blur the sky reflection. The UI now names that limited behavior explicitly.
+
+All 285 numerical tests and the production build pass. Live GPU checks pass against the CPU reference: maximum sand/cup constraint error 1.37e-6, transport error 7.63e-6, and sand material errors below 3.67e-6 across 33×33, 65×65 and 97×97 grids. Preview checks covered the calm shoreline, both resolution endpoints, and the smaller brush range. Previous test implementations remain unchanged.

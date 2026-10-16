@@ -1,4 +1,5 @@
-import {carryDistance,solidRayHit,waterRayHit} from './interaction.js';
+import {sandResolutionForWater} from './resolution.js';
+import {carryDistance,solidRayHit,waterRayHit,selectWaterParcels} from './interaction.js';
 import {cupWaterState} from './cup-water.js';
 import {atmosphereTransmission,MOON_DIRECTION} from './atmosphere-model.js';
 import * as THREE from 'three';
@@ -11,7 +12,7 @@ import {WATER_MATERIAL} from '../water-material.js';
 import {labAirVelocity} from './water-lab-air.js';
 export class SandLab extends WaterLab{
  constructor(renderer){super(renderer);this.day=14;this.cycle=false;this.daySeconds=180;this.sunIntensity=1;this.skyIntensity=1;this.objectRadius=.5;this.objectShape='sphere';this.objectMaterial='glass';this.physicsBudgetMs=95;this.detail.density=.6;this.particleBudget=32768;this.resolutions.ocean=2.2;this.configure('ocean');this.enabled=true;}
- configure(kind='ocean',scale=this.scaleMultipliers?.[kind]||1){super.configure(kind,scale);if(kind!=='ocean')return;this.sand=new SandBed();this.sandRevision=-1;this.fluidIndex=null;this.sandHeld=null;this.heldBody=null;this.carvedWater=0;this.objectRadius??=.5;this.u.uSand.value.image.data=this.sand.data;this.u.uSand.value.needsUpdate=true;this.syncUniforms();}
+ configure(kind='ocean',scale=this.scaleMultipliers?.[kind]||1){super.configure(kind,scale);if(kind!=='ocean')return;this.sand=new SandBed(sandResolutionForWater(this.spacing));this.sandRevision=-1;this.fluidIndex=null;this.sandHeld=null;this.heldBody=null;this.carvedWater=0;this.objectRadius??=.5;this.u.uSand.value.dispose();this.u.uSand.value=floatTexture(this.sand.data,this.sand.n,this.sand.n);this.u.uSand.value.minFilter=this.u.uSand.value.magFilter=THREE.LinearFilter;this.syncUniforms();}
  // Metre-scale parcels allow a 15 Hz step. The same predictor as the
  // reference bounds parcel travel to .45 spacing; capillary/gravity bounds
  // still shorten the step when the user selects a miniature physical scale.
@@ -39,7 +40,7 @@ export class SandLab extends WaterLab{
  if(this.tool==='carve-water'){const p=this.pick(origin,direction);if(!p)return false;this.carveWater(p,this.radius);return true;}
  if(this.tool==='object'){this.spawn(this.objectMaterial,origin,direction);return true;}if(this.tool==='grab-object'){if(this.heldBody){this.heldBody.held=false;this.heldBody=null;}else{const b=this.objectPick(origin,direction);if(b){b.held=true;this.heldBody=b;this.objectDistance=carryDistance(b.radius*(b.shape==='cup'?1.55:1),this.spec.scale);}}return true;}if(this.tool==='grab-sand'){if(this.sandHeld){this.sandHeld.forEach(p=>p.held=false);this.sandHeld=null;}else{const p=this.sandPick(origin,direction);if(p){this.sandHeld=this.sand.extract(p,this.radius,[0,0,0],true);for(const q of this.sandHeld)q.offset=q.position.map((v,k)=>v-p[k]);const extent=Math.max(0,...this.sandHeld.map(q=>Math.hypot(...q.offset)+Math.cbrt(q.mass/(q.packing*4*Math.PI/3))));this.sandHoldDistance=carryDistance(extent,this.spec.scale);if(!this.sandHeld.length)this.sandHeld=null;}}this.revision++;return true;}if(this.tool==='push-sand'){const p=this.sandPick(origin,direction);if(p)this.sand.push(p,this.radius,direction,.09);this.revision++;return !!p;}if(this.tool==='wind'){const p=this.sandPick(origin,direction);if(p&&this.sand.parcels.length<160)this.sand.push(p,this.radius,direction,.018*this.windStrength/60);}const previousHeld=this.held,result=super.interact(origin,direction);if(this.held&&this.held!==previousHeld){const extent=Math.max(0,...this.held.offsets.map(p=>Math.hypot(...p)))+this.spacing*.8;this.held.distance=carryDistance(extent,this.spec.scale);}return result;}
  carveWater(point,radius){
-  const keep=[];for(let i=0;i<this.count;i++){const o=i*4;if(Math.hypot(this.positions[o]-point[0],this.positions[o+1]-point[1],this.positions[o+2]-point[2])>radius)keep.push(i);}
+  const selected=new Set(selectWaterParcels(this.positions,point,radius,this.spacing)),keep=[];for(let i=0;i<this.count;i++)if(!selected.has(i))keep.push(i);
   const removed=this.count-keep.length;if(!removed)return 0;for(const key of ['positions','velocities','chem']){const old=this[key],next=new Float32Array(keep.length*4);keep.forEach((i,j)=>next.set(old.subarray(i*4,i*4+4),j*4));this[key]=next;}
   // Indices changed: discard emitter/neighbor histories instead of attaching
   // old velocities, held selections or spray trails to unrelated parcels.
