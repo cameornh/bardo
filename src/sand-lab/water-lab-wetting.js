@@ -4,6 +4,10 @@ import {hash,rotate,vesselDistance,normalAt,clamp} from './water-lab-model.js';
 import {labAirVelocity,airSolid} from './water-lab-air.js';
 
 export const WET_SPOT_LIMIT=64;
+// Camera film clears in seconds once incoming spray/rain stops. Bigger merged
+// beads last a little longer; surface wetting elsewhere keeps its own lifetime.
+const cameraDrySeconds=radius=>4+4*clamp(radius/.038,0,1);
+const cameraDropOpacity=p=>{const t=clamp(p.dryAge/p.drySeconds,0,1);return Math.min(1,p.age*8)*(1-t)*(1-t)*(1+2*t);};
 // Optical wetting tracers are a bounded sample of the existing unresolved
 // spray/mist, not additional bulk water. Rain reservoirs retain their mass.
 export class LabWetting{
@@ -40,8 +44,10 @@ export class LabWetting{
   if(existing){existing.radius=Math.min(.12,Math.cbrt(existing.radius**3+radius**3));existing.age=0;}
   else if(spots.length<(onGlass?WET_SPOT_LIMIT:32))spots.push({local,radius,age:0,body});
  }
- addLens(amount=.5,uv=null){if(!this.cameraEnabled)return;const id=++this.sequence,p={x:uv?.[0]??hash(id+3),y:uv?.[1]??hash(id+7),radius:.004+.012*hash(id+19)*Math.min(2,amount),age:0};
-  const near=this.lens.find(q=>Math.hypot(q.x-p.x,q.y-p.y)<(q.radius+p.radius)*2);if(near)near.radius=Math.min(.038,Math.cbrt(near.radius**3+p.radius**3));else if(this.lens.length<WET_SPOT_LIMIT)this.lens.push(p);else{const i=id%WET_SPOT_LIMIT;this.lens[i].radius=Math.min(.038,this.lens[i].radius+p.radius*.15);}this.revision++;}
+ addLens(amount=.5,uv=null){if(!this.cameraEnabled)return;const id=++this.sequence,p={x:uv?.[0]??hash(id+3),y:uv?.[1]??hash(id+7),radius:.004+.012*hash(id+19)*Math.min(2,amount),age:0,dryAge:0};
+  const near=this.lens.find(q=>Math.hypot(q.x-p.x,q.y-p.y)<(q.radius+p.radius)*2);let drop=p;
+  if(near){drop=near;near.radius=Math.min(.038,Math.cbrt(near.radius**3+p.radius**3));}else if(this.lens.length<WET_SPOT_LIMIT)this.lens.push(p);else{drop=this.lens[id%WET_SPOT_LIMIT];drop.radius=Math.min(.038,drop.radius+p.radius*.15);}
+  drop.dryAge=0;drop.drySeconds=cameraDrySeconds(drop.radius);this.revision++;}
  setCamera(camera,dt=0){const eye=camera.position.toArray();if(dt>0){this.previousEye=this.eye?.slice()||eye.slice();this.cameraVelocity=eye.map((v,k)=>(v-this.previousEye[k])/dt);}this.eye=eye;const e=camera.matrixWorld.elements;this.right=[e[0],e[1],e[2]];this.up=[e[4],e[5],e[6]];this.forward=[-e[8],-e[9],-e[10]];}
  hitLens(a,b,amount=.7){if(!this.eye||!this.cameraEnabled)return;const center=this.eye.map((v,k)=>v+this.forward[k]*.16),previousCenter=(this.previousEye||this.eye).map((v,k)=>v+this.forward[k]*.16),delta=b.map((v,k)=>v-a[k]),da=a.reduce((s,v,k)=>s+(v-previousCenter[k])*this.forward[k],0),db=b.reduce((s,v,k)=>s+(v-center[k])*this.forward[k],0);if(da*db>0||Math.abs(da-db)<1e-8)return;
   const t=da/(da-db),q=a.map((v,k)=>v+delta[k]*t-previousCenter[k]-(center[k]-previousCenter[k])*t),x=q.reduce((s,v,k)=>s+v*this.right[k],0)/.25+.5,y=q.reduce((s,v,k)=>s+v*this.up[k],0)/.16+.5;if(x>0&&x<1&&y>0&&y<1)this.addLens(amount,[x,y]);}
@@ -78,12 +84,12 @@ export class LabWetting{
     this.rainCredit+=dt*Math.sqrt(lab.rain.rate)*incidence*.8;const n=Math.min(12,Math.floor(this.rainCredit));this.rainCredit-=n;for(let i=0;i<n;i++)this.addLens(.8);
    }}
   }
-  for(const p of this.lens){p.age+=dt;const mobility=Math.max(0,p.radius-.01)*2.5;p.x+=this.right[1]*mobility*dt;p.y+=this.up[1]*-mobility*dt;p.radius*=Math.exp(-dt*.016);}
-  this.lens=this.lens.filter(p=>p.y>-.05&&p.x>-.05&&p.x<1.05&&p.radius>.0015);this.revision++;
+  for(const p of this.lens){p.age+=dt;p.dryAge+=dt;const mobility=Math.max(0,p.radius-.01)*2.5;p.x+=this.right[1]*mobility*dt;p.y+=this.up[1]*-mobility*dt;p.radius*=Math.exp(-dt*.016);}
+  this.lens=this.lens.filter(p=>p.y>-.05&&p.x>-.05&&p.x<1.05&&p.radius>.0015&&p.dryAge<p.drySeconds);this.revision++;
  }
  glassSpots(){const scale=this.lab.spec.scale,result=this.spots.map(p=>[...p.local,p.radius]);for(const p of this.lab.rain.deposits.values())if(p.local)result.push([...p.local,Math.min(.24,Math.max(.002/scale,Math.cbrt(p.volume)*.7))]);return result.sort((a,b)=>b[3]-a[3]).slice(0,WET_SPOT_LIMIT);}
  uniforms(){return {uSurfaceWetCount:{value:0},uSurfaceWetSpots:{value:Array.from({length:32},()=>new THREE.Vector4())},uWetCount:{value:0},uWetSpots:{value:Array.from({length:WET_SPOT_LIMIT},()=>new THREE.Vector4())},uLensCount:{value:0},uLensDrops:{value:Array.from({length:WET_SPOT_LIMIT},()=>new THREE.Vector4())}};}
- updateUniforms(u){u.uSurfaceWetCount.value=this.surfaceSpots.length;this.surfaceSpots.forEach((p,i)=>u.uSurfaceWetSpots.value[i].set(...p.local.map((v,k)=>v+(p.body?.position[k]||0)),p.radius));const spots=this.glassSpots();u.uWetCount.value=spots.length;spots.forEach((p,i)=>u.uWetSpots.value[i].fromArray(p));u.uLensCount.value=this.cameraEnabled?this.lens.length:0;this.lens.forEach((p,i)=>u.uLensDrops.value[i].set(p.x,p.y,p.radius,Math.min(1,p.age*8)));}
+ updateUniforms(u){u.uSurfaceWetCount.value=this.surfaceSpots.length;this.surfaceSpots.forEach((p,i)=>u.uSurfaceWetSpots.value[i].set(...p.local.map((v,k)=>v+(p.body?.position[k]||0)),p.radius));const spots=this.glassSpots();u.uWetCount.value=spots.length;spots.forEach((p,i)=>u.uWetSpots.value[i].fromArray(p));u.uLensCount.value=this.cameraEnabled?this.lens.length:0;this.lens.forEach((p,i)=>u.uLensDrops.value[i].set(p.x,p.y,p.radius,cameraDropOpacity(p)));}
 }
 export const GLASS_WETTING_GLSL=`
 uniform int uSurfaceWetCount;uniform vec4 uSurfaceWetSpots[32];

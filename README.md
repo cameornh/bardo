@@ -642,3 +642,9 @@ Wet chunks now land as persistent smooth-union additions to the terrain SDF, ret
 Held sand now exchanges moisture with water and rain. Surface probes sample outside the cavity the sand displaces, and exposed grains wet the porous held selection. Wetting takes seconds; drying retains the existing ten-minute time constant. Deposits can be picked up with their moisture intact or deliberately pushed away; free objects collide with them as terrain. Sand mechanics and moisture exchange remain CPU work, while the existing GPU SDF rendering and water collision/compute paths consume the updated field.
 
 All 275 numerical tests and the production build pass, including previous-scene snapshot checks. The GPU sand-material comparison passes with maximum moisture error 2.30e-6 and distance error 3.19e-7; water, transport, reconstruction and atmosphere checks pass as well. In the local preview a dropped wet selection retained 0.901 moisture after 31.5 simulated seconds, with zero shape drift over the final 30 seconds. Held dry sand reached approximately 0.67 moisture after 5.5 seconds in the running water simulation. QA controls provide landing, long-term bonding and held-soaking fixtures.
+
+### Test 12 — camera droplet drying
+
+Camera droplets now fade smoothly over roughly 4–8 simulation seconds after their last wetting, with larger merged beads lasting longer. Fresh rain or spray refreshes the affected bead without restarting its appearance fade-in. The bounded CPU droplet update feeds the existing GPU lens effect; surface wetting elsewhere and earlier test snapshots are unchanged.
+
+All 21 relevant numerical tests and the production build pass. The local preview verified a 51-drop camera splash clearing after eight seconds, with no console errors. QA controls can apply a camera splash and advance its drying in two-second steps.
