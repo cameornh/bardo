@@ -24,10 +24,18 @@ export function labAirVelocity(p,lab,jet=lab.jet,exclude=null){
  if(jet){const delta=p.map((v,k)=>v-jet.origin[k]),along=delta.reduce((a,v,k)=>a+v*jet.direction[k],0),r2=delta.reduce((a,v,k)=>a+(v-along*jet.direction[k])**2,0),weight=along>0?Math.exp(-r2/lab.radius**2)*Math.exp(-along/25):0;for(let k=0;k<3;k++)v[k]+=jet.direction[k]*lab.windStrength*weight;}
  return obstacleAir(p,v,q=>airSolid(q,lab,exclude)).map(v=>v/scale);
 }
+export function outsideAirGrid(p,min,extent){return p.some((v,k)=>v<min[k]||v>min[k]+extent[k]);}
 export const AIR_SAMPLE_GLSL=`
 uniform highp sampler2D uAirField;uniform vec3 uAirMin,uAirExtent;uniform bool uAirEnabled;
 vec3 airNode(ivec3 p){p=clamp(p,ivec3(0),ivec3(31,23,31));return texelFetch(uAirField,ivec2(p.x+p.z*32,p.y),0).xyz;}
-vec3 sampleAir(vec3 p){vec3 q=clamp((p-uAirMin)/uAirExtent,0.,1.)*vec3(31,23,31),f=fract(q);ivec3 b=ivec3(floor(q));return mix(mix(mix(airNode(b),airNode(b+ivec3(1,0,0)),f.x),mix(airNode(b+ivec3(0,1,0)),airNode(b+ivec3(1,1,0)),f.x),f.y),mix(mix(airNode(b+ivec3(0,0,1)),airNode(b+ivec3(1,0,1)),f.x),mix(airNode(b+ivec3(0,1,1)),airNode(b+ivec3(1,1,1)),f.x),f.y),f.z);}
+vec3 sampleAir(vec3 p){
+// Fountain flight extends far beyond the near-solid lattice. Sample open air
+// there instead of repeating the top/border wind value indefinitely.
+if(uStation==8&&(any(lessThan(p,uAirMin))||any(greaterThan(p,uAirMin+uAirExtent)))){
+ vec2 w=beachWind(p.xz*uScale,uTime,uWind,0.,uTurbulence),q=vec2(p.x*uScale*.4+p.y*.7,p.z*uScale*.4-uTime*uWind*.07);
+ vec3 v=vec3(w.x+uWind*uTurbulence*.45*(windNoise(q+vec2(9,17))-.5),uWind*uTurbulence*.28*(windNoise(q+vec2(31,5))-.5),w.y);
+ vec3 delta=p-uBrushOrigin;float along=dot(delta,uBrushDirection);if(along>0.)v+=uBrushDirection*uBrushStrength*exp(-dot(delta-along*uBrushDirection,delta-along*uBrushDirection)/(uBrushRadius*uBrushRadius))*exp(-along/25.);return v/uScale;
+}vec3 q=clamp((p-uAirMin)/uAirExtent,0.,1.)*vec3(31,23,31),f=fract(q);ivec3 b=ivec3(floor(q));return mix(mix(mix(airNode(b),airNode(b+ivec3(1,0,0)),f.x),mix(airNode(b+ivec3(0,1,0)),airNode(b+ivec3(1,1,0)),f.x),f.y),mix(mix(airNode(b+ivec3(0,0,1)),airNode(b+ivec3(1,0,1)),f.x),mix(airNode(b+ivec3(0,1,1)),airNode(b+ivec3(1,1,1)),f.x),f.y),f.z);}
 `;
 const kernel=`precision highp float;precision highp int;out vec4 outColor;
 uniform vec3 uAirMin,uAirExtent,uAirJetOrigin,uAirJetDirection;uniform float uAirTime,uAirScale,uAirSpeed,uAirTurbulence,uAirJetStrength,uAirRadius;
@@ -53,9 +61,10 @@ export class LabAirField{
  }
  sampleGrid(p){
  const min=this.gridMin,extent=this.gridExtent,a=this.grid,out=[0,0,0];
+ if(this.lab.kind==='fountain'&&outsideAirGrid(p,min,extent))return labAirVelocity(p,this.lab,this.jet);
  const x=Math.max(0,Math.min(31,(p[0]-min[0])/extent[0]*31)),y=Math.max(0,Math.min(23,(p[1]-min[1])/extent[1]*23)),z=Math.max(0,Math.min(31,(p[2]-min[2])/extent[2]*31)),ix=Math.floor(x),iy=Math.floor(y),iz=Math.floor(z),fx=x-ix,fy=y-iy,fz=z-iz;
  for(let c=0;c<8;c++){const cx=c&1,cy=(c>>1)&1,cz=(c>>2)&1,w=(cx?fx:1-fx)*(cy?fy:1-fy)*(cz?fz:1-fz),o=(Math.min(23,iy+cy)*1024+Math.min(31,iz+cz)*32+Math.min(31,ix+cx))*4;out[0]+=w*a[o];out[1]+=w*a[o+1];out[2]+=w*a[o+2];}return out;
  }
- sample(p){const min=this.u.uAirMin.value.toArray(),span=this.u.uAirExtent.value.toArray(),dims=[31,23,31],q=p.map((v,k)=>Math.max(0,Math.min(1,(v-min[k])/span[k]))*dims[k]),base=q.map(Math.floor),f=q.map((v,k)=>v-base[k]),out=[0,0,0];for(let corner=0;corner<8;corner++){const c=base.map((v,k)=>Math.min(dims[k],v+((corner>>k)&1))),id=c.join(',');let value=this.nodes.get(id);if(!value){value=labAirVelocity(c.map((v,k)=>min[k]+v/dims[k]*span[k]),this.lab,this.jet);this.nodes.set(id,value);}const w=f.reduce((a,v,k)=>a*(((corner>>k)&1)?v:1-v),1);for(let k=0;k<3;k++)out[k]+=value[k]*w;}return out;}
+ sample(p){if(this.lab.kind==='fountain'&&outsideAirGrid(p,this.u.uAirMin.value.toArray(),this.u.uAirExtent.value.toArray()))return labAirVelocity(p,this.lab,this.jet);const min=this.u.uAirMin.value.toArray(),span=this.u.uAirExtent.value.toArray(),dims=[31,23,31],q=p.map((v,k)=>Math.max(0,Math.min(1,(v-min[k])/span[k]))*dims[k]),base=q.map(Math.floor),f=q.map((v,k)=>v-base[k]),out=[0,0,0];for(let corner=0;corner<8;corner++){const c=base.map((v,k)=>Math.min(dims[k],v+((corner>>k)&1))),id=c.join(',');let value=this.nodes.get(id);if(!value){value=labAirVelocity(c.map((v,k)=>min[k]+v/dims[k]*span[k]),this.lab,this.jet);this.nodes.set(id,value);}const w=f.reduce((a,v,k)=>a*(((corner>>k)&1)?v:1-v),1);for(let k=0;k<3;k++)out[k]+=value[k]*w;}return out;}
 
 }

@@ -1,0 +1,34 @@
+{
+  "scope": "Fountain station only",
+  "numericalTests": {"passed":321,"failed":0},
+  "build": "pass",
+  "gpuMotion": {
+    "highAltitudeMaxError":0.000003814697265625,
+    "priorStationMaxError":0.00007772445678710938,
+    "pass":true
+  },
+  "fullFlightCoverageFixture": {
+    "description":"Existing liquid placed on ballistic trajectories with breakup history integrated along each trajectory; not a steady-state fluid simulation.",
+    "highestFineParticleSolverUnits":55.3184700012207,
+    "liveSprayAbove45":2036,
+    "liveMistAbove45":1948,
+    "sprayEmitted":8987,
+    "mistEmitted":4685,
+    "visibleCrestPixels":36521,
+    "crestOpticalDensity":6548.672160804272,
+    "pass":true
+  },
+  "liveMaximumJet": {
+    "description":"1240 actual GPU liquid steps and GPU fine-particle advances; default resolution, central jet at maximum, side jets off.",
+    "simulationSeconds":4.7411524066475,
+    "volumeDrift":0,
+    "highestLiquidSolverUnits":105.7636489868164,
+    "liveSprayWithin8OfHighestLiquid":5,
+    "liveMistWithin8OfHighestLiquid":6,
+    "sprayEmitted":42460,
+    "mistEmitted":23969,
+    "allLiquidPositionsFinite":true,
+    "note":"Sparse impact-ejected outliers rise beyond the main ballistic crest; the test records them rather than assuming height alone measures turbulence. No realtime performance claim."
+  },
+  "limits":"32768 fine markers; CPU emission accounting; GPU advection/collision/lifetime; unresolved breakup model, not a two-phase solver."
+}

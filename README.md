@@ -807,3 +807,30 @@ interfaces or off-screen caustic reflections. The selectable CPU fallback uses
 fine-particle attenuation on those CPU photon paths is not sampled. The existing
 metal reflection remains a limited sky/water/ground approximation. At extreme
 jet settings the parcel budget also limits stream continuity.
+
+### Fountain spray through the full jet (2026-10-17)
+
+The fountain now carries entrained-air and breakup history with each liquid
+parcel. Air-relative stress, deformation and loss of liquid neighbors develop
+that history; losing the last neighbor no longer silences the emitter. Mist has
+a higher breakup threshold than spray and accumulates around sustained breakup.
+This covers seeded jets, recirculated water and fragments ejected by impacts.
+There is no emission rule based on height or camera distance. Nozzle aeration
+still controls the initial air load, and histories decay or reset at recycling.
+
+The new emitter is isolated in `water-lab-fountain-spray.js`. Emission accounting
+runs on the CPU; particle advection, collision, lifetime and rendering continue
+on the GPU with the existing CPU reference. Physical-volume weighting and a
+9,000/s base spray budget (before the density multiplier) retain bounded work;
+the fountain's 32,768-marker allocation is unchanged. Outside the near-fixture
+wind lattice, fountain particles use spatially varying open-air wind instead
+of repeating the lattice's top slice. The fountain alone has additional upper
+headroom for impact-ejected liquid. Other stations keep their existing emitter.
+
+This is an unresolved breakup/air-entrainment model, not a two-phase air/water
+solver. Fine airborne markers remain visual tracers, and the existing near-field
+water-advection atlas is not enlarged. The numerical tests cover crest memory,
+quiet-flow suppression, impact fragments, scaling, recycling and distant wind.
+`tests/water-lab-fountain-spray-gpu.html` checks CPU/GPU high-altitude motion,
+rendered crest coverage, and an actual maximum-speed jet ascent separately from
+its deliberately constructed full-flight coverage fixture.

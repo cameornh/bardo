@@ -83,7 +83,7 @@ export function pumpFountain(lab,dt){
   const nozzle=nozzles[j],id=nozzle.group+':'+nozzle.point.join(','),state=lab.fountainPump[id]??={budget:0,sequence:0};const inlet=fountainInlet(nozzle,s,state.sequence,lab.time,lab.turbulence);state.budget=Math.min(12,state.budget+dt*inlet.rate);
   while(state.budget>=1){const q=fountainInlet(nozzle,s,state.sequence,lab.time,lab.turbulence);if(!clear(q.point))break;let index=-1;
    for(let tries=0;tries<lab.count;tries++){const i=lab.fountainCursor++%lab.count,o=i*4;if(lab.positions[o+3]||lab.positions[o+1]>.98)continue;index=i;break;}
-   if(index<0)break;const o=index*4;lab.positions.set(q.point,o);lab.velocities.set(q.velocity,o);lab.chem[o+3]=0;state.sequence++;state.budget--;lab.fountainRecycled++;lab.pumped+=s**3*lab.spec.scale**3;
+   if(index<0)break;const o=index*4;lab.positions.set(q.point,o);lab.velocities.set(q.velocity,o);lab.chem[o+3]=0;lab.detail.launch?.(index,nozzle);state.sequence++;state.budget--;lab.fountainRecycled++;lab.pumped+=s**3*lab.spec.scale**3;
    const c=cell(q.point),k=key(...c);if(!bins.has(k))bins.set(k,[]);bins.get(k).push(index);
    // An aerating nozzle entrains air at its outlet. Markers carry no extra liquid
    // mass; shared surface-breakup emission still handles all downstream impacts.
