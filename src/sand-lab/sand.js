@@ -1,3 +1,4 @@
+import {shapeRadius,shapeDistance,cutShape} from './sand-shape.js';
 // Conservative sand stock, packing, retained moisture and mobile aggregates.
 // Coordinates are lab units; `mass` is solid-grain volume (multiply by rho and scale³).
 export const SAND={packing:.56,maxPacking:.72,wettingSeconds:5,dryingSeconds:600,looseDensity:.55,wetDensity:1.7,cohesionWetness:.35};
@@ -7,7 +8,7 @@ export const beachHeight=(x,z)=>Math.max(-.3,(z-1)*.48)+.045*Math.sin(x*.6)*Math
 export function aggregateDensity(wet){return SAND.looseDensity+(SAND.wetDensity-SAND.looseDensity)*clamp(wet);}
 export function moisture(wet,contact,dt,rain=0){return contact?1-(1-wet)*Math.exp(-dt/SAND.wettingSeconds):clamp(wet*Math.exp(-dt/SAND.dryingSeconds)+rain*dt);}
 export const cubicWeights=t=>[(1-t)**3/6,(3*t**3-6*t*t+4)/6,(-3*t**3+3*t*t+3*t+1)/6,t**3/6];
-export const aggregateRadius=p=>Math.cbrt(p.mass/(p.packing*4*Math.PI/3));
+export const aggregateRadius=shapeRadius;
 const cohesive=p=>Math.max(p.wet,p.memory||0)>=SAND.cohesionWetness;
 const union=(a,b,k)=>{const h=Math.max(k-Math.abs(a-b),0)/Math.max(k,.00001);return Math.min(a,b)-h*h*k*.25;};
 // Transfer stock between nearby clumps to vary size, then offset once at
@@ -33,11 +34,11 @@ export class SandBed{
   const a=clamp((x+5.5)/this.dx,0,this.n-1),b=clamp((z+4.9)/this.dz,0,this.n-1),i=Math.floor(a),j=Math.floor(b),wx=cubicWeights(a-i),wz=cubicWeights(b-j);let h=0;
   for(let z0=0;z0<4;z0++)for(let x0=0;x0<4;x0++)h+=this.heightAt(clamp(j+z0-1,0,this.n-1)*this.n+clamp(i+x0-1,0,this.n-1))*wx[x0]*wz[z0];return h;
  }
- distance(p){let d=(p[1]-this.height(p[0],p[2]))*.65;for(const a of this.parcels){if(a.held||a.mass<=0)continue;const r=aggregateRadius(a);d=union(d,Math.hypot(...p.map((v,k)=>v-a.position[k]))-r,Math.min(.08,r*.5));}return d;}
+ distance(p){let d=(p[1]-this.height(p[0],p[2]))*.65;for(const a of this.parcels){if(a.held||a.mass<=0)continue;const r=aggregateRadius(a);d=union(d,shapeDistance(a,p),Math.min(.08,r*.5));}return d;}
  // Bonded deposits are persistent volumetric terms of the same terrain SDF.
  // They keep their own material instead of mixing into the entire dry column.
- contactDistance(p,radius){let d=(p[1]-radius-this.height(p[0],p[2]))*.65;for(const a of this.parcels){if(!a.anchored||a.held||a.mass<=0)continue;const r=aggregateRadius(a);d=union(d,Math.hypot(...p.map((v,k)=>v-a.position[k]))-r-radius,Math.min(.08,r*.5));}return d;}
- materialAt(p){let d=(p[1]-this.height(p[0],p[2]))*.65,wet=this.sample(p[0],p[2]);for(const a of this.parcels){const r=aggregateRadius(a),q=Math.hypot(...p.map((v,k)=>v-a.position[k]))-r,k=Math.min(.08,r*.5),h=clamp(.5+.5*(d-q)/Math.max(k,.00001));wet=wet*(1-h)+a.wet*h;d=d*(1-h)+q*h-k*h*(1-h);}return wet;}
+ contactDistance(p,radius,exclude=null){let d=(p[1]-radius-this.height(p[0],p[2]))*.65;for(const a of this.parcels){if(!a.anchored||a.held||a.mass<=0||a.id===exclude)continue;const r=aggregateRadius(a);d=union(d,shapeDistance(a,p)-radius,Math.min(.08,r*.5));}return d;}
+ materialAt(p){let d=(p[1]-this.height(p[0],p[2]))*.65,wet=this.sample(p[0],p[2]);for(const a of this.parcels){const r=aggregateRadius(a),q=shapeDistance(a,p),k=Math.min(.08,r*.5),h=clamp(.5+.5*(d-q)/Math.max(k,.00001));wet=wet*(1-h)+a.wet*h;d=d*(1-h)+q*h-k*h*(1-h);}return wet;}
  sample(x,z,array=this.wet){return this.weights(x,z).reduce((s,[k,w])=>s+array[k]*w,0);}
  totalMass(){return this.mass.reduce((a,b)=>a+b,0)+this.parcels.reduce((a,b)=>a+b.mass,0);}
  update(){this.dirty=false;for(let k=0;k<this.mass.length;k++)this.data.set([this.heightAt(k),this.wet[k],this.packing[k],this.memory[k]],k*4);this.revision++;}
@@ -55,17 +56,19 @@ export class SandBed{
  while(created.length>24){let small=0;for(let i=1;i<created.length;i++)if(created[i].mass<created[small].mass)small=i;const p=created.splice(small,1)[0];let q=created[0],best=Infinity;for(const candidate of created){const distance=candidate.position.reduce((sum,v,k)=>sum+(v-p.position[k])**2,0);if(distance<best){best=distance;q=candidate;}}const m=q.mass+p.mass;for(let k=0;k<3;k++)q.position[k]=(q.position[k]*q.mass+p.position[k]*p.mass)/m;mergeStock(q,p,p.mass);}
  if(!small)irregularize(created,this.dx,this.dz);
  const existing=[];
- for(const p of this.parcels.slice())if(!p.held&&p.mass>0&&Math.hypot(...p.position.map((v,k)=>v-point[k]))<radius+aggregateRadius(p)){
-  if(held){p.held=true;p.anchored=false;p.velocity.fill(0);existing.push(p);}
-  else if(p.anchored){const amount=p.mass*clamp(fraction);if(amount<=0)continue;const q={...p,id:this.nextId++,position:p.position.slice(),velocity:velocity.slice(),mass:amount,held:false,anchored:false};p.mass-=amount;this.parcels.push(q);existing.push(q);}
+ for(const p of this.parcels.slice())if(!p.held&&p.mass>0&&(held||p.anchored)){
+  if(held&&fraction===1&&Math.hypot(...p.position.map((v,k)=>v-point[k]))+aggregateRadius(p)<=radius){p.held=true;p.anchored=false;p.velocity.fill(0);existing.push(p);continue;}
+  const q=cutShape(p,point,radius*Math.cbrt(clamp(fraction)));if(!q)continue;
+  q.id=this.nextId++;q.held=held;q.anchored=false;q.velocity=velocity.slice();q.departingFrom=held?null:p.id;this.parcels.push(q);existing.push(q);
  }
  const batch=this.nextBatch++;for(const p of [...created,...existing])p.batch=batch;
- this.parcels.push(...created);this.parcels=this.parcels.filter(p=>p.mass>0);this.update();return [...created,...existing];}
+ this.parcels.push(...created);this.parcels=this.parcels.filter(p=>p.mass>0);this.releaseUnsupported();this.update();return [...created,...existing];}
  carve(point,radius){
   // Subtract the sphere's intersection with the exposed column stock. This
   // is a surface crater in the current sand model, not an underground tunnel.
   const small=radius<Math.min(this.dx,this.dz)*.7;let removed=small?(this.takeSmallSphere(point,radius)?.mass||0):0;if(!small)for(const [k] of this.footprint(point[0],point[2],radius)){const x=k%this.n*this.dx-5.5,z=Math.floor(k/this.n)*this.dz-4.9,rr=radius*radius-(x-point[0])**2-(z-point[2])**2;if(rr<=0)continue;const top=this.heightAt(k),half=Math.sqrt(rr),low=Math.max(this.base[k],point[1]-half),high=Math.min(top,point[1]+half),amount=Math.max(0,high-low)*this.packing[k]*this.area;this.mass[k]-=amount;removed+=amount;}
-  this.removedMass+=removed;this.update();return removed;
+  for(const p of this.parcels){if(p.held)continue;const q=cutShape(p,point,radius);if(q)removed+=q.mass;}this.parcels=this.parcels.filter(p=>p.mass>0);
+  this.removedMass+=removed;this.releaseUnsupported();this.update();return removed;
  }
  deposit(parcel,amount){amount=Math.min(parcel.mass,amount);if(amount<=0)return;
   if(cohesive(parcel)){
@@ -90,7 +93,15 @@ export class SandBed{
   this.stepParcels(dt,sampleWater,wind,scale,rain,waterSpacing);
   this.parcels=this.parcels.filter(p=>p.mass>0);this.update();
  }
+ releaseUnsupported(){
+  const anchored=this.parcels.filter(p=>p.anchored&&!p.held&&p.mass>0),supported=new Set();
+  for(const p of anchored){const r=aggregateRadius(p);if(p.position[1]-r<=this.height(p.position[0],p.position[2])+.002)supported.add(p);}
+  const frontier=[...supported];for(const p of frontier)for(const q of anchored){if(supported.has(q))continue;const r=aggregateRadius(p),s=aggregateRadius(q),d=Math.hypot(...p.position.map((v,k)=>v-q.position[k])),bond=Math.min(.08,Math.min(r,s)*.5)*.45;if(d>r+s+bond)continue;
+   const contact=p.position.map((v,k)=>v+(q.position[k]-v)*r/(r+s));if(shapeDistance(p,contact)<=bond&&shapeDistance(q,contact)<=bond){supported.add(q);frontier.push(q);}}
+  const batch=this.nextBatch++;for(const p of anchored)if(!supported.has(p)){p.anchored=false;p.velocity=[0,0,0];p.batch=batch;}
+ }
  stepParcels(dt,sampleWater,wind,scale,rain,waterSpacing){
+  this.releaseUnsupported();
   const samples=new Map(),batchContact=new Map();
   // Sampling the centre alone misses water displaced by the sand itself.
   // Probe just outside its surface, including while it is held or bonded.
@@ -138,7 +149,8 @@ export class SandBed{
    const delta=velocity.map(v=>v*dt);
    // Preserve the shape at the basin bounds as well as at sand contact.
    for(const k of [0,2]){const edge=k===0?5.45:4.85;let lo=-Infinity,hi=Infinity;for(const p of group){lo=Math.max(lo,-edge-p.position[k]);hi=Math.min(hi,edge-p.position[k]);}delta[k]=clamp(delta[k],lo,hi);}
-   const distance=t=>{let d=Infinity;for(const p of group)d=Math.min(d,this.contactDistance(p.position.map((v,k)=>v+delta[k]*t),aggregateRadius(p)));return d;};
+   for(const p of group)if(p.departingFrom){const parent=this.parcels.find(q=>q.id===p.departingFrom);if(!parent||p.position.reduce((sum,v,k)=>sum+(v-parent.position[k])*velocity[k],0)<0)p.departingFrom=null;}
+   const distance=t=>{let d=Infinity;for(const p of group)d=Math.min(d,this.contactDistance(p.position.map((v,k)=>v+delta[k]*t),aggregateRadius(p),p.departingFrom));return d;};
    const reach=Math.hypot(...delta),radius=Math.min(...group.map(aggregateRadius)),steps=Math.min(64,Math.max(1,Math.ceil(reach/Math.max(.005,radius*.5))));
    const start=distance(0),escaping=start<=.0005&&distance(1)>start+.0001;
    // An explicit push may start inside the deposit it was cut from. Let that

@@ -24,14 +24,14 @@ export function solidRayHit(sand,bodies,origin,direction,maxDistance=150){
  for(let i=0;i<2400&&t<maxDistance;i++){
   const p=at(origin,direction,t),inside=Math.abs(p[0])<=5.5&&Math.abs(p[2])<=4.9;
   const distance=inside?sand.distance(p):Math.max(Math.abs(p[0])-5.5,Math.abs(p[2])-4.9,.03);
-  if(inside&&distance<.003){const b=boundaryMetric(p,q=>sand.distance(q)),incidence=b.normal.reduce((sum,v,k)=>sum+v*direction[k],0);if(Math.abs(incidence)>.05)t=Math.max(.005,t-b.distance/incidence);nearest={kind:'sand',point:at(origin,direction,t),distance:t};break;}
-  t+=Math.max(.003,Math.min(.15,distance*.7));
+  if(inside&&distance<.00003){const b=boundaryMetric(p,q=>sand.distance(q)),incidence=b.normal.reduce((sum,v,k)=>sum+v*direction[k],0);if(Math.abs(incidence)>.05)t=Math.max(.005,t-b.distance/incidence);nearest={kind:'sand',point:at(origin,direction,t),distance:t};break;}
+  t+=Math.max(.00003,Math.min(.15,distance*.7));
  }
  for(const body of bodies){if(body.held)continue;t=.005;
   for(let i=0;i<240&&t<(nearest?.distance??maxDistance);i++){
    const p=at(origin,direction,t),distance=bodyDistance(p,body);
-   if(distance<.003){nearest={kind:'object',body,point:p,distance:t};break;}
-   t+=Math.max(.003,distance*.8);
+   if(distance<.00003){nearest={kind:'object',body,point:p,distance:t};break;}
+   t+=Math.max(.00003,distance*.8);
   }
  }
  return nearest;

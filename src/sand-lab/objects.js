@@ -4,10 +4,20 @@ import {rotate,length,clamp} from './water-lab-model.js';
 export const MATERIALS={glass:{ratio:.22,color:[.75,.94,1]},mirror:{ratio:1,color:[.92,.94,1]},rock:{ratio:1.3,color:[.35,.27,.19]},light:{ratio:1,color:[1,.48,.12]}};
 export function bodyLocal(p,b){return rotate(p.map((v,k)=>v-b.position[k]),b.tilt||0,b.spin||0,true,b.pitch||0);}
 export function bodyDistance(p,b){const q=bodyLocal(p,b);if(b.shape!=='cup')return length(q)-b.radius;const r=b.radius,rad=Math.hypot(q[0],q[2]),wall=r*.16;return Math.min(Math.max(Math.abs(rad-r*.84)-wall,Math.abs(q[1])-r),Math.max(rad-r,Math.abs(q[1]+r)-wall));}
-export function bodyNormal(p,b){const e=.002,n=[0,1,2].map(k=>{const a=p.slice(),c=p.slice();a[k]+=e;c[k]-=e;return bodyDistance(a,b)-bodyDistance(c,b);}),l=length(n)||1;return n.map(v=>v/l);}
+export function bodyNormal(p,b){const e=Math.max(.000001,Math.min(.002,b.radius*.02)),n=[0,1,2].map(k=>{const a=p.slice(),c=p.slice();a[k]+=e;c[k]-=e;return bodyDistance(a,b)-bodyDistance(c,b);}),l=length(n)||1;return n.map(v=>v/l);}
 export function makeBody(kind,shape,radius,position,velocity=[0,0,0]){const m=MATERIALS[kind];return {kind,shape,radius,position:position.slice(),velocity:velocity.slice(),color:m.color.slice(),ratio:m.ratio,tilt:0,pitch:0,spin:0,omega:[0,0,0],submerged:0,airVolume:shape==='cup'?Math.PI*radius**3*1.84*.68**2:0,waterVolume:0,held:false};}
 export function recolorLatest(bodies,color){const b=bodies.at(-1);if(b)b.color=color.map(v=>clamp(v,0,1));return b;}
 export function bodyVolume(b){return Math.PI*b.radius**3*(b.shape==='cup'?1.84*(1-.68**2)+.32:4/3);}
+// The walker uses metres; bodies use lab units. A finite player mass transfers
+// momentum both ways instead of treating every movable body as static terrain.
+export function playerBodyContact(walker,body,probe,scale=1){
+ const q=probe.map(v=>v/scale),distance=bodyDistance(q,body)*scale;
+ if(distance>=walker.radius+.002)return false;
+ const n=bodyNormal(q,body),bodyMass=Math.max(.0001,(bodyVolume(body)*body.ratio+(body.waterVolume||0))*1000*scale**3),ip=1/80,ib=body.held?0:1/bodyMass,total=ip+ib;
+ const penetration=Math.max(0,walker.radius-distance+.0001),relative=walker.velocity.reduce((s,v,k)=>s+(v-body.velocity[k]*scale)*n[k],0),impulse=Math.max(0,-relative)/total;
+ for(let k=0;k<3;k++){walker.position[k]+=n[k]*penetration*ip/total;body.position[k]-=n[k]*penetration*ib/total/scale;walker.velocity[k]+=n[k]*impulse*ip;body.velocity[k]-=n[k]*impulse*ib/scale;}
+ return true;
+}
 export function cupCapacity(b){return Math.PI*b.radius**3*1.84*.68**2;}
 export function cupContains(p,b){const q=bodyLocal(p,b),r=b.radius;return Math.hypot(q[0],q[2])<.68*r&&q[1]>-.84*r&&q[1]<r;}
 const CUP_COLUMNS=Array.from({length:32},(_,i)=>{const r=Math.sqrt((i+.5)/32),a=i*2.399963229728653;return [r*Math.cos(a),r*Math.sin(a)];});

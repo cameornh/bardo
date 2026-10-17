@@ -25,7 +25,7 @@ test('a second wet chunk sticks onto the first and can be grabbed again with its
  const top=chunk(bed,[.05,1,0]),initial=bed.totalMass();run(bed,2);
  assert.ok(top.anchored&&base.anchored);assert.ok(top.position[1]>.55);
  const positions=bed.parcels.map(p=>p.position.slice());run(bed,10);assert.deepEqual(bed.parcels.map(p=>p.position),positions);
- const picked=bed.extract(top.position,.12,[0,0,0],true);assert.ok(picked.includes(top));assert.equal(top.anchored,false);assert.equal(top.held,true);assert.ok(top.wet>.92);near(bed.totalMass(),initial);
+ const picked=bed.extract(top.position,.12,[0,0,0],true);assert.ok(picked.length>0&&!picked.includes(top));assert.equal(top.held,false);assert.ok(picked.every(p=>p.held&&!p.anchored&&p.wet>.92));near(bed.totalMass(),initial);
 });
 
 test('held dry sand wets through exterior water contact without moving or losing stock',()=>{
