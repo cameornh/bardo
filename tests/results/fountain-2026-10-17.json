@@ -1,0 +1,42 @@
+{
+  "station": "fountain",
+  "backend": "GPU",
+  "geometrySamples": 4096,
+  "geometryMaxErrorUnits": 8.318501878545881e-05,
+  "geometryToleranceUnits": 0.0001,
+  "solverMaxErrorUnits": 6.151199340820312e-05,
+  "solverToleranceUnits": 0.002,
+  "heldErrorUnits": 0,
+  "circulation": {
+    "steps": 180,
+    "detailEnabled": false,
+    "simulatedSeconds": 3.37163347424173,
+    "elapsedMilliseconds": 9534.399999976158,
+    "volumeDriftCubicMetres": 0,
+    "recycledParcels": 724,
+    "parcelsByHeightBand": [
+      1118,
+      609,
+      213,
+      175
+    ],
+    "maximumPenetrationUnits": 0,
+    "maximumHeightUnits": 8.823604583740234,
+    "neighborOverflow": 0,
+    "timingNote": "Measured during concurrent build/test activity; this is a correctness run, not a performance benchmark."
+  },
+  "visualPreview": {
+    "bulkParcels": 2115,
+    "fineParticleCapacity": 32768,
+    "observedBusyFramesPerSecond": 6,
+    "observedBusySimulationRate": 0.16,
+    "jetGroupStrengths": [
+      1.5,
+      1.5,
+      1.5
+    ],
+    "ringAngleDegrees": 42,
+    "note": "Interactive busy preview with full lighting and spray. Not a controlled benchmark; concurrent load varied. Realtime was not achieved at these settings."
+  },
+  "pass": true
+}

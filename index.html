@@ -15,7 +15,19 @@
       <label>Brush radius <output id="brush-value">1.25 m</output><input id="brush" type="range" min="0.25" max="3" step="0.05" value="1.25"></label>
       <div class="row"><button id="undo">Undo edit</button><button id="home">Reset camera</button></div>
       <fieldset id="water-lab-controls" hidden><legend>Water laboratory</legend>
-        <label>Station <select id="wl-station"><option value="pipe">Pipe / impinging jet</option><option value="waterfall">Large waterfall</option><option value="pool">Pool / underwater jets and lights</option><option value="tank">Moving glass tank</option><option value="river">S-bend river / pond / sediment</option><option value="glass">Spinning drinking glass</option><option value="ocean">Wind-driven ocean basin</option><option value="pane">Movable glass pane / surface wetting</option></select></label>
+        <label>Station <select id="wl-station"><option value="pipe">Pipe / impinging jet</option><option value="waterfall">Large waterfall</option><option value="pool">Pool / underwater jets and lights</option><option value="tank">Moving glass tank</option><option value="river">S-bend river / pond / sediment</option><option value="glass">Spinning drinking glass</option><option value="ocean">Wind-driven ocean basin</option><option value="pane">Movable glass pane / surface wetting</option><option value="fountain">Ornate metal fountain</option></select></label>
+        <fieldset id="wl-fountain-controls" hidden><legend>Fountain</legend>
+          <label>Central whitewater jet <output id="wl-fountain-crown-value"></output><input id="wl-fountain-crown" aria-label="Central whitewater jet" type="range" min="0" max="1.5" step="0.05" value="1"></label>
+          <label>Upper ring jets <output id="wl-fountain-arcs-value"></output><input id="wl-fountain-arcs" aria-label="Upper ring jets" type="range" min="0" max="1.5" step="0.05" value="1"></label>
+          <label>Lower ring jets <output id="wl-fountain-lower-value"></output><input id="wl-fountain-lower" aria-label="Lower ring jets" type="range" min="0" max="1.5" step="0.05" value="1"></label>
+          <label>Ring jet elevation <output id="wl-fountain-angle-value"></output><input id="wl-fountain-angle" aria-label="Ring jet elevation" type="range" min="10" max="70" step="1" value="32"></label>
+          <label>Nozzle air entrainment <output id="wl-fountain-aeration-value"></output><input id="wl-fountain-aeration" aria-label="Nozzle air entrainment" type="range" min="0" max="2" step="0.05" value="0.85"></label>
+          <label>Metal roughness <output id="wl-fountain-roughness-value"></output><input id="wl-fountain-roughness" aria-label="Metal roughness" type="range" min="0.04" max="0.75" step="0.01" value="0.13"></label>
+          <label>Metal patina <output id="wl-fountain-patina-value"></output><input id="wl-fountain-patina" aria-label="Metal patina" type="range" min="0" max="1" step="0.02" value="0"></label>
+          <label>Metal color <input id="wl-fountain-color" type="color" value="#d4ac61"></label>
+          <div class="row"><button id="wl-fountain-view">Whole fountain</button><button id="wl-fountain-close">Inspect metal / basins</button><button id="wl-fountain-stop">Stop all jets</button></div>
+          <p id="wl-fountain-state"></p>
+        </fieldset>
         <label>Water detail target (resets water) <select id="wl-resolution"><option value="1">1× · standard</option><option value="1.5">1.5× · finer sheets</option><option value="2">2× · fine</option><option value="3">3× · fine target</option></select></label>
         <label>Bulk particle budget (resets water) <select id="wl-budget"><option value="8192">8,192</option><option value="16384">16,384</option><option value="32768">32,768 · stress test</option></select></label>
         <label>Physical size (resets water) <output id="wl-scale-value">1×</output><input id="wl-scale" type="range" min="-1" max="1" step="0.05" value="0"></label>
@@ -63,7 +75,7 @@
         <label>Fluid constraints <select id="wl-backend"><option value="gpu">GPU</option><option value="cpu">CPU reference</option></select></label>
         <button id="wl-verify">Compare GPU / CPU</button>
         <dl><dt>Backend</dt><dd id="wl-state"></dd><dt>Physical dimensions</dt><dd id="wl-dimensions"></dd><dt>Bulk resolution</dt><dd id="wl-resolution-state"></dd><dt>Fine Gaussian particles</dt><dd id="wl-detail-state"></dd><dt>Water volume</dt><dd id="wl-volume"></dd><dt>Rain added / still falling</dt><dd id="wl-rain-volume"></dd><dt>Held volume</dt><dd id="wl-held"></dd><dt>Sediment balance</dt><dd id="wl-sediment"></dd><dt>Rigid bodies</dt><dd id="wl-bodies"></dd><dt>Simulation</dt><dd id="wl-clock"></dd><dt>GPU draw passes</dt><dd id="wl-times"></dd></dl>
-        <p id="wl-validation">Not run</p><p>Click to interact; click again to drop held water. Right-drag orbits. Station changes reset the finite water supply. Pipe, waterfall and river pumps recirculate it. Moving vessels respond to position, tilt and rotation controls.</p>
+        <p id="wl-validation">Not run</p><p>Click to interact; click again to drop held water. Right-drag orbits. Station changes reset the finite water supply. Pipe, waterfall, fountain and river pumps recirculate it. Moving vessels respond to position, tilt and rotation controls.</p>
       </fieldset>
       <fieldset id="beach-controls" hidden><legend>Beach</legend>
         <div class="row"><button id="beach-shore">Shore</button><button id="beach-pool">Isolated pool</button><button id="beach-grass">Grass</button><button id="beach-sand-view">Sand</button></div>

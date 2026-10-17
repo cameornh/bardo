@@ -1,0 +1,155 @@
+{
+  "pipe": {
+    "preset": {
+      "name": "Pipe / impinging jet",
+      "scale": 1,
+      "spacing": 0.25,
+      "eye": [
+        9,
+        6,
+        11
+      ],
+      "target": [
+        0,
+        1.5,
+        0
+      ]
+    },
+    "seed": "4fa240d2a7aa32739b1f0fc930b7b50416a652a39873dd80a5316411a1672b46",
+    "distances": "fae940458c79b66d42c216eb05810737fd8542a140f16c506581edc0019ce6c2"
+  },
+  "waterfall": {
+    "preset": {
+      "name": "Waterfall",
+      "scale": 3,
+      "spacing": 0.32,
+      "eye": [
+        10,
+        8,
+        13
+      ],
+      "target": [
+        0,
+        2.7,
+        0
+      ]
+    },
+    "seed": "1560b1daa040ed470e2b040a95b79bab9629d879a824b5c20ba39c9f7f3702ca",
+    "distances": "dfb1218004ff98ad109996d41ba0a7180afc887838057b2b1b82aa8ca8000903"
+  },
+  "pool": {
+    "preset": {
+      "name": "Pool / submerged jets",
+      "scale": 1.5,
+      "spacing": 0.29,
+      "eye": [
+        9,
+        7,
+        11
+      ],
+      "target": [
+        0,
+        1,
+        0
+      ]
+    },
+    "seed": "867c4c6390c59cb2e1b96967b52ef191518a4b66190a691c73c425dcc2338755",
+    "distances": "01ab13b333e4b76079b569886707c1e82558bc068e3bd6e39ecafd9747e42b9e"
+  },
+  "tank": {
+    "preset": {
+      "name": "Moving glass tank",
+      "scale": 1,
+      "spacing": 0.23,
+      "eye": [
+        7,
+        5,
+        9
+      ],
+      "target": [
+        0,
+        1.7,
+        0
+      ]
+    },
+    "seed": "23829511c1adc1ab499ee2c6834bf01d8784d1dd3cfe537487264c42f3a692c5",
+    "distances": "d0b8698ef8623104f5c24568acdc57bec8be270dcecd42c190bdc2f59f5acb03"
+  },
+  "river": {
+    "preset": {
+      "name": "River / sediment / solutes",
+      "scale": 2,
+      "spacing": 0.48,
+      "minSpacing": 0.42,
+      "eye": [
+        55,
+        80,
+        80
+      ],
+      "target": [
+        0,
+        4,
+        0
+      ]
+    },
+    "seed": "4d4f88a38539090ff01141762c2238641b3a798cbd3966d4ea40a7eae68542f0",
+    "distances": "62c79bfd8c9bdfa3114838f3a4bad022c7611813f887669185ba13bdf68e9b16"
+  },
+  "glass": {
+    "preset": {
+      "name": "Spinning drinking glass",
+      "scale": 0.05,
+      "spacing": 0.19,
+      "eye": [
+        5,
+        4,
+        7
+      ],
+      "target": [
+        0,
+        1.6,
+        0
+      ]
+    },
+    "seed": "2d9932c75b4f660371dcccf2444a7ca765ddd21e78676e95facda212a4642050",
+    "distances": "b6481f972af8cc9800f5f6635dc76aca48e36972fc49b4bbd99fe765f6db6477"
+  },
+  "ocean": {
+    "preset": {
+      "name": "Wind-driven ocean basin",
+      "scale": 4,
+      "spacing": 0.36,
+      "eye": [
+        11,
+        8,
+        13
+      ],
+      "target": [
+        0,
+        1.1,
+        0
+      ]
+    },
+    "seed": "7c74a046611fae299d7d727035e373bbaa4831db4fd561e52969ca532560683a",
+    "distances": "6c53a5c8e79ac09997ca9a8b41dd3547eceb54984ea5c3e56100077166ac2615"
+  },
+  "pane": {
+    "preset": {
+      "name": "Movable glass pane",
+      "scale": 1,
+      "spacing": 0.23,
+      "eye": [
+        -5,
+        6,
+        7
+      ],
+      "target": [
+        0,
+        2,
+        0
+      ]
+    },
+    "seed": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "distances": "71af77d86bcd9282f0ab8cedde877eb2d7323a76403f0b6466c4219762cf4f69"
+  }
+}

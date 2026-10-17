@@ -711,3 +711,49 @@ The strongest directions to invest in next:
 Validation: all **301 numerical tests** and the production build pass. Packed neighbor arrays match the reference exactly, including crowded overflow and buffer resizing; contact outcomes match across broad-phase paths. The batched GPU output has zero difference from the sequential GPU output across five particle counts, including held particles and allocation boundaries; maximum CPU-reference difference is **1.05e-4**. Coarse occupancy maxima match their CPU calculation exactly across **1,452 cells**. The existing sand/cup, transport, reconstruction, atmosphere and material-resolution GPU checks also pass. Geometry/support tests include moisture-only updates, support removal and movement before a collision query. Saved benchmark and image-comparison measurements accompany this pass under `tests/results/`.
 
 The final fixed-state comparison of disturbed water and 32,768 fine markers found **zero missing water pixels**, **zero water-depth difference**, no nonfinite pixels, and mean linear RGB difference **6.91e-6** (maximum **0.00133**). Remaining color differences come from changed optical-depth integration through verified empty spans. These short checks do not establish long-run physical accuracy or stable realtime performance.
+
+### Test 11 addition — ornate metal fountain (2026-10-17)
+
+Open `?scene=water-lab&station=fountain`, or select **Ornate metal fountain** in
+Water laboratory. This is an added station; the eight earlier water stations and
+test 12 retain their prior settings and algorithms.
+
+- Three scalloped catch basins (18.2 m across the lower basin by default), a
+  fluted column, moulded collars, leaf brackets and repeated scrollwork. Metal
+  tint, GGX roughness and patina are independent live controls. The stationary
+  fixture uses an analytic SDF; the liquid and fine particles retain the lab's
+  Gaussian density / covariance projection and SH lighting paths.
+- Twenty-one pump outlets: one central aerated plume, eight upper arcs and
+  twelve lower arcs. Each group has a strength control; ring elevation and air
+  entrainment are adjustable. The laminar/turbulent control perturbs inlet
+  momentum. Jet strength changes discharge and ballistic head, not gravity.
+- Pumps withdraw unheld water from the bottom collection zone and return it to
+  the nozzles, with a clearance test that prevents overlapping source parcels.
+  Seeded arcs are live parcels, not animated geometry. Gravity, basin contacts,
+  shared breakup/foam rules and wind determine their subsequent motion. Rain,
+  pickup, dye and all three thrown ball materials remain available.
+- Aerating nozzles seed small white Gaussian air/spray markers in proportion to
+  discharge and the entrainment setting. Downstream impacts use the existing
+  water detail generator. This station has a separate 32,768-marker pool; the
+  previous stations keep their 131,072-marker pool. The bulk budget and physical
+  scale controls remain available.
+- GPU density constraints, reconstruction, fine-particle advection and shadow
+  fields remain active when supported. Pump scheduling, neighbor lists, bulk
+  transport/chemistry and rigid bodies still run on the CPU. The reference
+  solver remains selectable. Jet-aware timesteps avoid silently clamping the
+  strongest plume's launch velocity. Dense spray and high detail still cost
+  frame time; this is not a guarantee of realtime at every setting.
+
+`tests/water-lab-fountain-gpu.html` compares 4,096 CPU/GPU field samples (including
+axis singularities), a compressed wall-contact solve and held particles. It also
+runs 180 live steps to check recirculation, all three levels, finite positions,
+penetration and inventory. The default circulation run conserved volume exactly
+and reported no neighbor overflows. Existing-station regression fixtures record
+the pre-addition water seeds, dimensions and CPU collision fields; the snapshot
+hashes were updated only for the explicitly extended station dispatch/render files.
+
+Limits: metal reflects the sky and ground in one bounded environment bounce;
+recursive fountain-to-fountain reflections are not traced. Air entrainment is a
+nozzle model, not a resolved two-phase air/water simulation. The fixed water parcel
+budget still limits how thin spill sheets can become. The central plume and
+ring nozzles are independent pumps rather than a simulated pipe-pressure network.
