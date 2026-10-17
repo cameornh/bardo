@@ -23,10 +23,10 @@ export function verifyBeachGPU(renderer,base){
 export function verifySandMaterialGPU(renderer,base,n=65){
  const sand=new SandBed(n),u={...base,...createSandUniforms(),uStation:{value:6}};
  u.uSand.value.image.width=u.uSand.value.image.height=n;
- sand.wet.fill(.15);sand.update();sand.parcels=[{position:[0,1.2,0],mass:.045,packing:.62,wet:.92},{position:[.3,1.15,0],mass:.026,packing:.56,wet:.35},{position:[0,-.12,0],mass:.024,packing:.62,wet:.95,memory:.95}];
+ sand.wet.fill(.15);sand.update();sand.parcels=[{position:[0,1.2,0],mass:.045,packing:.62,wet:.92},{position:[.3,1.15,0],mass:.026,packing:.56,wet:0,aspect:.32},{position:[0,-.12,0],mass:.024,packing:.62,wet:.95,memory:.95}];
  sand.deposit(sand.parcels[2],sand.parcels[2].mass);
  u.uSand.value.image.data=sand.data;u.uSand.value.needsUpdate=true;u.uSandCount.value=sand.parcels.length;u.uSandMin.value.set(-1,-1,-1);u.uSandMax.value.set(1,2,1);
- const nibble=cutShape(sand.parcels[0],[.19,1.2,0],.1);if(nibble){nibble.position[2]+=.3;sand.parcels.push(nibble);u.uSandCount.value=sand.parcels.length;}const packed=packSandShapes(sand.parcels);u.uSandParcels.value.image.data.set(packed.data);
+ const nibble=cutShape(sand.parcels[1],[.49,1.17,0],.1);if(nibble){nibble.position[2]+=.3;sand.parcels.push(nibble);u.uSandCount.value=sand.parcels.length;}const packed=packSandShapes(sand.parcels);u.uSandParcels.value.image.data.set(packed.data);
  const bins=u.uSandBins.value.image.data;for(let cell=0;cell<32*32;cell++){bins[cell*16]=0;bins[cell*16+1]=1;bins[cell*16+2]=2;bins[cell*16+3]=3;}
  for(const key of ['uSandParcels','uSandBins'])u[key].value.needsUpdate=true;
  const data=new Float32Array(32*4);for(let i=0;i<32;i++)data.set([-.4+(i%16)/15*.95,i<16?1.2:.04,0,0],i*4);

@@ -48,9 +48,13 @@ test('disconnected pieces in one grab do not become suspended when another piece
  run(bed,.3);assert.ok(low.anchored);assert.ok(!high.anchored);assert.ok(high.position[1]<1&&high.position[1]>.8);run(bed,2);assert.ok(high.anchored);assert.ok(high.position[1]<.21);
 });
 
-test('steep wet terrain does not repose, and dried clay retains its shape memory',()=>{
+test('wet terrain holds steep shapes; dried sand retains a smaller finite adhesion',()=>{
  const bed=flat(),k=16*bed.n+16;bed.mass[k]+=.5;bed.wet.fill(.9);bed.memory.fill(.9);const mass=bed.mass.slice();
- run(bed,2);assert.deepEqual(bed.mass,mass);bed.wet.fill(0);run(bed,2);assert.deepEqual(bed.mass,mass);
+ run(bed,2);assert.deepEqual(bed.mass,mass);
+ const loose=flat();loose.mass.set(bed.mass);bed.wet.fill(0);const total=bed.totalMass();run(bed,2);run(loose,2);
+ assert.ok(bed.mass[k]<mass[k],'extremely steep dry sculpture has finite strength');
+ assert.ok(bed.mass[k]>loose.mass[k],'retained adhesion resists settling more than fresh dry sand');near(bed.totalMass(),total);
+ const stable=flat();stable.mass[k]+=.015;stable.memory.fill(.95);stable.wet.fill(0);const stableMass=stable.mass.slice();run(stable,2);assert.deepEqual(stable.mass,stableMass);
 });
 
 test('dry deposits settle through the continuous bed while conserving grains',()=>{

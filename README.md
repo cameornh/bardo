@@ -870,3 +870,35 @@ forcing still produced disconnected flow. All runs retained their water volume.
 GPU/CPU maximum errors were 0.000919 for fluid constraints (tolerance 0.002) and
 1.49e-7 for density (tolerance 1e-4). All 329 numerical tests and the build pass.
 Results and the main-preview screenshot are in `tests/results/pipe-laminar-2026-10-17.*`.
+
+### Sand layers and bounded compaction (2026-10-17)
+
+Test 12 now retains dry deposits on top of wet or raised sand as separate
+material parcels in the same smooth SDF union. They keep their own moisture,
+spread into volume-preserving flattened mounds, and slip on slopes exceeding
+friction. They are not transferred into the buried height column. Water contact
+bonds the current shape; evaporation retains its existing 600-second timescale.
+Capillary strength fades continuously toward 20% of the recorded wet bond, so
+ordinary dried shapes remain stable while extreme slopes can yield. There is
+no geometry replacement or mass transfer triggered by becoming fully dry.
+
+Wet pushing previously extracted and re-cut the same deposits on every stroke,
+multiplying both parcels and copied CSG histories. Pressure now compacts the
+existing stock, followed by conservative column shear or impulses to existing
+clumps. Explicit grabbing and carving still make local CSG cuts. Completed
+compaction no longer dirties the terrain when packing does not change.
+
+A matched six-stroke CPU benchmark reduced median push-plus-sand-step time from
+79.2 ms to 1.68 ms; a warmed 120-stroke run had a 0.19 ms median and 1.11 ms p95,
+with no new clumps/cuts and less than 1e-12 mass error. The browser's 120-stroke
+fixture measured 0.10 ms median and 0.70 ms p95. These are **sand-only** timings,
+not total frame times. Results: `tests/results/sand-compaction-2026-10-17.json`.
+
+Sand material/settling and compaction remain on the CPU; water constraints,
+transport, fine particles and rendering retain their GPU paths. GPU checks now
+include flattened, cut sand shapes: maximum distance error was 6.52e-7 and
+moisture error 3.67e-6 across three sand resolutions, below the 1e-4 tolerance.
+The existing local preview's `qa=1` controls include layer landing, soaking,
+accelerated drying, and sustained compaction fixtures. This is a coarse parcel
+and yield model, not a grain-resolved granular solver; large loose mounds are
+approximated by flattened SDF supports. Earlier scenes are unchanged.

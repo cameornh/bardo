@@ -1,0 +1,39 @@
+{
+  "scope": "CPU sand compaction and sand step only; excludes fluid solver and drawing",
+  "before": {
+    "strokes": 6,
+    "clumps": 154,
+    "cuts": 255,
+    "massError": -4.263256414560601e-14,
+    "medianMs": 79.192567,
+    "p95Ms": 176.99751400000002,
+    "finalStroke": {
+      "pushMs": 159.11406200000005,
+      "stepMs": 17.883451999999977
+    }
+  },
+  "afterMatched": {
+    "strokes": 6,
+    "clumps": 0,
+    "cuts": 0,
+    "massError": -8.526512829121202e-14,
+    "medianMs": 1.6798890000000029,
+    "p95Ms": 7.362508999999989,
+    "finalStroke": {
+      "pushMs": 0.14222999999998365,
+      "stepMs": 0.059504000000004
+    }
+  },
+  "afterSustained": {
+    "strokes": 120,
+    "clumps": 0,
+    "cuts": 0,
+    "massError": -8.526512829121202e-14,
+    "medianMs": 0.18818999999996322,
+    "p95Ms": 1.111475999999982,
+    "finalStroke": {
+      "pushMs": 0.11250699999993685,
+      "stepMs": 0.42889100000002145
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import {installSandLayersQA} from './layers-qa.js';
 import {installPerformanceQA} from './performance-qa.js';
 import {verifyBatchedStep} from './performance-verify.js';
 import {interactionRadiusRange} from './resolution.js';
@@ -94,3 +95,5 @@ if(params.has('qa')){
 }
 
 if(params.has('qa'))installPerformanceQA({lab,draw,field,renderer,camera,controls,reset:()=>{lab.configure('ocean');applyControls();updateResolution();},results:$('qa-results'),panel:$('panel')});
+
+if(params.has('qa'))installSandLayersQA({lab,camera,controls,panel:$('panel'),results:$('qa-results'),reset:()=>{lab.configure('ocean');applyControls();updateResolution();}});

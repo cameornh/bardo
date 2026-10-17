@@ -1,0 +1,86 @@
+{
+  "dry": {
+    "fixture": "dry loose layer resting on wet sand",
+    "sandBackend": "CPU",
+    "waterBackend": "GPU",
+    "massError": 0,
+    "clumps": 2,
+    "base": {
+      "position": [
+        0,
+        1.48,
+        3.5
+      ],
+      "wet": 0.9374174037168425
+    },
+    "top": {
+      "position": [
+        0,
+        1.8888953314767465,
+        3.5
+      ],
+      "wet": 0,
+      "memory": 0,
+      "aspect": 0.3200071219489043,
+      "anchored": true,
+      "adhesion": 0,
+      "height": 0.08889145813475761
+    }
+  },
+  "wet": {
+    "fixture": "loose surface has become wet and bonded",
+    "sandBackend": "CPU",
+    "waterBackend": "GPU",
+    "massError": 0,
+    "clumps": 2,
+    "base": {
+      "position": [
+        0,
+        1.48,
+        3.5
+      ],
+      "wet": 0.9968841960002122
+    },
+    "top": {
+      "position": [
+        0,
+        1.8888953314767465,
+        3.5
+      ],
+      "wet": 0.9502129316321353,
+      "memory": 0.9502129316321353,
+      "aspect": 0.3200071219489043,
+      "anchored": true,
+      "adhesion": 1,
+      "height": 0.08889145813475761
+    }
+  },
+  "dried": {
+    "fixture": "both layers dry; retained shape and reduced adhesion",
+    "sandBackend": "CPU",
+    "waterBackend": "GPU",
+    "massError": 0,
+    "clumps": 2,
+    "base": {
+      "position": [
+        0,
+        1.48,
+        3.5
+      ],
+      "wet": 0.0000059798165470465266
+    },
+    "top": {
+      "position": [
+        0,
+        1.8888953314767465,
+        3.5
+      ],
+      "wet": 0.0000056998586541843605,
+      "memory": 0.9502129316321353,
+      "aspect": 0.3200071219489043,
+      "anchored": true,
+      "adhesion": 0.19004258697084972,
+      "height": 0.08889145813475761
+    }
+  }
+}

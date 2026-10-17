@@ -6,10 +6,10 @@ export class SandShapeStamp {
  constructor(){this.values=new Float64Array(0);this.cuts=[];this.length=-1;}
  changed(parcels){
   let changed=this.length!==parcels.length;this.length=parcels.length;
-  if(this.values.length<parcels.length*8)this.values=new Float64Array(parcels.length*16+8).fill(NaN);
+  if(this.values.length<parcels.length*9)this.values=new Float64Array(parcels.length*18+9).fill(NaN);
   for(let i=0;i<parcels.length;i++){
-   const p=parcels[i],o=i*8,values=[p.id||0,...p.position,shapeRadius(p),Number(!!p.held),Number(!!p.anchored),p.mass>0?1:0];
-   for(let k=0;k<8;k++){if(this.values[o+k]!==values[k])changed=true;this.values[o+k]=values[k];}
+   const p=parcels[i],o=i*9,values=[p.id||0,...p.position,shapeRadius(p),Number(!!p.held),Number(!!p.anchored),p.mass>0?1:0,p.aspect||1];
+   for(let k=0;k<9;k++){if(this.values[o+k]!==values[k])changed=true;this.values[o+k]=values[k];}
    // CSG edits replace the immutable cuts array.
    if(this.cuts[i]!==p.cuts)changed=true;this.cuts[i]=p.cuts;
   }
