@@ -4,8 +4,10 @@ export function setupFountainControls(lab,camera,controls,home){
  lab.fountain??={...FOUNTAIN_DEFAULTS};
  for(const key of Object.keys(FOUNTAIN_DEFAULTS)){
   const el=$('wl-fountain-'+key);
-  el.oninput=()=>{lab.fountain[key]=key==='color'?el.value:Number(el.value);if(key!=='color')$('wl-fountain-'+key+'-value').value=key==='angle'?el.value+'°':Number(el.value).toFixed(2);lab.revision++;};
+  el.oninput=()=>{lab.fountain[key]=key==='color'?el.value:Number(el.value);if(key!=='color')$('wl-fountain-'+key+'-value').value=key==='angle'?el.value+'°':['crown','arcs','lower'].includes(key)?Math.sqrt(Number(el.value)).toFixed(2)+'× speed':Number(el.value).toFixed(2);lab.revision++;};
  }
+ $('wl-fountain-caustics').onchange=e=>{lab.fountainCaustics=e.target.checked;lab.revision++;};
+ $('wl-fountain-under').onclick=()=>{camera.position.set(-4.6,1.10,4.0);controls.target.set(0,2.7,0);controls.update();};
  $('wl-fountain-view').onclick=home;
  $('wl-fountain-close').onclick=()=>{camera.position.set(5.1,4.1,6.2);controls.target.set(0,3,0);controls.update();};
  $('wl-fountain-stop').onclick=()=>{for(const k of ['crown','arcs','lower'])lab.fountain[k]=0;syncFountainControls(lab);};

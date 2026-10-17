@@ -1,0 +1,36 @@
+{
+  "scope": "Test 11 fountain only",
+  "numericalTests": {"passed":314,"failed":0},
+  "build": "pass",
+  "gpuTransport": {
+    "visibilityMaxError":0,
+    "fresnelAndRefractionMaxError":7.545425917410142e-8,
+    "reflectedPhotons":2309,
+    "reflectedPhotonsOnUndersides":1352,
+    "transmittedPhotons":5578,
+    "matchedCpuGpuPaths":61,
+    "hitPositionMaxErrorSolverUnits":0.014728681286438672,
+    "fluxMaxError":0.0015610572825685565,
+    "pass":true
+  },
+  "renderedBounceComparison": {
+    "changedPixels":38007,
+    "undersidePixelsChanged":11478,
+    "sunOffDifference":0,
+    "roughnessResponseSum":6721.928985065431,
+    "pass":true
+  },
+  "maximumFlightFixture": {
+    "launchSpeedMetresPerSecond":43.93868455017742,
+    "multiplierOverPreviousMaximum":4,
+    "highestParcelSolverUnits":54.313724517822266,
+    "highestRenderedSolverUnits":50.44590189115618,
+    "renderedPixelsAboveOldCeiling":2598,
+    "renderedFlightNeighborhoods":1550,
+    "timestepSeconds":0.003823510005360905,
+    "finiteAfter60Steps":true,
+    "note":"Flight fixture places existing parcels along ballistic trajectories for coverage, then advances the same solver. It is not a long-run performance benchmark."
+  },
+  "priorStation": "Pool visually checked; earlier station seed/preset/collision regressions pass",
+  "limitations":"Single water bounce; near-fountain light source atlas; screen-space receiver gathering; extreme jets require smaller timesteps. No realtime performance claim."
+}

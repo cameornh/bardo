@@ -2,6 +2,7 @@
 // The same inexpensive field is used for rendering, water, wind and rigid contacts.
 export const FOUNTAIN_PRESET={name:'Ornate metal fountain',scale:2,spacing:.21,minSpacing:.14,eye:[11,8.2,14],target:[0,3,0]};
 export const FOUNTAIN_BASINS=[{radius:4.55,bottom:.22},{radius:2.72,bottom:2.12},{radius:1.48,bottom:4.08}];
+export const FOUNTAIN_MAX_HEAD=24;
 export const FOUNTAIN_DEFAULTS={crown:1,arcs:1,lower:1,angle:32,aeration:.85,roughness:.13,patina:0,color:'#d4ac61'};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const hash=i=>{const x=Math.sin(i*91.173+18.17)*43758.54;return x-Math.floor(x);};
@@ -47,7 +48,7 @@ float fountainDistance(vec3 p){float r=length(p.xz),a=r>1e-7?atan(p.z,p.x):0.,d=
 // changes SI speed and flight time without changing the fountain's proportions.
 export function fountainNozzles(settings=FOUNTAIN_DEFAULTS,scale=2){
  const g=9.81/scale,nozzles=[],add=(point,direction,speed,radius,group,aeration)=>nozzles.push({point,direction,speed,radius,group,aeration});
- const crown=clamp(settings.crown,0,1.5),arcs=clamp(settings.arcs,0,1.5),lower=clamp(settings.lower,0,1.5),angle=clamp(settings.angle,10,70)*Math.PI/180;
+ const crown=clamp(settings.crown,0,FOUNTAIN_MAX_HEAD),arcs=clamp(settings.arcs,0,FOUNTAIN_MAX_HEAD),lower=clamp(settings.lower,0,FOUNTAIN_MAX_HEAD),angle=clamp(settings.angle,10,70)*Math.PI/180;
  if(crown>0)add([0,5.88,0],[0,1,0],Math.sqrt(2*g*2.05)*Math.sqrt(crown),.24,'crown',settings.aeration);
  for(const [n,R,h,head,group,amount] of [[8,1.53,4.78,.14,'arcs',arcs],[12,2.79,2.87,.28,'lower',lower]])if(amount>0)for(let i=0;i<n;i++){
   const a=i*2*Math.PI/n+(group==='arcs'?Math.PI/8:0);add([R*Math.cos(a),h,R*Math.sin(a)],[Math.cos(a)*Math.cos(angle),Math.sin(angle),Math.sin(a)*Math.cos(angle)],Math.sqrt(2*g*head)*Math.sqrt(amount),.105,group,settings.aeration*.25);

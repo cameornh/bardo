@@ -17,15 +17,16 @@
       <fieldset id="water-lab-controls" hidden><legend>Water laboratory</legend>
         <label>Station <select id="wl-station"><option value="pipe">Pipe / impinging jet</option><option value="waterfall">Large waterfall</option><option value="pool">Pool / underwater jets and lights</option><option value="tank">Moving glass tank</option><option value="river">S-bend river / pond / sediment</option><option value="glass">Spinning drinking glass</option><option value="ocean">Wind-driven ocean basin</option><option value="pane">Movable glass pane / surface wetting</option><option value="fountain">Ornate metal fountain</option></select></label>
         <fieldset id="wl-fountain-controls" hidden><legend>Fountain</legend>
-          <label>Central whitewater jet <output id="wl-fountain-crown-value"></output><input id="wl-fountain-crown" aria-label="Central whitewater jet" type="range" min="0" max="1.5" step="0.05" value="1"></label>
-          <label>Upper ring jets <output id="wl-fountain-arcs-value"></output><input id="wl-fountain-arcs" aria-label="Upper ring jets" type="range" min="0" max="1.5" step="0.05" value="1"></label>
-          <label>Lower ring jets <output id="wl-fountain-lower-value"></output><input id="wl-fountain-lower" aria-label="Lower ring jets" type="range" min="0" max="1.5" step="0.05" value="1"></label>
+          <label>Central whitewater jet <output id="wl-fountain-crown-value"></output><input id="wl-fountain-crown" aria-label="Central whitewater jet" type="range" min="0" max="24" step="0.05" value="1"></label>
+          <label>Upper ring jets <output id="wl-fountain-arcs-value"></output><input id="wl-fountain-arcs" aria-label="Upper ring jets" type="range" min="0" max="24" step="0.05" value="1"></label>
+          <label>Lower ring jets <output id="wl-fountain-lower-value"></output><input id="wl-fountain-lower" aria-label="Lower ring jets" type="range" min="0" max="24" step="0.05" value="1"></label>
           <label>Ring jet elevation <output id="wl-fountain-angle-value"></output><input id="wl-fountain-angle" aria-label="Ring jet elevation" type="range" min="10" max="70" step="1" value="32"></label>
           <label>Nozzle air entrainment <output id="wl-fountain-aeration-value"></output><input id="wl-fountain-aeration" aria-label="Nozzle air entrainment" type="range" min="0" max="2" step="0.05" value="0.85"></label>
           <label>Metal roughness <output id="wl-fountain-roughness-value"></output><input id="wl-fountain-roughness" aria-label="Metal roughness" type="range" min="0.04" max="0.75" step="0.01" value="0.13"></label>
           <label>Metal patina <output id="wl-fountain-patina-value"></output><input id="wl-fountain-patina" aria-label="Metal patina" type="range" min="0" max="1" step="0.02" value="0"></label>
           <label>Metal color <input id="wl-fountain-color" type="color" value="#d4ac61"></label>
-          <div class="row"><button id="wl-fountain-view">Whole fountain</button><button id="wl-fountain-close">Inspect metal / basins</button><button id="wl-fountain-stop">Stop all jets</button></div>
+          <div class="row"><button id="wl-fountain-view">Whole fountain</button><button id="wl-fountain-under">Inspect undersides</button><button id="wl-fountain-close">Inspect metal / basins</button><button id="wl-fountain-stop">Stop all jets</button></div>
+          <label class="check"><input id="wl-fountain-caustics" type="checkbox" checked> Water-bounced sunlight</label>
           <p id="wl-fountain-state"></p>
         </fieldset>
         <label>Water detail target (resets water) <select id="wl-resolution"><option value="1">1× · standard</option><option value="1.5">1.5× · finer sheets</option><option value="2">2× · fine</option><option value="3">3× · fine target</option></select></label>

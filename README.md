@@ -752,8 +752,58 @@ and reported no neighbor overflows. Existing-station regression fixtures record
 the pre-addition water seeds, dimensions and CPU collision fields; the snapshot
 hashes were updated only for the explicitly extended station dispatch/render files.
 
-Limits: metal reflects the sky and ground in one bounded environment bounce;
+Initial limits (extended by the following lighting pass): metal reflects the sky and ground in one bounded environment bounce;
 recursive fountain-to-fountain reflections are not traced. Air entrainment is a
 nozzle model, not a resolved two-phase air/water simulation. The fixed water parcel
 budget still limits how thin spill sheets can become. The central plume and
 ring nozzles are independent pumps rather than a simulated pipe-pressure network.
+
+### Fountain lighting and jet range (2026-10-17)
+
+The fountain now traces sunlight reflected **upward** by the reconstructed water,
+including onto downward-facing basin surfaces. A 128×128 GPU photon pass splits
+power into Fresnel reflection and refraction, tests the metal/body blockers and
+integrates absorption along the outgoing water path. World-space hit positions
+are gathered onto visible receivers with depth/normal rejection. The metal
+receives that energy through its directional GGX response, tint and patina;
+it is not an emissive caustic pattern. The **Water-bounced sunlight** checkbox
+provides an A/B comparison, and **Inspect undersides** positions the camera for it.
+Metal also samples a bounded ambient reflection of nearby water, separately from
+the direct-light photons so the sun is not counted twice.
+
+The fountain's hard metal occlusion is now traced independently of the coarse
+water-extinction volume. Rays intersect the full fixture bound even when their
+origins are outside it. A cached cosine-weighted sky-visibility map supplies the
+ground's ambient occlusion. This removes the coarse metal-shadow gaps beneath
+the lowest basin while retaining translucent water and fine-particle shadows.
+These changes are conditional on the fountain station; older stations retain
+their original optical paths.
+
+All three jet controls now reach **four times the previous maximum launch speed**
+(4.90× the default speed). The central outlet reaches **43.94 m/s** at the default
+physical scale. Its launch head is 49.2 solver units above the nozzle. The fountain
+alone has a larger 48×60×48-unit simulation envelope. Water outside the near-basin
+atlas is reconstructed from local Gaussian neighborhoods on the GPU, with a
+bounded 64-neighbor query; the fine atlas is not enlarged. The timestep still
+respects launch velocity, so these extreme settings require more simulation steps
+per second and can run substantially below realtime.
+
+`tests/water-lab-fountain-light-gpu.html` validates shadow visibility and dielectric
+splitting against the CPU reference, and compares actual photon hit locations
+and energy against CPU ray integration through a readback of the density field.
+The recorded run found 1,352 reflected photons on undersides, maximum hit-position
+difference 0.01473 solver units and maximum flux difference 0.00157. A rendered
+A/B check changed 11,478 underside pixels; the bounced-light contribution became
+exactly zero with sunlight off and changed with metal roughness. The high-flight
+fixture checks rendered pixels, not only instance counts, and remained finite
+after advancing the solver. All 314 numerical tests and the build pass.
+
+Limits: this is a bounded single-water-bounce estimate, not recursive global
+illumination. Photon sources sample the water atlas near the fountain; distant
+individual drops do not generate their own caustics. Gathering covers visible
+opaque receivers and is spatially filtered; it does not solve multiple glass
+interfaces or off-screen caustic reflections. The selectable CPU fallback uses
+32×32 photon rays and the same reference transport, with reduced caustic detail;
+fine-particle attenuation on those CPU photon paths is not sampled. The existing
+metal reflection remains a limited sky/water/ground approximation. At extreme
+jet settings the parcel budget also limits stream continuity.
