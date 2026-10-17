@@ -1,0 +1,312 @@
+{
+  "maximum": {
+    "backend": "GPU",
+    "flow": 2,
+    "turbulence": 0,
+    "time": 6.010477680817812,
+    "steps": 469,
+    "elapsedMs": 39979.59999990463,
+    "volumeDrift": 0,
+    "parcels": 1200,
+    "kernels": 1091,
+    "checkpoints": [
+      {
+        "t": 0.5134141977873357,
+        "minimumDensity": 0.6016171556254372,
+        "segments": 7
+      },
+      {
+        "t": 1.0062918967560286,
+        "minimumDensity": 0.5434411951685536,
+        "segments": 11
+      },
+      {
+        "t": 1.508189498353588,
+        "minimumDensity": 0.5155192738900884,
+        "segments": 11
+      },
+      {
+        "t": 2.0085280490314235,
+        "minimumDensity": 0.501284323785162,
+        "segments": 11
+      },
+      {
+        "t": 2.5086209253879286,
+        "minimumDensity": 0.5093185940020565,
+        "segments": 12
+      },
+      {
+        "t": 3.0088890481931205,
+        "minimumDensity": 0.5067650919639632,
+        "segments": 11
+      },
+      {
+        "t": 3.5086520027108623,
+        "minimumDensity": 0.5020541020670894,
+        "segments": 12
+      },
+      {
+        "t": 4.009359373858197,
+        "minimumDensity": 0.5114434875539695,
+        "segments": 11
+      },
+      {
+        "t": 4.509207944095701,
+        "minimumDensity": 0.5065115900515824,
+        "segments": 11
+      },
+      {
+        "t": 5.009190256069106,
+        "minimumDensity": 0.5033209936046033,
+        "segments": 12
+      },
+      {
+        "t": 5.510039034787099,
+        "minimumDensity": 0.5015547880295658,
+        "segments": 11
+      },
+      {
+        "t": 6.010477680817812,
+        "minimumDensity": 0.5099876297027585,
+        "segments": 12
+      }
+    ],
+    "pass": true
+  },
+  "extended": {
+    "backend": "GPU",
+    "flow": 2,
+    "turbulence": 0,
+    "time": 12.016157765434818,
+    "steps": 492,
+    "elapsedMs": 53162.89999997616,
+    "volumeDrift": 0,
+    "parcels": 1200,
+    "kernels": 1091,
+    "checkpoints": [
+      {
+        "t": 6.510900134697987,
+        "minimumDensity": 0.5074099689437223,
+        "segments": 11
+      },
+      {
+        "t": 7.012057094787841,
+        "minimumDensity": 0.5025438298431134,
+        "segments": 12
+      },
+      {
+        "t": 7.5122419038238375,
+        "minimumDensity": 0.5113638991144835,
+        "segments": 11
+      },
+      {
+        "t": 8.01251137888015,
+        "minimumDensity": 0.5063759919317933,
+        "segments": 11
+      },
+      {
+        "t": 8.513260440106023,
+        "minimumDensity": 0.5031945456521495,
+        "segments": 12
+      },
+      {
+        "t": 9.013469881299354,
+        "minimumDensity": 0.5021336327593775,
+        "segments": 11
+      },
+      {
+        "t": 9.514189584637544,
+        "minimumDensity": 0.5098408592794335,
+        "segments": 12
+      },
+      {
+        "t": 10.014725072936551,
+        "minimumDensity": 0.5069835340754596,
+        "segments": 11
+      },
+      {
+        "t": 10.514525753031872,
+        "minimumDensity": 0.5021777060247693,
+        "segments": 12
+      },
+      {
+        "t": 11.0152652237003,
+        "minimumDensity": 0.5128181032296434,
+        "segments": 11
+      },
+      {
+        "t": 11.515517311927436,
+        "minimumDensity": 0.5066696403463288,
+        "segments": 11
+      },
+      {
+        "t": 12.016157765434818,
+        "minimumDensity": 0.5030972123580776,
+        "segments": 12
+      }
+    ],
+    "pass": true
+  },
+  "normal": {
+    "backend": "GPU",
+    "flow": 1,
+    "turbulence": 0,
+    "time": 6.002108106338948,
+    "steps": 417,
+    "elapsedMs": 38997,
+    "volumeDrift": 0,
+    "parcels": 1200,
+    "kernels": 1062,
+    "checkpoints": [
+      {
+        "t": 0.5220444322755139,
+        "minimumDensity": 0.536655483602377,
+        "segments": 3
+      },
+      {
+        "t": 1.0032972165342646,
+        "minimumDensity": 0.40812248506266086,
+        "segments": 5
+      },
+      {
+        "t": 1.5081740254473897,
+        "minimumDensity": 0.3873816723138906,
+        "segments": 5
+      },
+      {
+        "t": 2.008901435685654,
+        "minimumDensity": 0.3994857544635094,
+        "segments": 5
+      },
+      {
+        "t": 2.508111588084272,
+        "minimumDensity": 0.3851585541182876,
+        "segments": 6
+      },
+      {
+        "t": 3.008248213213662,
+        "minimumDensity": 0.39008012626811267,
+        "segments": 5
+      },
+      {
+        "t": 3.5055260852669097,
+        "minimumDensity": 0.37698213954808146,
+        "segments": 5
+      },
+      {
+        "t": 4.005000311228401,
+        "minimumDensity": 0.38581469193084217,
+        "segments": 5
+      },
+      {
+        "t": 4.505093605663253,
+        "minimumDensity": 0.3996935192214851,
+        "segments": 5
+      },
+      {
+        "t": 5.0043367122163716,
+        "minimumDensity": 0.3840050637418599,
+        "segments": 6
+      },
+      {
+        "t": 5.504285804951424,
+        "minimumDensity": 0.3888201353927763,
+        "segments": 5
+      },
+      {
+        "t": 6.002108106338948,
+        "minimumDensity": 0.37523541146536005,
+        "segments": 5
+      }
+    ],
+    "pass": true
+  },
+  "turbulent": {
+    "backend": "GPU",
+    "flow": 2,
+    "turbulence": 2,
+    "time": 6.008571599282412,
+    "steps": 495,
+    "elapsedMs": 44914.89999997616,
+    "volumeDrift": 0,
+    "parcels": 1200,
+    "kernels": 816,
+    "checkpoints": [
+      {
+        "t": 0.5031529999996175,
+        "minimumDensity": 0,
+        "segments": 7
+      },
+      {
+        "t": 1.0002795447813777,
+        "minimumDensity": 0,
+        "segments": 13
+      },
+      {
+        "t": 1.5006569059893191,
+        "minimumDensity": 0,
+        "segments": 13
+      },
+      {
+        "t": 2.0075127004376103,
+        "minimumDensity": 0,
+        "segments": 10
+      },
+      {
+        "t": 2.5105307723945924,
+        "minimumDensity": 0,
+        "segments": 12
+      },
+      {
+        "t": 3.0101913540923686,
+        "minimumDensity": 0.048308034302570795,
+        "segments": 9
+      },
+      {
+        "t": 3.5099816493167544,
+        "minimumDensity": 0.0027604709004718183,
+        "segments": 11
+      },
+      {
+        "t": 4.000671297743458,
+        "minimumDensity": 0,
+        "segments": 10
+      },
+      {
+        "t": 4.50111590075838,
+        "minimumDensity": 0,
+        "segments": 12
+      },
+      {
+        "t": 5.00609704068586,
+        "minimumDensity": 0,
+        "segments": 12
+      },
+      {
+        "t": 5.504955270386491,
+        "minimumDensity": 0,
+        "segments": 12
+      },
+      {
+        "t": 6.008571599282412,
+        "minimumDensity": 0,
+        "segments": 11
+      }
+    ],
+    "continuousStream": false,
+    "expected": "Discontinuous under turbulent forcing",
+    "pass": true
+  },
+  "gpu": {
+    "constraints": {
+      "error": 0.0009188652038574219,
+      "boundaryError": 0.0009188652038574219,
+      "backend": "GPU",
+      "pass": true
+    },
+    "field": {
+      "error": 1.4821955063304415e-7,
+      "pass": true
+    }
+  }
+}

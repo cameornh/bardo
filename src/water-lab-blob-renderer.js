@@ -77,8 +77,8 @@ export class LabBlobRenderer {
     this.mesh = new THREE.Mesh(this.geometry, this.material);this.mesh.frustumCulled = false;
     this.scene = new THREE.Scene();this.scene.add(this.mesh);
   }
-  update(lab) {
-    const families = this.families.update(lab), a = this.geometry.getAttribute('aParcel'), data = this.texture.image.data;
+  update(lab, connected) {
+    const families = this.families.update(lab, connected), a = this.geometry.getAttribute('aParcel'), data = this.texture.image.data;
     families.forEach((f, i) => {
       const o = i * 32;data.fill(0, o, o + 32);
       f.kernels.forEach((k, j) => {data.set([...k.position, k.sigma], o + j * 4);data[o + 20 + j] = k.amplitude;});

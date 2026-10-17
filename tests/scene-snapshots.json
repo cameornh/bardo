@@ -1,5 +1,5 @@
 {
-  "src/water-lab-blobs.js": "b0b734d5360e5321a1f1040fbf93764c605d40024136172d77996325f5d49a52",
+  "src/water-lab-blobs.js": "d094a8615bffe00e7233710192dc3eea0378a134769ed210e7cf8c6492e25a5b",
   "src/grain-optics.js": "2549fea51064c107bbf6977f7f71fc39fa047fcd5ce06880998784ba9786ca34",
   "src/water-lab-river.js": "8ceb16b95dce98271b9b879b88797eb620fdd26cd507946f951fb22b5cbe7ec0",
   "src/sh.js": "0a3596d23458b7a9e35b9f84c85019ae1f723639ef61339673410e1d189ed5c5",
@@ -10,7 +10,7 @@
   "src/volume-water-shaders.js": "972a87d6c94c54be69b5bc81dd1950224f60e56f12dd0f54708949dd8a6915d5",
   "src/photon-gpu.js": "60730c0a968a7d90568ffc61d7ecb15c813a5a6803d0f6842472e111111e0f2b",
   "src/water-lab-gpu.js": "2fcacefb2645a35be64df70088847287536740acd1ef63e54ffef31a889bbdcf",
-  "src/water-lab-renderer.js": "fb919748880d912b2e99685c0644bd98873b0b2df95f89281a2446d32bbd4835",
+  "src/water-lab-renderer.js": "a000645463144b3341a08f380e635be3ecac646c26fe2d9def3fcbc286742721",
   "src/volume-water-gpu.js": "8399553370efef2c119059b3ab92008932c279874df726273dc28303539e60e2",
   "src/grass-renderer.js": "d83d672cea5a602f41b943c5b47403faaf228e24dd4f660eaef2d8f2fdf84fca",
   "src/optics-renderer.js": "88df52aa96e02ab4760d770a80d498c9ab5c7d2346f97d5a976fd7d200a677be",
@@ -49,7 +49,7 @@
   "src/water-lab-detail-environment.js": "a4bc608e0bdb8397b8b39b9a58a812b531f0547487cdb556838190256bd0a642",
   "src/optics-shaders.js": "83e386184360f8b1cdb71e7e83aa14a821b032e8e2cb12b837cb72be9bd41e40",
   "src/lod.js": "bedb442e8b7785df7bb3a013e1cc50c178023a8561941737290c51f208348113",
-  "src/water-lab-blob-renderer.js": "09e2e73f8d7a6684fa663e20d0b2369a2f8159fea4ead2a4fb215bc6a50c9c13",
+  "src/water-lab-blob-renderer.js": "efcbbad347f70bc433b8b6ca2e141becd0d619c0c714304fd1968b8735f2fefd",
   "src/main.js": "de17cfe689f3c82e6f7107b163e508bab45b020cde6479ff8b1ad04f9af979e3",
   "src/streaming.js": "1332364321d0de1b1a808e80cd1ce4254bac6e1cafac48816e8124a3068b559f",
   "src/water-lab-detail-opacity.js": "fdb7c3d3cc3d08c18ae4f878eec0939d3b842663d1de10f5948163eb40801ba0",
@@ -83,7 +83,7 @@
   "src/physics.js": "74d25c8c92ac6b9322adfc5692914ec58a64fa242e0cd3a1f3bab7aff9c9241b",
   "src/water-optics.js": "e2c2636f21270aa2a6a22bc8a0a07101929ad79a8638c000b7a4715ba533a297",
   "src/water-lab-resolution.js": "52ca43692456dd5dbb5af606c8a32d685b2d3beb9562e0e9304ca3dfa6214483",
-  "src/water-lab.js": "83f41dbd703b63ce6d39b0670bdbd402f2219fdf183166366742650acf3eeb9b",
+  "src/water-lab.js": "8d2ba1d95965097672ff83362d06178f6f089e9c81d0add60e0c0b51d3b4d8f5",
   "src/reference-shader.js": "ee2d798fbdf3862435467c5888104b4b5cf4e36161f8950466bb9b9906323af1",
   "src/beach-model.js": "aae77530a8857e2fcc73664eac406557014c510b9c2aeb45f0f80e6bd81c36d4",
   "src/light-gaussians.js": "a4665409403447997035e9e476a2d3c29cba37db49a826835ed1e490336343de",
@@ -91,6 +91,6 @@
   "src/sampling.js": "da3551917396308e836788595dfaaea66366ed1b7459635bb5d401c5814081cf",
   "src/beach-terrain.js": "9002ecf262397d8c902123172c60a95d251b600ae898bf4191c356485ba58d5b",
   "src/water-lab-detail.js": "d80102dfc67c5134fc055da6f58cd08299922d56eeea0b6f9fe16787924c4db6",
-  "src/water-lab-inlet.js": "bb463ec2084238c29c7494a07a08d7001c56ad7945aa61147245d1d5b0d9065e",
+  "src/water-lab-inlet.js": "877c0819154845ea24a2cca8bcc1e1df7c76da99a235f966aff94977df1fdc29",
   "src/volume-interface.js": "cfdae2528d6e8d14f6a193cd4c5f418361bbc5a331ca1677c147be3ef3565233"
 }

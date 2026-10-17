@@ -834,3 +834,39 @@ quiet-flow suppression, impact fragments, scaling, recycling and distant wind.
 `tests/water-lab-fountain-spray-gpu.html` checks CPU/GPU high-altitude motion,
 rendered crest coverage, and an actual maximum-speed jet ascent separately from
 its deliberately constructed full-flight coverage fixture.
+
+### Stable laminar pipe (2026-10-17)
+
+The pipe alone now emits complete, equally timed cross-sections. Its transverse
+spacing matches the solver's rest spacing: the former 0.9 spacing over-compressed
+the center of the inlet and launched alternating pressure pulses. Layers are
+placed clear of the outlet collision skin, only reservoir water is recycled,
+and the pipe timestep accounts for discharge speed and gravitational acceleration
+instead of clipping a fast jet to the old fixed-step velocity limit. Dissolved
+material is retained during recycling; stale impact aeration is cleared.
+
+Thin connected inlet samples use bounded Gaussian quadrature along their moving
+neighbor segments. Each parcel retains its volume; the density and lighting
+passes still run on the GPU, using the same water material and CPU reference.
+The subdivision runs on the CPU and adds at most twelve kernels per linked
+parcel. It fills undersampled stretches of the jet rather than replacing the
+flow with an animated tube. Links stop at contact, grabs, missing sections,
+excessive gaps or sharp velocity changes, and the reconstruction fades away as
+turbulent forcing rises. Disconnected drops keep their smaller Gaussian lobes.
+Other stations and the separate sand-lab snapshot use their previous behavior.
+
+This is a finite-resolution jet reconstruction, not a resolved capillary-breakup
+model. `tests/water-lab-pipe.test.js` covers inlet timing, conserved volume and
+solute, velocity limits, severed links, and continuity with the actual CPU fluid
+solver. `tests/water-lab-pipe-gpu.html` runs sustained GPU flow and samples liquid
+density along the stream, alongside the existing CPU/GPU constraint and density
+checks.
+
+Recorded validation: normal-flow and maximum-flow runs kept the centerline
+above the liquid isosurface threshold at every half-second checkpoint; maximum
+flow was checked through twelve simulation seconds. The minimum sampled density
+was 0.375 (normal) and 0.501 (maximum), versus the 0.18 surface threshold. High
+forcing still produced disconnected flow. All runs retained their water volume.
+GPU/CPU maximum errors were 0.000919 for fluid constraints (tolerance 0.002) and
+1.49e-7 for density (tolerance 1e-4). All 329 numerical tests and the build pass.
+Results and the main-preview screenshot are in `tests/results/pipe-laminar-2026-10-17.*`.

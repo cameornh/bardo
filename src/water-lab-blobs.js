@@ -54,11 +54,12 @@ export function sampleBlob(family, p) {
 
 export class LabBlobFamilies {
   constructor(limit = BLOB_FAMILIES) { this.limit = Math.min(BLOB_FAMILIES, Math.max(0, limit)); this.active = new Map(); }
-  update(lab) {
+  update(lab, connected) {
     if (lab.kind !== this.kind || lab.spacing !== this.spacing || lab.time < this.time || lab.positions.length < this.length) this.active.clear();
     const dt = Math.min(.05, Math.max(0, lab.time - (this.time ?? lab.time)));
     this.kind = lab.kind; this.spacing = lab.spacing; this.time = lab.time; this.length = lab.positions.length;
-    const target = i => lab.positions[i * 4 + 3] > .5 ? 0 : clamp((7 - (lab.neighborCounts?.[i] ?? 25)) / 4);
+    if (connected) for (const id of connected.keys()) this.active.delete(id);
+    const target = i => connected?.has(i) || lab.positions[i * 4 + 3] > .5 ? 0 : clamp((7 - (lab.neighborCounts?.[i] ?? 25)) / 4);
     for (const [id, blend] of this.active) {
       const next = blend + (target(id) - blend) * (1 - Math.exp(-dt / .16));
       if (next < .002 && target(id) === 0) this.active.delete(id); else this.active.set(id, next);
