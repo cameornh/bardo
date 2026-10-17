@@ -1,3 +1,4 @@
+import {GAUSSIAN_BOUNDS_GLSL} from './gaussian-bounds.js';
 import {LAB_LIGHTING_GLSL} from './water-lab-lighting.js';
 import {LAB_LIGHT_VISIBILITY_GLSL} from './water-lab-light-visibility.js';
 import {LAB_GEOMETRY_GLSL} from './water-lab-model.js';
@@ -15,6 +16,7 @@ in vec4 aRain;in vec3 aFall;in float aRainSeed;in float aRainSpread;in float aRa
 uniform int uRainCopies;uniform float uScale,uSpacing,uAmbient,uSunlight,uLights;
 uniform vec3 uSH[16];uniform int uSHDegree;
 out vec2 vQ;out float vDepth,vAlpha,vBlob;flat out vec3 vLight;
+${GAUSSIAN_BOUNDS_GLSL}
 ${SH_GLSL}
 ${WATER_MATERIAL_GLSL}
 ${SOLUTE_GLSL}
@@ -43,9 +45,10 @@ void main(){
  float yy=s*s*dot(jy,jy)+trail*trail*flow.y*flow.y+.09;
  float l=sqrt(max(0.,pow((xx-yy)*.5,2.)+xy*xy)),e1=max(1e-8,(xx+yy)*.5+l),e2=max(1e-8,(xx+yy)*.5-l);
  vec2 axis=abs(xy)>1e-8?normalize(vec2(e1-yy,xy)):xx>=yy?vec2(1,0):vec2(0,1);
- vec4 clip=projectionMatrix*p;clip.xy+=6.*(axis*sqrt(e1)*position.x+vec2(-axis.y,axis.x)*sqrt(e2)*position.y)/uResolution*clip.w;
- if(p.z>-.05||labOpaque(center)<0.||vessel(center)<0.)clip=vec4(2,2,2,1);
- gl_Position=clip;vQ=position.xy*3.;vDepth=length(p.xyz);vAlpha=(.17+.17*rh(seed+29.))*rainFade*smoothstep(1.5,5.,-p.z/max(s,trail));
+ vAlpha=(.17+.17*rh(seed+29.))*rainFade*smoothstep(1.5,5.,-p.z/max(s,trail));float support=gaussianSupport(vAlpha,.005);
+ vec4 clip=projectionMatrix*p;clip.xy+=2.*support*(axis*sqrt(e1)*position.x+vec2(-axis.y,axis.x)*sqrt(e2)*position.y)/uResolution*clip.w;
+ if(support<=0.||p.z>-.05||labOpaque(center)<0.||vessel(center)<0.)clip=vec4(2,2,2,1);
+ gl_Position=clip;vQ=position.xy*support;vDepth=length(p.xyz);
  float basis[16];basisSH(normalize(uEye-center),basis);vec3 light=vec3(0);
  for(int i=0;i<16;i++){if(i>=(uSHDegree+1)*(uSHDegree+1))break;light+=uSH[i]*basis[i];}
  vLight=max(light,vec3(0))*uAmbient*mediumSky(center)+LAB_SUN*uSunlight*sunTransmission(center,uScale);

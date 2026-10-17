@@ -1,3 +1,4 @@
+import {LightingTiles} from './lighting-tiles.js';
 import * as THREE from 'three';
 import {QUAD_VERTEX} from '../shaders.js';
 import {LAB_GEOMETRY_GLSL, vesselDistance, opaqueDistance} from './water-lab-model.js';
@@ -37,6 +38,7 @@ uniform float uScale,uTannins,uTurbidity;
 vec3 mediumOpticalDepth(vec3 p,vec3 d,float limit,float stepSize){
  vec3 tau=vec3(0);float t=.012;bool free=labOpaque(p)>.005,lastGlass=vessel(p)<0.;
  for(int i=0;i<128;i++){if(t>=limit)break;vec3 q=p+d*t;float gd=vessel(q),sd=labOpaque(q);if(sd>.008)free=true;if(free&&sd<-.012)return vec3(16);
+ float empty=fieldEmptyAdvance(q,d,.12),safe=min(max(0.,gd),max(0.,sd))*.65;if(empty>stepSize&&safe>stepSize){t+=min(limit-t,min(empty,safe));continue;}
  float ds=min(limit-t,min(stepSize,max(.012,abs(gd)*.75)));vec3 mid=q+d*ds*.5;vec4 a=parcelSample(mid);bool inside=vessel(mid)<0.;
  if(inside!=lastGlass){float e=.004;vec3 n=vec3(vessel(mid+vec3(e,0,0))-vessel(mid-vec3(e,0,0)),vessel(mid+vec3(0,e,0))-vessel(mid-vec3(0,e,0)),vessel(mid+vec3(0,0,e))-vessel(mid-vec3(0,0,e)));float cosine=abs(dot(n/max(1e-8,length(n)),d)),F=.04+.96*pow(1.-cosine,5.);tau-=vec3(log(max(.02,1.-F)));}lastGlass=inside;
  if(sd>=0.)tau+=soluteExtinction(a.yzw/max(a.x,.0001),uTannins,uTurbidity)*smoothstep(.12,.24,a.x)*ds*uScale;
@@ -55,9 +57,9 @@ vec3 mediumSky(vec3 p){return uMediumShadows?exp(-mediumLookup(p,4.)):vec3(1);}
 `;
 const fragment=`precision highp float;precision highp int;
 ${LAB_GEOMETRY_GLSL}${LAB_FIELD_GLSL}${SOLUTE_GLSL}${LAB_LIGHTING_GLSL}${MEDIUM_INTEGRATE_GLSL}
-uniform vec3 uMediumMin,uMediumMax,uMediumSize;uniform float uMediumStep;out vec4 outColor;
+uniform vec3 uMediumMin,uMediumMax,uMediumSize;uniform float uMediumStep,uHistoryBlend;out vec4 outColor;
 float distanceToEdge(vec3 p,vec3 d){vec3 edge=mix(uMediumMin,uMediumMax,greaterThanEqual(d,vec3(0)));vec3 t=(edge-p)/(d+vec3(1e-8));return max(.01,min(t.x,min(t.y,t.z)));}
-void main(){float light=floor(gl_FragCoord.x/(uMediumSize.x*uMediumSize.y)),column=mod(floor(gl_FragCoord.x),uMediumSize.x*uMediumSize.y);vec3 cell=vec3(mod(column,uMediumSize.x),floor(column/uMediumSize.x),floor(gl_FragCoord.y)),p=mix(uMediumMin,uMediumMax,cell/(uMediumSize-1.)),d=normalize(uDaySun);outColor=vec4(0);
+void main(){float light=floor(gl_FragCoord.x/(uMediumSize.x*uMediumSize.y)),column=mod(floor(gl_FragCoord.x),uMediumSize.x*uMediumSize.y);vec3 cell=vec3(mod(column,uMediumSize.x),floor(column/uMediumSize.x),floor(gl_FragCoord.y)),p=mix(uMediumMin,uMediumMax,cell/(uMediumSize-1.)),d=normalize(uDaySun);outColor=vec4(0,0,0,uHistoryBlend);
  if(light<.5)outColor.rgb=mediumOpticalDepth(p,d,distanceToEdge(p,d),uMediumStep);
  else if(light>3.5){vec3 transmitted=vec3(0),total=vec3(0);for(int i=0;i<8;i++){float r=sqrt((float(i)+.5)/8.),a=float(i)*2.399963229728653;vec3 skyRay=vec3(r*cos(a),sqrt(1.-r*r),r*sin(a)),radiance=labSky(skyRay);transmitted+=radiance*exp(-mediumOpticalDepth(p,skyRay,distanceToEdge(p,skyRay),uMediumStep));total+=radiance;}outColor.rgb=-log(max(vec3(exp(-16.)),transmitted/max(total,vec3(1e-8))));}
  else if(uStation==2){vec3 delta=vec3((light-2.)*2.7,.65,-2.75)-p;float r=length(delta);outColor.rgb=p.z< -2.8?vec3(16):mediumOpticalDepth(p,delta/max(r,.0001),r,uMediumStep);}
@@ -67,22 +69,31 @@ export function sampleFieldCPU(data,l,p){
  for(let y=0;y<2;y++)for(let z=0;z<2;z++)for(let x=0;x<2;x++){const j=low[1]+y,px=(j%l.columns)*(l.dimensions[0]+2)+1+low[0]+x,py=Math.floor(j/l.columns)*(l.dimensions[2]+2)+1+low[2]+z,w=(x?f[0]:1-f[0])*(y?f[1]:1-f[1])*(z?f[2]:1-f[2]);for(let k=0;k<4;k++)out[k]+=data[(py*l.width+px)*4+k]*w;}return out;
 }
 export class LabMediumShadows{
- constructor(renderer,lab,density,uniforms){this.renderer=renderer;this.lab=lab;this.density=density;this.enabled=true;this.cpu=!renderer.extensions.has('EXT_color_buffer_float');this.u={uMediumShadows:{value:true},uMediumTransport:{value:null},uMediumMin:{value:new THREE.Vector3()},uMediumMax:{value:new THREE.Vector3()},uMediumSize:{value:new THREE.Vector3(32,24,32)},uMediumStep:{value:.18}};this.uniforms={...uniforms,...this.u};this.geometry=new THREE.PlaneGeometry(2,2);this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:fragment,uniforms:this.uniforms,depthTest:false,depthWrite:false});this.scene=new THREE.Scene();this.scene.add(new THREE.Mesh(this.geometry,this.material));this.camera=new THREE.Camera();}
- update(){const lab=this.lab;this.u.uMediumShadows.value=this.enabled;if(!this.enabled)return;const l=this.density.layout,key=JSON.stringify([lab.revision,lab.day,lab.tannins,lab.spec.scale,lab.motion.position,lab.motion.tilt,lab.motion.spin,lab.motion.pitch,lab.riverSlope,this.uniforms.uTurbidity.value,this.cpu]);if(key===this.key)return;
+ constructor(renderer,lab,density,uniforms){this.renderer=renderer;this.lab=lab;this.density=density;this.enabled=true;this.cpu=!renderer.extensions.has('EXT_color_buffer_float');this.u={uMediumShadows:{value:true},uMediumTransport:{value:null},uMediumMin:{value:new THREE.Vector3()},uMediumMax:{value:new THREE.Vector3()},uMediumSize:{value:new THREE.Vector3(32,24,32)},uMediumStep:{value:.18}};this.uniforms={...uniforms,...this.u,uHistoryBlend:{value:1}};this.tiles=new LightingTiles();this.geometry=new THREE.PlaneGeometry(2,2);this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:fragment,uniforms:this.uniforms,depthTest:false,depthWrite:false,transparent:true,blending:THREE.CustomBlending,blendSrc:THREE.SrcAlphaFactor,blendDst:THREE.OneMinusSrcAlphaFactor});this.scene=new THREE.Scene();this.scene.add(new THREE.Mesh(this.geometry,this.material));this.camera=new THREE.Camera();}
+ update(){const lab=this.lab;this.u.uMediumShadows.value=this.enabled;if(!this.enabled)return;const l=this.density.layout,key=JSON.stringify([lab.paused,lab.lightEditRevision,lab.optimizations?.lightingTiles,lab.revision,lab.day,lab.tannins,lab.spec.scale,lab.motion.position,lab.motion.tilt,lab.motion.spin,lab.motion.pitch,lab.riverSlope,this.uniforms.uTurbidity.value,this.cpu]);if(key===this.key)return;
+ const tiled=!this.cpu&&lab.optimizations?.lightingTiles!==false;
  const settings=[lab.kind,lab.spec.scale,lab.waterfallHeight,lab.tannins,lab.ambient,lab.sunlight,lab.lights,lab.riverSlope,this.uniforms.uTurbidity.value,this.cpu].join(',');
  // Water moves every frame; its broad volumetric shadow need not reintegrate
  // eight sky directions at that rate. Explicit edits / paused checks refresh
  // immediately. The fluid and fine-particle motion remain at their own rate.
- if(settings===this.settings&&lab.time>this.lastTime&&lab.time-this.lastTime<.2)return;
+ if(!tiled&&settings===this.settings&&lab.time>this.lastTime&&lab.time-this.lastTime<.2)return;
  this.settings=settings;this.lastTime=lab.time;this.key=key;
  // Fixed resolution and a bounded integration count independent of camera LOD.
  const min=l.min.map((v,k)=>v-(k===1?0:2)),max=l.max.map((v,k)=>v+(k===1?0:2));this.u.uMediumMin.value.fromArray(min);this.u.uMediumMax.value.fromArray(max);const size=this.u.uMediumSize.value.toArray(),tileWidth=size[0]*size[1],width=tileWidth*5,height=size[2],step=Math.max(.1,Math.hypot(...max.map((v,k)=>v-min[k]))/92);this.u.uMediumStep.value=step;
- if(!this.target)this.target=new THREE.WebGLRenderTarget(width,height,{type:THREE.HalfFloatType,depthBuffer:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});
+ if(!this.target)this.target=new THREE.WebGLRenderTarget(width,height,{type:THREE.HalfFloatType,depthBuffer:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});else if(this.target.width!==width||this.target.height!==height){this.target.setSize(width,height);this.tiles.key=null;}
 
  if(this.cpu){const data=this.density.fallback?.image.data;if(!data)throw new Error('CPU medium lighting requires the CPU density field');const array=new Float32Array(width*height*4);const options={sky:lab.skyRadiance,sample:p=>sampleFieldCPU(data,l,p),solid:p=>opaqueDistance(p,lab.kind,lab.bedDelta(p),lab.riverSlope,lab.waterfallHeight),glass:p=>vesselDistance(p,lab.kind,lab.motion),scale:lab.spec.scale,organic:lab.tannins,turbidity:this.uniforms.uTurbidity.value,step};
  for(let z=0;z<size[2];z++)for(let y=0;y<size[1];y++)for(let x=0;x<size[0];x++){const p=[x,y,z].map((v,k)=>min[k]+(max[k]-min[k])*v/(size[k]-1)),d=lab.u.uDaySun.value.toArray(),limit=Math.min(...d.map((v,k)=>((v>=0?max[k]:min[k])-p[k])/v)),sky=mediumSkyDepth(p,d=>Math.max(.01,Math.min(...d.map((v,k)=>((v>=0?max[k]:min[k])-p[k])/(v+1e-8)))),options),offset=(z*width+y*size[0]+x)*4;array.set([...mediumOpticalDepth(p,d,limit,options),0],offset);array.set([...sky,0],offset+tileWidth*16);for(let i=0;i<3;i++){const delta=poolLamp(i).map((v,k)=>v-p[k]),r=Math.hypot(...delta),tau=lab.kind==='pool'?(p[2]<-2.8?[16,16,16]:mediumOpticalDepth(p,delta.map(v=>v/r),r,options)):[0,0,0];array.set([...tau,0],offset+(i+1)*tileWidth*4);}}
  this.fallback?.dispose();this.fallback=new THREE.DataTexture(array,width,height,THREE.RGBAFormat,THREE.FloatType);this.fallback.minFilter=this.fallback.magFilter=THREE.LinearFilter;this.fallback.needsUpdate=true;this.u.uMediumTransport.value=this.fallback;
- }else{const old=this.renderer.getRenderTarget();this.renderer.setRenderTarget(this.target);this.renderer.render(this.scene,this.camera);this.renderer.setRenderTarget(old);this.u.uMediumTransport.value=this.target.texture;}}
+ }else{
+  const historyKey=[settings,lab.generation,lab.lightEditRevision||0,lab.paused,lab.day,...size,...min,...max].join(',');
+  const plan=tiled?this.tiles.plan(height,lab.time,historyKey,lab.revision,lab.paused):{ranges:[[0,height]],blend:1,full:true};
+  if(plan){const r=this.renderer,old=r.getRenderTarget(),scissor=r.getScissor(new THREE.Vector4()),test=r.getScissorTest();
+   this.uniforms.uHistoryBlend.value=plan.blend;r.setRenderTarget(this.target);r.setScissorTest(true);
+   for(const [start,count] of plan.ranges){r.setScissor(0,start,width,count);r.render(this.scene,this.camera);}
+   r.setRenderTarget(old);r.setScissor(scissor);r.setScissorTest(test);this.updatedRows=plan.ranges.reduce((sum,x)=>sum+x[1],0);this.fullRefresh=plan.full;
+  }this.u.uMediumTransport.value=this.target.texture;
+ }}
 
  dispose(){[this.target,this.geometry,this.material,this.fallback].forEach(x=>x?.dispose());}
 }

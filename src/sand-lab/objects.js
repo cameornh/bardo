@@ -33,9 +33,13 @@ export function cupHydrostatics(b,surface,containedWater=0){
 
 // Support of the hollow cup's outside wall and bottom, including orientation.
 export function bodySupport(b,direction){if(b.shape!=='cup')return b.radius;const axis=rotate([0,1,0],b.tilt||0,b.spin||0,false,b.pitch||0),along=axis.reduce((sum,v,k)=>sum+v*direction[k],0),radial=b.radius*Math.sqrt(Math.max(0,1-along*along));return Math.max(radial+b.radius*Math.abs(along),radial-b.radius*along+b.radius*.16*Math.abs(along));}
-export function resolveSandContacts(parcels,bodies,dt){
+export function resolveSandContacts(parcels,bodies,dt,grid=null){
+ if(grid)grid.build(bodies,b=>b.radius*1.5);
  for(const p of parcels){if(p.held||p.mass<=0)continue;const r=Math.cbrt(p.mass/(p.packing*4*Math.PI/3));
-  for(const b of bodies){if(Math.hypot(...p.position.map((v,k)=>v-b.position[k]))>b.radius*1.5+r)continue;
+  let candidates=grid?grid.query(p.position,r):null;
+  for(let index=0;index<bodies.length;index++){
+   if(candidates){const next=candidates.find(i=>i>=index);if(next===undefined)break;index=next;}
+   const b=bodies[index];if(Math.hypot(...p.position.map((v,k)=>v-b.position[k]))>b.radius*1.5+r)continue;
    for(let iteration=0;iteration<3;iteration++){const d=bodyDistance(p.position,b);if(d>=r)break;const n=bodyNormal(p.position,b);
     if(p.anchored){
      // Bonded sand is terrain: move the free body out of the deposit instead
@@ -46,6 +50,7 @@ export function resolveSandContacts(parcels,bodies,dt){
      for(let k=0;k<3;k++){p.position[k]+=n[k]*(r-d+.0001);if(vn<0){const impulse=-vn*n[k];p.velocity[k]+=impulse;if(!b.held)b.velocity[k]-=impulse*Math.min(.25,p.mass/(bodyVolume(b)*b.ratio));}}
     }
    }
+   if(grid){grid.insert(index,b.position,b.radius*1.5);candidates=grid.query(p.position,r);}
   }
  }
 }

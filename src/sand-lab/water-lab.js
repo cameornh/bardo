@@ -1,3 +1,4 @@
+import {StepReadback} from './gpu-step-readback.js';
 import {selectWaterParcels} from './interaction.js';
 import {createSandUniforms} from './uniforms.js';
 import {playerImmersion,softenPlayerImpulse} from './water-lab-player.js';
@@ -52,11 +53,20 @@ export class WaterLab {
  // GPU (or in the CPU reference). Avoid duplicating that work for every parcel.
  const speed=length(v),limit=s*.45/dt;if(speed>limit)for(let k=0;k<3;k++)v[k]*=limit/speed;predicted.set(p.map((x,k)=>x+v[k]*dt),o);}
  this.prepareTimes={pump:pumpDone-start,rain:rainDone-pumpDone,wetting:wetDone-rainDone,predict:performance.now()-wetDone};return {start,predictDone:performance.now(),old,predicted,s,scale,dt,generation:this.generation};}
- step(dt,deferDetail=false){const context=this.prepareStep(dt),next=this.gpu.solve(context.predicted,context.s,p=>this.collide(p),3,p=>this.solid(p));this.finishStep(context,next,deferDetail);}
- finishStep(context,next,deferDetail=false){if(context.generation!==this.generation)return;const {start,predictDone,old,predicted,s,scale,dt}=context,solveDone=performance.now();const transport=this.transportGPU.solve(old,next,this.velocities,this.chem,this.gpu.neighbors,s,scale,dt,predicted,this.gpu);
+ step(dt,deferDetail=false){
+  const context=this.prepareStep(dt);
+  if(this.optimizations?.gpuBatch&&!this.gpu.cpu&&this.count){
+   this.gpu.solve(context.predicted,context.s,p=>this.collide(p),3,p=>this.solid(p),false,true);
+   this.transportGPU.solve(context.old,context.old,this.velocities,this.chem,this.gpu.neighbors,context.s,context.scale,dt,context.predicted,this.gpu,true);
+   const result=(this.stepReadback??=new StepReadback(this.renderer)).read(this.gpu,this.transportGPU,this.count);
+   context.transport=result.transport;this.finishStep(context,result.positions,deferDetail);
+  }else{const next=this.gpu.solve(context.predicted,context.s,p=>this.collide(p),3,p=>this.solid(p));this.finishStep(context,next,deferDetail);}
+ }
+
+ finishStep(context,next,deferDetail=false){if(context.generation!==this.generation)return;const {start,predictDone,old,predicted,s,scale,dt}=context,solveDone=performance.now();const transport=context.transport??this.transportGPU.solve(old,next,this.velocities,this.chem,this.gpu.neighbors,s,scale,dt,predicted,this.gpu);
  this.velocities=transport.velocities;this.chem=transport.chem;this.surfaceMetrics=transport.metrics;this.neighborCounts=transport.counts;this.aerationActivity=transport.activity;this.surfaceBreakup=transport.breakup;
  if(this.player)for(let i=0;i<this.count;i++){const o=i*4,p=Array.from(next.subarray(o,o+3)),distance=this.playerDistance(p);if(distance>s*1.5)continue;const normal=normalAt(p,q=>this.playerDistance(q)),incoming=[0,1,2].map(k=>(predicted[o+k]-old[o+k])/dt),weight=clamp(1-distance/(s*1.5),0,1);this.velocities.set(softenPlayerImpulse(Array.from(this.velocities.subarray(o,o+3)),incoming,normal,weight),o);}
- this.positions=next;this.exchangeSediment(dt);if(this.detail.cpu!==this.gpu.cpu){this.detail.cpu=this.gpu.cpu;this.detail.reset();}this.detail.emit(this,dt);this.detailJet=this.jet;if(!deferDetail)this.detail.advance(dt,this);this.timings={predict:predictDone-start,solve:solveDone-predictDone,transport:performance.now()-solveDone};this.steps++;this.jet=null;this.revision++;}
+ this.positions=next;this.exchangeSediment(dt);if(this.detail.cpu!==this.gpu.cpu){this.detail.cpu=this.gpu.cpu;this.detail.reset();}this.detail.emit(this,dt);this.detailJet=this.jet;if(!deferDetail)this.detail.advance(dt,this);this.timings=context.transport?{predict:predictDone-start,constraintsTransportAndReadback:solveDone-predictDone,exchangeAndSpray:performance.now()-solveDone,readback:this.stepReadback.waitMs,readbacks:1}:{predict:predictDone-start,solve:solveDone-predictDone,transport:performance.now()-solveDone,readbacks:this.gpu.cpu?0:5};this.steps++;this.jet=null;this.revision++;}
  sampleFastSurface(i){return !this.neighborCounts||this.neighborCounts[i]<25;}
  exchangeSediment(dt){if(this.kind==='river')exchangeRiverSediment(this,dt);}
  addSolute(kind,point){let added=0;for(let i=0;i<this.count;i++){const o=i*4,d=length(point.map((v,k)=>v-this.positions[o+k]));if(d>this.radius)continue;const q=(kind==='dye'?2.5:.35)*(1-d/this.radius);this.chem[o+(kind==='dye'?0:1)]+=q;added+=q;}if(added)this.revision++;return added;}

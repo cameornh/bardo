@@ -1,0 +1,340 @@
+{
+  "date": "2026-10-16",
+  "note": "Local paired observations, not a performance guarantee. Matched runs use fixed steps and GPU completion; live runs use the regular budget and adaptive drawing. Older preliminary baseline excluded because preview size and adapter were not recorded consistently.",
+  "cpuMicrobenchmarks": {
+    "neighborList": {
+      "particles": 12852,
+      "referenceMs": 89.79837500000008,
+      "packedMs": 65.02219799999966
+    },
+    "bodyBroadphase": {
+      "bodies": 1000,
+      "referenceMs": 157.62734099999943,
+      "optimizedMs": 10.155312999999296,
+      "referencePairs": 499500,
+      "candidatePairs": 0
+    },
+    "sandCache": {
+      "clumps": 250,
+      "referenceMs": 4.696476000000985,
+      "optimizedMs": 1.956865000000107
+    }
+  },
+  "matchedReference": {
+    "fixture": "matched beach",
+    "mode": "reference",
+    "optimizationFlags": {
+      "gpuBatch": false,
+      "packedNeighbors": false,
+      "broadphase": false,
+      "sandCache": false,
+      "emptySpace": false,
+      "splatBounds": false,
+      "lightingTiles": false
+    },
+    "frames": 45,
+    "physicsSteps": 90,
+    "bulk": 12852,
+    "fine": 32768,
+    "resolution": [
+      480,
+      270
+    ],
+    "simulatedSeconds": 2.9999999999999956,
+    "wallSeconds": 69.48189999997616,
+    "realtime": 0.04317671220851797,
+    "medianWorkMs": 1408,
+    "p95WorkMs": 1893.8000000715256,
+    "maxWorkMs": 1971.8999999761581,
+    "meanNeighborMs": 59.804444437556796,
+    "meanBatchReadMs": 0,
+    "sandBinRebuilds": 120,
+    "gpu": {
+      "atmosphere": 9.237885081933905e-07,
+      "spray shadows": 17.170177184232728,
+      "density": 26.171848634461295,
+      "medium shadows": 0.7921014642816611,
+      "photons": 3.7551195826221058,
+      "surface": 135.5933127502517,
+      "fine rendering": 136.11588906417154,
+      "rain / lens": 1.308729435236977
+    },
+    "sandMassError": 6.8497308760323105e-15
+  },
+  "matchedInitialOptimized": {
+    "fixture": "matched beach",
+    "mode": "all",
+    "optimizationFlags": {
+      "gpuBatch": true,
+      "packedNeighbors": true,
+      "broadphase": true,
+      "sandCache": true,
+      "emptySpace": true,
+      "splatBounds": true,
+      "lightingTiles": true
+    },
+    "frames": 45,
+    "physicsSteps": 90,
+    "bulk": 12852,
+    "fine": 32768,
+    "resolution": [
+      480,
+      270
+    ],
+    "simulatedSeconds": 2.9999999999999956,
+    "wallSeconds": 31.357099999904634,
+    "realtime": 0.09567211253620773,
+    "medianWorkMs": 558,
+    "p95WorkMs": 914.5,
+    "maxWorkMs": 1453.8999999761581,
+    "meanNeighborMs": 58.577777777777776,
+    "meanBatchReadMs": 91.29999999205272,
+    "sandBinRebuilds": 89,
+    "gpu": {
+      "atmosphere": 1.159505447922914e-06,
+      "spray shadows": 13.718166096070783,
+      "density": 28.44920782449669,
+      "medium shadows": 2.565692417605693,
+      "photons": 1.647887255771546,
+      "surface": 138.7112628088583,
+      "fine rendering": 139.71166105717774,
+      "rain / lens": 1.3116662208115453
+    },
+    "sandMassError": 6.8497308760323105e-15
+  },
+  "matchedFinalOptimized": {
+    "fixture": "matched beach",
+    "adapter": "ANGLE (AMD, ANGLE Metal Renderer: AMD Radeon Pro 560X, Unspecified Version)",
+    "mode": "all",
+    "optimizationFlags": {
+      "gpuBatch": true,
+      "packedNeighbors": true,
+      "broadphase": true,
+      "sandCache": true,
+      "emptySpace": true,
+      "splatBounds": true,
+      "lightingTiles": true
+    },
+    "frames": 45,
+    "physicsSteps": 90,
+    "bulk": 12852,
+    "fine": 32768,
+    "resolution": [
+      480,
+      270
+    ],
+    "simulatedSeconds": 2.9999999999999956,
+    "wallSeconds": 31.891,
+    "realtime": 0.09407042739330833,
+    "medianWorkMs": 665.6000000238419,
+    "p95WorkMs": 886.2000000476837,
+    "maxWorkMs": 896,
+    "meanNeighborMs": 41.19333332379659,
+    "meanBatchReadMs": 119.98888888623979,
+    "sandBinRebuilds": 89,
+    "gpu": {
+      "atmosphere": 1.1659088763307263e-06,
+      "spray shadows": 14.597233017887122,
+      "density": 31.730584503996724,
+      "medium shadows": 3.2564494609158956,
+      "photons": 1.684037470171546,
+      "surface": 142.43434758841315,
+      "fine rendering": 143.2190648400776,
+      "rain / lens": 1.308228504308235
+    },
+    "sandMassError": 6.8497308760323105e-15
+  },
+  "liveReference": {
+    "fixture": "45-frame benchmark",
+    "medianFrameMs": 966.1000000000058,
+    "p95FrameMs": 1366.699999999997,
+    "simulatedSeconds": 3.0000000000000027,
+    "wallSeconds": 44.59730000007153,
+    "bulk": 12852,
+    "fine": 32768,
+    "sandMassError": 1.0274596314048467e-14,
+    "timing": {
+      "predict": 82.70000004768372,
+      "solve": 228.5,
+      "transport": 402.39999997615814
+    },
+    "prepare": {
+      "pump": 0,
+      "rain": 0,
+      "wetting": 2.700000047683716,
+      "predict": 80
+    },
+    "neighborMs": 82.29999995231628,
+    "gpu": {
+      "atmosphere": 1.0761328855994933e-05,
+      "spray shadows": 15.081150808843843,
+      "density": 28.293078474258532,
+      "medium shadows": 2.184448360876078,
+      "photons": 2.3512058837376,
+      "surface": 62.12811681539402,
+      "fine rendering": 61.370479909254236,
+      "rain / lens": 1.0271684524217168
+    }
+  },
+  "liveOptimized": {
+    "fixture": "45-frame benchmark",
+    "medianFrameMs": 599.2999999999884,
+    "p95FrameMs": 766.5,
+    "simulatedSeconds": 3.0000000000000027,
+    "wallSeconds": 27.637,
+    "bulk": 12852,
+    "fine": 32768,
+    "sandMassError": 1.0111507483666744e-14,
+    "timing": {
+      "predict": 35.40000009536743,
+      "solve": 186.5,
+      "transport": 45.699999928474426
+    },
+    "prepare": {
+      "pump": 0,
+      "rain": 0,
+      "wetting": 1.600000023841858,
+      "predict": 33.800000071525574
+    },
+    "neighborMs": 50.799999952316284,
+    "gpu": {
+      "atmosphere": 2.399856528151387e-10,
+      "spray shadows": 14.820442209641628,
+      "density": 32.00190976234681,
+      "medium shadows": 2.1688031438532387,
+      "photons": 1.6363155028201013,
+      "surface": 65.77503924686616,
+      "fine rendering": 65.86081318120145,
+      "rain / lens": 1.001661349117441
+    }
+  },
+  "gpuVerification": {
+    "batched": {
+      "backend": "GPU",
+      "sizes": [
+        150,
+        67,
+        257,
+        1,
+        175
+      ],
+      "batchError": 0,
+      "cpuError": 0.0001049041748046875,
+      "countsEqual": true,
+      "readbacksPerStep": 1,
+      "pass": true
+    },
+    "base": {
+      "error": 4.082918167114258e-06,
+      "boundaryError": 4.082918167114258e-06,
+      "backend": "GPU",
+      "pass": true
+    },
+    "beach": {
+      "backend": "GPU",
+      "particles": 150,
+      "transportError": 7.62939453125e-06,
+      "countsEqual": true,
+      "sdfError": 1.0814819462190428e-07,
+      "worst": {
+        "p": [
+          -0.5,
+          0.10999999940395355,
+          0.36000001430511475
+        ],
+        "cpu": -0.051406975720785786,
+        "gpu": -0.05140708386898041,
+        "normal": [
+          -0.8005736062952374,
+          -0.3575146370105745,
+          0.480900390129427
+        ],
+        "gpuNormal": [
+          -0.8005740642547607,
+          -0.3575105369091034,
+          0.4809027314186096
+        ]
+      },
+      "sandAndTiltedCupMaxError": 1.3709068298339844e-06,
+      "pass": true
+    },
+    "reconstruction": {
+      "error": 6.412409880307557e-07,
+      "macroError": 0,
+      "macroCells": 1452,
+      "pass": true
+    },
+    "atmosphere": {
+      "backend": "GPU",
+      "samples": 18,
+      "maxRadianceError": 2.2618262551787893e-06,
+      "tolerance": 0.0001,
+      "pass": true
+    },
+    "sandMaterial": [
+      {
+        "sandSize": 33,
+        "samples": 32,
+        "maxMoistureError": 3.6640325032921695e-06,
+        "maxDistanceError": 6.510988686536656e-07,
+        "pass": true
+      },
+      {
+        "sandSize": 65,
+        "samples": 32,
+        "maxMoistureError": 2.299671341687848e-06,
+        "maxDistanceError": 3.186527106346926e-07,
+        "pass": true
+      },
+      {
+        "sandSize": 97,
+        "samples": 32,
+        "maxMoistureError": 7.965871615667197e-07,
+        "maxDistanceError": 4.224793681006922e-07,
+        "pass": true
+      }
+    ]
+  },
+  "seedImageComparison": {
+    "fixture": "fixed-state render comparison",
+    "resolution": [
+      480,
+      270
+    ],
+    "meanLinearColorError": 5.397225137025793e-06,
+    "maxLinearColorError": 0.0006272494792938232,
+    "meanWaterDepthError": 0,
+    "missingWaterPixels": 0,
+    "totalPixels": 129600,
+    "nonFinite": 0,
+    "pass": true
+  },
+  "disturbedImageComparison": {
+    "fixture": "fixed-state render comparison",
+    "resolution": [
+      480,
+      270
+    ],
+    "meanLinearColorError": 6.913045601375064e-06,
+    "maxLinearColorError": 0.0013228654861450195,
+    "meanWaterDepthError": 0,
+    "missingWaterPixels": 0,
+    "totalPixels": 129600,
+    "nonFinite": 0,
+    "pass": true
+  },
+  "objectImageComparison": {
+    "fixture": "fixed-state render comparison",
+    "resolution": [
+      480,
+      270
+    ],
+    "meanLinearColorError": 3.7711523252888104e-06,
+    "maxLinearColorError": 0.0007853806018829346,
+    "meanWaterDepthError": 0,
+    "missingWaterPixels": 0,
+    "totalPixels": 129600,
+    "nonFinite": 0,
+    "pass": true
+  }
+}

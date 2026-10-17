@@ -1,3 +1,4 @@
+import {GAUSSIAN_BOUNDS_GLSL} from './gaussian-bounds.js';
 import {DETAIL_OPACITY_GLSL} from './water-lab-detail-opacity.js';
 import {LAB_LIGHT_VISIBILITY_GLSL} from './water-lab-light-visibility.js';
 import {SOLUTE_GLSL} from './water-lab-solutes.js';
@@ -7,7 +8,7 @@ import {LAB_FIELD_GLSL} from './water-lab-field.js';
 import {LAB_GEOMETRY_GLSL} from './water-lab-model.js';
 import {DETAIL_LIGHT_GLSL} from './water-lab-detail-optics.js';
 const vertex=`precision highp float;precision highp int;
-${DETAIL_OPACITY_GLSL}
+${DETAIL_OPACITY_GLSL}${GAUSSIAN_BOUNDS_GLSL}
 in float aDetailId;uniform highp sampler2D uDetailP,uDetailV,uDetailI;uniform vec2 uResolution;uniform vec3 uEye;
 out vec2 vQ;out float vAlpha,vDepth;
 flat out vec4 vOptical;flat out vec3 vViewTau,vScatter;flat out vec4 vCenter;flat out vec3 vKindRadiusClearance;
@@ -20,8 +21,9 @@ float stretch=info.y<.5?1.2:0.,xx=s*s*(dot(jx,jx)+stretch*pow(dot(jx,direction),
 float area=sqrt(max(0.,xx*yy-xy*xy));xx+=1.4/(uResolution.x*uResolution.x);yy+=1.4/(uResolution.y*uResolution.y);float filtered=sqrt(max(1e-15,xx*yy-xy*xy));
 float l=sqrt(max(0.,pow((xx-yy)*.5,2.)+xy*xy)),e1=max(1e-12,(xx+yy)*.5+l),e2=max(1e-12,(xx+yy)*.5-l);vec2 axis=abs(xy)>1e-12?normalize(vec2(e1-yy,xy)):xx>=yy?vec2(1,0):vec2(0,1);vec4 clip=projectionMatrix*p;
 vOptical=texelFetch(uDetailPaths,uv,0);vViewTau=texelFetch(uDetailViewTau,uv,0).rgb;vScatter=texelFetch(uDetailScatter,uv,0).rgb;
-clip.xy+=3.*(axis*sqrt(e1)*position.x+vec2(-axis.y,axis.x)*sqrt(e2)*position.y)*clip.w;gl_Position=clip;
 vAlpha=detailOpacity(info.y,age,life,info.z)*min(1.,area/filtered)*smoothstep(1.5,5.,z/max(info.x,.00001));
+float support=gaussianSupport(vAlpha,.0001);vQ=position.xy*support;
+clip.xy+=support*(axis*sqrt(e1)*position.x+vec2(-axis.y,axis.x)*sqrt(e2)*position.y)*clip.w;gl_Position=support<=0.?vec4(2,2,2,1):clip;
 }`;
 // Lighting and occupied-water view transport are evaluated once per marker.
 // Keeping the shadow maps here also keeps both programs below 16 samplers.
@@ -30,6 +32,7 @@ layout(location=0)out vec4 outColor;layout(location=1)out vec4 outTau;layout(loc
 uniform highp sampler2D uDetailP,uDetailV,uDetailI,uWaterSurface,uOpaqueRead;
 uniform vec3 uEye,uSH[16];uniform int uSHDegree;uniform mat4 uViewMatrix,uProjection;
 uniform float uScale,uSpacing,uTurbidity,uTannins,uAmbient,uSunlight,uLights;
+${DETAIL_OPACITY_GLSL}${GAUSSIAN_BOUNDS_GLSL}
 ${LAB_FIELD_GLSL}
 ${LAB_GEOMETRY_GLSL}
 ${SH_GLSL}
@@ -43,7 +46,7 @@ vec3 detailIncident(vec3 q,vec3 ray){
  if(uStation==2)for(int i=0;i<3;i++){vec3 lamp=poolLamp(i);light+=poolColor(i)*3.*uLights*poolFalloff(q,lamp)*poolTransmission(q,i,uScale)*3.14159265*phaseHG(dot(ray,normalize(lamp-q)),.55);}return light;
 }
 void main(){ivec2 uv=ivec2(gl_FragCoord.xy);vec4 source=texelFetch(uDetailP,uv,0),velocity=texelFetch(uDetailV,uv,0);outColor=vec4(0,0,0,-1);outTau=vec4(0);outScatter=vec4(0);
-if(source.w>=velocity.w||velocity.w<=0.)return;vec4 p=uViewMatrix*vec4(source.xyz,1);vec4 info=texelFetch(uDetailI,uv,0);if(p.z>-max(.025,info.x*1.5))return;float depth=length(p.xyz);vec4 clip=uProjection*p;
+if(source.w>=velocity.w||velocity.w<=0.)return;vec4 p=uViewMatrix*vec4(source.xyz,1);vec4 info=texelFetch(uDetailI,uv,0);if(uTightGaussians&&detailOpacity(info.y,source.w,velocity.w,info.z)<=.0001)return;if(p.z>-max(.025,info.x*1.5))return;float depth=length(p.xyz);vec4 clip=uProjection*p;
 vec2 centerUv=clip.xy/clip.w*.5+.5;
 // Cull only when the entire Gaussian support misses the image. A fixed
 // center-only margin left visible off-screen kernels with black lighting.
