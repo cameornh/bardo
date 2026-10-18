@@ -15,7 +15,7 @@ export function bodyVolume(b){return Math.PI*b.radius**3*(b.shape==='cup'?1.84*(
 export function playerBodyContact(walker,body,probe,scale=1){
  const q=probe.map(v=>v/scale),distance=bodyDistance(q,body)*scale;
  if(distance>=walker.radius+.002)return false;
- const n=bodyNormal(q,body),bodyMass=Math.max(.0001,(bodyVolume(body)*body.ratio+(body.waterVolume||0))*1000*scale**3),ip=1/80,ib=body.held?0:1/bodyMass,total=ip+ib;
+ const n=bodyNormal(q,body),bodyMass=Math.max(.0001,(bodyVolume(body)*body.ratio+(body.waterVolume||0))*1000*scale**3),ip=1/(walker.mass||80),ib=body.held?0:1/bodyMass,total=ip+ib;
  const penetration=Math.max(0,walker.radius-distance+.0001),relative=walker.velocity.reduce((s,v,k)=>s+(v-body.velocity[k]*scale)*n[k],0),impulse=Math.max(0,-relative)/total;
  for(let k=0;k<3;k++){walker.position[k]+=n[k]*penetration*ip/total;body.position[k]-=n[k]*penetration*ib/total/scale;walker.velocity[k]+=n[k]*impulse*ip;body.velocity[k]-=n[k]*impulse*ib/scale;}
  return true;

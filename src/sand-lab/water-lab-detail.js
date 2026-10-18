@@ -3,6 +3,7 @@ import {AIR_SAMPLE_GLSL} from './water-lab-air.js';
 import * as THREE from 'three';
 import {DetailFlowField,DETAIL_ENVIRONMENT_GLSL,detailFluidMotion,projectDetailSurface,detailContact,emptyGeometryUniforms} from './water-lab-detail-environment.js';
 import {WATER_MATERIAL} from '../water-material.js';
+import {particleRelease} from './particulate-material.js';
 import {QUAD_VERTEX} from '../shaders.js';
 import {BEACH_WIND_GLSL,windAt} from '../beach-wind.js';
 import {hash,clamp,NEIGHBORS} from './water-lab-model.js';
@@ -12,8 +13,11 @@ export const DETAIL_CAPACITY=32768;
 // solver parcel. Refining the same volume must not multiply its foam supply.
 export function detailEmissionWeight(spacing,scale,neighbors=18,activity=null){
   const h=spacing*scale,support=clamp((neighbors-2)/10,0,1);
-  const weber=activity===null?Infinity:WATER_MATERIAL.density*h*activity*activity/WATER_MATERIAL.surfaceTension;
-  return (h/.25)**3*support*support*clamp((weber-2)/18,0,1);
+  const release=activity===null?Infinity:particleRelease({yieldStress:0,surfaceTension:WATER_MATERIAL.surfaceTension},
+    {speed:activity,density:WATER_MATERIAL.density,length:h}).ratio;
+  // Same Weber threshold and rate as before, expressed through the shared
+  // stress-vs-binding model used by dry and cohesive sand.
+  return (h/.25)**3*support*support*clamp((release-1)/9,0,1);
 }
 export function detailAirExposure(lab,i){
   const neighbors=lab.gpu?.neighbors;if(!neighbors)return 1;
@@ -173,7 +177,7 @@ export class LabDetail {
     // simulation, optical integration, or shadow instances.
     this.activeSpan=Math.min(this.capacity,Math.max(this.activeSpan,this.cursor+this.pending));
     this.contact.update(lab,this.cpu);
-    const u=this.u;u.uDetailFlow.value=!!lab.count&&(this.count>0||this.pending>0);u.uDetailCollision.value=!!lab.u&&!!lab.solid;u.uDetailSpacing.value=lab.spacing||.25;
+    const u=this.u;u.uDetailFlow.value=!!lab.count&&(this.count>0||this.pending>0||lab.grains?.active||lab.sand?.windEvents?.length>0);u.uDetailCollision.value=!!lab.u&&!!lab.solid;u.uDetailSpacing.value=lab.spacing||.25;
     if(u.uDetailFlow.value)this.flow.update(lab,this.cpu);
     if(lab.u)Object.assign(u,lab.u);if(lab.air){lab.air.update(lab,jet);Object.assign(u,lab.air.u);}else u.uAirEnabled.value=false;
     if(lab.motion){const previous=this.previousMotion||lab.motion;u.uPreviousContainer.value.fromArray(previous.position);u.uPreviousTilt.value=previous.tilt;u.uPreviousPitch.value=previous.pitch||0;u.uWallPitchSpeed.value=lab.motion.pitchVelocity||0;u.uPreviousSpin.value=previous.spin;u.uWallVelocity.value.fromArray(lab.motion.velocity);u.uWallTiltSpeed.value=lab.motion.tiltVelocity;u.uWallSpinSpeed.value=lab.motion.spinVelocity;}

@@ -24,6 +24,15 @@ export class SandLab extends WaterLab{
  waterAt(p){if(!this.fluidIndex)this.indexFluid();const {bins,reach}=this.fluidIndex,c=p.map(v=>Math.floor(v/reach)),velocity=[0,0,0];let density=0;for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)for(const i of bins.get((c[0]+x+512)+(c[1]+y+512)*1024+(c[2]+z+512)*1048576)||[]){const o=i*4,q=1-((p[0]-this.positions[o])**2+(p[1]-this.positions[o+1])**2+(p[2]-this.positions[o+2])**2)/(reach*reach);if(q<=0)continue;const w=315/(512*Math.PI)*q*q*q;density+=w;for(let k=0;k<3;k++)velocity[k]+=this.velocities[o+k]*w;}return {density,velocity:velocity.map(v=>v/Math.max(.00001,density))};}
  sample(p){return this.waterAt(p).density;}
  occupancyOutsideCapsule(p,radius){const reach=radius+this.spacing*.65;let wet=0;for(const [x,z] of [[1,0],[-1,0],[0,1],[0,-1]])wet+=clamp((this.sample([p[0]+x*reach,p[1],p[2]+z*reach])-.12)/.55,0,1);return wet*.25;}
+ playerWater(p,radius){
+  const reach=radius+this.spacing*.65,velocity=[0,0,0];let density=0;
+  for(const [x,z] of [[1,0],[-1,0],[0,1],[0,-1]]){const sample=this.waterAt([p[0]+x*reach,p[1],p[2]+z*reach]),w=clamp((sample.density-.12)/.55,0,1);density+=w/4;for(let k=0;k<3;k++)velocity[k]+=sample.velocity[k]*this.spec.scale*w/4;}
+  return {density,velocity:velocity.map(v=>v/Math.max(.00001,density))};
+ }
+ playerEnvironment(eye,eyeHeight){
+  const scale=this.spec.scale,p=eye.map((v,k)=>(v-(k===1?eyeHeight*.45:0))/scale);
+  return {air:createSandWind(this)(p).map(v=>v*scale)};
+ }
  bedDelta(p){return this.sand?this.sand.height(p[0],p[2])-Math.max(-.3,(p[2]-1)*.48):0;}
  solid(p,includePlayer=true,bounded=true,exclude=null){if(!this.sand)return super.solid(p,includePlayer,bounded);this.syncSandUniforms();let d=(p[1]-this.sand.height(p[0],p[2]))*.65;const cellX=clamp(Math.floor((p[0]+5.5)/11*32),0,31),cellZ=clamp(Math.floor((p[2]+4.9)/9.8*32),0,31),bins=this.u.uSandBins.value.image.data,parcels=this.u.uSandParcels.value.image.data;const cell=(cellZ*32+cellX)*16,overflow=bins[cell+15]===-2;for(let j=0,inside=p[0]>=this.u.uSandMin.value.x&&p[0]<=this.u.uSandMax.value.x&&p[1]>=this.u.uSandMin.value.y&&p[1]<=this.u.uSandMax.value.y&&p[2]>=this.u.uSandMin.value.z&&p[2]<=this.u.uSandMax.value.z;inside&&j<(overflow?this.sand.parcels.length:16);j++){const index=overflow?j:bins[cell+j];if(index<0)break;if(sandIsTracer(this.sand.parcels[index]))continue;const o=index*12,q=shapeDistance(this.sand.parcels[index],p),k=parcels[o+8],h=Math.max(k-Math.abs(d-q),0)/Math.max(k,.00001);d=Math.min(d,q)-h*h*k*.25;}for(const b of this.balls)if(b!==exclude&&Math.hypot(...p.map((v,k)=>v-b.position[k]))-b.radius*1.5<d)d=Math.min(d,bodyDistance(p,b));if(includePlayer)d=Math.min(d,this.playerDistance(p));return bounded?Math.min(d,5.5-Math.abs(p[0]),4.9-Math.abs(p[2]),9-p[1]):d;}
  walkerContact(p){const scale=this.spec.scale,q=p.map(v=>v/scale),distance=this.solid(q,false)*scale;for(const b of this.balls){if(b.held)continue;if(bodyDistance(q,b)*scale<=distance+.00001)return {distance,normal:bodyNormal(q,b),resolve:(walker,probe)=>{playerBodyContact(walker,b,probe,scale);this.revision++;}};}return {distance,normal:normalAt(q,x=>this.solid(x,false))};}

@@ -1040,3 +1040,41 @@ seconds of sustained maximum wind. All transfers conserve sand stock. A 128-poin
 GPU comparison of surface wind/impinging jets agreed with the CPU within 7.7e-6
 lab velocity units. Grain-motion error remains below 1.9e-7. CPU stock transport
 and bonded-load evaluation remain CPU work; fine grain motion runs on the GPU.
+
+### Material-dependent grains and environmental player forces (test 12)
+
+Fine-particle release now uses `particulate-material.js`: forcing stress versus
+binding stress (cohesion/yield plus surface tension), with density, dispersion,
+drag and albedo as material properties. Water's existing Weber gate is expressed
+through the same function without changing its tuned response. Sand moisture and
+bond memory continuously raise the threshold and reduce dispersion. Wet bed and
+SDF deposits, including carved deposits, can shed fine stock under extreme wind
+or strong water shear; they are no longer categorically excluded. Still water
+shields the bed from wind. Removed stock remains conserved and deposits normally.
+
+Dry grains have independently staggered births, wider surface sampling and
+velocity spread, and size-dependent drag. Individual Gaussian sizes and the
+8,192-instance cap are unchanged. The existing GPU flow atlas carries submerged
+grains, with density-dependent settling; the CPU reference uses the same model.
+The rendering keeps covariance projection and SH response, with warmer mineral
+albedo and a modest ground-bounce approximation. Four occupied-water path samples
+use the water's existing solute extinction/scattering when grains are submerged.
+These are visual tracers of finite transported sand packets, not an independent
+mass source or a fully resolved grain solver. The generalized release function is
+a foundation for later materials, not a conversion of all historical tests.
+
+The test-12 player is an 80 kg capsule with bounded input acceleration, ground
+friction, air drag, and occupancy-weighted liquid velocity including vertical
+wave motion. Idle controls no longer zero external momentum. Moving bodies and
+the player exchange opposing impulses; existing player water displacement remains
+active. Space still jumps on land and increases buoyancy in water. Liquid probes
+run once per frame rather than once per collision substep. Player contacts, sand
+stock and emission remain CPU work; fine grain motion and flow reconstruction use
+the GPU when available. Diagnostics report player position, speed and immersion.
+
+Validation covers conservative dry/wet/carved emission, air versus submerged
+forcing, dispersion and birth timing, preserved water gating, frame subdivision,
+wind-driven player motion, current/wave advection, body impulses, jumping,
+flotation, slope stability and walking speed. GPU grain-motion probes span
+multiple drag coefficients and air/submerged gravity (maximum error 2.4e-7 lab
+units in the local preview). Prior test modules are unchanged.
