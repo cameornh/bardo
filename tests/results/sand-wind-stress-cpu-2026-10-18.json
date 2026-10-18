@@ -1,0 +1,32 @@
+{
+  "0": {
+    "seconds": 30,
+    "medianMs": 0.23785700000001953,
+    "p95Ms": 1.266982999999982,
+    "maxParcels": 6,
+    "finalParcels": 6,
+    "massError": 0,
+    "windTransport": 0,
+    "breaks": 0
+  },
+  "40": {
+    "seconds": 30,
+    "medianMs": 2.0222700000001623,
+    "p95Ms": 4.8184369999999035,
+    "maxParcels": 38,
+    "finalParcels": 38,
+    "massError": 1.9113599591946695e-12,
+    "windTransport": 0.10369858480570569,
+    "breaks": 0
+  },
+  "80": {
+    "seconds": 30,
+    "medianMs": 1.853063999999904,
+    "p95Ms": 3.293314999999893,
+    "maxParcels": 38,
+    "finalParcels": 38,
+    "massError": 1.7692514120426495e-12,
+    "windTransport": 0.12011633154183217,
+    "breaks": 0
+  }
+}

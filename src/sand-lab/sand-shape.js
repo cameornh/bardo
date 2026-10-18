@@ -4,6 +4,7 @@ export const shapeRadius=p=>p.shapeRadius??Math.cbrt(p.mass/(p.packing*4*Math.PI
 // It is geometry (also used by collision queries), not a blur of the image.
 // A cut keeps the narrower brush boundary; fresh airborne clumps use the original kernel.
 export const shapeBlend=p=>p.cuts?.length?Math.min(.08,shapeRadius(p)*.5):(p.surfaceBlend??Math.min(.08,shapeRadius(p)*.5));
+export const sandIsTracer=p=>!!p.windborne&&!p.held&&!p.anchored;
 export const shapeHeight=p=>shapeRadius(p)*(p.aspect||1);
 // Flattened deposits conserve occupied volume. This conservative ellipsoid
 // distance is shared by the CPU collider and the GPU terrain query.
@@ -42,6 +43,6 @@ export function cutShape(p,point,radius){
 // Two-texel CSG operations follow the headers in the same texture.
 export function packSandShapes(parcels){
  const headers=new Float32Array(parcels.length*12),cuts=[];
- parcels.forEach((p,i)=>{headers.set([...p.position,shapeRadius(p),p.wet,p.aspect||1,parcels.length*3+cuts.length/4,p.cuts?.length||0,shapeBlend(p),0,0,0],i*12);for(const c of p.cuts||[])cuts.push(...c.offset.map((v,k)=>v+p.position[k]),c.radius,c.aspect||1,0,0,0);});
+ parcels.forEach((p,i)=>{headers.set([...p.position,sandIsTracer(p)?-1:shapeRadius(p),p.wet,p.aspect||1,parcels.length*3+cuts.length/4,p.cuts?.length||0,shapeBlend(p),0,0,0],i*12);for(const c of p.cuts||[])cuts.push(...c.offset.map((v,k)=>v+p.position[k]),c.radius,c.aspect||1,0,0,0);});
  const data=new Float32Array(headers.length+cuts.length);data.set(headers);data.set(cuts,headers.length);return {headers,cuts:new Float32Array(cuts),data};
 }

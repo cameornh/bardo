@@ -959,3 +959,54 @@ the surrounding bed. Sand-only CPU stepping measured 0.38 ms median / 1.22 ms
 p95 over 64 simulated seconds; these are not whole-frame timings. Sand physics
 still uses the CPU, with the surface and water using their existing GPU paths.
 Results and before/after images: `tests/results/sand-surface-*-2026-10-18.*`.
+
+### Wind transport and bonded sand loading (2026-10-18)
+
+Test 12 now uses the existing obstacle-aware wind field and wind brush for
+sand. Dry exposed stock is lifted into short, heavy hops; wetter material and
+dried material with retained cohesion require stronger wind. Stock is deducted
+from its source and returned through normal deposition. The work is bounded to
+192 distributed bed probes per erosion update, 32 airborne wind aggregates and
+128 total aggregates at which new wind entrainment pauses. Existing material is
+never deleted to meet those limits.
+
+Fine airborne detail is a separate 2,048-slot GPU ping-pong simulation with
+exact drag/gravity integration, solid contact removal, and a CPU reference.
+These tan, translucent, covariance-projected Gaussians use directional sky SH
+and direct sunlight. They represent already mobilized stock: they neither add
+another mass source nor draw their parent aggregates as opaque flying spheres.
+They are visual tracers, not individually mass-carrying simulated grains.
+
+Bonded deposits now transfer gravitational and aerodynamic forces, and bending
+moments, down a cached support graph. Multiple supporting paths share loads by
+estimated contact area. Contact sampling accounts for CSG cuts. Sustained
+excess load breaks a bond and releases the dependent pieces; spherical bonded
+clusters can tumble. Wet bonds are intentionally very forgiving. Evaporation
+smoothly reduces strength toward the existing roughly 20% residual adhesion,
+without changing a retained shape merely because it crosses a drying threshold.
+Small dry piles continue to settle through the existing friction/repose path.
+
+This is a **CPU lumped-load fracture approximation**, not elastic finite-element
+sand or a grain-scale soil solver. Strength is an artistic parameter (1.6 MPa at
+full bond); the support graph uses paths toward grounded material. Fracture
+occurs at inter-aggregate contacts, not arbitrary cracks through one CSG term.
+Cut/flattened fragments translate while spherical clusters can rotate. Water,
+air-field computation and fine-grain motion retain their GPU paths. Camera LOD
+does not affect any load or transport calculation.
+
+With `qa=1`, use **Short wet overhang**, **Long wet overhang**,
+**Wind-loaded sand column**, **Dry structure (retained bond)** and
+**Stress sand 3 s**. The last button advances sand alone with uniform diagnostic
+wind; Resume uses the full obstacle-aware world simulation. **Wind erosion
+fixture** provides a low view of the beach with water spray/lens film disabled
+for inspection. Diagnostics report load relative to strength and broken bonds.
+
+Validation covers stable wet/dried short overhangs, gravitational failure of
+long overhangs, stronger wind required for wet columns than dried ones,
+conservative entrainment/deposition, submerged surfaces, separate water/wind
+budgets, contact caching and frame-independent fine-grain integration. GPU
+motion matched 32 CPU probes within 1.86e-7 lab units. A 30-second sand-only run
+with 66×66 cells and a short bonded structure cost 0.24 ms median / 1.27 ms p95
+in calm air, and 2.02 ms / 4.82 ms at 40 m/s, with a maximum of 38 aggregates.
+This is **not a whole-scene frame-rate claim**. Stock error stayed below 2e-12
+lab cubic units. Results: `tests/results/sand-wind-stress-cpu-2026-10-18.json`.

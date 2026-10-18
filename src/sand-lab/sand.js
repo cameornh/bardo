@@ -1,7 +1,9 @@
+import {SandStress,cross,sandWindForce} from './sand-stress.js';
+import {erodeSand} from './sand-wind.js';
 import {BoundsGrid} from './spatial-bounds.js';
 import {SandShapeStamp} from './sand-cache.js';
 import {sandAdhesion,sandFriction} from './sand-material.js';
-import {shapeRadius,shapeHeight,shapeDistance,shapeBlend,cutShape} from './sand-shape.js';
+import {shapeRadius,sandIsTracer,shapeHeight,shapeDistance,shapeBlend,cutShape} from './sand-shape.js';
 import {sandFeet,sandColumn,hasSandBond,supportsSand,loosePatches} from './sand-support.js';
 // Conservative sand stock, packing, retained moisture and mobile aggregates.
 // Coordinates are lab units; `mass` is solid-grain volume (multiply by rho and scale³).
@@ -38,11 +40,11 @@ export class SandBed{
   const a=clamp((x+5.5)/this.dx,0,this.n-1),b=clamp((z+4.9)/this.dz,0,this.n-1),i=Math.floor(a),j=Math.floor(b),wx=cubicWeights(a-i),wz=cubicWeights(b-j);let h=0;
   for(let z0=0;z0<4;z0++)for(let x0=0;x0<4;x0++)h+=this.heightAt(clamp(j+z0-1,0,this.n-1)*this.n+clamp(i+x0-1,0,this.n-1))*wx[x0]*wz[z0];return h;
  }
- distance(p){let d=(p[1]-this.height(p[0],p[2]))*.65;for(const a of this.parcels){if(a.held||a.mass<=0)continue;d=union(d,shapeDistance(a,p),shapeBlend(a));}return d;}
+ distance(p){let d=(p[1]-this.height(p[0],p[2]))*.65;for(const a of this.parcels){if(a.held||a.mass<=0||sandIsTracer(a))continue;d=union(d,shapeDistance(a,p),shapeBlend(a));}return d;}
  // Bonded deposits are persistent volumetric terms of the same terrain SDF.
  // They keep their own material instead of mixing into the entire dry column.
- contactDistance(p,radius,exclude=null,ceiling=Infinity,looseGroup=null){let d=(p[1]-radius-this.height(p[0],p[2]))*.65;for(const a of this.parcels){if(!a.anchored||a.held||a.mass<=0||a.id===exclude||a.position[1]>ceiling||(looseGroup&&a.layerGroup===looseGroup&&!hasSandBond(a)))continue;const r=aggregateRadius(a);if(Math.hypot(p[0]-a.position[0],p[1]-a.position[1],p[2]-a.position[2])-r-radius>d+.08)continue;d=union(d,shapeDistance(a,p)-radius,Math.min(.08,r*.5));}return d;}
- materialAt(p){let d=(p[1]-this.height(p[0],p[2]))*.65,wet=this.sample(p[0],p[2]);for(const a of this.parcels){const r=aggregateRadius(a),q=shapeDistance(a,p),k=shapeBlend(a),h=clamp(.5+.5*(d-q)/Math.max(Math.min(.08,r*.5),.00001));wet=wet*(1-h)+a.wet*h;d=union(d,q,k);}return wet;}
+ contactDistance(p,radius,exclude=null,ceiling=Infinity,looseGroup=null){let d=(p[1]-radius-this.height(p[0],p[2]))*.65;for(const a of this.parcels){if(!a.anchored||a.held||a.mass<=0||(a.id===exclude||exclude?.has?.(a.id))||a.position[1]>ceiling||(looseGroup&&a.layerGroup===looseGroup&&!hasSandBond(a)))continue;const r=aggregateRadius(a);if(Math.hypot(p[0]-a.position[0],p[1]-a.position[1],p[2]-a.position[2])-r-radius>d+.08)continue;d=union(d,shapeDistance(a,p)-radius,Math.min(.08,r*.5));}return d;}
+ materialAt(p){let d=(p[1]-this.height(p[0],p[2]))*.65,wet=this.sample(p[0],p[2]);for(const a of this.parcels){if(sandIsTracer(a))continue;const r=aggregateRadius(a),q=shapeDistance(a,p),k=shapeBlend(a),h=clamp(.5+.5*(d-q)/Math.max(Math.min(.08,r*.5),.00001));wet=wet*(1-h)+a.wet*h;d=union(d,q,k);}return wet;}
  sample(x,z,array=this.wet){return this.weights(x,z).reduce((s,[k,w])=>s+array[k]*w,0);}
  totalMass(){return this.mass.reduce((a,b)=>a+b,0)+this.parcels.reduce((a,b)=>a+b.mass,0);}
  update(){
@@ -85,7 +87,7 @@ export class SandBed{
   // A height column underneath a raised SDF deposit is not its surface.
   // Keep a separate material parcel on wet/raised supports, even when dry.
   const raised=this.parcels.some(p=>p!==parcel&&p.anchored&&!p.held&&p.mass>0&&supportsSand(p,parcel));
-  if(cohesive(parcel)||(parcel.layer&&hasSandBond(parcel))||raised||this.sample(parcel.position[0],parcel.position[2])>.05){
+  if((cohesive(parcel)||(parcel.layer&&hasSandBond(parcel))||raised||this.sample(parcel.position[0],parcel.position[2])>.05)&&!(parcel.windborne&&!raised)){
    parcel.layer=true;
    if(amount>=parcel.mass&&raised&&!hasSandBond(parcel)&&!parcel.looseResolved){
     const patches=loosePatches(parcel,()=>this.nextId++);
@@ -152,6 +154,7 @@ export class SandBed{
    // memory do not vanish when moisture does, so a dried sculpture stays put.
    const delta=new Float64Array(this.mass.length),waterDelta=delta.slice(),volumeDelta=delta.slice();for(let j=1;j<this.n-1;j++)for(let i=1;i<this.n-1;i++){const k=j*this.n+i;for(const q of [k+1,k+this.n]){const diff=this.heightAt(k)-this.heightAt(q),from=diff>0?k:q,to=diff>0?q:k;if(sandAdhesion(this.wet[from],this.memory[from])>=.9)continue;const reach=q===k+1?this.dx:this.dz,slope=sandFriction(this.wet[from],this.memory[from]),excess=Math.abs(diff)-reach*slope-.12*this.memory[from];if(excess>0){const flow=Math.min(this.mass[from]*.08,excess*this.area*this.packing[from]*Math.min(.18,h*.6));if(flow>0)this.dirty=true;delta[from]-=flow;delta[to]+=flow;waterDelta[from]-=flow*this.wet[from];waterDelta[to]+=flow*this.wet[from];volumeDelta[from]-=flow/this.packing[from];volumeDelta[to]+=flow/this.packing[from];this.memory[to]=Math.max(this.memory[to],this.memory[from]);}}}for(let k=0;k<delta.length;k++){const next=this.mass[k]+delta[k],volume=this.mass[k]/this.packing[k]+volumeDelta[k];if(next>1e-12){this.wet[k]=clamp((this.mass[k]*this.wet[k]+waterDelta[k])/next);this.packing[k]=clamp(next/Math.max(1e-12,volume),SAND.packing,SAND.maxPacking);}this.mass[k]=next;}
   }
+  erodeSand(this,dt,wind,scale,sampleWater);
   this.stepParcels(dt,sampleWater,wind,scale,rain,waterSpacing);
   this.parcels=this.parcels.filter(p=>p.mass>0);this.update();
  }
@@ -199,7 +202,7 @@ export class SandBed{
   if(this.optimizations?.sandCache!==false&&unchanged)return;
   for(const p of this.parcels){
    if(!p.anchored||p.held||p.mass<=0)continue;
-   const adhesion=sandAdhesion(p.wet,p.memory||0);if(adhesion>=.9)continue;
+   const adhesion=sandAdhesion(p.wet,p.memory||0);if(adhesion>=.9||((p.memory||0)>=.34&&hasSandBond(p)))continue;
    const r=aggregateRadius(p);
    if(p.layer&&!p.cuts?.length&&(p.memory||0)<.34){const goal=Math.min(.18,r*1.8),old=shapeBlend(p);if(Math.abs(goal-old)>1e-5)p.surfaceBlend=old+(goal-old)*(1-Math.exp(-dt*4));}
    const height=shapeHeight(p),e=Math.max(.0001,Math.min(.01,height*.1));
@@ -241,10 +244,12 @@ export class SandBed{
   this.settleLayers(dt,scale);
   // A loose support can slide, spread or detach during this very step.
   this.releaseUnsupported();
+  (this.stress??=new SandStress()).step(this,dt,wind,scale,sampleWater);
   const samples=new Map(),batchContact=new Map();
   // Sampling the centre alone misses water displaced by the sand itself.
   // Probe just outside its surface, including while it is held or bonded.
   for(const p of this.parcels){
+   if(p.fractureTime>0){p.fractureTime-=dt;if(p.fractureTime<=0)p.fractureIgnore=null;}
    let water=sampleWater(p.position),contact=water.density>.065;
    if(!contact){const reach=aggregateRadius(p)+waterSpacing*.65;
     for(const axis of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]){
@@ -265,7 +270,7 @@ export class SandBed{
    if(p.held||p.anchored||p.mass<=0)continue;
    // A wet grab falls as a cohesive shape; it does not rain down one grid cell
    // at a time. Dry grains remain independent until they enter the bed field.
-   const key=cohesive(p)&&p.batch?p.batch:p,group=groups.get(key)||[];
+   const key=hasSandBond(p)&&p.batch?p.batch:p,group=groups.get(key)||[];
    group.push(p);groups.set(key,group);
   }
   const connected=[];
@@ -279,31 +284,35 @@ export class SandBed{
    }
   }
   for(const group of connected){
-   let mass=0;const velocity=[0,0,0];
-   for(const p of group){const water=samples.get(p).water,immersed=clamp(water.density*1.6),density=aggregateDensity(p.wet),air=wind(p.position),v=p.velocity.slice();
+   let mass=0;const velocity=[0,0,0],nextVelocity=new Map();
+   for(const p of group){const water=samples.get(p).water,immersed=clamp(water.density*1.6),density=aggregateDensity(p.wet),air=wind(p.position),v=p.velocity.slice(),force=sandWindForce(p,wind,scale),kg=p.mass*2650*scale**3,area=Math.PI*(aggregateRadius(p)*scale)**2*Math.max(.3,p.aspect||1),forceSize=Math.hypot(...force),relativeSpeed=Math.sqrt(forceSize/Math.max(1e-12,.5*1.225*.9*area)),dragLimit=1/(1+forceSize*dt/Math.max(1e-12,kg*relativeSpeed));
     v[1]+=9.81/scale*(immersed/density-1)*dt;
-    for(let k=0;k<3;k++){v[k]+=(water.velocity[k]-v[k])*(1-Math.exp(-dt*immersed*3));v[k]+=(air[k]-v[k])*dt*.06*(1-immersed);velocity[k]+=v[k]*p.mass;}mass+=p.mass;
+    for(let k=0;k<3;k++){v[k]+=(water.velocity[k]-v[k])*(1-Math.exp(-dt*immersed*3));v[k]+=p.windborne?(air[k]-v[k])*(1-Math.exp(-dt*2.5))*(1-immersed):force[k]/Math.max(1e-12,kg)/scale*dt*dragLimit*(1-immersed);velocity[k]+=v[k]*p.mass;}mass+=p.mass;nextVelocity.set(p,v);
    }
    for(let k=0;k<3;k++)velocity[k]/=mass;
-   const delta=velocity.map(v=>v*dt);
+   const delta=velocity.map(v=>v*dt),center=[0,1,2].map(k=>group.reduce((s,p)=>s+p.mass*p.position[k],0)/mass),angular=[0,0,0];let inertia=0;
+   const tumble=group.length>1&&group.every(p=>!p.cuts?.length&&(!p.aspect||p.aspect===1));
+   if(tumble)for(const p of group){const arm=p.position.map((v,k)=>v-center[k]),spin=cross(arm,nextVelocity.get(p).map((v,k)=>v-velocity[k]));for(let k=0;k<3;k++)angular[k]+=(spin[k]+.4*aggregateRadius(p)**2*(p.angularVelocity?.[k]||0))*p.mass;inertia+=p.mass*(arm.reduce((s,v)=>s+v*v,0)+.4*aggregateRadius(p)**2);}
+   const omega=angular.map(v=>v/Math.max(1e-12,inertia)),rate=Math.hypot(...omega);if(rate>2)for(let k=0;k<3;k++)omega[k]*=2/rate;
+   const offsets=new Map(group.map(p=>{const arm=p.position.map((v,k)=>v-center[k]),speed=Math.hypot(...omega),axis=omega.map(v=>v/Math.max(1e-12,speed)),angle=speed*dt,turn=cross(axis,arm),dot=axis.reduce((s,v,k)=>s+v*arm[k],0);return [p,arm.map((v,k)=>v*(Math.cos(angle)-1)+turn[k]*Math.sin(angle)+axis[k]*dot*(1-Math.cos(angle)))];}));
    // Preserve the shape at the basin bounds as well as at sand contact.
    for(const k of [0,2]){const edge=k===0?5.45:4.85;let lo=-Infinity,hi=Infinity;for(const p of group){lo=Math.max(lo,-edge-p.position[k]);hi=Math.min(hi,edge-p.position[k]);}delta[k]=clamp(delta[k],lo,hi);}
    for(const p of group)if(p.departingFrom){const parent=this.parcels.find(q=>q.id===p.departingFrom);if(!parent||p.position.reduce((sum,v,k)=>sum+(v-parent.position[k])*velocity[k],0)<0)p.departingFrom=null;}
    // Dry stock lands on its underside. Inflating the collider by a spherical
    // radius also accepts a nearby side wall, which can pin a loose cap in air.
    const distance=t=>{let d=Infinity;for(const p of group){
-    const center=p.position.map((v,k)=>v+delta[k]*t),bond=hasSandBond(p),ceiling=bond?Infinity:center[1]-.00001,looseGroup=bond?null:p.layerGroup;
-    if(p.cuts?.length){for(const f of sandFeet(p))d=Math.min(d,this.contactDistance(center.map((v,k)=>v+f[k]),0,p.departingFrom,ceiling,looseGroup));}
-    else if(!bond)d=Math.min(d,this.contactDistance([center[0],center[1]-shapeHeight(p),center[2]],0,p.departingFrom,ceiling,looseGroup));
-    else d=Math.min(d,this.contactDistance(center,shapeHeight(p),p.departingFrom,ceiling,looseGroup));
+    const center=p.position.map((v,k)=>v+(delta[k]+offsets.get(p)[k])*t),bond=hasSandBond(p),ceiling=bond?Infinity:center[1]-.00001,looseGroup=bond?null:p.layerGroup;
+    if(p.cuts?.length){for(const f of sandFeet(p))d=Math.min(d,this.contactDistance(center.map((v,k)=>v+f[k]),0,p.fractureIgnore||p.departingFrom,ceiling,looseGroup));}
+    else if(!bond)d=Math.min(d,this.contactDistance([center[0],center[1]-shapeHeight(p),center[2]],0,p.fractureIgnore||p.departingFrom,ceiling,looseGroup));
+    else d=Math.min(d,this.contactDistance(center,shapeHeight(p),p.fractureIgnore||p.departingFrom,ceiling,looseGroup));
    }return d;};
-   const reach=Math.hypot(...delta),radius=Math.min(...group.map(aggregateRadius)),steps=Math.min(64,Math.max(1,Math.ceil(reach/Math.max(.005,radius*.5))));
+   const reach=Math.max(...group.map(p=>Math.hypot(...delta.map((v,k)=>v+offsets.get(p)[k])))),radius=Math.min(...group.map(aggregateRadius)),steps=Math.min(64,Math.max(1,Math.ceil(reach/Math.max(.005,radius*.5))));
    const start=distance(0),escaping=start<=.0005&&distance(1)>start+.0001;
    // An explicit push may start inside the deposit it was cut from. Let that
    // outward motion detach; only incoming contact should immediately bond.
    let hit=start<=.0005&&!escaping,travel=hit?0:1,previous=0;
    for(let i=1;!hit&&!escaping&&i<=steps;i++){const t=i/steps;if(distance(t)<=.0005){let lo=previous,hi=t;for(let j=0;j<9;j++){const mid=(lo+hi)*.5;if(distance(mid)>.0005)lo=mid;else hi=mid;}travel=hi;hit=true;}previous=t;}
-   for(const p of group){for(let k=0;k<3;k++)p.position[k]+=delta[k]*travel;p.velocity=velocity.slice();}
+   for(const p of group){for(let k=0;k<3;k++)p.position[k]+=(delta[k]+offsets.get(p)[k])*travel;const spin=cross(omega,p.position.map((v,k)=>v-center[k]-delta[k]*travel));p.velocity=velocity.map((v,k)=>v+spin[k]);p.angularVelocity=omega.slice();}
    if(hit)for(const p of group)this.deposit(p,p.mass);
   }
   // Depositing dry stock can consume its old supporting parcel. Do not leave

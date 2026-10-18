@@ -1,0 +1,9 @@
+{
+  "fixture": "3 seconds of gravity and uniform diagnostic wind",
+  "backend": "CPU bonded loads / conservative sand; GPU airborne grains",
+  "massError": 0,
+  "peakLoad": 0.5904927134558148,
+  "breaks": 4,
+  "grainEmissions": 0,
+  "anchored": 12
+}
