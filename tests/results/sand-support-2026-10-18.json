@@ -1,0 +1,158 @@
+{
+  "gpu": {
+    "batched": {
+      "backend": "GPU",
+      "sizes": [
+        150,
+        67,
+        257,
+        1,
+        175
+      ],
+      "batchError": 0,
+      "cpuError": 0.0001049041748046875,
+      "countsEqual": true,
+      "readbacksPerStep": 1,
+      "pass": true
+    },
+    "base": {
+      "error": 0.000004082918167114258,
+      "boundaryError": 0.000004082918167114258,
+      "backend": "GPU",
+      "pass": true
+    },
+    "beach": {
+      "backend": "GPU",
+      "particles": 150,
+      "transportError": 0.00000762939453125,
+      "countsEqual": true,
+      "sdfError": 1.0814819462190428e-7,
+      "worst": {
+        "p": [
+          -0.5,
+          0.10999999940395355,
+          0.36000001430511475
+        ],
+        "cpu": -0.051406975720785786,
+        "gpu": -0.05140708386898041,
+        "normal": [
+          -0.8005736062952374,
+          -0.3575146370105745,
+          0.480900390129427
+        ],
+        "gpuNormal": [
+          -0.8005740642547607,
+          -0.3575105369091034,
+          0.4809027314186096
+        ]
+      },
+      "sandAndTiltedCupMaxError": 0.0000013709068298339844,
+      "pass": true
+    },
+    "reconstruction": {
+      "error": 6.412409880307557e-7,
+      "macroError": 0,
+      "macroCells": 1452,
+      "pass": true
+    },
+    "atmosphere": {
+      "backend": "GPU",
+      "samples": 18,
+      "maxRadianceError": 0.0000022618262551787893,
+      "tolerance": 0.0001,
+      "pass": true
+    },
+    "sandMaterial": [
+      {
+        "sandSize": 33,
+        "samples": 32,
+        "maxMoistureError": 0.0000036640325032921695,
+        "maxDistanceError": 6.510988686536656e-7,
+        "pass": true
+      },
+      {
+        "sandSize": 65,
+        "samples": 32,
+        "maxMoistureError": 0.000002299671341687848,
+        "maxDistanceError": 3.186527106346926e-7,
+        "pass": true
+      },
+      {
+        "sandSize": 97,
+        "samples": 32,
+        "maxMoistureError": 7.965871615667197e-7,
+        "maxDistanceError": 4.224793681006922e-7,
+        "pass": true
+      }
+    ]
+  },
+  "mixedDrop": {
+    "fixture": "sand after another 8 seconds",
+    "sandBackend": "CPU",
+    "waterBackend": "GPU",
+    "massError": 7.105427357601002e-15,
+    "clumps": 1,
+    "base": {
+      "position": [
+        0,
+        1.4507303568233354,
+        3.5
+      ],
+      "wet": 0,
+      "mass": 0
+    },
+    "top": {
+      "position": [
+        0,
+        1.494465675585183,
+        3.5
+      ],
+      "wet": 0.9374174037168425,
+      "memory": 0.95,
+      "anchored": true,
+      "adhesion": 1,
+      "height": 0.22,
+      "groundGap": 0.0018185265803456474
+    }
+  },
+  "dryLayer": {
+    "fixture": "sand after another 8 seconds",
+    "sandBackend": "CPU",
+    "waterBackend": "GPU",
+    "massError": 2.842170943040401e-14,
+    "clumps": 13,
+    "base": {
+      "position": [
+        0,
+        1.48,
+        3.5
+      ],
+      "wet": 0.9250014618855016,
+      "mass": 0.07686463536104667
+    },
+    "top": {
+      "position": [
+        0,
+        1.860115474018896,
+        3.5
+      ],
+      "wet": 0,
+      "memory": 0,
+      "aspect": 0.7500077388941158,
+      "anchored": true,
+      "adhesion": 0,
+      "height": 0.06011143792331947,
+      "groundGap": 0.5834022405459776
+    }
+  },
+  "cpuSettling": {
+    "scope": "CPU sand step only, 16 simulated seconds; no water solver or rendering",
+    "peakParcels": 26,
+    "finalParcels": 13,
+    "looseStock": 0.01608931072819272,
+    "depositedFraction": 0.3984579579837875,
+    "massError": -2.1316282072803006e-13,
+    "medianMs": 0.8172050000000013,
+    "p95Ms": 3.0542260000000283
+  }
+}

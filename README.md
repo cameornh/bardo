@@ -902,3 +902,28 @@ The existing local preview's `qa=1` controls include layer landing, soaking,
 accelerated drying, and sustained compaction fixtures. This is a coarse parcel
 and yield model, not a grain-resolved granular solver; large loose mounds are
 approximated by flattened SDF supports. Earlier scenes are unchanged.
+
+### Sand support and loose overhangs (2026-10-18)
+
+Test 12 resolves a fresh loose deposit on raised sand into at most 25 smaller
+surface patches, once per deposit. They spread, follow their individual supports,
+and accelerate down slopes beyond the dry angle of repose. Unsupported edges fall;
+dry material reaching the dry ground rejoins its column stock. Wet material keeps
+its adhesive shape. Patches from the same loose deposit overlap in the smooth SDF
+but cannot stack or prop one another up as rigid slabs. This remains a coarse
+CPU granular approximation, not individual simulated grains.
+
+Support now distinguishes compression from below from an adhesive connection.
+Loose sand cannot suspend other sand through a tensile bond. The rooted support
+graph is refreshed after settling and deposition as well as before them. Cut
+shapes use lower surfaces sampled from their actual CSG intervals, rather than
+the empty underside of the original brush sphere. Disconnected cut pieces also
+fall independently. Geometry and material caches skip unchanged settling work;
+cached and reference results agree through wetting and support removal.
+
+The local `qa=1` controls include **Mixed wet / dry drop** and **Settle layers 8 s**.
+Checks cover edge shedding, wet caps on moving dry supports, cut-away support,
+mass/moisture retention, and bounded subdivision. The 346-test suite and build
+passed, followed by the additional cache-equivalence test. Existing GPU/CPU
+checks all passed; support and settling still run on the CPU. Numerical results
+and the settled fixture screenshot are in `tests/results/sand-support-2026-10-18.*`.
