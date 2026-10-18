@@ -1,0 +1,19 @@
+{
+  "fixture": "current sand loading",
+  "backend": "CPU bonded loads / conservative sand; GPU airborne grains",
+  "massError": 6.039613253960852e-13,
+  "peakLoad": 0.00377732331477057,
+  "breaks": 0,
+  "windTransport": 0.05436071448319254,
+  "grainEmissions": 60708,
+  "grains": {
+    "alive": 751,
+    "onScreen": 388,
+    "visiblePixels": 640,
+    "maxAlpha": 0.9999533891677856,
+    "emitted": 60708,
+    "nonFinite": 0,
+    "capacity": 8192
+  },
+  "anchored": 38
+}

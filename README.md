@@ -966,11 +966,11 @@ Test 12 now uses the existing obstacle-aware wind field and wind brush for
 sand. Dry exposed stock is lifted into short, heavy hops; wetter material and
 dried material with retained cohesion require stronger wind. Stock is deducted
 from its source and returned through normal deposition. The work is bounded to
-192 distributed bed probes per erosion update, 32 airborne wind aggregates and
-128 total aggregates at which new wind entrainment pauses. Existing material is
-never deleted to meet those limits.
+192 distributed bed probes plus up to 64 brush-local probes per erosion update,
+and 32 airborne wind aggregates. This budget is independent of water-mobilized
+aggregates. Existing material is never deleted to meet those limits.
 
-Fine airborne detail is a separate 2,048-slot GPU ping-pong simulation with
+Fine airborne detail is a separate 8,192-slot GPU ping-pong simulation with
 exact drag/gravity integration, solid contact removal, and a CPU reference.
 These tan, translucent, covariance-projected Gaussians use directional sky SH
 and direct sunlight. They represent already mobilized stock: they neither add
@@ -1010,3 +1010,33 @@ with 66×66 cells and a short bonded structure cost 0.24 ms median / 1.27 ms p95
 in calm air, and 2.02 ms / 4.82 ms at 40 m/s, with a maximum of 38 aggregates.
 This is **not a whole-scene frame-rate claim**. Stock error stayed below 2e-12
 lab cubic units. Results: `tests/results/sand-wind-stress-cpu-2026-10-18.json`.
+
+
+### Sand wind coupling correction (test 12)
+
+Sand surface forces now evaluate the current obstacle-aware wind directly rather
+than interpolating the coarse air lattice through buried zero-velocity cells.
+A narrow brush samples its actual ray hit, including below the terrain cell size.
+At direct incidence the brush spreads along the surface and lifts grains instead
+of having its momentum canceled into the ground. CPU sand and GPU fine grains
+use matching local forcing; water retains its existing air lattice.
+
+Deposited dry stock is considered before the bed, and eight of the 32 airborne
+stock slots are reserved for brush transport. Stronger entrainment and denser
+fine tracers make the response visible without enlarging individual Gaussians.
+The fine tracer pool is bounded at 8,192. Grains removed from the surface remain
+accounted for as transported stock and return on landing. The bounded beach
+also removes outward/upward driving at its side walls so stock settles there;
+previously invisible packets hovered at the boundary indefinitely, exhausting
+all available erosion slots after the first few seconds.
+
+QA now has a dry dune in **Wind erosion fixture**, plus **Wind brush fixture**
+and **Hold wind brush 3 s**. **Inspect sand stress** reads back live GPU grains
+and measures visible rendered pixels, rather than only counting births. These
+fixtures are explicit resets; ordinary scene setup and prior tests are unchanged.
+Regression tests exercise actual sloped-surface wind, narrow brushes between
+cells at three resolutions, brush budget reservation, dry deposits and twenty
+seconds of sustained maximum wind. All transfers conserve sand stock. A 128-point
+GPU comparison of surface wind/impinging jets agreed with the CPU within 7.7e-6
+lab velocity units. Grain-motion error remains below 1.9e-7. CPU stock transport
+and bonded-load evaluation remain CPU work; fine grain motion runs on the GPU.

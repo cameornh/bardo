@@ -1,0 +1,97 @@
+{
+  "batched": {
+    "backend": "GPU",
+    "sizes": [
+      150,
+      67,
+      257,
+      1,
+      175
+    ],
+    "batchError": 0,
+    "cpuError": 0.0001049041748046875,
+    "countsEqual": true,
+    "readbacksPerStep": 1,
+    "pass": true
+  },
+  "base": {
+    "error": 0.000004082918167114258,
+    "boundaryError": 0.000004082918167114258,
+    "backend": "GPU",
+    "pass": true
+  },
+  "beach": {
+    "backend": "GPU",
+    "particles": 150,
+    "transportError": 0.00000762939453125,
+    "countsEqual": true,
+    "sdfError": 1.0814819462190428e-7,
+    "worst": {
+      "p": [
+        -0.5,
+        0.10999999940395355,
+        0.36000001430511475
+      ],
+      "cpu": -0.051406975720785786,
+      "gpu": -0.05140708386898041,
+      "normal": [
+        -0.8005736062952374,
+        -0.3575146370105745,
+        0.480900390129427
+      ],
+      "gpuNormal": [
+        -0.8005740642547607,
+        -0.3575105369091034,
+        0.4809027314186096
+      ]
+    },
+    "sandAndTiltedCupMaxError": 0.0000013709068298339844,
+    "pass": true
+  },
+  "reconstruction": {
+    "error": 6.412409880307557e-7,
+    "macroError": 0,
+    "macroCells": 1452,
+    "pass": true
+  },
+  "atmosphere": {
+    "backend": "GPU",
+    "samples": 18,
+    "maxRadianceError": 0.0000022618262551787893,
+    "tolerance": 0.0001,
+    "pass": true
+  },
+  "sandAir": {
+    "samples": 128,
+    "maxError": 0.000007660839318829327,
+    "pass": true
+  },
+  "grains": {
+    "samples": 32,
+    "maxError": 1.8541483726153274e-7,
+    "pass": true
+  },
+  "sandMaterial": [
+    {
+      "sandSize": 33,
+      "samples": 32,
+      "maxMoistureError": 0.0000036640325032921695,
+      "maxDistanceError": 1.1066686350647004e-7,
+      "pass": true
+    },
+    {
+      "sandSize": 65,
+      "samples": 32,
+      "maxMoistureError": 0.000001172941943461403,
+      "maxDistanceError": 8.381132629575738e-8,
+      "pass": true
+    },
+    {
+      "sandSize": 97,
+      "samples": 32,
+      "maxMoistureError": 3.40031714453912e-7,
+      "maxDistanceError": 7.901743737104283e-8,
+      "pass": true
+    }
+  ]
+}

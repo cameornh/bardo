@@ -286,6 +286,10 @@ export class SandBed{
   for(const group of connected){
    let mass=0;const velocity=[0,0,0],nextVelocity=new Map();
    for(const p of group){const water=samples.get(p).water,immersed=clamp(water.density*1.6),density=aggregateDensity(p.wet),air=wind(p.position),v=p.velocity.slice(),force=sandWindForce(p,wind,scale),kg=p.mass*2650*scale**3,area=Math.PI*(aggregateRadius(p)*scale)**2*Math.max(.3,p.aspect||1),forceSize=Math.hypot(...force),relativeSpeed=Math.sqrt(forceSize/Math.max(1e-12,.5*1.225*.9*area)),dragLimit=1/(1+forceSize*dt/Math.max(1e-12,kg*relativeSpeed));
+    // The finite test boundary stops stock, but must not keep blowing it
+    // upward forever there. Slide down the wall and return to the bed so
+    // stranded invisible packets cannot exhaust the entire wind budget.
+    if(p.windborne){let wall=false;for(const k of [0,2])if(Math.abs(p.position[k])>(k===0?5.43:4.83)&&p.position[k]*air[k]>0){air[k]=0;wall=true;}if(wall)air[1]=Math.min(0,air[1]);}
     v[1]+=9.81/scale*(immersed/density-1)*dt;
     for(let k=0;k<3;k++){v[k]+=(water.velocity[k]-v[k])*(1-Math.exp(-dt*immersed*3));v[k]+=p.windborne?(air[k]-v[k])*(1-Math.exp(-dt*2.5))*(1-immersed):force[k]/Math.max(1e-12,kg)/scale*dt*dragLimit*(1-immersed);velocity[k]+=v[k]*p.mass;}mass+=p.mass;nextVelocity.set(p,v);
    }
