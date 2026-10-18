@@ -1,0 +1,32 @@
+{
+  "sandBackend": "CPU",
+  "scope": "65x65 bed; four repeated dry drops over wet support; 64 simulated seconds",
+  "medianSandStepMs": 0.3830440000000408,
+  "p95SandStepMs": 1.2229240000000061,
+  "drops": [
+    {
+      "drop": 1,
+      "pieces": 7,
+      "height": 0.7402266604536653,
+      "massError": 5.684341886080802e-14
+    },
+    {
+      "drop": 2,
+      "pieces": 7,
+      "height": 0.7402266604536653,
+      "massError": 7.105427357601002e-14
+    },
+    {
+      "drop": 3,
+      "pieces": 7,
+      "height": 0.7402266604536653,
+      "massError": 7.815970093361102e-14
+    },
+    {
+      "drop": 4,
+      "pieces": 7,
+      "height": 0.7402266604536653,
+      "massError": 9.237055564881302e-14
+    }
+  ]
+}

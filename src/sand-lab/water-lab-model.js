@@ -110,19 +110,20 @@ vec4 bodyExtra(int i,int j){return texelFetch(uBodyExtra,ivec2((i*3+j)%256,(i*3+
 vec3 bodyLocal(vec3 p,int i){vec4 r=bodyExtra(i,1);vec3 q=p-texelFetch(uBodies,ivec2((i*2)%256,(i*2)/256),0).xyz;float cp=cos(r.z),sp=sin(r.z),c=cos(r.x),s=sin(r.x),a=cos(r.y),b=sin(r.y);q=vec3(q.x,cp*q.y+sp*q.z,-sp*q.y+cp*q.z);q=vec3(c*q.x+s*q.y,-s*q.x+c*q.y,q.z);return vec3(a*q.x-b*q.z,q.y,b*q.x+a*q.z);}
 float bodyDistance(vec3 p,int i){vec4 b=texelFetch(uBodies,ivec2((i*2)%256,(i*2)/256),0);if(bodyExtra(i,0).w<.5)return length(p-b.xyz)-b.w;vec3 q=bodyLocal(p,i);float radial=length(q.xz),r=b.w;return min(max(abs(radial-r*.84)-r*.16,abs(q.y)-r),max(radial-r,abs(q.y+r)-r*.16));}
 vec3 bodyNormal(vec3 p,int i){float e=max(.000001,min(.003,texelFetch(uBodies,ivec2((i*2)%256,(i*2)/256),0).w*.02));return normalize(vec3(bodyDistance(p+vec3(e,0,0),i)-bodyDistance(p-vec3(e,0,0),i),bodyDistance(p+vec3(0,e,0),i)-bodyDistance(p-vec3(0,e,0),i),bodyDistance(p+vec3(0,0,e),i)-bodyDistance(p-vec3(0,0,e),i)));}
-float sandParcelDistance(vec3 p,int index){vec4 a=texelFetch(uSandParcels,ivec2((index*2)%256,(index*2)/256),0),meta=texelFetch(uSandParcels,ivec2((index*2+1)%256,(index*2+1)/256),0);float aspect=meta.y>0.?meta.y:1.;vec3 v=p-a.xyz;v.y/=aspect;float d=(length(v)-a.w)*min(1.,aspect);for(int j=0;j<int(meta.w);j++){int i=int(meta.z)+j*2;vec4 cut=texelFetch(uSandParcels,ivec2(i%256,i/256),0);float ca=texelFetch(uSandParcels,ivec2((i+1)%256,(i+1)/256),0).x;ca=ca>0.?ca:1.;v=p-cut.xyz;v.y/=ca;float q=(length(v)-abs(cut.w))*min(1.,ca);d=max(d,cut.w>0.?-q:q);}return d;}
-float sandDistance(vec3 p){float d=(p.y-labFloor(p))*.65;if(uSandCount==0||any(lessThan(p,uSandMin))||any(greaterThan(p,uSandMax)))return d;ivec2 c=ivec2(clamp((p.xz+vec2(5.5,4.9))/vec2(11.,9.8)*32.,0.,31.));bool overflow=texelFetch(uSandBins,ivec2(c.x*16+15,c.y),0).r< -1.5;int count=overflow?uSandCount:16;for(int j=0;j<count;j++){int index=overflow?j:int(texelFetch(uSandBins,ivec2(c.x*16+j,c.y),0).r);if(index<0)break;vec4 a=texelFetch(uSandParcels,ivec2((index*2)%256,(index*2)/256),0);float q=sandParcelDistance(p,index),k=min(.08,a.w*.5),h=max(k-abs(d-q),0.)/max(k,.00001);d=min(d,q)-h*h*k*.25;}return d;}
+float sandParcelDistance(vec3 p,int index){vec4 a=texelFetch(uSandParcels,ivec2((index*3)%256,(index*3)/256),0),meta=texelFetch(uSandParcels,ivec2((index*3+1)%256,(index*3+1)/256),0);float aspect=meta.y>0.?meta.y:1.;vec3 v=p-a.xyz;v.y/=aspect;float d=(length(v)-a.w)*min(1.,aspect);for(int j=0;j<int(meta.w);j++){int i=int(meta.z)+j*2;vec4 cut=texelFetch(uSandParcels,ivec2(i%256,i/256),0);float ca=texelFetch(uSandParcels,ivec2((i+1)%256,(i+1)/256),0).x;ca=ca>0.?ca:1.;v=p-cut.xyz;v.y/=ca;float q=(length(v)-abs(cut.w))*min(1.,ca);d=max(d,cut.w>0.?-q:q);}return d;}
+float sandBlend(int index){int i=index*3+2;return texelFetch(uSandParcels,ivec2(i%256,i/256),0).r;}
+float sandDistance(vec3 p){float d=(p.y-labFloor(p))*.65;if(uSandCount==0||any(lessThan(p,uSandMin))||any(greaterThan(p,uSandMax)))return d;ivec2 c=ivec2(clamp((p.xz+vec2(5.5,4.9))/vec2(11.,9.8)*32.,0.,31.));bool overflow=texelFetch(uSandBins,ivec2(c.x*16+15,c.y),0).r< -1.5;int count=overflow?uSandCount:16;for(int j=0;j<count;j++){int index=overflow?j:int(texelFetch(uSandBins,ivec2(c.x*16+j,c.y),0).r);if(index<0)break;vec4 a=texelFetch(uSandParcels,ivec2((index*3)%256,(index*3)/256),0);float q=sandParcelDistance(p,index),k=sandBlend(index),h=max(k-abs(d-q),0.)/max(k,.00001);d=min(d,q)-h*h*k*.25;}return d;}
 
-// The material follows the same smooth union as geometry, so wet airborne
-// clumps keep their own moisture instead of inheriting the bed below them.
+// Geometry joins settled portions broadly; material mixing uses the narrower
+// grain kernel so smoothing does not make a dry layer inherit its wet support.
 float sandWetness(vec3 p){
  float size=float(textureSize(uSand,0).x);float wet=texture(uSand,clamp((p.xz+vec2(5.5,4.9))/vec2(11.,9.8),0.,1.)*((size-1.)/size)+vec2(.5/size)).g;
  if(uSandCount==0||any(lessThan(p,uSandMin))||any(greaterThan(p,uSandMax)))return wet;
  float d=(p.y-labFloor(p))*.65;ivec2 c=ivec2(clamp((p.xz+vec2(5.5,4.9))/vec2(11.,9.8)*32.,0.,31.));
  bool overflow=texelFetch(uSandBins,ivec2(c.x*16+15,c.y),0).r< -1.5;int count=overflow?uSandCount:16;
  for(int j=0;j<count;j++){int index=overflow?j:int(texelFetch(uSandBins,ivec2(c.x*16+j,c.y),0).r);if(index<0)break;
-  ivec2 uv=ivec2((index*2)%256,(index*2)/256);vec4 a=texelFetch(uSandParcels,uv,0);float q=sandParcelDistance(p,index),k=min(.08,a.w*.5),h=clamp(.5+.5*(d-q)/max(k,.00001),0.,1.);
-  wet=mix(wet,texelFetch(uSandParcels,ivec2((index*2+1)%256,(index*2+1)/256),0).r,h);d=mix(d,q,h)-k*h*(1.-h);
+  ivec2 uv=ivec2((index*3)%256,(index*3)/256);vec4 a=texelFetch(uSandParcels,uv,0);float q=sandParcelDistance(p,index),k=sandBlend(index),h=clamp(.5+.5*(d-q)/max(min(.08,a.w*.5),.00001),0.,1.);
+  wet=mix(wet,texelFetch(uSandParcels,ivec2((index*3+1)%256,(index*3+1)/256),0).r,h);float blend=max(k-abs(d-q),0.)/max(k,.00001);d=min(d,q)-blend*blend*k*.25;
  }return wet;
 }
 

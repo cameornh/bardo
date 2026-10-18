@@ -7,6 +7,8 @@ import {sandFeet} from './sand-support.js';
 export function installSandLayersQA({lab,camera,controls,panel,results,reset}){
  const air=()=>({density:0,velocity:[0,0,0]}),calm=()=>[0,0,0];let base,top;
  const finish=label=>{
+  const pause=panel.querySelector('#pause');if(pause)pause.textContent=lab.paused?'Resume':'Pause';
+  const wind=panel.querySelector('#wind'),windValue=panel.querySelector('#wind-value');if(wind)wind.value=String(lab.wind);if(windValue)windValue.textContent=String(lab.wind);
   lab.sand.update();lab.syncUniforms();lab.revision++;
   results.textContent=JSON.stringify({fixture:label,sandBackend:'CPU',waterBackend:lab.gpu.cpu?'CPU reference':'GPU',massError:lab.sand.totalMass()-lab.sand.initialMass,clumps:lab.sand.parcels.length,
    base:base&&{position:base.position,wet:base.wet,mass:base.mass},top:top&&{position:top.position,wet:top.wet,memory:top.memory,aspect:top.aspect,anchored:top.anchored,adhesion:sandAdhesion(top.wet,top.memory),height:shapeHeight(top),groundGap:Math.min(...sandFeet(top).map(f=>top.position[1]+f[1]-lab.sand.height(top.position[0]+f[0],top.position[2]+f[2])))}},null,2);
@@ -15,10 +17,14 @@ export function installSandLayersQA({lab,camera,controls,panel,results,reset}){
  const actions=[
   ['Dry layer on wet sand',()=>{
    reset();lab.paused=true;lab.wind=0;const bed=lab.sand;
-   const y=bed.height(0,3.5),make=(position,r,wet)=>{const p={id:bed.nextId++,position,velocity:[0,0,0],mass:4*Math.PI/3*r**3*.56,packing:.56,wet,memory:wet};bed.parcels.push(p);return p;};
-   base=make([0,y+.28,3.5],.32,.95);bed.deposit(base,base.mass);top=make([0,y+1,3.5],.19,0);bed.initialMass=bed.totalMass();
-   camera.position.set(1.25,y+1.2,5);controls.target.set(0,y+.48,3.5);camera.lookAt(controls.target);
-   run(8);finish('dry loose layer resting on wet sand');
+   const z=4.3,y=bed.height(0,z),make=(position,r,wet)=>{const p={id:bed.nextId++,position,velocity:[0,0,0],mass:4*Math.PI/3*r**3*.56,packing:.56,wet,memory:wet};bed.parcels.push(p);return p;};
+   base=make([0,y+.28,z],.32,.95);bed.deposit(base,base.mass);top=make([0,y+1,z],.19,0);bed.initialMass=bed.totalMass();
+   camera.position.set(1.25,y+1.2,z+1.5);controls.target.set(0,y+.48,z);camera.lookAt(controls.target);
+   finish('dry sand suspended above wet sand — Resume to watch the drop');
+  }],
+  ['Drop another dry handful',()=>{
+   if(!base)return;const bed=lab.sand,y=Math.max(...bed.parcels.map(p=>p.position[1]+shapeHeight(p)));
+   top={id:bed.nextId++,position:[base.position[0],y+.6,base.position[2]],velocity:[0,0,0],mass:4*Math.PI/3*.19**3*.56,packing:.56,wet:0,memory:0};bed.parcels.push(top);bed.initialMass=bed.totalMass();lab.paused=true;finish('another loose dry handful ready to drop');
   }],
   ['Soak loose layer 15 s',()=>{if(!top)return;const level=base.position[1]+.15;run(15,q=>({density:q[1]>level?1:0,velocity:[0,0,0]}));finish('loose surface has become wet and bonded');}],
   ['Dry layers 2 hours',()=>{if(!top)return;for(let i=0;i<480;i++){for(const p of lab.sand.parcels)p.wet=moisture(p.wet,false,15);lab.sand.stepParcels(.03,air,calm,lab.spec.scale,0,lab.spacing);}finish('both layers dry; retained shape and reduced adhesion');}],

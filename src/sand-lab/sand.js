@@ -1,8 +1,8 @@
 import {BoundsGrid} from './spatial-bounds.js';
 import {SandShapeStamp} from './sand-cache.js';
 import {sandAdhesion,sandFriction} from './sand-material.js';
-import {shapeRadius,shapeHeight,shapeDistance,cutShape} from './sand-shape.js';
-import {sandFeet,hasSandBond,supportsSand,loosePatches} from './sand-support.js';
+import {shapeRadius,shapeHeight,shapeDistance,shapeBlend,cutShape} from './sand-shape.js';
+import {sandFeet,sandColumn,hasSandBond,supportsSand,loosePatches} from './sand-support.js';
 // Conservative sand stock, packing, retained moisture and mobile aggregates.
 // Coordinates are lab units; `mass` is solid-grain volume (multiply by rho and scale³).
 export const SAND={packing:.56,maxPacking:.72,wettingSeconds:5,dryingSeconds:600,looseDensity:.55,wetDensity:1.7,cohesionWetness:.35};
@@ -38,11 +38,11 @@ export class SandBed{
   const a=clamp((x+5.5)/this.dx,0,this.n-1),b=clamp((z+4.9)/this.dz,0,this.n-1),i=Math.floor(a),j=Math.floor(b),wx=cubicWeights(a-i),wz=cubicWeights(b-j);let h=0;
   for(let z0=0;z0<4;z0++)for(let x0=0;x0<4;x0++)h+=this.heightAt(clamp(j+z0-1,0,this.n-1)*this.n+clamp(i+x0-1,0,this.n-1))*wx[x0]*wz[z0];return h;
  }
- distance(p){let d=(p[1]-this.height(p[0],p[2]))*.65;for(const a of this.parcels){if(a.held||a.mass<=0)continue;const r=aggregateRadius(a);d=union(d,shapeDistance(a,p),Math.min(.08,r*.5));}return d;}
+ distance(p){let d=(p[1]-this.height(p[0],p[2]))*.65;for(const a of this.parcels){if(a.held||a.mass<=0)continue;d=union(d,shapeDistance(a,p),shapeBlend(a));}return d;}
  // Bonded deposits are persistent volumetric terms of the same terrain SDF.
  // They keep their own material instead of mixing into the entire dry column.
  contactDistance(p,radius,exclude=null,ceiling=Infinity,looseGroup=null){let d=(p[1]-radius-this.height(p[0],p[2]))*.65;for(const a of this.parcels){if(!a.anchored||a.held||a.mass<=0||a.id===exclude||a.position[1]>ceiling||(looseGroup&&a.layerGroup===looseGroup&&!hasSandBond(a)))continue;const r=aggregateRadius(a);if(Math.hypot(p[0]-a.position[0],p[1]-a.position[1],p[2]-a.position[2])-r-radius>d+.08)continue;d=union(d,shapeDistance(a,p)-radius,Math.min(.08,r*.5));}return d;}
- materialAt(p){let d=(p[1]-this.height(p[0],p[2]))*.65,wet=this.sample(p[0],p[2]);for(const a of this.parcels){const r=aggregateRadius(a),q=shapeDistance(a,p),k=Math.min(.08,r*.5),h=clamp(.5+.5*(d-q)/Math.max(k,.00001));wet=wet*(1-h)+a.wet*h;d=d*(1-h)+q*h-k*h*(1-h);}return wet;}
+ materialAt(p){let d=(p[1]-this.height(p[0],p[2]))*.65,wet=this.sample(p[0],p[2]);for(const a of this.parcels){const r=aggregateRadius(a),q=shapeDistance(a,p),k=shapeBlend(a),h=clamp(.5+.5*(d-q)/Math.max(Math.min(.08,r*.5),.00001));wet=wet*(1-h)+a.wet*h;d=union(d,q,k);}return wet;}
  sample(x,z,array=this.wet){return this.weights(x,z).reduce((s,[k,w])=>s+array[k]*w,0);}
  totalMass(){return this.mass.reduce((a,b)=>a+b,0)+this.parcels.reduce((a,b)=>a+b.mass,0);}
  update(){
@@ -168,21 +168,48 @@ export class SandBed{
   const batch=this.nextBatch++;for(const p of anchored)if(!supported.has(p)){p.anchored=false;p.velocity=[0,0,0];p.batch=batch;}
   this.supportStamp.changed(anchored.filter(p=>p.anchored));
  }
+ // A dry patch needs a support footprint, not just one point of contact.
+ // Sample the upper face of real CSG stock; empty cuts and side bonds cannot
+ // create an invisible shelf. This also sees the sides of a stacked dry pile.
+ supportHeight(x,z,ceiling,exclude,looseGroup){
+  let height=this.height(x,z);
+  for(const a of this.parcels){
+   if(!a.anchored||a.held||a.mass<=0||a.id===exclude||a.position[1]>=ceiling||
+      (looseGroup&&a.layerGroup===looseGroup&&!hasSandBond(a)))continue;
+   for(const [,top] of sandColumn(a,x-a.position[0],z-a.position[2]))height=Math.max(height,a.position[1]+top);
+  }
+  return height;
+ }
+ looseSlope(p,r){
+  const height=(x,z)=>this.supportHeight(x,z,p.position[1],p.id,p.layerGroup),x=p.position[0],z=p.position[2],y=height(x,z);
+  const reach=r*1.35,friction=sandFriction(p.wet,p.memory||0);let best=0,axis=[0,0];
+  // Rotating the stencil once per parcel avoids a world-axis settling grid.
+  const phase=p.id*2.399963229728653;
+  for(let i=0;i<8;i++){const a=phase+i*Math.PI/4,dx=Math.cos(a),dz=Math.sin(a),slope=(y-height(x+dx*reach,z+dz*reach))/reach;
+   if(slope>friction+.04&&slope>best){best=slope;axis=[dx,dz];}
+  }
+  return {slope:best,axis};
+ }
  settleLayers(dt,scale){
   const shapeChanged=(this.layerStamp??=new SandShapeStamp()).changed(this.parcels),bedRevision=this.bedGeometryRevision||0;
   const loose=this.parcels.filter(p=>p.anchored&&!p.held&&p.mass>0&&sandAdhesion(p.wet,p.memory||0)<.9);
-  const material=loose.map(p=>`${p.id}:${p.wet}:${p.memory||0}`).join(','),active=loose.some(p=>p.spreadRemaining>1e-5||p.slideSpeed>1e-8);
+  const material=loose.map(p=>`${p.id}:${p.wet}:${p.memory||0}`).join(','),active=loose.some(p=>p.spreadRemaining>1e-5||p.slideSpeed>1e-8||(p.layer&&!p.cuts?.length&&(p.memory||0)<.34&&Math.abs(shapeBlend(p)-Math.min(.18,aggregateRadius(p)*1.8))>1e-5));
   const unchanged=!shapeChanged&&!this.dirty&&this.layerBedRevision===bedRevision&&this.layerMaterial===material&&!active;
   this.layerBedRevision=bedRevision;this.layerMaterial=material;
   if(this.optimizations?.sandCache!==false&&unchanged)return;
   for(const p of this.parcels){
    if(!p.anchored||p.held||p.mass<=0)continue;
    const adhesion=sandAdhesion(p.wet,p.memory||0);if(adhesion>=.9)continue;
-   const r=aggregateRadius(p),height=shapeHeight(p),e=Math.max(.0001,Math.min(.01,height*.1));
+   const r=aggregateRadius(p);
+   if(p.layer&&!p.cuts?.length&&(p.memory||0)<.34){const goal=Math.min(.18,r*1.8),old=shapeBlend(p);if(Math.abs(goal-old)>1e-5)p.surfaceBlend=old+(goal-old)*(1-Math.exp(-dt*4));}
+   const height=shapeHeight(p),e=Math.max(.0001,Math.min(.01,height*.1));
    const sdf=q=>this.contactDistance(q,0,p.id,p.position[1]-.00001,!hasSandBond(p)?p.layerGroup:null);
    const foot=[p.position[0],p.position[1]-height,p.position[2]],normal=[0,1,2].map(k=>{const a=foot.slice(),b=foot.slice();a[k]+=e;b[k]-=e;return sdf(a)-sdf(b);});
    const length=Math.hypot(...normal)||1;for(let k=0;k<3;k++)normal[k]/=length;
-   const slope=Math.hypot(normal[0],normal[2])/Math.max(.05,normal[1]),yieldSlope=sandFriction(p.wet,p.memory||0);let moved=false;
+   const supportNormalY=normal[1];
+   let slope=Math.hypot(normal[0],normal[2])/Math.max(.05,normal[1]);
+   if(!hasSandBond(p)){const edge=this.looseSlope(p,r);if(edge.slope>slope){const inv=1/Math.hypot(1,edge.slope);normal[0]=edge.axis[0]*edge.slope*inv;normal[1]=inv;normal[2]=edge.axis[1]*edge.slope*inv;slope=edge.slope;}}
+   const yieldSlope=sandFriction(p.wet,p.memory||0);let moved=false;
    // Plastic collapse of the initial loose lump widens its footprint too;
    // independently supported patches must not remain a rigid cap while only
    // their own individual ellipsoids flatten.
@@ -206,7 +233,7 @@ export class SandBed{
    if(!moved&&(p.memory||0)>=.34)continue;
    const bottom=[p.position[0],p.position[1]-shapeHeight(p),p.position[2]],distance=sdf(bottom);
    if(distance>.015){p.anchored=false;p.velocity=[0,0,0];continue;}
-   if(Math.abs(distance)>1e-5)p.position[1]-=distance/Math.max(.2,normal[1])*.7;
+   if(Math.abs(distance)>1e-5)p.position[1]-=distance/Math.max(.2,supportNormalY)*.7;
   }
  }
  stepParcels(dt,sampleWater,wind,scale,rain,waterSpacing){
@@ -262,9 +289,12 @@ export class SandBed{
    // Preserve the shape at the basin bounds as well as at sand contact.
    for(const k of [0,2]){const edge=k===0?5.45:4.85;let lo=-Infinity,hi=Infinity;for(const p of group){lo=Math.max(lo,-edge-p.position[k]);hi=Math.min(hi,edge-p.position[k]);}delta[k]=clamp(delta[k],lo,hi);}
    for(const p of group)if(p.departingFrom){const parent=this.parcels.find(q=>q.id===p.departingFrom);if(!parent||p.position.reduce((sum,v,k)=>sum+(v-parent.position[k])*velocity[k],0)<0)p.departingFrom=null;}
+   // Dry stock lands on its underside. Inflating the collider by a spherical
+   // radius also accepts a nearby side wall, which can pin a loose cap in air.
    const distance=t=>{let d=Infinity;for(const p of group){
     const center=p.position.map((v,k)=>v+delta[k]*t),bond=hasSandBond(p),ceiling=bond?Infinity:center[1]-.00001,looseGroup=bond?null:p.layerGroup;
     if(p.cuts?.length){for(const f of sandFeet(p))d=Math.min(d,this.contactDistance(center.map((v,k)=>v+f[k]),0,p.departingFrom,ceiling,looseGroup));}
+    else if(!bond)d=Math.min(d,this.contactDistance([center[0],center[1]-shapeHeight(p),center[2]],0,p.departingFrom,ceiling,looseGroup));
     else d=Math.min(d,this.contactDistance(center,shapeHeight(p),p.departingFrom,ceiling,looseGroup));
    }return d;};
    const reach=Math.hypot(...delta),radius=Math.min(...group.map(aggregateRadius)),steps=Math.min(64,Math.max(1,Math.ceil(reach/Math.max(.005,radius*.5))));

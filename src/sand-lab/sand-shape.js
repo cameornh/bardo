@@ -1,5 +1,9 @@
 const sphereVolume=r=>4*Math.PI/3*r**3;
 export const shapeRadius=p=>p.shapeRadius??Math.cbrt(p.mass/(p.packing*4*Math.PI/3*(p.aspect||1)));
+// Reconstruction blends settled grains over their local support spacing.
+// It is geometry (also used by collision queries), not a blur of the image.
+// A cut keeps the narrower brush boundary; fresh airborne clumps use the original kernel.
+export const shapeBlend=p=>p.cuts?.length?Math.min(.08,shapeRadius(p)*.5):(p.surfaceBlend??Math.min(.08,shapeRadius(p)*.5));
 export const shapeHeight=p=>shapeRadius(p)*(p.aspect||1);
 // Flattened deposits conserve occupied volume. This conservative ellipsoid
 // distance is shared by the CPU collider and the GPU terrain query.
@@ -34,9 +38,10 @@ export function cutShape(p,point,radius){
  return q;
 }
 
-// Headers keep wetness and a range into CSG data appended in the same texture.
+// Three-texel headers: position/radius, moisture/aspect/CSG range, blend width.
+// Two-texel CSG operations follow the headers in the same texture.
 export function packSandShapes(parcels){
- const headers=new Float32Array(parcels.length*8),cuts=[];
- parcels.forEach((p,i)=>{headers.set([...p.position,shapeRadius(p),p.wet,p.aspect||1,parcels.length*2+cuts.length/4,p.cuts?.length||0],i*8);for(const c of p.cuts||[])cuts.push(...c.offset.map((v,k)=>v+p.position[k]),c.radius,c.aspect||1,0,0,0);});
+ const headers=new Float32Array(parcels.length*12),cuts=[];
+ parcels.forEach((p,i)=>{headers.set([...p.position,shapeRadius(p),p.wet,p.aspect||1,parcels.length*3+cuts.length/4,p.cuts?.length||0,shapeBlend(p),0,0,0],i*12);for(const c of p.cuts||[])cuts.push(...c.offset.map((v,k)=>v+p.position[k]),c.radius,c.aspect||1,0,0,0);});
  const data=new Float32Array(headers.length+cuts.length);data.set(headers);data.set(cuts,headers.length);return {headers,cuts:new Float32Array(cuts),data};
 }

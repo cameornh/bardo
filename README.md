@@ -927,3 +927,35 @@ mass/moisture retention, and bounded subdivision. The 346-test suite and build
 passed, followed by the additional cache-equivalence test. Existing GPU/CPU
 checks all passed; support and settling still run on the CPU. Numerical results
 and the settled fixture screenshot are in `tests/results/sand-support-2026-10-18.*`.
+
+### Joined loose-sand surfaces (2026-10-18)
+
+Test 12's **Dry layer on wet sand** fixture now starts paused before the drop,
+farther up the beach. Resume shows the fall; **Drop another dry handful** allows
+repeated loading without replacing the support. The fixture no longer silently
+advances eight seconds before displaying its initial state.
+
+Settled loose portions gradually acquire broader, radius-relative SDF blending,
+joining their individual silhouettes into a continuous mound. This is surface
+reconstruction, not a screen blur; the CPU surface query and GPU collision/render
+field use the same widths. Material interpolation remains narrower so a dry
+surface does not acquire its support's wet appearance. New cuts use the narrower
+kernel to avoid filling the brush cut back in. Sand stock is conserved separately
+from this approximate reconstructed volume.
+
+A finite footprint now checks downhill support across eight directions, rather
+than relying only on the slope at a parcel's center. This sheds steep edges and
+prevents repeated deposits from building a stack of point-supported disks. Dry
+landing tests use the underside instead of an inflated spherical contact, which
+could previously catch on a side wall and re-anchor a clump above the ground.
+Wet adhesion and the support-removal checks are retained.
+
+Validation: all 351 numerical tests passed, followed by the 22 affected settling
+regressions after the final projection adjustment; the production build passed.
+Browser GPU checks passed at 33, 65 and 97 sand cells per side (maximum distance
+error 1.11e-7; moisture error 3.67e-6). Four successive dry drops conserved stock
+to below 1e-12 and retained seven supported clumps, with excess stock entering
+the surrounding bed. Sand-only CPU stepping measured 0.38 ms median / 1.22 ms
+p95 over 64 simulated seconds; these are not whole-frame timings. Sand physics
+still uses the CPU, with the surface and water using their existing GPU paths.
+Results and before/after images: `tests/results/sand-surface-*-2026-10-18.*`.
