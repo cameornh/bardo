@@ -1,5 +1,6 @@
+import {buildSandBins,sandCell} from './sand-bins.js';
 import {BoundsGrid,separateBodies} from './spatial-bounds.js';
-import {shapeRadius,sandIsTracer,shapeDistance,shapeBlend,packSandShapes} from './sand-shape.js';
+import {shapeRadius,shapeDistance,shapeBlend,packSandShapes} from './sand-shape.js';
 import {sandResolutionForWater} from './resolution.js';
 import {carryDistance,solidRayHit,waterRayHit,selectWaterParcels} from './interaction.js';
 import {cupWaterState} from './cup-water.js';
@@ -34,7 +35,7 @@ export class SandLab extends WaterLab{
   return {air:createSandWind(this)(p).map(v=>v*scale)};
  }
  bedDelta(p){return this.sand?this.sand.height(p[0],p[2])-Math.max(-.3,(p[2]-1)*.48):0;}
- solid(p,includePlayer=true,bounded=true,exclude=null){if(!this.sand)return super.solid(p,includePlayer,bounded);this.syncSandUniforms();let d=(p[1]-this.sand.height(p[0],p[2]))*.65;const cellX=clamp(Math.floor((p[0]+5.5)/11*32),0,31),cellZ=clamp(Math.floor((p[2]+4.9)/9.8*32),0,31),bins=this.u.uSandBins.value.image.data,parcels=this.u.uSandParcels.value.image.data;const cell=(cellZ*32+cellX)*16,overflow=bins[cell+15]===-2;for(let j=0,inside=p[0]>=this.u.uSandMin.value.x&&p[0]<=this.u.uSandMax.value.x&&p[1]>=this.u.uSandMin.value.y&&p[1]<=this.u.uSandMax.value.y&&p[2]>=this.u.uSandMin.value.z&&p[2]<=this.u.uSandMax.value.z;inside&&j<(overflow?this.sand.parcels.length:16);j++){const index=overflow?j:bins[cell+j];if(index<0)break;if(sandIsTracer(this.sand.parcels[index]))continue;const o=index*12,q=shapeDistance(this.sand.parcels[index],p),k=parcels[o+8],h=Math.max(k-Math.abs(d-q),0)/Math.max(k,.00001);d=Math.min(d,q)-h*h*k*.25;}for(const b of this.balls)if(b!==exclude&&Math.hypot(...p.map((v,k)=>v-b.position[k]))-b.radius*1.5<d)d=Math.min(d,bodyDistance(p,b));if(includePlayer)d=Math.min(d,this.playerDistance(p));return bounded?Math.min(d,5.5-Math.abs(p[0]),4.9-Math.abs(p[2]),9-p[1]):d;}
+ solid(p,includePlayer=true,bounded=true,exclude=null){if(!this.sand)return super.solid(p,includePlayer,bounded);this.syncSandUniforms();let d=(p[1]-this.sand.height(p[0],p[2]))*.65;const headers=this.u.uSandBins.value.image.data,indices=headers,cell=sandCell(p)*4,start=headers[cell],count=headers[cell+1];for(let j=0,inside=p[0]>=this.u.uSandMin.value.x&&p[0]<=this.u.uSandMax.value.x&&p[1]>=this.u.uSandMin.value.y&&p[1]<=this.u.uSandMax.value.y&&p[2]>=this.u.uSandMin.value.z&&p[2]<=this.u.uSandMax.value.z;inside&&j<count;j++){const a=this.sand.parcels[indices[4096+start+j]],q=shapeDistance(a,p),k=shapeBlend(a),h=Math.max(k-Math.abs(d-q),0)/Math.max(k,.00001);d=Math.min(d,q)-h*h*k*.25;}for(const b of this.balls)if(b!==exclude&&Math.hypot(...p.map((v,k)=>v-b.position[k]))-b.radius*1.5<d)d=Math.min(d,bodyDistance(p,b));if(includePlayer)d=Math.min(d,this.playerDistance(p));return bounded?Math.min(d,5.5-Math.abs(p[0]),4.9-Math.abs(p[2]),9-p[1]):d;}
  walkerContact(p){const scale=this.spec.scale,q=p.map(v=>v/scale),distance=this.solid(q,false)*scale;for(const b of this.balls){if(b.held)continue;if(bodyDistance(q,b)*scale<=distance+.00001)return {distance,normal:bodyNormal(q,b),resolve:(walker,probe)=>{playerBodyContact(walker,b,probe,scale);this.revision++;}};}return {distance,normal:normalAt(q,x=>this.solid(x,false))};}
  spawn(kind=this.objectMaterial,origin,direction,shape=this.objectShape){this.lightEditRevision=(this.lightEditRevision||0)+1;const radius=this.objectRadius;let distance=radius+Math.max(1/this.spec.scale,radius*.6);for(let i=0;i<120;i++){const p=origin.map((v,k)=>v+direction[k]*distance);if(Math.abs(p[0])<5.5-radius&&Math.abs(p[2])<4.9-radius)break;distance+=.15;}const b=makeBody(kind,shape,radius,origin.map((v,k)=>v+direction[k]*distance),direction.map(v=>v*1.1));this.balls.push(b);this.revision++;return b;}
  recolor(color){this.lightEditRevision=(this.lightEditRevision||0)+1;recolorLatest(this.balls,color);this.revision++;}
@@ -50,16 +51,11 @@ export class SandLab extends WaterLab{
    const packed=packSandShapes(parcels),rows=Math.max(1,Math.ceil(packed.data.length/1024));
    if(u.uSandParcels.value.image.height!==rows){u.uSandParcels.value.dispose();u.uSandParcels.value=floatTexture(new Float32Array(rows*256*4),256,rows);}
    u.uSandParcels.value.image.data.set(packed.data);
-   const bins=u.uSandBins.value.image.data;bins.fill(-1);this.sandBinOverflow=0;
-   const min=[Infinity,Infinity,Infinity],max=[-Infinity,-Infinity,-Infinity];
-   parcels.forEach((p,i)=>{
-    if(sandIsTracer(p))return;
-    const reach=shapeRadius(p)+Math.max(.1,shapeBlend(p)),minX=clamp(Math.floor((p.position[0]-reach+5.5)/11*32),0,31),maxX=clamp(Math.floor((p.position[0]+reach+5.5)/11*32),0,31),minZ=clamp(Math.floor((p.position[2]-reach+4.9)/9.8*32),0,31),maxZ=clamp(Math.floor((p.position[2]+reach+4.9)/9.8*32),0,31);
-    for(let z=minZ;z<=maxZ;z++)for(let x=minX;x<=maxX;x++){const o=(z*32+x)*16;let j=0;while(j<16&&bins[o+j]>=0)j++;if(j<16&&bins[o+j]!==-2)bins[o+j]=i;else{bins[o+15]=-2;this.sandBinOverflow++;}}
-    for(let k=0;k<3;k++){min[k]=Math.min(min[k],p.position[k]-reach);max[k]=Math.max(max[k],p.position[k]+reach);}
-   });
+   const bins=buildSandBins(parcels),height=bins.data.length/1024;
+   if(u.uSandBins.value.image.height!==height){u.uSandBins.value.dispose();u.uSandBins.value=floatTexture(bins.data,256,height);}
+   else u.uSandBins.value.image.data.set(bins.data);
    u.uSandBins.value.needsUpdate=true;u.uSandCount.value=parcels.length;
-   u.uSandMin.value.fromArray(Number.isFinite(min[0])?min:[0,0,0]);u.uSandMax.value.fromArray(Number.isFinite(max[0])?max:[0,0,0]);
+   u.uSandMin.value.fromArray(bins.min);u.uSandMax.value.fromArray(bins.max);this.sandBinMaxCount=bins.maxCount;
    this.sandGeometryBed=this.sand;this.sandShapeRevision=this.sand.shapeRevision;this.sandBinRebuilds=(this.sandBinRebuilds||0)+1;
   }else for(let i=0;i<parcels.length;i++)u.uSandParcels.value.image.data[i*12+4]=parcels[i].wet;
   u.uSandParcels.value.needsUpdate=true;this.sandRevision=this.sand.revision;

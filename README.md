@@ -1078,3 +1078,40 @@ wind-driven player motion, current/wave advection, body impulses, jumping,
 flotation, slope stability and walking speed. GPU grain-motion probes span
 multiple drag coefficients and air/submerged gravity (maximum error 2.4e-7 lab
 units in the local preview). Prior test modules are unchanged.
+
+### Sand edge and repeated-drop corrections (test 12)
+
+Flattened ellipsoids scale their distance by their aspect ratio. The old spatial
+bounds added the blend width directly to the radius, cutting off still-negative
+sand at rectangular bin/bounds edges. Bounds now include the full aspect-scaled
+blend support and a contact/normal margin. CPU and GPU use the same packed,
+variable-length cell lists. Crowded cells retain their local candidates instead
+of falling back to every sand parcel in the scene. Headers and indices share one
+texture, keeping the existing fragment sampler budget.
+
+Large scoops now reduce occupied columns into at most 24 local portions in one
+bounded spatial pass, replacing repeated nearest-pair searches. Those portions
+are already resolved; landing no longer subdivides each into another 25 patches.
+An unheld, unbonded dry CSG shell resolves its occupied columns into loose stock,
+so a carved underside cannot freeze a dry overhang. Held selections and wet or
+previously bonded shapes keep their CSG. Mass, moisture and packing travel with
+all portions. Sand stock, settling and bonds remain on the CPU; field rendering
+and water constraints continue to use the GPU.
+
+A local CPU benchmark used a radius-1.8 scoop dropped onto wet ground for three
+seconds, with no water or wind sampling cost. Before/after pickup times at 65²,
+129² and 257² sand grids were approximately 25/8, 45/19 and 408/48 ms. Peak
+aggregate counts fell from 216/144/168 to 24 at all three resolutions. Sand-step
+95th-percentile times fell from 88/62/68 to 7/6/17 ms. These are individual local
+runs, not whole-scene frame-rate promises. Ordinary simulation and rendering also
+incur water, wind and lighting costs.
+
+Regression tests cover the former square cutoff, crowded cells, repeated large
+scoops and partial regrabs, dry-shell collapse, retained wet CSG and conserved
+stock. The GPU material check now probes real spatial bins with 128 samples at
+three grid sizes, including a 22-candidate cell and flattened surfaces. Maximum
+distance error was 5.2e-5 lab units; moisture error was 1.5e-4. Sloped height-field
+hardware interpolation is reported separately, with 1e-4 distance and 3e-4
+moisture tolerances. The explicit QA controls **Large dry scoop**, **Regrab dry
+mound** and **Flattened sand edge** reproduce these cases. Prior tests and saved
+terrain data are unchanged.

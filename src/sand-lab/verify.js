@@ -1,3 +1,4 @@
+import {buildSandBins} from './sand-bins.js';
 import {packSandShapes,cutShape} from './sand-shape.js';
 import {LabTransportGPU} from './transport-gpu.js';
 import {transportFluid} from './water-lab-transport.js';
@@ -27,10 +28,18 @@ export function verifySandMaterialGPU(renderer,base,n=65){
  sand.deposit(sand.parcels[2],sand.parcels[2].mass);
  u.uSand.value.image.data=sand.data;u.uSand.value.needsUpdate=true;u.uSandCount.value=sand.parcels.length;u.uSandMin.value.set(-1,-1,-1);u.uSandMax.value.set(1,2,1);
  const nibble=cutShape(sand.parcels[1],[.49,1.17,0],.1);if(nibble){nibble.position[2]+=.3;sand.parcels.push(nibble);u.uSandCount.value=sand.parcels.length;}sand.parcels.push(...[.15,.26].map(x=>({position:[x,.04,0],mass:.001,packing:.56,aspect:.75,wet:0,surfaceBlend:.13})));sand.parcels.push({position:[.2,1.2,0],mass:.02,packing:.56,wet:0,windborne:true});u.uSandCount.value=sand.parcels.length;const packed=packSandShapes(sand.parcels);u.uSandParcels.value.image.data.set(packed.data);
- const bins=u.uSandBins.value.image.data;for(let cell=0;cell<32*32;cell++){for(let j=0;j<sand.parcels.length;j++)bins[cell*16+j]=j;}
- for(const key of ['uSandParcels','uSandBins'])u[key].value.needsUpdate=true;
- const data=new Float32Array(32*4);for(let i=0;i<32;i++)data.set([-.4+(i%16)/15*.95,i<16?1.2:.04,0,0],i*4);
- const probe=floatTexture(data,32,1),target=new THREE.WebGLRenderTarget(32,1,{type:THREE.FloatType,depthBuffer:false}),scene=new THREE.Scene(),geometry=new THREE.PlaneGeometry(2,2),material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:`precision highp float;precision highp int;out vec4 outputValue;uniform sampler2D uProbe;${LAB_GEOMETRY_GLSL}void main(){vec3 p=texelFetch(uProbe,ivec2(gl_FragCoord.xy),0).xyz;outputValue=vec4(sandWetness(p),sandDistance(p),0,1);}`,uniforms:{...u,uProbe:{value:probe}},depthTest:false,depthWrite:false});scene.add(new THREE.Mesh(geometry,material));const old=renderer.getRenderTarget(),actual=new Float32Array(data.length);
- try{renderer.setRenderTarget(target);renderer.render(scene,new THREE.Camera());renderer.readRenderTargetPixels(target,0,0,32,1,actual);let error=0,distanceError=0;for(let i=0;i<32;i++){const p=Array.from(data.subarray(i*4,i*4+3));error=Math.max(error,Math.abs(actual[i*4]-sand.materialAt(p)));distanceError=Math.max(distanceError,Math.abs(actual[i*4+1]-sand.distance(p)));}return {sandSize:n,samples:32,maxMoistureError:error,maxDistanceError:distanceError,pass:error<1e-4&&distanceError<1e-4};}
+ // Hardware-linear B-spline height reads have finite interpolation precision;
+ // allow 0.03% moisture error after the narrow material blend on a sloping bed.
+ // Exercise real bin boundaries, flattened blend support, and a cell with
+ // more than the old 16-entry capacity, rather than putting all shapes in all bins.
+ for(let i=0;i<20;i++)sand.parcels.push({position:[2+(i%5)*.08,.07,1+Math.floor(i/5)*.08],mass:.0005,packing:.56,wet:0,aspect:.32,surfaceBlend:.18});
+ sand.parcels.push({position:[-.1,.08,2],mass:4*Math.PI/3*.5**3*.32*.56,packing:.56,wet:0,aspect:.32,surfaceBlend:.18});
+ const packedGeometry=packSandShapes(sand.parcels),rows=Math.max(1,Math.ceil(packedGeometry.data.length/1024)),shapeData=new Float32Array(rows*1024);shapeData.set(packedGeometry.data);u.uSandParcels.value.dispose();u.uSandParcels.value=floatTexture(shapeData,256,rows);u.uSandCount.value=sand.parcels.length;
+ const bins=buildSandBins(sand.parcels);u.uSandBins.value.dispose();u.uSandBins.value=floatTexture(bins.data,256,bins.data.length/1024);u.uSandMin.value.fromArray(bins.min);u.uSandMax.value.fromArray(bins.max);
+ const data=new Float32Array(128*4);for(let i=0;i<128;i++){
+  const p=i<32?[-.4+(i%16)/15*.95,i<16?1.2:.04,0]:i<80?[1.65+(i-32)/47*1.3,.07,1.1]:[-1.3+(i-80)/47*2.5,sand.height(-1.3+(i-80)/47*2.5,2)+.015,2];data.set([...p,0],i*4);
+ }
+ const probe=floatTexture(data,128,1),target=new THREE.WebGLRenderTarget(128,1,{type:THREE.FloatType,depthBuffer:false}),scene=new THREE.Scene(),geometry=new THREE.PlaneGeometry(2,2),material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:`precision highp float;precision highp int;out vec4 outputValue;uniform sampler2D uProbe;${LAB_GEOMETRY_GLSL}void main(){vec3 p=texelFetch(uProbe,ivec2(gl_FragCoord.xy),0).xyz;outputValue=vec4(sandWetness(p),sandDistance(p),sandHeight(p.xz),1);}`,uniforms:{...u,uProbe:{value:probe}},depthTest:false,depthWrite:false});scene.add(new THREE.Mesh(geometry,material));const old=renderer.getRenderTarget(),actual=new Float32Array(data.length);
+ try{renderer.setRenderTarget(target);renderer.render(scene,new THREE.Camera());renderer.readRenderTargetPixels(target,0,0,128,1,actual);let error=0,distanceError=0,heightError=0;for(let i=0;i<128;i++){const p=Array.from(data.subarray(i*4,i*4+3));error=Math.max(error,Math.abs(actual[i*4]-sand.materialAt(p)));distanceError=Math.max(distanceError,Math.abs(actual[i*4+1]-sand.distance(p)));heightError=Math.max(heightError,Math.abs(actual[i*4+2]-sand.height(p[0],p[2])));}return {sandSize:n,samples:128,maxCellCount:bins.maxCount,maxMoistureError:error,maxDistanceError:distanceError,maxHeightInterpolationError:heightError,moistureTolerance:.0003,distanceTolerance:.0001,pass:error<.0003&&distanceError<.0001};}
  finally{renderer.setRenderTarget(old);for(const x of [probe,target,geometry,material])x.dispose();for(const key of ['uSand','uBodyExtra','uSandParcels','uSandBins'])u[key].value.dispose();}
 }

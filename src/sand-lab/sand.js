@@ -65,8 +65,15 @@ export class SandBed{
   return mass>1e-14?{position:[point[0],Math.min(point[1],top-radius*.25),point[2]],mass,wet:water/mass,packing:mass/occupied,memory}:null;
  }
  extract(point,radius,velocity=[0,0,0],held=false,fraction=1,includeParcels=true){const created=[],small=radius<Math.min(this.dx,this.dz)*.7;if(small){const p=this.takeSmallSphere(point,radius,fraction);if(p)created.push({...p,velocity:velocity.slice(),held,id:this.nextId++});}else for(const [k,w] of this.footprint(point[0],point[2],radius)){const top=this.heightAt(k),x=(k%this.n)*this.dx-5.5,z=Math.floor(k/this.n)*this.dz-4.9,radial=Math.hypot(x-point[0],z-point[2]),half=Math.sqrt(Math.max(0,radius*radius-radial*radial)),depth=Math.max(0,Math.min(top,point[1]+half)-Math.max(this.base[k],point[1]-half)),amount=Math.min(this.mass[k],depth*this.packing[k]*this.area*fraction);if(amount<1e-8)continue;this.mass[k]-=amount;created.push({position:[x,top-depth*.5,z],mass:amount,wet:this.wet[k],packing:this.packing[k],memory:this.memory[k],velocity:velocity.slice(),held,id:this.nextId++});}
- // Combine adjacent extracted cells into bounded, unequal aggregates without losing mass.
- while(created.length>24){let small=0;for(let i=1;i<created.length;i++)if(created[i].mass<created[small].mass)small=i;const p=created.splice(small,1)[0];let q=created[0],best=Infinity;for(const candidate of created){const distance=candidate.position.reduce((sum,v,k)=>sum+(v-p.position[k])**2,0);if(distance<best){best=distance;q=candidate;}}const m=q.mass+p.mass;for(let k=0;k<3;k++)q.position[k]=(q.position[k]*q.mass+p.position[k]*p.mass)/m;mergeStock(q,p,p.mass);}
+ // A fixed spatial reduction replaces the quadratic repeated nearest merge.
+ // Keep a handful's independent portions bounded before they ever hit a layer.
+ if(created.length>24){
+  const seeds=[[0,0],...Array.from({length:7},(_,i)=>{const a=i*Math.PI*2/7;return [.38*Math.cos(a),.38*Math.sin(a)];}),...Array.from({length:16},(_,i)=>{const a=(i+.35)*Math.PI/8;return [.79*Math.cos(a),.79*Math.sin(a)];})],bins=new Array(24);
+  for(const p of created){let slot=0,best=Infinity;for(let i=0;i<seeds.length;i++){const d=(p.position[0]-point[0]-seeds[i][0]*radius)**2+(p.position[2]-point[2]-seeds[i][1]*radius)**2;if(d<best){best=d;slot=i;}}
+   const q=bins[slot];if(!q){bins[slot]=p;continue;}const total=q.mass+p.mass;for(let k=0;k<3;k++)q.position[k]=(q.position[k]*q.mass+p.position[k]*p.mass)/total;mergeStock(q,p,p.mass);
+  }
+  created.splice(0,created.length,...bins.filter(Boolean));
+ }
  if(!small)irregularize(created,this.dx,this.dz);
  const existing=[];
  for(const p of (includeParcels?this.parcels.slice():[]))if(!p.held&&p.mass>0&&(held||p.anchored)){
@@ -75,6 +82,9 @@ export class SandBed{
   q.id=this.nextId++;q.held=held;q.anchored=false;q.velocity=velocity.slice();q.departingFrom=held?null:p.id;this.parcels.push(q);existing.push(q);
  }
  const batch=this.nextBatch++;for(const p of [...created,...existing])p.batch=batch;
+ // These portions already resolve the scoop footprint. Subdividing each again
+ // into 25 landing patches turned one handful into hundreds of active clumps.
+ if(created.length>1)for(const p of created){p.looseResolved=true;p.layerGroup=`scoop-${batch}`;}
  this.parcels.push(...created);this.parcels=this.parcels.filter(p=>p.mass>0);this.releaseUnsupported();this.update();return [...created,...existing];}
  carve(point,radius){
   // Subtract the sphere's intersection with the exposed column stock. This
@@ -240,6 +250,14 @@ export class SandBed{
   }
  }
  stepParcels(dt,sampleWater,wind,scale,rain,waterSpacing){
+  // CSG preserves the selected shape while held and preserves clay after a
+  // cut. Unbonded dry grains cannot keep a hollow brush shell suspended after
+  // release. Resolve its actual occupied columns once into free portions.
+  const looseBatches=new Map();for(const p of this.parcels)if(!p.held&&!hasSandBond(p)&&p.mass>0)looseBatches.set(p.batch,(looseBatches.get(p.batch)||0)+1);
+  for(const p of this.parcels.slice())if(!p.held&&p.mass>0&&p.cuts?.length&&!hasSandBond(p)){
+   const limit=p.looseResolved?1:Math.max(1,Math.floor(24/(looseBatches.get(p.batch)||1))),parts=loosePatches(p,()=>this.nextId++,limit);
+   if(parts.length)this.parcels.push(...parts.slice(1));
+  }
   this.releaseUnsupported();
   this.settleLayers(dt,scale);
   // A loose support can slide, spread or detach during this very step.

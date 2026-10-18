@@ -15,6 +15,25 @@ export function installSandLayersQA({lab,camera,controls,panel,results,reset}){
  };
  const run=(seconds,water=air)=>{for(let i=0;i<Math.ceil(seconds*30);i++)lab.sand.step(1/30,water,calm,lab.spec.scale,0,lab.spacing);};
  const actions=[
+  ['Large dry scoop',()=>{
+   reset();lab.paused=true;lab.wind=0;const bed=lab.sand;bed.wet.fill(0);bed.memory.fill(0);
+   const origin=[-1.7,bed.height(-1.7,3.2),3.2],t=performance.now(),pieces=bed.extract(origin,.9,[0,0,0],true),grabMs=performance.now()-t;
+   for(let k=0;k<bed.mass.length;k++)if(k%bed.n*bed.dx-5.5>-.2){bed.wet[k]=.95;bed.memory[k]=.95;}
+   for(const p of pieces){p.held=false;p.position[0]+=2.7;p.position[1]+=1.1;}
+   base=null;top=pieces[0];camera.position.set(3.5,3.6,5.6);controls.target.set(1,1.5,3.2);camera.lookAt(controls.target);
+   finish('large dry scoop falling onto a wet slope');results.textContent=JSON.stringify({...JSON.parse(results.textContent),grabMs},null,2);
+  }],
+  ['Regrab dry mound',()=>{
+   const bed=lab.sand,p=bed.parcels.find(p=>!p.held&&p.wet<.05);if(!p)return;
+   lab.paused=true;const point=p.position.map((v,k)=>v+(k===0?.15:0)),t=performance.now(),pieces=bed.extract(point,.45,[0,0,0],true),grabMs=performance.now()-t;
+   for(const q of pieces){q.held=false;q.position[0]-=1.1;q.position[1]+=.7;}
+   top=pieces[0];finish('partial dry regrab released beside the mound');results.textContent=JSON.stringify({...JSON.parse(results.textContent),grabMs},null,2);
+  }],
+  ['Flattened sand edge',()=>{
+   reset();lab.paused=true;lab.wind=0;const bed=lab.sand,y=bed.height(0,3.9);
+   top={id:bed.nextId++,position:[0,y+.08,3.9],velocity:[0,0,0],mass:4*Math.PI/3*.5**3*.32*.56,packing:.56,wet:0,memory:0,aspect:.32,surfaceBlend:.18,anchored:true,layer:true,looseResolved:true};bed.parcels.push(top);bed.initialMass=bed.totalMass();base=null;
+   camera.position.set(1.4,y+1.3,5.5);controls.target.set(0,y,3.9);camera.lookAt(controls.target);finish('flattened dry sand across several spatial bin boundaries');
+  }],
   ['Dry layer on wet sand',()=>{
    reset();lab.paused=true;lab.wind=0;const bed=lab.sand;
    const z=4.3,y=bed.height(0,z),make=(position,r,wet)=>{const p={id:bed.nextId++,position,velocity:[0,0,0],mass:4*Math.PI/3*r**3*.56,packing:.56,wet,memory:wet};bed.parcels.push(p);return p;};
