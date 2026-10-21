@@ -1,3 +1,4 @@
+import {installProgramSpecialization} from './program-specialization.js';
 import {inspectSandRay} from './wetness-view.js';
 import {installWetnessQA} from './wetness-qa.js';
 import {verifySandAir} from './sand-wind-verify.js';
@@ -41,7 +42,7 @@ window.addEventListener('error',e=>{$('errors').hidden=false;$('errors').textCon
 const camera=new THREE.PerspectiveCamera(55,1,.025,150),controls=new OrbitControls(camera,canvas);controls.enableDamping=true;controls.maxDistance=65;controls.minDistance=.15;
 const target=new THREE.WebGLRenderTarget(1,1,{type:THREE.FloatType,depthBuffer:false}),output=new THREE.Scene(),quadCamera=new THREE.Camera();output.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:TONEMAP_FRAGMENT,uniforms:{uImage:{value:target.texture}},depthTest:false,depthWrite:false})));
 const field={renderer,camera,target,output,quadCamera,resolution:new THREE.Vector2(),motion:new MotionDetail(),minPixelSigma:2,uniforms:{uView:{value:0},uSHDegree:{value:3}},water:{count:0,uniforms:{uWaterRoughness:{value:.14},uTurbidity:{value:0}}}};for(const name of ['beach','grass','grains','soft','optics','lightTest'])field[name]={count:0};
-const lab=new SandLab(renderer),draw=new WaterLabRenderer(field,lab);draw.mediumShadows.u.uMediumSize.value.set(16,12,16);lab.rain.rate=100;lab.radius=.75;
+const lab=new SandLab(renderer),draw=new WaterLabRenderer(field,lab);draw.mediumShadows.u.uMediumSize.value.set(16,12,16);lab.rain.rate=100;lab.radius=.75;installProgramSpecialization(renderer,()=>lab.optimizations.sandPrograms!==false);
 const resize=()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();const reduction=Math.min(1,960/innerWidth,640/innerHeight);field.resolution.set(Math.round(innerWidth*reduction),Math.round(innerHeight*reduction));};window.addEventListener('resize',resize);resize();
 function home(){camera.position.set(4.8,4,4.4);controls.target.set(0,.65,0);controls.update();}home();
 $('home').onclick=home;$('pause').onclick=()=>{lab.paused=!lab.paused;$('pause').textContent=lab.paused?'Resume':'Pause';};$('reset').onclick=()=>{lab.configure('ocean');lab.enabled=true;applyControls();updateResolution();};

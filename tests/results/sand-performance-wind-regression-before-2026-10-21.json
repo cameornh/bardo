@@ -1,0 +1,9 @@
+{
+  "description": "Isolated CPU sand reproduction before the late long-session fix. Same stationary-water and 24 m/s wind fixture as the new 40-second numerical regression; all earlier optimizations enabled, settlingIndex and patchFloor absent.",
+  "samples": [
+    {"frame":450,"simulatedSeconds":30,"parcels":60,"anchored":43,"sandMilliseconds":9.2721},
+    {"frame":480,"simulatedSeconds":32,"parcels":581,"anchored":557,"sandMilliseconds":1133.6592,"supportAndSettlingMilliseconds":904.3114},
+    {"frame":508,"simulatedSeconds":33.8667,"parcels":1017,"anchored":1012,"sandMilliseconds":3015.1479,"supportAndSettlingMilliseconds":2398.4983}
+  ],
+  "termination": "Stopped after the first CPU sand step exceeded three seconds. The normal browser preview also deteriorated to 0.2 FPS before this fix. These CPU samples do not include rendering or water simulation."
+}

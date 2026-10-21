@@ -29,7 +29,36 @@ export class PackedPointGrid {
 
 export class PackedNeighbors {
  constructor(){this.grid=new PackedPointGrid();this.capacity=0;}
- build(positions,spacing){
+ build(positions,spacing,bounds=false){
+  if(!bounds)return this.buildReference(positions,spacing);
+  const n=positions.length/4,reach=spacing*2.65,r2max=reach*reach,g=this.grid.build(positions,reach);
+  if(n>this.capacity){this.capacity=g.capacity;this.data=new Float32Array(this.capacity*NEIGHBORS);this.counts=new Uint16Array(this.capacity);this.x=new Float32Array(this.capacity);this.y=new Float32Array(this.capacity);this.z=new Float32Array(this.capacity);}
+  if(!this.data){this.data=new Float32Array(0);this.counts=new Uint16Array(0);}
+  this.data.fill(-1,0,n*NEIGHBORS);this.counts.fill(0,0,n);let overflow=0;const data=this.data,counts=this.counts,indices=g.indices,starts=g.starts;
+  if(!this.x||this.x.length<this.capacity){this.x=new Float32Array(this.capacity);this.y=new Float32Array(this.capacity);this.z=new Float32Array(this.capacity);}const xs=this.x,ys=this.y,zs=this.z;if(bounds)for(let a=0;a<n;a++){const o=indices[a]*4;xs[a]=positions[o];ys[a]=positions[o+1];zs[a]=positions[o+2];}
+  const pairs=(i,begin,end)=>{const o=i*4,px=positions[o],py=positions[o+1],pz=positions[o+2],row=i*NEIGHBORS;let count=counts[i];
+   for(let b=begin;b<end;b++){const x=px-xs[b];if(x*x>=r2max)continue;const y=py-ys[b],xy=x*x+y*y;if(xy>=r2max)continue;const z=pz-zs[b];if(xy+z*z>=r2max)continue;
+    const j=indices[b],otherCount=counts[j];if(count===NEIGHBORS||otherCount===NEIGHBORS){overflow++;continue;}
+    data[row+count++]=j;data[j*NEIGHBORS+otherCount]=i;counts[j]=otherCount+1;
+   }counts[i]=count;
+  };
+  for(let c=0;c<g.cellCount;c++){
+   const start=starts[c],end=starts[c+1],o=c*3;
+   for(let a=start;a<end;a++)pairs(indices[a],a+1,end);
+   for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++){
+    if(z<0||z===0&&y<0||z===0&&y===0&&x<=0)continue;
+    const other=g.cell(g.xyz[o]+x,g.xyz[o+1]+y,g.xyz[o+2]+z);if(other<0)continue;
+    const ox=g.xyz[other*3]*reach,oy=g.xyz[other*3+1]*reach,oz=g.xyz[other*3+2]*reach;
+    for(let a=start;a<end;a++){
+     const i=indices[a],o=i*4;
+     if(bounds){const dx=Math.max(ox-positions[o],0,positions[o]-ox-reach),dy=Math.max(oy-positions[o+1],0,positions[o+1]-oy-reach),dz=Math.max(oz-positions[o+2],0,positions[o+2]-oz-reach);if(dx*dx+dy*dy+dz*dz>=r2max)continue;}
+     pairs(i,starts[other],starts[other+1]);
+    }
+   }
+  }
+  return {data:this.data.subarray(0,n*NEIGHBORS),overflow,cells:g.cellCount};
+ }
+ buildReference(positions,spacing){
   const n=positions.length/4,reach=spacing*2.65,r2max=reach*reach,g=this.grid.build(positions,reach);
   if(n>this.capacity){this.capacity=g.capacity;this.data=new Float32Array(this.capacity*NEIGHBORS);this.counts=new Uint16Array(this.capacity);}
   if(!this.data){this.data=new Float32Array(0);this.counts=new Uint16Array(0);}

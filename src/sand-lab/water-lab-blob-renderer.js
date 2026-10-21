@@ -36,20 +36,23 @@ void main(){
 const fragment = common => `precision highp float;precision highp int;
 flat in vec4 vK[5],vA[2],vBound;flat in vec3 vChem;out vec4 outColor;
 ${common}
+uniform sampler2D uBulkWater;uniform bool uBlobDepth;
 ${BLOB_DENSITY_GLSL}
 float joinedDensity(vec3 p){return blobSample(p).x+rho(p);}
 void main(){
   vec2 uv=gl_FragCoord.xy/uResolution;vec3 ray=rayAt(uv),offset=uEye-vBound.xyz;
   float b=dot(offset,ray),h=b*b-dot(offset,offset)+vBound.w*vBound.w;if(h<0.)discard;
   float begin=max(.001,-b-sqrt(h)),end=min(-b+sqrt(h),texture(uImage,uv).a);
-  if(end<begin)discard;
+  float bulkDepth=uBlobDepth?texture(uBulkWater,uv).a:1e4;
+  if(end<begin||begin>=bulkDepth)discard;
   float t=begin,last=t,stepSize=max(uSpacing*.028,(end-begin)/191.);bool hit=false;
   for(int i=0;i<192;i++){
     if(joinedDensity(uEye+ray*t)>=PARCEL_ISO){hit=true;break;}
-    last=t;t+=stepSize;if(t>end)break;
+    last=t;t+=stepSize;if(t>end||t>bulkDepth+stepSize)break;
   }
   if(!hit)discard;
   for(int i=0;i<6;i++){float middle=(last+t)*.5;if(joinedDensity(uEye+ray*middle)<PARCEL_ISO)last=middle;else t=middle;}
+  if(t>=bulkDepth)discard;
   vec3 p=uEye+ray*t;vec4 densityGradient=blobSample(p);float e=uSpacing*.12;
   vec3 gradient=densityGradient.yzw+vec3(rho(p+vec3(e,0,0))-rho(p-vec3(e,0,0)),rho(p+vec3(0,e,0))-rho(p-vec3(0,e,0)),rho(p+vec3(0,0,e))-rho(p-vec3(0,0,e)))/(2.*e);
   vec3 n=length(gradient)>1e-7?-normalize(gradient):-ray;if(dot(n,-ray)<0.)n=-n;

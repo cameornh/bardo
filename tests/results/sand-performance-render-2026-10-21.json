@@ -1,0 +1,14 @@
+{
+  "fixture": "fixed-state render comparison",
+  "resolution": [
+    313,
+    320
+  ],
+  "meanLinearColorError": 0.0005208219281884125,
+  "maxLinearColorError": 0.3361801505088806,
+  "meanWaterDepthError": 0,
+  "missingWaterPixels": 0,
+  "totalPixels": 100160,
+  "nonFinite": 0,
+  "pass": true
+}

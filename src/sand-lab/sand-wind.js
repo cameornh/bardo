@@ -20,6 +20,7 @@ export function erodeSand(bed,dt,wind,scale,water){
   const velocity=flow.map(v=>v*(submerged?.65:.12)),vn=velocity.reduce((s,v,k)=>s+v*n[k],0),lift=(.6+Math.min(2.8,speed*.025))/scale;
   for(let k=0;k<3;k++)velocity[k]+=n[k]*(lift-Math.min(vn,0));
   const p={id:bed.nextId++,position:point.map((v,k)=>v+n[k]*(r+.006)),velocity,mass,wet,memory,packing,windborne:true};
+  if(bed.optimizations?.patchFloor&&r<=Math.min(bed.dx,bed.dz)*.5)p.looseResolved=true;
   bed.parcels.push(p);bed.windEvents.push({position:point.map((v,k)=>v+n[k]*.008),velocity:velocity.slice(),normal:n,spread,amount:mass,seed:p.id,material,speed,duration:elapsed,submerged});if(bed.windEvents.length>128)bed.windEvents.shift();
   bed.windMoved=(bed.windMoved||0)+mass;bed.dirty=true;available--;return true;
  };

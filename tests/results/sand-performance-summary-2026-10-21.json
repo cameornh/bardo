@@ -1,0 +1,484 @@
+{
+  "date": "2026-10-21",
+  "scope": "Test 12 sand-lab only",
+  "baselineCommit": "9db8274",
+  "adapter": "ANGLE (AMD, ANGLE Metal Renderer: AMD Radeon Pro 560X, Unspecified Version)",
+  "method": {
+    "comparison": "Before-pass reference paths and optimized paths in the same build; existing earlier optimizations remain enabled in both.",
+    "workloads": "Standard 110 x 98 m beach, 220 x 196 m maximum-resolution beach, and standard beach with 12 sand-drop regions plus eight objects.",
+    "order": "Before / after / after / before for each workload",
+    "runs": 12,
+    "warmupFramesPerRun": 15,
+    "measuredFramesPerRun": 45,
+    "scheduling": "Production live scheduler, fixed physics timestep; actual simulation time tracked separately from wall time.",
+    "image": "313 x 320 internal pixels for every timed run; adaptive drawing disabled in both variants.",
+    "quality": "Same water/sand grid resolution and particle caps. No camera-dependent simulation. Sub-resolution sand settling and wind-deposit coalescing are the explicit approximations described below.",
+    "synchronization": "gl.finish after drawing includes completed GPU work in wall time.",
+    "average": "Arithmetic mean across the six runs per variant; pooled means retained in raw results.",
+    "samplingLimit": "Each repeated run measures 3 seconds of simulation after 1 second warm-up. A separate 40-second simulated wind-accumulation test covers later deposit growth. These measurements do not establish every-view or indefinite-session performance."
+  },
+  "averages": {
+    "before": {
+      "meanFPS": 2.6371620570370204,
+      "meanRealtime": 0.17581080380246839,
+      "pooledFPS": 2.409623500790203,
+      "pooledRealtime": 0.16064156671934715
+    },
+    "after": {
+      "meanFPS": 5.76236540154284,
+      "meanRealtime": 0.3841576934361899,
+      "pooledFPS": 5.416835524811761,
+      "pooledRealtime": 0.36112236832078465
+    },
+    "gainFPS": 2.185063062835485,
+    "gainRealtime": 2.185063062835484,
+    "targetMet": true
+  },
+  "cases": [
+    {
+      "fixture": "standard",
+      "bulk": 12852,
+      "resolution": [
+        313,
+        320
+      ],
+      "before": {
+        "fps": 3.83666272336372,
+        "realtime": 0.25577751489091516,
+        "medianWorkMs": 249.89999999850988,
+        "p95WorkMs": 314.5,
+        "maxWorkMs": 356.20000000298023,
+        "meanNeighborMs": 26.057777777479757,
+        "meanBatchReadMs": 43.37999999970198
+      },
+      "after": {
+        "fps": 7.741017061795597,
+        "realtime": 0.5160678041197073,
+        "medianWorkMs": 119.60000000149012,
+        "p95WorkMs": 162.50000000745058,
+        "maxWorkMs": 176.69999999552965,
+        "meanNeighborMs": 24.903333332969083,
+        "meanBatchReadMs": 38.20222222258647
+      },
+      "gainFPS": 2.017643358290512,
+      "gainRealtime": 2.017643358290511,
+      "cpuMilliseconds": {
+        "before": {
+          "predict": 25.161111111607823,
+          "sand": 71.7577777778109,
+          "stress": 29.738888888392182,
+          "moving": 27.148888888955113,
+          "emission": 27.773333333763816,
+          "draw": 38.65777777747976
+        },
+        "after": {
+          "predict": 5.237777777844004,
+          "sand": 12.534444443881512,
+          "stress": 1.1300000001986823,
+          "moving": 2.5722222223877904,
+          "emission": 13.538888889220027,
+          "draw": 16.49888888961739
+        }
+      }
+    },
+    {
+      "fixture": "large",
+      "bulk": 29808,
+      "resolution": [
+        313,
+        320
+      ],
+      "before": {
+        "fps": 2.1434781161523984,
+        "realtime": 0.14289854107682684,
+        "medianWorkMs": 452.6000000014901,
+        "p95WorkMs": 507.04999999701977,
+        "maxWorkMs": 514.5999999940395,
+        "meanNeighborMs": 65.39222222185796,
+        "meanBatchReadMs": 58.05111111154159
+      },
+      "after": {
+        "fps": 4.2391294614286785,
+        "realtime": 0.28260863076191234,
+        "medianWorkMs": 231.54999999701977,
+        "p95WorkMs": 283.3500000014901,
+        "maxWorkMs": 303.54999999701977,
+        "meanNeighborMs": 57.88888888822662,
+        "meanBatchReadMs": 56.9799999995364
+      },
+      "gainFPS": 1.9776873061984097,
+      "gainRealtime": 1.9776873061984088,
+      "cpuMilliseconds": {
+        "before": {
+          "predict": 58.46111111177339,
+          "sand": 109.64222222252025,
+          "stress": 14.2266666672296,
+          "moving": 79.16000000006622,
+          "emission": 53.44555555598603,
+          "draw": 73.89999999917215
+        },
+        "after": {
+          "predict": 10.371111111508476,
+          "sand": 21.488888888557756,
+          "stress": 0.49333333455853995,
+          "moving": 10.846666666699782,
+          "emission": 23.443333333068423,
+          "draw": 27.81222222248713
+        }
+      }
+    },
+    {
+      "fixture": "busy",
+      "bulk": 12852,
+      "resolution": [
+        313,
+        320
+      ],
+      "before": {
+        "fps": 1.9313453315949434,
+        "realtime": 0.12875635543966313,
+        "medianWorkMs": 497.04999999701977,
+        "p95WorkMs": 593.2999999970198,
+        "maxWorkMs": 617.5499999970198,
+        "meanNeighborMs": 24.755555555721124,
+        "meanBatchReadMs": 36.626666666732895
+      },
+      "after": {
+        "fps": 5.306949681404241,
+        "realtime": 0.3537966454269501,
+        "medianWorkMs": 181.35000000149012,
+        "p95WorkMs": 223.29999999701977,
+        "maxWorkMs": 230.35000000149012,
+        "meanNeighborMs": 22.51888888925314,
+        "meanBatchReadMs": 48.63888888872332
+      },
+      "gainFPS": 2.7477994714811858,
+      "gainRealtime": 2.747799471481186,
+      "cpuMilliseconds": {
+        "before": {
+          "predict": 25.032222222288446,
+          "sand": 261.44444444477557,
+          "stress": 75.11111111111111,
+          "moving": 165.38888888888889,
+          "emission": 63.62888888849152,
+          "draw": 72.7900000004305
+        },
+        "after": {
+          "predict": 4.608888888855774,
+          "sand": 48.13666666746139,
+          "stress": 17.441111110316385,
+          "moving": 18.862222222487127,
+          "emission": 25.203333333796927,
+          "draw": 18.480000000695387
+        }
+      }
+    }
+  ],
+  "changes": [
+    "Reuse sand geometry and scalar height calculations across wind probes; skip loads which cannot reach a cohesive bond, retaining dry loads on wet supports.",
+    "Use allocation-light water prediction and compact exact CPU sampling/neighbor queries.",
+    "Evaluate foam air-exposure and solid probes on the GPU, included in the existing single packed readback.",
+    "Reuse boundary gradients between GPU constraint passes; specialize draw-constant shader features.",
+    "Pack field and flow inputs directly; skip water-blob fragments already hidden by the bulk surface.",
+    "Estimate the next physics-step cost before dispatch to avoid overrunning the frame budget. Always execute at least one due step and retain simulation debt.",
+    "Incrementally update local settling contact/column indices while preserving reference query order.",
+    "Bound newly created settling subdivisions by world resolution; combine overlapping sub-resolution wind deposits without deleting grain mass or moisture. User-held, carved or pushed stock is protected."
+  ],
+  "effectiveChanges": "The largest reductions were sand wind/stress work in busy scenes, allocation-light water prediction, and packed field preparation. Component timings are combined-pass measurements, not isolated causal ablations.",
+  "remainingWork": [
+    {
+      "direction": "GPU neighbor construction and retaining more water state on the GPU",
+      "reason": "Exact CPU neighbor searches and synchronous readback waits remain substantial, especially at maximum water resolution.",
+      "effort": "Larger follow-up; preserve CPU reference and numerical comparisons."
+    },
+    {
+      "direction": "Incremental support graphs and GPU or tiled sand stock processing",
+      "reason": "Local settling and wind indices are now implemented, but hundreds of persistent deposits still increase CPU support/erosion cost over time. The 40-second GPU soak ends with 687 parcels.",
+      "effort": "Further work must retain mass, moisture, user edits and support/fracture correctness."
+    },
+    {
+      "direction": "Prewarm shader feature variants",
+      "reason": "One-time compilation when a new geometry feature appears can still cause a pause.",
+      "effort": "Small-to-moderate follow-up; bound memory use."
+    }
+  ],
+  "rejectedExperiment": "An attempted asynchronous readback/CPU-overlap path was slower on this machine and was removed.",
+  "backend": {
+    "gpu": [
+      "water constraints",
+      "transport",
+      "air field",
+      "fine particles",
+      "emitter probes",
+      "atmosphere",
+      "rendering"
+    ],
+    "cpu": [
+      "sand stock and bonds",
+      "water neighbor construction",
+      "rigid bodies",
+      "player",
+      "rain accounting",
+      "sky SH"
+    ]
+  },
+  "validation": {
+    "numericalTests": {
+      "passed": 407,
+      "failed": 0,
+      "command": "npm test"
+    },
+    "build": "npm run build passed (existing chunk-size warning)",
+    "gpuReference": {
+      "batched": {
+        "backend": "GPU",
+        "sizes": [
+          150,
+          67,
+          257,
+          1,
+          175
+        ],
+        "batchError": 0,
+        "cpuError": 0.0001049041748046875,
+        "countsEqual": true,
+        "readbacksPerStep": 1,
+        "pass": true
+      },
+      "base": {
+        "error": 4.082918167114258e-06,
+        "boundaryError": 4.082918167114258e-06,
+        "backend": "GPU",
+        "pass": true
+      },
+      "beach": {
+        "backend": "GPU",
+        "particles": 150,
+        "transportError": 7.62939453125e-06,
+        "countsEqual": true,
+        "sdfError": 1.0814819462190428e-07,
+        "worst": {
+          "p": [
+            -0.5,
+            0.10999999940395355,
+            0.36000001430511475
+          ],
+          "cpu": -0.051406975720785786,
+          "gpu": -0.05140708386898041,
+          "normal": [
+            -0.8005736062952374,
+            -0.3575146370105745,
+            0.480900390129427
+          ],
+          "gpuNormal": [
+            -0.8005740642547607,
+            -0.3575105369091034,
+            0.4809027314186096
+          ]
+        },
+        "sandAndTiltedCupMaxError": 1.3709068298339844e-06,
+        "pass": true
+      },
+      "reconstruction": {
+        "error": 6.412409880307557e-07,
+        "macroError": 0,
+        "macroCells": 1452,
+        "pass": true
+      },
+      "atmosphere": {
+        "backend": "GPU",
+        "samples": 18,
+        "maxRadianceError": 2.2618262551787893e-06,
+        "tolerance": 0.0001,
+        "pass": true
+      },
+      "sandAir": {
+        "samples": 128,
+        "maxError": 7.660839318829327e-06,
+        "pass": true
+      },
+      "grains": {
+        "samples": 32,
+        "maxError": 2.310081610445991e-07,
+        "pass": true
+      },
+      "sandMaterial": [
+        {
+          "sandSize": 33,
+          "samples": 128,
+          "maxWetnessColorError": 0.00017746865150436442,
+          "maxCellCount": 22,
+          "maxMoistureError": 0.00013409620343338147,
+          "maxDistanceError": 4.8534767079657856e-05,
+          "maxHeightInterpolationError": 8.293921085868183e-05,
+          "moistureTolerance": 0.0003,
+          "distanceTolerance": 0.0001,
+          "pass": true
+        },
+        {
+          "sandSize": 65,
+          "samples": 128,
+          "maxWetnessColorError": 2.5104676998122244e-05,
+          "maxCellCount": 22,
+          "maxMoistureError": 1.6868719433849044e-05,
+          "maxDistanceError": 1.2990677602953832e-05,
+          "maxHeightInterpolationError": 1.997018356791891e-05,
+          "moistureTolerance": 0.0003,
+          "distanceTolerance": 0.0001,
+          "pass": true
+        },
+        {
+          "sandSize": 97,
+          "samples": 128,
+          "maxWetnessColorError": 0.00018976784140323222,
+          "maxCellCount": 22,
+          "maxMoistureError": 0.00014334512574995517,
+          "maxDistanceError": 5.113754053961842e-05,
+          "maxHeightInterpolationError": 8.572898186592903e-05,
+          "moistureTolerance": 0.0003,
+          "distanceTolerance": 0.0001,
+          "pass": true
+        }
+      ]
+    },
+    "newGPUPaths": {
+      "backend": "GPU",
+      "boundaryError": 2.384185791015625e-07,
+      "exposureError": 1.0896044018160467e-06,
+      "solidError": 8.159296229240387e-05,
+      "eligible": 228,
+      "fieldError": 0,
+      "flowError": 0,
+      "pass": true
+    },
+    "standardRender": {
+      "fixture": "fixed-state render comparison",
+      "resolution": [
+        313,
+        320
+      ],
+      "meanLinearColorError": 0.0005208219281884125,
+      "maxLinearColorError": 0.3361801505088806,
+      "meanWaterDepthError": 0,
+      "missingWaterPixels": 0,
+      "totalPixels": 100160,
+      "nonFinite": 0,
+      "pass": true
+    },
+    "busyRender": {
+      "fixture": "fixed-state render comparison",
+      "resolution": [
+        313,
+        320
+      ],
+      "meanLinearColorError": 0.0014257006042751486,
+      "maxLinearColorError": 0.327317476272583,
+      "meanWaterDepthError": 0,
+      "missingWaterPixels": 0,
+      "totalPixels": 100160,
+      "nonFinite": 0,
+      "pass": true
+    },
+    "normalAnimationLoop": {
+      "fixture": "45-frame benchmark",
+      "medianFrameMs": 117.30000000004657,
+      "p95FrameMs": 299.20000000006985,
+      "simulatedSeconds": 3.0000000000000027,
+      "wallSeconds": 6.55059999999404,
+      "bulk": 12852,
+      "fine": 32768,
+      "sandMassError": 7.175908536795753e-15,
+      "timing": {
+        "predict": 10,
+        "constraintsTransportAndReadback": 83.29999999701977,
+        "exchangeAndSpray": 17.400000005960464,
+        "readback": 54.6000000089407,
+        "readbacks": 1
+      },
+      "prepare": {
+        "pump": 0,
+        "rain": 0,
+        "wetting": 1.5,
+        "predict": 8.5,
+        "dispatch": 28.5,
+        "batch": 54.70000000298023,
+        "emission": 17.400000005960464
+      },
+      "neighborMs": 25.299999997019768,
+      "gpu": {
+        "surface": 45.98990271767202,
+        "atmosphere": 5.286280619572174e-134,
+        "spray shadows": 9.456241598185262,
+        "density": 23.01332881751975,
+        "medium shadows": 1.492051231334663,
+        "photons": 0.8018421253162757,
+        "front": 3.3572341680846325,
+        "background": 2.421964331655443,
+        "water": 3.1675799691937234,
+        "blobs": 37.043124248738216,
+        "sand grains": 39.64748219639258,
+        "rain / lens": 0.3138428902393326,
+        "foam lighting": 0.3025868020044753,
+        "foam splats": 39.52577222614659
+      }
+    },
+    "matureStateRender": {
+      "fixture": "fixed-state render comparison",
+      "resolution": [
+        313,
+        320
+      ],
+      "meanLinearColorError": 0.00193491889179287,
+      "maxLinearColorError": 0.685014933347702,
+      "meanWaterDepthError": 0,
+      "missingWaterPixels": 0,
+      "totalPixels": 100160,
+      "nonFinite": 0,
+      "pass": true
+    },
+    "windAccumulation": {
+      "frames": 600,
+      "simulatedSeconds": 40.000000000000355,
+      "wallSeconds": 129.52610000000894,
+      "fps": 4.632271024912806,
+      "realtime": 0.3088180683275231,
+      "medianWorkMs": 186.59999999403954,
+      "p95WorkMs": 371.40000000596046,
+      "maxWorkMs": 520.8999999910593,
+      "sandParcels": 687,
+      "mergedWindDeposits": 457,
+      "sandMassError": 1.4188728243209786e-14,
+      "interpretation": "No multi-second stalls in this 40-s simulated run (129.5 s wall time). Cost still rises as deposits accumulate; this is not an indefinite stability guarantee."
+    },
+    "visualInspection": {
+      "preview": "sand-performance-preview-2026-10-21.png",
+      "objects": "sand-performance-objects-2026-10-21.png",
+      "status": "Inspected the local beach and glass/mirror/rock/light object lineup. No page error; screenshots are paused inspection views, not FPS evidence."
+    }
+  },
+  "limitations": [
+    "2.185x is the arithmetic average gain across the matched standard, large and busy workloads at 313 x 320 internal pixels; not a guarantee at every camera position or display size. The large case individually improved 1.98x.",
+    "Full realtime and 15 FPS have not been reached in these heavy scenes.",
+    "The 40-second wind soak still becomes more expensive as hundreds of deposits accumulate; the worst measured frame was 521 ms, not stall-free motion.",
+    "GPU stage timers on this Metal backend can overlap; totals and gains use wall-clock time rather than sums of GPU stage timings.",
+    "Shader variants may still pause when compiled for the first time; timed runs include warm-up."
+  ],
+  "controlledApproximation": {
+    "scope": "Settling subdivision count and coalescence of overlapping, anchored, sub-resolution wind deposits only. This changes microscopic deposit geometry and is not a bit-identical physics optimization.",
+    "preserved": [
+      "grain volume/mass",
+      "pore volume",
+      "mass-weighted moisture",
+      "plastic history",
+      "centre of mass",
+      "linear momentum"
+    ],
+    "tests": "Numerical conservation, protection of edited/cut/held stock, 40-second deposition regression, and GPU scene soak."
+  },
+  "evidence": {
+    "finalRepeatedSuite": "sand-performance-live-2026-10-21.json",
+    "finalSoak": "sand-performance-wind-soak-gpu-2026-10-21.json",
+    "initialBaselineCommit": "9db8274",
+    "intermediateArtifacts": "Files containing intermediate, pre-soak-fix, partial, or wind-soak-cpu are diagnostic results from earlier iterations, not the final comparison."
+  }
+}

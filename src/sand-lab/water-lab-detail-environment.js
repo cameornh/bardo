@@ -15,6 +15,7 @@ export class DetailFlowField {
   }
   update(lab,cpu=false) {
     const s=lab.spacing;this.spacing=s;this.layout=fieldLayout(s,.75,lab.fieldBounds);
+    if(!cpu&&lab.optimizations?.packedFlow){this.field.updateBulk(lab);this.layout=this.field.layout;return;}
     this.items=Array.from({length:lab.count},(_,i)=>{
       const o=i*4;return {kind:'water',position:Array.from(lab.positions.subarray(o,o+3)),
         radius:s*(.65+.2*Math.min(1,Math.max(0,((lab.neighborCounts?.[i]||0)-5)/20))),volume:s**3,

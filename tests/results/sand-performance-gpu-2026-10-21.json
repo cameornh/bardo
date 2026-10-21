@@ -1,0 +1,10 @@
+{
+  "backend": "GPU",
+  "boundaryError": 2.384185791015625e-7,
+  "exposureError": 0.0000010896044018160467,
+  "solidError": 0.00008159296229240387,
+  "eligible": 228,
+  "fieldError": 0,
+  "flowError": 0,
+  "pass": true
+}

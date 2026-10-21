@@ -1,0 +1,61 @@
+{
+  "fixture": "matched beach",
+  "adapter": "ANGLE (AMD, ANGLE Metal Renderer: AMD Radeon Pro 560X, Unspecified Version)",
+  "mode": "baseline",
+  "optimizationFlags": {
+    "sandPrograms": false,
+    "gpuBatch": true,
+    "packedNeighbors": true,
+    "broadphase": true,
+    "sandCache": true,
+    "emptySpace": true,
+    "splatBounds": true,
+    "lightingTiles": true
+  },
+  "frames": 45,
+  "physicsSteps": 45,
+  "cpu": {
+    "pump": 0.0022222224209043715,
+    "rain": 0.006666666600439283,
+    "wetting": 1.5466666665342117,
+    "predict": 23.831111111243573,
+    "sand": 63.95777777698306,
+    "step": 180.98444444470937,
+    "detail": 17.733333333002196,
+    "draw": 35.5311111115747
+  },
+  "airGrid": true,
+  "bulk": 12852,
+  "fine": 32768,
+  "resolution": [
+    313,
+    320
+  ],
+  "simulatedSeconds": 3.0000000000000053,
+  "wallSeconds": 10.83730000001192,
+  "fps": 4.152325763792689,
+  "realtime": 0.27682171758617974,
+  "medianWorkMs": 226,
+  "p95WorkMs": 295.6000000089407,
+  "maxWorkMs": 307.40000000596046,
+  "meanNeighborMs": 24.508888889683618,
+  "meanBatchReadMs": 33.2711111108462,
+  "sandBinRebuilds": 59,
+  "gpu": {
+    "surface": 78.96611350603725,
+    "atmosphere": 9.245913495053465e-7,
+    "spray shadows": 9.696685375656067,
+    "density": 30.993033906284353,
+    "medium shadows": 2.623063080282094,
+    "photons": 1.2674230979537922,
+    "front": 4.84651733556821,
+    "background": 6.20845105347635,
+    "water": 9.262618485072823,
+    "blobs": 58.648526631919864,
+    "sand grains": 60.077988955688156,
+    "rain / lens": 0.44348120932262225,
+    "foam lighting": 0.342341264745516,
+    "foam splats": 59.8858921700012
+  },
+  "sandMassError": 1.1090040465957074e-14
+}

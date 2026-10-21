@@ -13,7 +13,7 @@ export class BoundsGrid {
   }
   this.entries[id]={keys,position:position.slice(),radius};
  }
- remove(id){const entry=this.entries[id];if(entry)for(const key of entry.keys){const cell=this.bins.get(key);cell.delete(id);if(!cell.size)this.bins.delete(key);}this.large.delete(id);}
+ remove(id){const entry=this.entries[id];if(entry)for(const key of entry.keys){const cell=this.bins.get(key);cell.delete(id);if(!cell.size)this.bins.delete(key);}this.large.delete(id);this.entries[id]=undefined;}
  build(items,radius){this.clear();for(let i=0;i<items.length;i++)this.insert(i,items[i].position,radius(items[i]));return this;}
  query(position,radius,out=[]){
   out.length=0;const stamp=++this.stamp,[lo,hi]=this.range(position,radius);

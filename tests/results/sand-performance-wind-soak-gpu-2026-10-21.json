@@ -1,0 +1,417 @@
+{
+  "fixture": "standard",
+  "scheduling": "fixed",
+  "adapter": "ANGLE (AMD, ANGLE Metal Renderer: AMD Radeon Pro 560X, Unspecified Version)",
+  "mode": "all",
+  "optimizationFlags": {
+    "mergeWindDeposits": true,
+    "settlingIndex": true,
+    "patchFloor": true,
+    "predictBudget": true,
+    "fastHeight": true,
+    "windGeometry": true,
+    "fastEmission": true,
+    "terrainCache": true,
+    "sandPrograms": true,
+    "stressPruning": true,
+    "fastPredict": true,
+    "emitterProbes": true,
+    "packedFlow": true,
+    "packedFields": true,
+    "neighborBounds": true,
+    "boundaryReuse": true,
+    "fastSampling": true,
+    "sandQueryBounds": true,
+    "compactSand": true,
+    "blobDepth": true,
+    "gpuBatch": true,
+    "packedNeighbors": true,
+    "broadphase": true,
+    "sandCache": true,
+    "emptySpace": true,
+    "splatBounds": true,
+    "lightingTiles": true
+  },
+  "frames": 600,
+  "samples": [
+    {
+      "frame": 0,
+      "time": 1.0666666666666667,
+      "parcels": 64,
+      "anchored": 42,
+      "mergedWindDeposits": 0,
+      "frameMs": 171.5,
+      "sandMs": 14.900000005960464,
+      "parts": {
+        "supportAndSettling": 5.799999997019768,
+        "stress": 1.5,
+        "wettingSamples": 0.20000000298023224,
+        "grouping": 0,
+        "moving": 4.0999999940395355
+      }
+    },
+    {
+      "frame": 30,
+      "time": 3.0666666666666695,
+      "parcels": 69,
+      "anchored": 46,
+      "mergedWindDeposits": 0,
+      "frameMs": 91.70000000298023,
+      "sandMs": 7.899999991059303,
+      "parts": {
+        "supportAndSettling": 3.2000000029802322,
+        "stress": 1.199999988079071,
+        "wettingSamples": 0.30000001192092896,
+        "grouping": 0,
+        "moving": 2.0999999940395355
+      }
+    },
+    {
+      "frame": 60,
+      "time": 5.066666666666668,
+      "parcels": 80,
+      "anchored": 58,
+      "mergedWindDeposits": 0,
+      "frameMs": 115.5,
+      "sandMs": 30.5,
+      "parts": {
+        "supportAndSettling": 1,
+        "stress": 4.899999991059303,
+        "wettingSamples": 0.30000001192092896,
+        "grouping": 3.0999999940395355,
+        "moving": 18.700000002980232
+      }
+    },
+    {
+      "frame": 90,
+      "time": 7.066666666666661,
+      "parcels": 94,
+      "anchored": 79,
+      "mergedWindDeposits": 0,
+      "frameMs": 126.59999999403954,
+      "sandMs": 40.69999998807907,
+      "parts": {
+        "supportAndSettling": 3,
+        "stress": 5.699999988079071,
+        "wettingSamples": 0.4000000059604645,
+        "grouping": 3.7999999970197678,
+        "moving": 24.799999997019768
+      }
+    },
+    {
+      "frame": 120,
+      "time": 9.066666666666654,
+      "parcels": 129,
+      "anchored": 114,
+      "mergedWindDeposits": 7,
+      "frameMs": 190,
+      "sandMs": 49.5,
+      "parts": {
+        "supportAndSettling": 4.399999991059303,
+        "stress": 8.600000008940697,
+        "wettingSamples": 0.7000000029802322,
+        "grouping": 3.2999999970197678,
+        "moving": 30.899999991059303
+      }
+    },
+    {
+      "frame": 150,
+      "time": 11.066666666666647,
+      "parcels": 152,
+      "anchored": 139,
+      "mergedWindDeposits": 15,
+      "frameMs": 156.30000001192093,
+      "sandMs": 64.70000000298023,
+      "parts": {
+        "supportAndSettling": 8,
+        "stress": 9.200000002980232,
+        "wettingSamples": 0.7999999970197678,
+        "grouping": 4.4000000059604645,
+        "moving": 39
+      }
+    },
+    {
+      "frame": 180,
+      "time": 13.06666666666664,
+      "parcels": 185,
+      "anchored": 170,
+      "mergedWindDeposits": 23,
+      "frameMs": 166.6000000089407,
+      "sandMs": 74.6000000089407,
+      "parts": {
+        "supportAndSettling": 11.600000008940697,
+        "stress": 12.299999997019768,
+        "wettingSamples": 1,
+        "grouping": 2.7999999970197678,
+        "moving": 44
+      }
+    },
+    {
+      "frame": 210,
+      "time": 15.066666666666633,
+      "parcels": 210,
+      "anchored": 197,
+      "mergedWindDeposits": 25,
+      "frameMs": 178.19999998807907,
+      "sandMs": 60.79999999701977,
+      "parts": {
+        "supportAndSettling": 15.799999997019768,
+        "stress": 16,
+        "wettingSamples": 2,
+        "grouping": 0.7999999970197678,
+        "moving": 22.700000002980232
+      }
+    },
+    {
+      "frame": 240,
+      "time": 17.066666666666627,
+      "parcels": 227,
+      "anchored": 213,
+      "mergedWindDeposits": 30,
+      "frameMs": 156.20000000298023,
+      "sandMs": 57.400000005960464,
+      "parts": {
+        "supportAndSettling": 15.700000002980232,
+        "stress": 18.399999991059303,
+        "wettingSamples": 1.1000000089406967,
+        "grouping": 0.20000000298023224,
+        "moving": 18.19999998807907
+      }
+    },
+    {
+      "frame": 270,
+      "time": 19.06666666666662,
+      "parcels": 253,
+      "anchored": 236,
+      "mergedWindDeposits": 31,
+      "frameMs": 174.90000000596046,
+      "sandMs": 78.1000000089407,
+      "parts": {
+        "supportAndSettling": 15.5,
+        "stress": 18.200000002980232,
+        "wettingSamples": 1.2999999970197678,
+        "grouping": 0.20000000298023224,
+        "moving": 13.799999997019768
+      }
+    },
+    {
+      "frame": 300,
+      "time": 21.066666666666613,
+      "parcels": 277,
+      "anchored": 256,
+      "mergedWindDeposits": 33,
+      "frameMs": 158.90000000596046,
+      "sandMs": 102.29999999701977,
+      "parts": {
+        "supportAndSettling": 20.299999997019768,
+        "stress": 28.200000002980232,
+        "wettingSamples": 2.5,
+        "grouping": 0.10000000894069672,
+        "moving": 12.599999994039536
+      }
+    },
+    {
+      "frame": 330,
+      "time": 23.066666666666606,
+      "parcels": 312,
+      "anchored": 295,
+      "mergedWindDeposits": 40,
+      "frameMs": 199,
+      "sandMs": 108.80000001192093,
+      "parts": {
+        "supportAndSettling": 22.5,
+        "stress": 23.799999997019768,
+        "wettingSamples": 1.7999999970197678,
+        "grouping": 0.20000000298023224,
+        "moving": 22.700000002980232
+      }
+    },
+    {
+      "frame": 360,
+      "time": 25.0666666666666,
+      "parcels": 373,
+      "anchored": 357,
+      "mergedWindDeposits": 78,
+      "frameMs": 199.90000000596046,
+      "sandMs": 141.59999999403954,
+      "parts": {
+        "supportAndSettling": 26.5,
+        "stress": 24.700000002980232,
+        "wettingSamples": 2.0999999940395355,
+        "grouping": 0.20000000298023224,
+        "moving": 41
+      }
+    },
+    {
+      "frame": 390,
+      "time": 27.066666666666592,
+      "parcels": 432,
+      "anchored": 414,
+      "mergedWindDeposits": 109,
+      "frameMs": 248.70000000298023,
+      "sandMs": 149.70000000298023,
+      "parts": {
+        "supportAndSettling": 40.400000005960464,
+        "stress": 26.099999994039536,
+        "wettingSamples": 2.5,
+        "grouping": 0.10000000894069672,
+        "moving": 28.099999994039536
+      }
+    },
+    {
+      "frame": 420,
+      "time": 29.066666666666585,
+      "parcels": 480,
+      "anchored": 464,
+      "mergedWindDeposits": 154,
+      "frameMs": 261.20000000298023,
+      "sandMs": 179.70000000298023,
+      "parts": {
+        "supportAndSettling": 52.400000005960464,
+        "stress": 29.700000002980232,
+        "wettingSamples": 2.699999988079071,
+        "grouping": 0.10000000894069672,
+        "moving": 35.29999999701977
+      }
+    },
+    {
+      "frame": 450,
+      "time": 31.066666666666578,
+      "parcels": 530,
+      "anchored": 515,
+      "mergedWindDeposits": 200,
+      "frameMs": 272.6000000089407,
+      "sandMs": 215.70000000298023,
+      "parts": {
+        "supportAndSettling": 76,
+        "stress": 35,
+        "wettingSamples": 3,
+        "grouping": 0.20000000298023224,
+        "moving": 36.5
+      }
+    },
+    {
+      "frame": 480,
+      "time": 33.06666666666663,
+      "parcels": 557,
+      "anchored": 539,
+      "mergedWindDeposits": 255,
+      "frameMs": 300.40000000596046,
+      "sandMs": 245.20000000298023,
+      "parts": {
+        "supportAndSettling": 92.5,
+        "stress": 36.5,
+        "wettingSamples": 3.5999999940395355,
+        "grouping": 0.30000001192092896,
+        "moving": 41.8999999910593
+      }
+    },
+    {
+      "frame": 510,
+      "time": 35.06666666666673,
+      "parcels": 595,
+      "anchored": 578,
+      "mergedWindDeposits": 300,
+      "frameMs": 300,
+      "sandMs": 228.29999999701977,
+      "parts": {
+        "supportAndSettling": 83,
+        "stress": 28.599999994039536,
+        "wettingSamples": 3.2999999970197678,
+        "grouping": 0.20000000298023224,
+        "moving": 36.5
+      }
+    },
+    {
+      "frame": 540,
+      "time": 37.066666666666826,
+      "parcels": 623,
+      "anchored": 600,
+      "mergedWindDeposits": 347,
+      "frameMs": 464.79999999701977,
+      "sandMs": 259.3999999910593,
+      "parts": {
+        "supportAndSettling": 103,
+        "stress": 34.29999999701977,
+        "wettingSamples": 3.8999999910593033,
+        "grouping": 0.20000000298023224,
+        "moving": 34.20000000298023
+      }
+    },
+    {
+      "frame": 570,
+      "time": 39.066666666666926,
+      "parcels": 650,
+      "anchored": 632,
+      "mergedWindDeposits": 408,
+      "frameMs": 339.59999999403954,
+      "sandMs": 283.19999998807907,
+      "parts": {
+        "supportAndSettling": 116.29999999701977,
+        "stress": 38.79999999701977,
+        "wettingSamples": 3.7000000029802322,
+        "grouping": 0.20000000298023224,
+        "moving": 40.79999999701977
+      }
+    }
+  ],
+  "physicsSteps": 600,
+  "cpu": {
+    "pump": 0.004500000054637591,
+    "rain": 0.009666666612029078,
+    "wetting": 2.0164999998857542,
+    "predict": 3.9170000003526666,
+    "dispatch": 19.6300000001241,
+    "batch": 36.49449999963243,
+    "emission": 7.542000000004955,
+    "bedExchange": 4.0574999999503305,
+    "erosion": 16.782000000278156,
+    "parcels": 97.03783333343765,
+    "sandUpdate": 0.2216666664431495,
+    "supportAndSettling": 41.09516666665673,
+    "stress": 22.20833333343268,
+    "wettingSamples": 1.8716666667163362,
+    "grouping": 0.654500000079475,
+    "moving": 26.83816666642827,
+    "sand": 119.10566666652755,
+    "step": 190.39699999983097,
+    "detail": 7.099333333422755,
+    "draw": 13.288499999890721
+  },
+  "airGrid": true,
+  "bulk": 12852,
+  "fine": 32768,
+  "sandParcels": 687,
+  "mergedWindDeposits": 457,
+  "resolution": [
+    313,
+    320
+  ],
+  "simulatedSeconds": 40.000000000000355,
+  "wallSeconds": 129.52610000000894,
+  "fps": 4.632271024912806,
+  "realtime": 0.3088180683275231,
+  "medianWorkMs": 186.59999999403954,
+  "p95WorkMs": 371.40000000596046,
+  "maxWorkMs": 520.8999999910593,
+  "meanNeighborMs": 17.98033333318929,
+  "meanBatchReadMs": 36.31383333317935,
+  "sandBinRebuilds": 607,
+  "gpu": {
+    "surface": 15.365202388472738,
+    "atmosphere": 1.8960513143905012e-60,
+    "spray shadows": 24.643251028432683,
+    "density": 35.631515147266285,
+    "medium shadows": 10.58519825253666,
+    "photons": 0.9006510310526583,
+    "front": 2.965293088116341,
+    "background": 6.797946957400488,
+    "water": 5.412729706581537,
+    "blobs": 0.1892326363743719,
+    "sand grains": 62.88537277081347,
+    "rain / lens": 0.3159175640991678,
+    "foam lighting": 0.27671769232913035,
+    "foam splats": 62.515360773179445
+  },
+  "sandMassError": 1.4188728243209786e-14
+}

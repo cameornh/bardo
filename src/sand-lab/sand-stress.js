@@ -56,8 +56,14 @@ export class SandStress{
  }
  step(bed,dt,wind,scale,sampleWater){
   const nodes=this.graph(bed);this.maxLoad=0;if(!nodes?.length)return;
-  for(const n of nodes){const p=n.p,immersed=clamp((sampleWater?.(p.position).density||0)*1.6,0,1),weight=p.mass*2650*scale**3*9.81;
-   n.force=sandWindForce(p,wind,scale).map(v=>v*(1-immersed));n.force[1]-=weight*(1-immersed/1.7);n.moment=[0,0,0];}
+  // Forces matter only if this node or an ancestor has a tensile/bending
+  // bond to test. Dry compression-only ground piles cannot fracture a bond,
+  // but dry weight on a wet structure must still propagate into that bond.
+  for(const n of nodes){n.needsForce=bed.optimizations?.stressPruning===false||n.parents.some(e=>(hasSandBond(n.p)&&(!e.node||hasSandBond(e.node.p)))||e.node?.needsForce);}
+  // Geometry stays fixed throughout these force probes; one exact local
+  // spatial index can serve the whole load calculation.
+  if(nodes.some(n=>n.needsForce))wind.beginBatch?.();try{for(const n of nodes){if(!n.needsForce){n.force=[0,0,0];n.moment=[0,0,0];continue;}const p=n.p,immersed=clamp((sampleWater?.(p.position).density||0)*1.6,0,1),weight=p.mass*2650*scale**3*9.81;
+   n.force=sandWindForce(p,wind,scale).map(v=>v*(1-immersed));n.force[1]-=weight*(1-immersed/1.7);n.moment=[0,0,0];}}finally{wind.endBatch?.();}
   let failure=null;
   for(let i=nodes.length-1;i>=0;i--){const n=nodes[i],p=n.p,totalArea=n.parents.reduce((s,e)=>s+e.radius**2,0)||1;
    for(const edge of n.parents){const fraction=edge.radius**2/totalArea,force=n.force.map(v=>v*fraction),arm=sub(p.position,edge.point).map(v=>v*scale),moment=cross(arm,force).map((v,k)=>v+n.moment[k]*fraction),radius=Math.max(.00001,edge.radius*scale),area=Math.PI*radius**2;

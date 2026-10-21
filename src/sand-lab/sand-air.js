@@ -2,6 +2,7 @@ import {windAt,windNoise,BEACH_WIND_GLSL} from '../beach-wind.js';
 import {normalAt} from './water-lab-model.js';
 import {obstacleAir} from './water-lab-air.js';
 import {bodyDistance} from './objects.js';
+import {SandAirGeometry} from './sand-air-geometry.js';
 import {solidRayHit} from './interaction.js';
 
 // Sand needs the velocity at its actual surface. Interpolating the coarse air
@@ -12,7 +13,10 @@ export function createSandWind(lab){
  const jet=lab.jet,hit=jet?solidRayHit(lab.sand,lab.balls||[],jet.origin,jet.direction,30):null;
  const brush=hit?{...hit,normal:normalAt(hit.point,solid),radius:lab.radius}:null;
  const forcing={spec:lab.spec,time:lab.time,wind:lab.wind,windTurbulence:lab.windTurbulence,windStrength:lab.windStrength,radius:lab.radius,jet};
- const sample=p=>sandAirVelocity(p,forcing,solid,brush);
+ const geometry=lab.optimizations?.windGeometry?new SandAirGeometry(lab.sand,lab.balls||[]):null;
+ let batched=false;
+ const sample=p=>{if(geometry&&!batched)geometry.refresh();return sandAirVelocity(p,forcing,geometry?geometry.solid:solid,brush);};
+ if(geometry){sample.beginBatch=()=>{geometry.refresh(true);batched=true;};sample.endBatch=()=>{batched=false;};}
  sample.forcing=forcing;
  sample.brush=brush;sample.normal=p=>normalAt(p,solid);return sample;
 }
