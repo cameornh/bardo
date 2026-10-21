@@ -3,3 +3,5 @@
 #qa-toggle{margin-top:12px}#qa-panel button{margin:3px 2px}#wetness-readout{padding:6px 8px;margin-bottom:6px;background:#192126ed;font-variant-numeric:tabular-nums}#wetness-legend{display:flex;align-items:center;gap:6px}#wetness-legend span{display:inline-block;width:120px;height:10px;background:linear-gradient(90deg,#f38f38,#bccda9,#41b1fa)}
 
 #qa-results,#verification{max-height:260px;overflow:auto}
+
+#optimization-controls label{margin:7px 0}#optimization-controls small{display:block}#optimization-controls [hidden]{display:none}#optimization-controls .unavailable{opacity:.5}#optimization-controls>small{margin-bottom:10px}

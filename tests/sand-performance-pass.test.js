@@ -145,3 +145,28 @@ test('coalescing overlapping wind deposits conserves grain/pore volume, wetness,
  const volume=bed.parcels.slice(0,2).reduce((s,p)=>s+p.mass/p.packing,0),mass=bed.totalMass(),protectedBefore=structuredClone(bed.parcels.slice(2));
  assert.equal(mergeWindDeposits(bed),1);assert.equal(bed.totalMass(),mass);const q=bed.parcels[0];assert.equal(q.mass,2e-6);assert.ok(Math.abs(q.mass/q.packing-volume)<1e-20);assert.equal(q.wet,.5);assert.equal(q.memory,.5);assert.equal(q.position[0],.002);assert.deepEqual(bed.parcels.slice(2),protectedBefore);
 });
+
+import {effectiveOptimizations,optimizationPreset,optimizationMode,applyOptimizationFlags} from '../src/sand-lab/optimization-controls.js';
+test('mixed optimization selections retain independent choices and gate only required paths',()=>{
+ const defaults=new SandLab({extensions:{has:()=>false}}).optimizations;
+ const selected={...defaults,fastHeight:false,gpuBatch:false,packedNeighbors:false};
+ const effective=effectiveOptimizations(selected);
+ assert.equal(effective.emitterProbes,false);assert.equal(effective.neighborBounds,false);
+ assert.equal(effective.fastHeight,false);assert.equal(effective.packedFields,true);
+ assert.equal(selected.emitterProbes,true);assert.equal(selected.neighborBounds,true);
+ selected.gpuBatch=selected.packedNeighbors=true;
+ assert.equal(effectiveOptimizations(selected).emitterProbes,true);assert.equal(effectiveOptimizations(selected).neighborBounds,true);
+ assert.equal(optimizationMode(effective,defaults),'custom');
+ for(const mode of ['all','baseline','reference'])assert.equal(optimizationMode(optimizationPreset(defaults,mode),defaults),mode);
+});
+test('switching optimization combinations invalidates live water queries without resetting stock',()=>{
+ const lab=new SandLab({extensions:{has:()=>false}}),draw={detailRenderer:{pathsKey:'old'},mediumShadows:{key:'old',tiles:{key:'old'}}};
+ const bed=lab.sand,positions=lab.positions,p=[0,.6,0],reference=lab.waterAt(p);
+ for(const fastSampling of [false,true,false,true]){
+  lab.emitterSamples=new Float32Array(4);lab.gpu.neighborOrigin=positions;
+  applyOptimizationFlags(lab,draw,{...lab.optimizations,fastSampling});
+  assert.equal(lab.fluidIndex,null);assert.equal(lab.emitterSamples,null);assert.equal(lab.gpu.neighborOrigin,null);
+  assert.equal(lab.sand,bed);assert.equal(lab.positions,positions);
+  const actual=lab.waterAt(p);assert.ok(Math.abs(actual.density-reference.density)<1e-12);assert.deepEqual(actual.velocity,reference.velocity);
+ }
+});
