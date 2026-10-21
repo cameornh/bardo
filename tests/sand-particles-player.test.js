@@ -54,7 +54,7 @@ test('currents and rising waves carry a player; Space floats, releasing Space si
 });
 test('moving bodies impart persistent player momentum and equal opposing impulse',()=>{
  const w=new Walker(),b=makeBody('rock','sphere',.3,[-.5,.82,0],[4,0,0]),mass=bodyVolume(b)*b.ratio*1000,before=4*mass;
- assert.ok(playerBodyContact(w,b,[0,.82,0]));assert.ok(w.velocity[0]>1);assert.ok(Math.abs(w.velocity[0]*80+b.velocity[0]*mass-before)<1e-8);
+ assert.ok(playerBodyContact(w,b,[0,.82,0]));assert.ok(w.velocity[0]>1);assert.ok(Math.abs(w.velocity[0]*w.mass+b.velocity[0]*mass-before)<1e-8);
  const x=w.position[0];w.step(1/60,{},floor);assert.ok(w.position[0]>x+.01);assert.ok(w.velocity[0]>.5,'idle controls did not erase the impulse');
 });
 test('idle slope contact stays stable, jumping and diagonal input still work',()=>{

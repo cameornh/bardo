@@ -7,7 +7,7 @@ function drag(velocity,flow,density,area,mass,dt){
  const fraction=rate/(1+rate);for(let k=0;k<3;k++)velocity[k]+=relative[k]*fraction;
 }
 export class Walker {
- constructor(){this.position=[0,1.65,0];this.velocity=[0,0,0];this.grounded=false;this.submerged=0;this.radius=.28;this.eyeHeight=1.65;this.mass=80;this.groundNormal=[0,1,0];}
+ constructor(){this.position=[0,1.65,0];this.velocity=[0,0,0];this.grounded=false;this.submerged=0;this.radius=.28;this.eyeHeight=1.65;this.mass=100;this.groundNormal=[0,1,0];}
  step(dt,{forward=[0,0,-1],move=[0,0],buoyant=false,jump=false,sprint=false}={},solid,water=()=>0,environment={}){
   // Sample outside the displaced capsule once per frame, not once per solver
   // iteration. Occupancy-weighted currents include the wave's vertical motion.

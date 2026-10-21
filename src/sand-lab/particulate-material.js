@@ -1,13 +1,13 @@
-import {sandAdhesion} from './sand-material.js';
+import {sandMaterial} from './sand-material.js';
 const clamp=x=>Math.max(0,Math.min(1,x));
 export const AIR_DENSITY=1.225;
 // Test 12's unresolved particle model. All values are physical (m, s, kg)
 // except cohesion [0,1]. Yield stress is an artistic effective surface stress,
 // not the much larger tensile strength of an entire bonded sand structure.
 export function sandParticleMaterial(wet=0,memory=0){
- const cohesion=sandAdhesion(wet,memory),threshold=7+85*cohesion+18*wet;
+ const response=sandMaterial(wet,memory),cohesion=response.adhesion,threshold=response.entrainmentSpeed;
  return {density:2650,cohesion,yieldStress:.5*AIR_DENSITY*threshold**2,
-  surfaceTension:0,dispersion:1-.88*cohesion,drag:2.5,
+  surfaceTension:0,dispersion:response.dispersion,drag:2.5,
   albedo:[.68,.44,.19].map(v=>v*(1-.35*clamp(wet)))};
 }
 // Dynamic pressure must overcome binding/capillary stress. Water uses a

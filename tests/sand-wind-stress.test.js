@@ -62,8 +62,8 @@ test('airborne transport is represented by fine grains, not opaque parent sphere
  p.held=true;assert.ok(packSandShapes([p]).data[3]>0,'a deliberately held selection has a solid representation');
 });
 
-test('sand that reached full bonding before saturation retains its bond after drying',()=>{
- const b=flat(),parts=stressFixture(b,{length:1,wet:0,z:0,x:0});for(const p of parts)p.memory=.35;const start=parts.map(p=>p.position.slice());advance(b,5);
+test('sand consolidated near saturation retains a fraction of its bond after drying',()=>{
+ const b=flat(),parts=stressFixture(b,{length:1,wet:0,z:0,x:0});for(const p of parts)p.memory=.95;const start=parts.map(p=>p.position.slice());advance(b,5);
  assert.equal(b.stress.failures,0);assert.deepEqual(parts.map(p=>p.position),start);
 });
 

@@ -62,7 +62,7 @@ test('a removed CSG region does not weld disconnected wet pieces into the same f
 });
 
 test('cached support loses a drying bond continuously and rechecks when bond strength crosses its limit',()=>{
- const b=flat(),base=add(b,[0,.3,0],.3,.95),side=add(b,[.4,.25,0],.14,.35);
+ const b=flat(),base=add(b,[0,.3,0],.3,.95),side=add(b,[.4,.25,0],.14,.65);
  base.anchored=side.anchored=true;side.memory=0;b.releaseUnsupported();assert.ok(side.anchored);
  // Fresh weakly wetted material has no permanent clay bond to retain.
  side.wet=moisture(side.wet,false,4000);b.releaseUnsupported();assert.equal(side.anchored,false);

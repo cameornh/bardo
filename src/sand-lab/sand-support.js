@@ -1,5 +1,5 @@
 import {shapeRadius,shapeHeight,shapeDistance} from './sand-shape.js';
-import {sandAdhesion} from './sand-material.js';
+import {sandMobility} from './sand-material.js';
 
 // Vertical intervals of the actual CSG, including removed material. A brush's
 // bounding sphere is not a contact surface after part of it has been cut away.
@@ -31,7 +31,9 @@ export function sandFeet(p){
  feetCache.set(p,{r,a,cuts:p.cuts,feet});return feet;
 }
 
-export const hasSandBond=p=>sandAdhesion(p.wet,p.memory||0)>=.16;
+// Static contact exists only while the reference self-weight stays below
+// the interpolated yield stress. Sliding/breakage are load events, not wetness levels.
+export const hasSandBond=p=>sandMobility(p.wet,p.memory||0)===0;
 
 // Loose grains transmit compression from below, never tensile support from a
 // side or from above. Only a bond between two cohesive materials can hang.
@@ -51,7 +53,7 @@ export function supportsSand(lower,upper){
 // Resolve a loose deposit into a fixed number of independently supported
 // patches once, not recursively every frame. Their volumes and moisture sum
 // to the parent stock. Overhangs can then fall while supported grains stay.
-export function loosePatches(p,nextId,limit=25){
+export function loosePatches(p,nextId,limit=25,flow=1){
  const r=shapeRadius(p),samples=[];
  for(const [u,v] of disk){const x=u*r,z=v*r,spans=sandColumn(p,x,z),weight=spans.reduce((n,[a,b])=>n+b-a,0);if(weight>0)samples.push({x,z,spans,weight});}
  // A thin CSG intersection can miss the coarse disk stencil. Locate real
@@ -68,9 +70,9 @@ export function loosePatches(p,nextId,limit=25){
  let assigned=0;
  for(let i=0;i<samples.length;i++){
   const s=samples[i],mass=i===samples.length-1?stock-assigned:stock*s.weight/total;
-  const q={...p,id:i?nextId():p.id,mass,aspect:.85,cuts:undefined,shapeRadius:undefined,
+  const q={...p,id:i?nextId():p.id,mass,aspect:1-.15*flow,cuts:undefined,shapeRadius:undefined,
    position:[origin[0]+s.x,origin[1]+(s.spans[0][0]+s.spans.at(-1)[1])*.5,origin[2]+s.z],
-   surfaceBlend:undefined,spreadOffset:[s.x,s.z],spreadRemaining:limit===1?0:.55,
+   surfaceBlend:undefined,spreadOffset:[s.x,s.z],spreadRemaining:limit===1?0:.55*flow,
    velocity:velocity.slice(),anchored:false,layer:true,looseResolved:true,layerGroup:p.id};
   // Spread at the existing surface rather than starting inside the support.
   q.position[1]=Math.max(q.position[1],origin[1]-shapeHeight(p)+shapeHeight(q));

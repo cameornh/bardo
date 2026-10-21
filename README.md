@@ -1115,3 +1115,32 @@ hardware interpolation is reported separately, with 1e-4 distance and 3e-4
 moisture tolerances. The explicit QA controls **Large dry scoop**, **Regrab dry
 mound** and **Flattened sand edge** reproduce these cases. Prior tests and saved
 terrain data are unchanged.
+
+### Continuous sand wetness and inspection (test 12)
+
+Sand now uses one continuous material response across saturation 0–1 for
+cohesion, adhesion, friction, yield strength, repose, density, compaction and
+entrainment/dispersion. The previous early saturation and separate wetness
+cutoffs are removed. Damp touching portions exchange momentum conservatively;
+settling, spreading and transfer into the bed scale with the amount of yield.
+Static support and fracture still compare load against material strength.
+Barely damp sand stays loose, while strongly wetted sand retains a fraction of
+its strength after drying. Merging and transport average that history by mass
+instead of copying the strongest grain's history onto the entire handful.
+
+**Show QA controls** reveals fixtures and numerical checks without requiring a
+URL parameter or resetting the scene. **Show sand wetness** colors the existing
+SDF surface on a continuous gradient and reports the actual hovered parcel's
+wetness (or interpolated terrain wetness); first person uses the crosshair.
+**Wetness spectrum fixture** and **Settle wetness spectrum 4 s** compare equal
+portions spanning dry through saturated sand. The world control is now labeled
+**Resolution**. Player mass is 100 kg, reducing acceleration from a given
+external force by 20% while preserving gravity, walking and Space buoyancy.
+
+All 391 numerical/regression tests and the production build pass. In the local
+GPU checks, the new diagnostic color agrees with the CPU reference within
+1.9e-4 across 384 probes; the existing water, terrain, atmosphere, air and grain
+checks also pass. Saved results are in
+`tests/results/sand-wetness-gpu-2026-10-20.json`. Sand stock/contact/strength and
+player simulation remain CPU work; water constraints, grain motion and field
+rendering retain their GPU backends. Earlier scene snapshots are unchanged.

@@ -44,7 +44,7 @@ export function resolveSandContacts(parcels,bodies,dt,grid=null){
    const b=bodies[index];if(Math.hypot(...p.position.map((v,k)=>v-b.position[k]))>b.radius*1.5+bound)continue;
    for(let iteration=0;iteration<3;iteration++){const d=bodyDistance(p.position,b),n=bodyNormal(p.position,b),r=bound*Math.hypot(n[0],n[1]*(p.aspect||1),n[2]);if(d>=r)break;
     const relative=p.velocity.reduce((sum,v,k)=>sum+(v-b.velocity[k])*n[k],0),adhesion=sandAdhesion(p.wet||0,p.memory||0);
-    if(p.anchored&&adhesion<.9&&relative<-(.02+adhesion*.5))p.anchored=false;
+    if(p.anchored&&relative<-(.02+adhesion*adhesion*12))p.anchored=false;
     if(p.anchored){
      // Bonded sand is terrain: move the free body out of the deposit instead
      // of reviving/moving the clay's individual SDF support primitives.

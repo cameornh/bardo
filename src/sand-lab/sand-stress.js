@@ -1,6 +1,6 @@
 import {shapeRadius,shapeDistance,shapeBlend} from './sand-shape.js';
 import {sandFeet,supportsSand,hasSandBond} from './sand-support.js';
-import {sandAdhesion} from './sand-material.js';
+import {sandAdhesion,sandMaterial} from './sand-material.js';
 import {SandShapeStamp} from './sand-cache.js';
 import {BoundsGrid} from './spatial-bounds.js';
 
@@ -65,8 +65,8 @@ export class SandStress{
     const bending=Math.hypot(...moment.map((v,k)=>v-edge.axis[k]*dot(moment,edge.axis))),adhesion=Math.min(sandAdhesion(p.wet,p.memory||0),edge.node?sandAdhesion(edge.node.p.wet,edge.node.p.memory||0):1);
     // Compression/friction can support dry stock. Tensile and bending loads
     // require a bond and continuously weaken with retained moisture.
-    const strength=SAND_STRENGTH*Math.max(.015,adhesion),compression=Math.max(0,-normal)/area;
-    const load=hasSandBond(p)&&(!edge.node||hasSandBond(edge.node.p))?Math.max(0,normal)/area/strength + Math.max(0,shear-.7*Math.max(0,-normal))/area/(strength*.75) + bending/(Math.PI*radius**3*.25)/strength + compression/2e6:0;
+    const strength=SAND_STRENGTH*Math.max(1e-8,adhesion),compression=Math.max(0,-normal)/area;
+    const load=hasSandBond(p)&&(!edge.node||hasSandBond(edge.node.p))?Math.max(0,normal)/area/strength + Math.max(0,shear-sandMaterial(p.wet,p.memory||0).friction*Math.max(0,-normal))/area/(strength*.75) + bending/(Math.PI*radius**3*.25)/strength + compression/2e6:0;
     const key=`${p.id}:${edge.node?.p.id||0}`,old=this.damage.get(key)||0;
     const damage=load>1?old+dt*Math.min(8,(load-1)**1.35):Math.max(0,old-dt*.8);this.damage.set(key,damage);
     this.maxLoad=Math.max(this.maxLoad,load);
