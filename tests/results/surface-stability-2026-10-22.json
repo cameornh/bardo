@@ -1,0 +1,51 @@
+{
+  "scene": "Test 12 / sand lab only",
+  "backend": "WebGL2 GPU rendering; double-precision CPU ray reference",
+  "movingSand": {
+    "pass": true,
+    "frames": 36,
+    "minimumVisiblePixels": 12778,
+    "interiorHits": 0,
+    "waterOverOpaqueSand": 0,
+    "maxSurfaceResidualLabUnits": 2.9999859179952182e-05
+  },
+  "movingWater": {
+    "frames": 30,
+    "maxFrameMeanRGBChange": 0.0008697285501784169,
+    "note": "Includes 384 refined Gaussian families. This camera sweep is a smoke check, not a guarantee for every view."
+  },
+  "emptyFamilyCoverage": {
+    "pass": true,
+    "families": 384,
+    "incorrectlyReplacedBulkPixels": 0
+  },
+  "connectedWaterOptics": {
+    "pass": true,
+    "path": 3.233999729156494,
+    "expected": 3.241292118311375,
+    "concentration": 0.40000003576278687,
+    "normal": 1
+  },
+  "heldDistanceLighting": {
+    "pass": true,
+    "frames": 32,
+    "beforeMaxRelativeBrightnessJump": 0.32667179550187575,
+    "afterMaxRelativeBrightnessJump": 0.00219918399995047,
+    "beforePeakShadowedSunFacingPixels": 10393,
+    "afterPeakShadowedSunFacingPixels": 13,
+    "note": "Sun-facing region of held sand along a fixed camera ray; small genuine self-shadows remain between lobes."
+  },
+  "sandShadowGPUReference": {
+    "pass": true,
+    "cases": 256,
+    "maxError": 4.870832860631724e-06,
+    "blocked": 81,
+    "clear": 156
+  },
+  "validation": {
+    "numericalTests": 424,
+    "failures": 0,
+    "build": "passed",
+    "mainPreview": "Scrolled held sand near/far through the waterline and orbited while paused; no large gray patches in the checked views."
+  }
+}

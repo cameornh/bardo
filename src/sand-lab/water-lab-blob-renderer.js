@@ -53,16 +53,30 @@ void main(){
   if(!hit)discard;
   for(int i=0;i<6;i++){float middle=(last+t)*.5;if(joinedDensity(uEye+ray*middle)<PARCEL_ISO)last=middle;else t=middle;}
   if(t>=bulkDepth)discard;
-  vec3 p=uEye+ray*t;vec4 densityGradient=blobSample(p);float e=uSpacing*.12;
-  vec3 gradient=densityGradient.yzw+vec3(rho(p+vec3(e,0,0))-rho(p-vec3(e,0,0)),rho(p+vec3(0,e,0))-rho(p-vec3(0,e,0)),rho(p+vec3(0,0,e))-rho(p-vec3(0,0,e)))/(2.*e);
+  vec3 p=uEye+ray*t;vec4 densityGradient=blobSample(p);
+  // A conservative family quad also covers unrelated bulk water. A slightly
+  // more precise intersection there is not new geometry: keep the bulk pass
+  // instead of replacing its lighting with this family's local integration.
+  if(densityGradient.x<PARCEL_ISO*.005)discard;
+  // The bulk derivative must use the bulk pass's footprint. Switching to a
+  // sharper finite difference made its same surface change normals (and hence
+  // reflected sky/scene color) whenever a daughter family's quad covered it.
+  vec3 gradient=densityGradient.yzw+fluidGradient(p);
   vec3 n=length(gradient)>1e-7?-normalize(gradient):-ray;if(dot(n,-ray)<0.)n=-n;
   vec3 refracted=refract(ray,n,1./WATER_IOR);float path=0.;vec4 chemicals=vec4(0);
-  for(int i=0;i<100;i++){
-    vec3 q=p+refracted*(path+uSpacing*.012);float d=blobSample(q).x;vec4 bulk=parcelSample(q);
+  // Fine lobes use small steps only while crossing their own support. Once a
+  // ray enters connected bulk water, continue through that volume at the same
+  // spacing as the bulk pass. The old 100 tiny steps capped optical thickness
+  // at 4.5 spacings, turning overlapping deep water into pale flickering tiles.
+  float bulkStep=uSpacing*mix(.35,.9,smoothstep(3.,14.,t));
+  for(int i=0;i<256;i++){
+    vec3 start=p+refracted*path;float local=blobSample(start).x;
+    float stepSize=local>.002?uSpacing*.045:bulkStep;
+    vec3 q=start+refracted*(stepSize*.5);float d=blobSample(q).x;vec4 bulk=parcelSample(q);
     if(d+bulk.x<PARCEL_ISO)break;
-    chemicals+=vec4((d*vChem+bulk.yzw)/max(d+bulk.x,.0001),1);path+=uSpacing*.045;
+    chemicals+=vec4((d*vChem+bulk.yzw)/max(d+bulk.x,.0001),1)*stepSize;path+=stepSize;
   }
-  outColor=vec4(shadeWater(p,n,ray,path,chemicals.xyz/max(1.,chemicals.w)),t);
+  outColor=vec4(shadeWater(p,n,ray,path,chemicals.xyz/max(.00001,chemicals.w)),t);
   vec4 clip=uProjection*uViewMatrix*vec4(p,1);gl_FragDepth=clip.z/clip.w*.5+.5;
 }`;
 

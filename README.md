@@ -1144,3 +1144,42 @@ checks also pass. Saved results are in
 `tests/results/sand-wetness-gpu-2026-10-20.json`. Sand stock/contact/strength and
 player simulation remain CPU work; water constraints, grain motion and field
 rendering retain their GPU backends. Earlier scene snapshots are unchanged.
+
+### Moving sand and water surface stability (test 12)
+
+The sand spatial index supplies a local distance query, not a conservative
+distance to every shape. Surface rays now stop at parcel bounds and cell
+boundaries before advancing, and refine any overshoot to the first surface.
+This prevents camera, reflection and refraction rays from shading the interior
+of a moving clump. Shallow refracted ground queries no longer skip the contact
+with a fixed origin offset. Simulation, saved edits and earlier tests are
+unchanged.
+
+Fine-water families no longer replace unrelated bulk water merely because their
+projected bounds cover it. Joined surfaces use the same bulk normal footprint,
+and optical integration continues through connected deep water after leaving
+the fine lobe. Chemical concentrations are weighted by actual path length when
+the integration step changes.
+
+`tests/surface-flicker-gpu.html` checks moving held sand, camera motion over water,
+empty family coverage, and a fine lobe joined to an analytic deep slab. The GPU
+sand sweep had no interior hits or water-over-sand errors in 36 positions, with
+surface residual below 3e-5 lab units. The slab measured 3.234 against a 3.241
+reference path, instead of truncating at 0.9. Results are saved in
+`tests/results/surface-stability-2026-10-22.json`; the independent CPU ray tests
+cover bin crossings, flattened deposits and shallow bank contacts.
+
+Moving sand also exposed a separate lighting failure: the 32 × 24 × 32 medium
+transport volume stored opaque sand hits as an optical depth of 16. Interpolating
+those cells made a clump shadow itself, changing whole patches as it moved across
+cells. Test 12 now keeps detached-sand sunlight visibility in a bounded SDF query
+at the receiver, with a finite solar penumbra. Local diffuse occlusion follows the
+smooth surface; the volume still handles terrain, water absorption and glass.
+This does not increase the volume resolution or tie lighting to camera LOD.
+
+The held-distance regression reproduces the paused scrolling motion from the
+reported recording. Across 32 positions its largest adjacent-frame mean
+brightness jump on the sun-facing sand dropped from 32.67% to 0.22%. That is a
+measurement of this regression, not a guarantee for every view. A separate GPU
+check matches 256 shadow queries to the CPU reference within 4.9e-6, including
+lit upper surfaces, blocked receivers below, and moving penumbras.

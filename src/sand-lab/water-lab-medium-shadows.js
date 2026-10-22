@@ -35,9 +35,12 @@ export function mediumSkyDepth(p,limit,options){
 }
 export const MEDIUM_INTEGRATE_GLSL=`
 uniform float uScale,uTannins,uTurbidity;
+// Detached sand casts receiver-space shadows. Rasterizing its binary visibility
+// into this coarse absorption volume made moving sand shadow itself in chunks.
+float transportSolid(vec3 p){return uStation==6?(p.y-labFloor(p))*.65:labOpaque(p);}
 vec3 mediumOpticalDepth(vec3 p,vec3 d,float limit,float stepSize){
- vec3 tau=vec3(0);float t=.012;bool free=labOpaque(p)>.005,lastGlass=vessel(p)<0.;
- for(int i=0;i<128;i++){if(t>=limit)break;vec3 q=p+d*t;float gd=vessel(q),sd=labOpaque(q);if(sd>.008)free=true;if(free&&sd<-.012)return vec3(16);
+ vec3 tau=vec3(0);float t=.012;bool free=transportSolid(p)>.005,lastGlass=vessel(p)<0.;
+ for(int i=0;i<128;i++){if(t>=limit)break;vec3 q=p+d*t;float gd=vessel(q),sd=transportSolid(q);if(sd>.008)free=true;if(free&&sd<-.012)return vec3(16);
  float empty=fieldEmptyAdvance(q,d,.12),safe=min(max(0.,gd),max(0.,sd))*.65;if(empty>stepSize&&safe>stepSize){t+=min(limit-t,min(empty,safe));continue;}
  float ds=min(limit-t,min(stepSize,max(.012,abs(gd)*.75)));vec3 mid=q+d*ds*.5;vec4 a=parcelSample(mid);bool inside=vessel(mid)<0.;
  if(inside!=lastGlass){float e=.004;vec3 n=vec3(vessel(mid+vec3(e,0,0))-vessel(mid-vec3(e,0,0)),vessel(mid+vec3(0,e,0))-vessel(mid-vec3(0,e,0)),vessel(mid+vec3(0,0,e))-vessel(mid-vec3(0,0,e)));float cosine=abs(dot(n/max(1e-8,length(n)),d)),F=.04+.96*pow(1.-cosine,5.);tau-=vec3(log(max(.02,1.-F)));}lastGlass=inside;
