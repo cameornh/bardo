@@ -5,11 +5,7 @@
 // its reconstructed normal, never through a wind-speed switch.
 export const WATER_SCENE_REFLECTION_GLSL = `
 uniform bool uWaterSceneReflections;
-vec3 waterSceneReflection(vec3 p,vec3 n,vec3 incident){
- vec3 direction=reflect(incident,n);
- if(!uWaterSceneReflections)return sky(direction);
- // Stay above the reconstructed surface without skipping tiny nearby objects.
- vec3 origin=p+n*clamp(uSpacing*.01,.00004,.003);
+vec3 waterSceneRadiance(vec3 origin,vec3 direction){
  float distance=traceOpaque(origin,direction);
  vec3 color=sky(direction);
  if(distance<9999.){
@@ -22,6 +18,11 @@ vec3 waterSceneReflection(vec3 p,vec3 n,vec3 incident){
  if(glassDistance<distance)
   color=shadeGlass(origin+direction*glassDistance,glassNormal,direction,color);
  return color;
+}
+vec3 waterSceneReflection(vec3 p,vec3 n,vec3 incident){
+ vec3 direction=reflect(incident,n);
+ if(!uWaterSceneReflections)return sky(direction);
+ return waterSceneRadiance(p+n*clamp(uSpacing*.01,.00004,.003),direction);
 }
 `;
 

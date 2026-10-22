@@ -1,0 +1,33 @@
+{
+  "backend": "GPU",
+  "meterCases": [
+    {
+      "case": 0,
+      "gpu": 1,
+      "cpu": 1,
+      "target": 1,
+      "error": 0
+    },
+    {
+      "case": 1,
+      "gpu": 1.0794507265090942,
+      "cpu": 1.0794509586403997,
+      "target": 12,
+      "error": 2.3213130551091865e-7
+    },
+    {
+      "case": 2,
+      "gpu": 0.5742633938789368,
+      "cpu": 0.5742632855897764,
+      "target": 0.08,
+      "error": 1.0828916041649705e-7
+    }
+  ],
+  "exposureError": 2.3213130551091865e-7,
+  "reductionRelativeError": 2.2695556612416081e-7,
+  "fallbackError": 0,
+  "exposureMilliseconds": 0.15333333412806194,
+  "snellSamples": 256,
+  "snellError": 0.0007476622286493595,
+  "pass": true
+}
