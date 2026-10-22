@@ -1,0 +1,16 @@
+{
+  "station": "sand",
+  "changedWaterPixels": 10211,
+  "maxWaterDepthError": 0,
+  "nonFinite": 0,
+  "meanLinearDifference": 0.0036302571691234024,
+  "fixedResolution": [
+    800,
+    550
+  ],
+  "warmRenderMs": [
+    24.200000002980232,
+    24.75
+  ],
+  "pass": true
+}

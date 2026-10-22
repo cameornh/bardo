@@ -1,0 +1,12 @@
+{
+  "backend": "GPU",
+  "samples": 256,
+  "maxRadianceError": 0.0002431186700219412,
+  "worst": {
+    "sample": 197,
+    "channel": 2,
+    "cpu": 0.16910832497831638,
+    "gpu": 0.16935144364833832
+  },
+  "pass": true
+}

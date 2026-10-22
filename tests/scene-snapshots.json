@@ -10,7 +10,7 @@
   "src/volume-water-shaders.js": "972a87d6c94c54be69b5bc81dd1950224f60e56f12dd0f54708949dd8a6915d5",
   "src/photon-gpu.js": "60730c0a968a7d90568ffc61d7ecb15c813a5a6803d0f6842472e111111e0f2b",
   "src/water-lab-gpu.js": "2fcacefb2645a35be64df70088847287536740acd1ef63e54ffef31a889bbdcf",
-  "src/water-lab-renderer.js": "a000645463144b3341a08f380e635be3ecac646c26fe2d9def3fcbc286742721",
+  "src/water-lab-renderer.js": "24f2c69e0efbd0d50e90447e94d76dd205524b63b267bd8be54c2679da46432e",
   "src/volume-water-gpu.js": "8399553370efef2c119059b3ab92008932c279874df726273dc28303539e60e2",
   "src/grass-renderer.js": "d83d672cea5a602f41b943c5b47403faaf228e24dd4f660eaef2d8f2fdf84fca",
   "src/optics-renderer.js": "88df52aa96e02ab4760d770a80d498c9ab5c7d2346f97d5a976fd7d200a677be",

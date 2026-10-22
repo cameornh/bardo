@@ -1,0 +1,16 @@
+{
+  "station": "fountain",
+  "changedWaterPixels": 14650,
+  "maxWaterDepthError": 0,
+  "nonFinite": 0,
+  "meanLinearDifference": 0.003002933810373896,
+  "fixedResolution": [
+    800,
+    550
+  ],
+  "warmRenderMs": [
+    17.450000002980232,
+    17.049999982118607
+  ],
+  "pass": true
+}

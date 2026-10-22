@@ -1,0 +1,16 @@
+{
+  "station": "pool",
+  "changedWaterPixels": 103637,
+  "maxWaterDepthError": 0,
+  "nonFinite": 0,
+  "meanLinearDifference": 0.060795322656221826,
+  "fixedResolution": [
+    800,
+    550
+  ],
+  "warmRenderMs": [
+    7.999999985098839,
+    8.899999991059303
+  ],
+  "pass": true
+}

@@ -14,8 +14,8 @@ vec3 fountainWaterReflection(vec3 origin,vec3 rd,vec3 behind,float roughness){
  for(int i=0;i<64;i++){vec3 q=origin+rd*t;if(q.y<0.||t>8.)break;if(rho(q)>=PARCEL_ISO){vec3 n=fluidNormal(q);if(dot(n,-rd)<0.)n=-n;float F=waterFresnel(dot(n,-rd));vec3 skyLight=fountainEnvironment(reflect(rd,n),roughness);return mix(behind,skyLight,F);}t+=.125;}
  return behind;
 }
-vec3 fountainMetal(vec3 p,vec3 n){
- vec3 v=normalize(uEye-p),rd=reflect(-v,n);float pattern=.5+.25*sin(p.y*15.+sin((length(p.xz)>1e-7?atan(p.z,p.x):0.)*12.))+.25*sin(p.x*9.+p.z*7.),patina=uFountainPatina*smoothstep(.15,.85,pattern),roughness=mix(uFountainRoughness,.62,patina),nv=max(0.,dot(n,v));
+vec3 fountainMetalFrom(vec3 p,vec3 n,vec3 v){
+ vec3 rd=reflect(-v,n);float pattern=.5+.25*sin(p.y*15.+sin((length(p.xz)>1e-7?atan(p.z,p.x):0.)*12.))+.25*sin(p.x*9.+p.z*7.),patina=uFountainPatina*smoothstep(.15,.85,pattern),roughness=mix(uFountainRoughness,.62,patina),nv=max(0.,dot(n,v));
  vec3 reflection=fountainEnvironment(rd,roughness);
  // The floor and water provide bounded single-bounce environment reflections;
  // no recursive metal-to-metal queries enter the surface pass.
