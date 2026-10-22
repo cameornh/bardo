@@ -1,0 +1,788 @@
+{
+  "heldSand": {
+    "pass": true,
+    "maxRelativeBrightnessJump": 0.002199183952445927,
+    "frames": [
+      {
+        "i": 0,
+        "distance": 2.9,
+        "center": [
+          0,
+          2.307962309260173,
+          0.5132705154336219
+        ],
+        "topCount": 4407,
+        "shadowed": 9,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7904403296319528
+      },
+      {
+        "i": 1,
+        "distance": 2.8449999999999998,
+        "center": [
+          0,
+          2.336259575808687,
+          0.5604326263478119
+        ],
+        "topCount": 4599,
+        "shadowed": 7,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7909624213295436
+      },
+      {
+        "i": 2,
+        "distance": 2.79,
+        "center": [
+          0,
+          2.364556842357201,
+          0.6075947372620014
+        ],
+        "topCount": 4780,
+        "shadowed": 5,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7914379208989065
+      },
+      {
+        "i": 3,
+        "distance": 2.735,
+        "center": [
+          0,
+          2.392854108905715,
+          0.6547568481761918
+        ],
+        "topCount": 4995,
+        "shadowed": 8,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7908811307894134
+      },
+      {
+        "i": 4,
+        "distance": 2.6799999999999997,
+        "center": [
+          0,
+          2.421151375454229,
+          0.7019189590903818
+        ],
+        "topCount": 5197,
+        "shadowed": 7,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7915219774184338
+      },
+      {
+        "i": 5,
+        "distance": 2.625,
+        "center": [
+          0,
+          2.449448642002743,
+          0.7490810700045714
+        ],
+        "topCount": 5448,
+        "shadowed": 8,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7916664432513593
+      },
+      {
+        "i": 6,
+        "distance": 2.57,
+        "center": [
+          0,
+          2.477745908551257,
+          0.7962431809187613
+        ],
+        "topCount": 5720,
+        "shadowed": 9,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7909731062285426
+      },
+      {
+        "i": 7,
+        "distance": 2.5149999999999997,
+        "center": [
+          0,
+          2.506043175099771,
+          0.8434052918329518
+        ],
+        "topCount": 5994,
+        "shadowed": 8,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7920692197956946
+      },
+      {
+        "i": 8,
+        "distance": 2.46,
+        "center": [
+          0,
+          2.5343404416482844,
+          0.8905674027471413
+        ],
+        "topCount": 6266,
+        "shadowed": 8,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.792873131777332
+      },
+      {
+        "i": 9,
+        "distance": 2.405,
+        "center": [
+          0,
+          2.5626377081967986,
+          0.9377295136613313
+        ],
+        "topCount": 6597,
+        "shadowed": 7,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7928279528634261
+      },
+      {
+        "i": 10,
+        "distance": 2.3499999999999996,
+        "center": [
+          0,
+          2.5909349747453128,
+          0.9848916245755213
+        ],
+        "topCount": 6937,
+        "shadowed": 6,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7928410755874651
+      },
+      {
+        "i": 11,
+        "distance": 2.295,
+        "center": [
+          0,
+          2.619232241293827,
+          1.032053735489711
+        ],
+        "topCount": 7286,
+        "shadowed": 4,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7925242411444999
+      },
+      {
+        "i": 12,
+        "distance": 2.2399999999999998,
+        "center": [
+          0,
+          2.6475295078423406,
+          1.0792158464039012
+        ],
+        "topCount": 7682,
+        "shadowed": 3,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7924627789010807
+      },
+      {
+        "i": 13,
+        "distance": 2.185,
+        "center": [
+          0,
+          2.6758267743908544,
+          1.1263779573180908
+        ],
+        "topCount": 8136,
+        "shadowed": 5,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7925574790618587
+      },
+      {
+        "i": 14,
+        "distance": 2.13,
+        "center": [
+          0,
+          2.7041240409393685,
+          1.173540068232281
+        ],
+        "topCount": 8602,
+        "shadowed": 5,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7934434184658584
+      },
+      {
+        "i": 15,
+        "distance": 2.075,
+        "center": [
+          0,
+          2.7324213074878823,
+          1.2207021791464707
+        ],
+        "topCount": 9115,
+        "shadowed": 5,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.79272313108172
+      },
+      {
+        "i": 16,
+        "distance": 2.02,
+        "center": [
+          0,
+          2.7607185740363964,
+          1.2678642900606607
+        ],
+        "topCount": 9683,
+        "shadowed": 5,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7920005478088248
+      },
+      {
+        "i": 17,
+        "distance": 1.9649999999999999,
+        "center": [
+          0,
+          2.78901584058491,
+          1.3150264009748507
+        ],
+        "topCount": 10309,
+        "shadowed": 5,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7924417182991064
+      },
+      {
+        "i": 18,
+        "distance": 1.91,
+        "center": [
+          0,
+          2.8173131071334243,
+          1.3621885118890407
+        ],
+        "topCount": 10969,
+        "shadowed": 4,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7936126891069973
+      },
+      {
+        "i": 19,
+        "distance": 1.855,
+        "center": [
+          0,
+          2.8456103736819385,
+          1.4093506228032304
+        ],
+        "topCount": 11742,
+        "shadowed": 4,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7938101555982278
+      },
+      {
+        "i": 20,
+        "distance": 1.7999999999999998,
+        "center": [
+          0,
+          2.873907640230452,
+          1.4565127337174206
+        ],
+        "topCount": 12557,
+        "shadowed": 4,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7938483432233987
+      },
+      {
+        "i": 21,
+        "distance": 1.7449999999999999,
+        "center": [
+          0,
+          2.9022049067789664,
+          1.5036748446316104
+        ],
+        "topCount": 13490,
+        "shadowed": 5,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7931379168579502
+      },
+      {
+        "i": 22,
+        "distance": 1.69,
+        "center": [
+          0,
+          2.93050217332748,
+          1.5508369555458004
+        ],
+        "topCount": 14534,
+        "shadowed": 5,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7933779558067142
+      },
+      {
+        "i": 23,
+        "distance": 1.635,
+        "center": [
+          0,
+          2.9587994398759943,
+          1.5979990664599901
+        ],
+        "topCount": 15655,
+        "shadowed": 6,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7947659774732716
+      },
+      {
+        "i": 24,
+        "distance": 1.5799999999999998,
+        "center": [
+          0,
+          2.987096706424508,
+          1.6451611773741803
+        ],
+        "topCount": 16957,
+        "shadowed": 6,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7959222010396
+      },
+      {
+        "i": 25,
+        "distance": 1.525,
+        "center": [
+          0,
+          3.015393972973022,
+          1.69232328828837
+        ],
+        "topCount": 18459,
+        "shadowed": 8,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7951675688976951
+      },
+      {
+        "i": 26,
+        "distance": 1.47,
+        "center": [
+          0,
+          3.043691239521536,
+          1.73948539920256
+        ],
+        "topCount": 20154,
+        "shadowed": 8,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7948412795960141
+      },
+      {
+        "i": 27,
+        "distance": 1.4149999999999998,
+        "center": [
+          0,
+          3.07198850607005,
+          1.78664751011675
+        ],
+        "topCount": 22077,
+        "shadowed": 7,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7951855376594332
+      },
+      {
+        "i": 28,
+        "distance": 1.3599999999999999,
+        "center": [
+          0,
+          3.1002857726185638,
+          1.83380962103094
+        ],
+        "topCount": 24347,
+        "shadowed": 10,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7969342969330709
+      },
+      {
+        "i": 29,
+        "distance": 1.305,
+        "center": [
+          0,
+          3.128583039167078,
+          1.8809717319451298
+        ],
+        "topCount": 26940,
+        "shadowed": 9,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7967012541135841
+      },
+      {
+        "i": 30,
+        "distance": 1.25,
+        "center": [
+          0,
+          3.1568803057155916,
+          1.9281338428593198
+        ],
+        "topCount": 29985,
+        "shadowed": 11,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.7953213745042904
+      },
+      {
+        "i": 31,
+        "distance": 1.1949999999999998,
+        "center": [
+          0,
+          3.185177572264106,
+          1.9752959537735097
+        ],
+        "topCount": 33672,
+        "shadowed": 13,
+        "minSun": 0,
+        "minSky": 1,
+        "mean": 0.79527830874678
+      }
+    ]
+  },
+  "water": [
+    {
+      "i": 0,
+      "mean": 0.6530374783854719,
+      "mergedMean": 0.6453191126594261,
+      "n": 101760,
+      "missing": 56640,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 147,
+      "maxOpticalJump": 0.9375680685043335
+    },
+    {
+      "i": 1,
+      "mean": 0.6534173318660776,
+      "mergedMean": 0.6455833709126694,
+      "n": 101774,
+      "missing": 56626,
+      "startsInside": 0,
+      "zeroPath": 1,
+      "mismatchedOptics": 149,
+      "maxOpticalJump": 1.0087754130363464
+    },
+    {
+      "i": 2,
+      "mean": 0.6537679535600434,
+      "mergedMean": 0.645692799147331,
+      "n": 101783,
+      "missing": 56617,
+      "startsInside": 0,
+      "zeroPath": 1,
+      "mismatchedOptics": 155,
+      "maxOpticalJump": 0.9919369518756866
+    },
+    {
+      "i": 3,
+      "mean": 0.6542835699343864,
+      "mergedMean": 0.6458441043583607,
+      "n": 101801,
+      "missing": 56599,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 145,
+      "maxOpticalJump": 0.9844171553850174
+    },
+    {
+      "i": 4,
+      "mean": 0.6545891975606911,
+      "mergedMean": 0.645998197879052,
+      "n": 101810,
+      "missing": 56590,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 146,
+      "maxOpticalJump": 0.9394096806645393
+    },
+    {
+      "i": 5,
+      "mean": 0.6549866643974137,
+      "mergedMean": 0.6460601080731034,
+      "n": 101814,
+      "missing": 56586,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 160,
+      "maxOpticalJump": 0.9115782827138901
+    },
+    {
+      "i": 6,
+      "mean": 0.6554695192020842,
+      "mergedMean": 0.6462338736314034,
+      "n": 101833,
+      "missing": 56567,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 159,
+      "maxOpticalJump": 1.1467159390449524
+    },
+    {
+      "i": 7,
+      "mean": 0.6558680483982688,
+      "mergedMean": 0.6464542492370725,
+      "n": 101843,
+      "missing": 56557,
+      "startsInside": 0,
+      "zeroPath": 2,
+      "mismatchedOptics": 172,
+      "maxOpticalJump": 1.3731364011764526
+    },
+    {
+      "i": 8,
+      "mean": 0.65624572117949,
+      "mergedMean": 0.6465590466909356,
+      "n": 101848,
+      "missing": 56552,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 179,
+      "maxOpticalJump": 0.9448137134313583
+    },
+    {
+      "i": 9,
+      "mean": 0.6566320823689631,
+      "mergedMean": 0.6465720818292724,
+      "n": 101858,
+      "missing": 56542,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 170,
+      "maxOpticalJump": 0.9254400804638863
+    },
+    {
+      "i": 10,
+      "mean": 0.6569997091991516,
+      "mergedMean": 0.6466798569203625,
+      "n": 101865,
+      "missing": 56535,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 165,
+      "maxOpticalJump": 0.9198037981987
+    },
+    {
+      "i": 11,
+      "mean": 0.657497970083267,
+      "mergedMean": 0.6468498179117287,
+      "n": 101882,
+      "missing": 56518,
+      "startsInside": 0,
+      "zeroPath": 1,
+      "mismatchedOptics": 183,
+      "maxOpticalJump": 1.1376386284828186
+    },
+    {
+      "i": 12,
+      "mean": 0.6578978770623868,
+      "mergedMean": 0.6469030817349934,
+      "n": 101895,
+      "missing": 56505,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 197,
+      "maxOpticalJump": 1.0802752673625946
+    },
+    {
+      "i": 13,
+      "mean": 0.6582867031791384,
+      "mergedMean": 0.6472086556892718,
+      "n": 101903,
+      "missing": 56497,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 191,
+      "maxOpticalJump": 0.9745075479149818
+    },
+    {
+      "i": 14,
+      "mean": 0.6587247776491716,
+      "mergedMean": 0.6475616376569603,
+      "n": 101919,
+      "missing": 56481,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 194,
+      "maxOpticalJump": 1.0117392539978027
+    },
+    {
+      "i": 15,
+      "mean": 0.6590952636636329,
+      "mergedMean": 0.6476398028137136,
+      "n": 101928,
+      "missing": 56472,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 202,
+      "maxOpticalJump": 1.0620470196008682
+    },
+    {
+      "i": 16,
+      "mean": 0.6594138202712874,
+      "mergedMean": 0.6478234703844263,
+      "n": 101934,
+      "missing": 56466,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 196,
+      "maxOpticalJump": 0.9974810928106308
+    },
+    {
+      "i": 17,
+      "mean": 0.6598307265490249,
+      "mergedMean": 0.6481461080356317,
+      "n": 101941,
+      "missing": 56459,
+      "startsInside": 0,
+      "zeroPath": 1,
+      "mismatchedOptics": 214,
+      "maxOpticalJump": 1.0077482834458351
+    },
+    {
+      "i": 18,
+      "mean": 0.6601099561559477,
+      "mergedMean": 0.6483206779261401,
+      "n": 101946,
+      "missing": 56454,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 217,
+      "maxOpticalJump": 0.9773404002189636
+    },
+    {
+      "i": 19,
+      "mean": 0.6605344905028816,
+      "mergedMean": 0.6486687709700254,
+      "n": 101953,
+      "missing": 56447,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 231,
+      "maxOpticalJump": 1.0703417658805847
+    },
+    {
+      "i": 20,
+      "mean": 0.660940496553874,
+      "mergedMean": 0.6492941871998557,
+      "n": 101961,
+      "missing": 56439,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 232,
+      "maxOpticalJump": 0.9890100359916687
+    },
+    {
+      "i": 21,
+      "mean": 0.6614040037736595,
+      "mergedMean": 0.6497489008431231,
+      "n": 101964,
+      "missing": 56436,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 242,
+      "maxOpticalJump": 0.9503435119986534
+    },
+    {
+      "i": 22,
+      "mean": 0.661772260232091,
+      "mergedMean": 0.6499681741415152,
+      "n": 101970,
+      "missing": 56430,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 236,
+      "maxOpticalJump": 0.9051846861839294
+    },
+    {
+      "i": 23,
+      "mean": 0.6622127553737761,
+      "mergedMean": 0.6503162605403593,
+      "n": 101980,
+      "missing": 56420,
+      "startsInside": 0,
+      "zeroPath": 0,
+      "mismatchedOptics": 255,
+      "maxOpticalJump": 1.1422928869724274
+    },
+    {
+      "i": 24,
+      "mean": 0.6626693807796362,
+      "mergedMean": 0.6507270194331122,
+      "n": 101990,
+      "missing": 56410,
+      "startsInside": 0,
+      "zeroPath": 3,
+      "mismatchedOptics": 271,
+      "maxOpticalJump": 1.0197656750679016
+    },
+    {
+      "i": 25,
+      "mean": 0.6629952922353479,
+      "mergedMean": 0.651188527006727,
+      "n": 101995,
+      "missing": 56405,
+      "startsInside": 0,
+      "zeroPath": 2,
+      "mismatchedOptics": 270,
+      "maxOpticalJump": 0.9737639725208282
+    },
+    {
+      "i": 26,
+      "mean": 0.6634507388480843,
+      "mergedMean": 0.6520582556173317,
+      "n": 102007,
+      "missing": 56393,
+      "startsInside": 0,
+      "zeroPath": 2,
+      "mismatchedOptics": 272,
+      "maxOpticalJump": 1.0409800708293915
+    },
+    {
+      "i": 27,
+      "mean": 0.6636640552266587,
+      "mergedMean": 0.65161630992359,
+      "n": 101997,
+      "missing": 56403,
+      "startsInside": 0,
+      "zeroPath": 3,
+      "mismatchedOptics": 272,
+      "maxOpticalJump": 1.0632546693086624
+    },
+    {
+      "i": 28,
+      "mean": 0.663793768291,
+      "mergedMean": 0.6515172044195915,
+      "n": 101984,
+      "missing": 56416,
+      "startsInside": 0,
+      "zeroPath": 1,
+      "mismatchedOptics": 249,
+      "maxOpticalJump": 1.019100546836853
+    },
+    {
+      "i": 29,
+      "mean": 0.6639406730633298,
+      "mergedMean": 0.6517502248908332,
+      "n": 101971,
+      "missing": 56429,
+      "startsInside": 0,
+      "zeroPath": 3,
+      "mismatchedOptics": 260,
+      "maxOpticalJump": 1.1222110092639923
+    }
+  ]
+}

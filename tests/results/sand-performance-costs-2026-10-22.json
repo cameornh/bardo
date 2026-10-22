@@ -1,0 +1,101 @@
+{
+  "nativeAvailable": true,
+  "results": [
+    {
+      "part": "CPU neighbors",
+      "repeat": 0,
+      "optimized": false,
+      "mean": 60.190000000596044,
+      "median": 58.400000005960464,
+      "p95": 66.30000001192093
+    },
+    {
+      "part": "CPU neighbors",
+      "repeat": 0,
+      "optimized": true,
+      "mean": 37.960000002384184,
+      "median": 38,
+      "p95": 39.599999994039536
+    },
+    {
+      "part": "CPU neighbors",
+      "repeat": 1,
+      "optimized": true,
+      "mean": 38.38999999761582,
+      "median": 38.20000001788139,
+      "p95": 39.69999998807907
+    },
+    {
+      "part": "CPU neighbors",
+      "repeat": 1,
+      "optimized": false,
+      "mean": 57.05,
+      "median": 56.80000001192093,
+      "p95": 59.69999998807907
+    },
+    {
+      "part": "GPU constraints and readback",
+      "repeat": 0,
+      "optimized": false,
+      "mean": 26.085714289120265,
+      "median": 25.30000001192093,
+      "p95": 35.20000001788139
+    },
+    {
+      "part": "GPU constraints and readback",
+      "repeat": 0,
+      "optimized": true,
+      "mean": 15.278571426868439,
+      "median": 13.300000011920929,
+      "p95": 24
+    },
+    {
+      "part": "GPU constraints and readback",
+      "repeat": 1,
+      "optimized": true,
+      "mean": 13.835714289120265,
+      "median": 13.099999994039536,
+      "p95": 18
+    },
+    {
+      "part": "GPU constraints and readback",
+      "repeat": 1,
+      "optimized": false,
+      "mean": 16.607142859271594,
+      "median": 16.5,
+      "p95": 19.599999994039536
+    },
+    {
+      "part": "Frozen rendering",
+      "repeat": 0,
+      "optimized": false,
+      "mean": 33.842857143708635,
+      "median": 32.39999997615814,
+      "p95": 42.70000001788139
+    },
+    {
+      "part": "Frozen rendering",
+      "repeat": 0,
+      "optimized": true,
+      "mean": 33.13571428401129,
+      "median": 34,
+      "p95": 37.80000001192093
+    },
+    {
+      "part": "Frozen rendering",
+      "repeat": 1,
+      "optimized": true,
+      "mean": 38.28571428784302,
+      "median": 40.20000001788139,
+      "p95": 42.5
+    },
+    {
+      "part": "Frozen rendering",
+      "repeat": 1,
+      "optimized": false,
+      "mean": 37.31428571258272,
+      "median": 37.80000001192093,
+      "p95": 42.099999994039536
+    }
+  ]
+}

@@ -1183,3 +1183,95 @@ brightness jump on the sun-facing sand dropped from 32.67% to 0.22%. That is a
 measurement of this regression, not a guarantee for every view. A separate GPU
 check matches 256 shadow queries to the CPU reference within 4.9e-6, including
 lit upper surfaces, blocked receivers below, and moving penumbras.
+
+### Sand-lab throughput pass (2026-10-22, test 12 only)
+
+Four independently selectable optimizations are enabled by default:
+
+- **Compiled CPU neighbor search** moves the reciprocal pair traversal into a
+  small WebAssembly kernel. It preserves the JavaScript ordering, double-precision
+  cutoff decisions, reciprocal lists, 128-neighbor limit and overflow accounting.
+  JavaScript remains the reference and automatic fallback. The diagnostics report
+  the backend actually used. Rebuild the committed kernel with
+  `node src/sand-lab/kernels/build-neighbors.mjs` (pinned build-only compiler).
+- **Packed GPU neighbor reads** coalesces adjacent water invocations into RGBA
+  tiles and stores position with the constraint multiplier. The correction pass
+  can fetch both together. Transport and spray probes understand both layouts.
+- **Batch moving-sand wind queries** reuses geometry during one connected group's
+  force samples, then refreshes it after that group moves. Geometry is not reused
+  across changes that would affect the next group's forces.
+- **Reuse surface illumination** shares a sunlight query between diffuse and
+  specular shading and skips sand shading when an opaque object replaces it.
+
+These do not reduce water counts, solver iterations, image resolution, or change
+material parameters. Sand/contact/body simulation and neighbor construction
+remain CPU work; bulk constraints, transport, fields and fine particles retain
+GPU execution. Earlier test modules and saved terrain edits are unchanged.
+
+The doubling target was **not reached**. On this machine's Intel UHD 630 through
+ANGLE Metal, matched standard and large runs gave the following results. These
+use the same seed, 1/15-second steps, fixed 256 × 320 internal image, 48 warm-up
+steps and 72 measured frames per run. Each comparison is repeated in reverse
+order (reference, optimized, optimized, reference); the reference keeps all the
+previous pass's optimizations enabled. Rates below pool the two runs by elapsed
+wall time rather than averaging speedup percentages.
+
+| Workload | Frame throughput, before → after | Simulated/wall time | Frame-time SD | 95th-percentile frame time |
+| --- | --- | --- | --- | --- |
+| Standard, 12,852 water samples | 7.80 → 8.18 frames/s | 0.520× → 0.545× | 11.75 → 11.18 ms | 146.1 → 137.5 ms |
+| Large, 29,808 water samples | 4.18 → 4.54 frames/s | 0.279× → 0.303× | 22.32 → 15.58 ms | 269.4 → 247.6 ms |
+
+The busy case adds twelve sand drops and eight mixed-material objects. It remains
+inconclusive: one pair regressed from 4.31 to 3.94 frames/s, while the reversed
+pair measured 4.39 optimized against 2.24 reference. GPU batch waiting varied
+from roughly 50 to 192 ms per step. Those runs are retained in the raw report;
+the favorable pooled average is not a reliable busy-scene speedup claim.
+
+A separate short check using the application's `advance()` scheduler measured
+2.95 → 3.03 frames/s and 0.197× → 0.202× simulation speed. Frame-time SD was
+77.5 → 71.4 ms; simulation-speed SD over approximately two-second windows was
+0.0198× → 0.0120×. This is one pair under a different load period, not evidence of
+a consistent variance improvement across workloads. The fixed-step comparison
+couples simulation throughput to frames; this separate check exercises the
+production step budgeting too.
+
+The diagnostic runner is `tests/performance-pass-gpu.html`. Browser-host RAF
+throttling produced one-second idle gaps even with `document.hidden === false`.
+Those trials were excluded. Standard/large retained RAF measurements have no
+such gaps. The current runner yields through MessageChannel to measure engine
+frame throughput independently of compositor presentation; busy and live reports
+use that scheduler. Scheduling validity, all individual timings, mass errors and
+backend names are recorded in `tests/results/sand-performance-*-2026-10-22.json`.
+This benchmark is not a claim about the display's refresh rate.
+
+The strongest isolated gains were neighbor construction (about 58.6 → 38.2 ms,
+35% less time on the large initial seed) and GPU constraints plus synchronized
+readback (about 21.3 → 14.6 ms across reverse-order repeats, 32% less). Overall
+rendering cost was approximately neutral. A deferred water-visibility pass and
+an asynchronous whole-step pipeline were tried and removed because their extra
+work/latency did not reliably improve the full scene.
+
+The most promising next investment is keeping more prediction and neighborhood
+state on the GPU, reducing the round trips between bulk water and CPU coupling.
+The busy-case waiting measurements make that more valuable than another minor
+shading shortcut. CPU sand support/stress and emission still consume substantial
+time; they are candidates for bounded compiled kernels after their inputs and
+update ordering are isolated. Those larger changes are not part of this pass.
+
+Validation includes exact native/JavaScript neighbor lists (empty inputs, dense
+overflow, negative cell boundaries and reallocations), exact moving-sand wind
+regressions, and every packed-texture address through 32,768 samples. Optimized
+GPU water positions differ from the original layout by at most 7.2e-7 lab units;
+velocity differs by 1.1e-5, chemical channels by 1.6e-6, and neighbor counts are
+identical. The near-zero-gradient normal metric is more sensitive (0.0062), with
+activity/breakup differences below 0.00070/0.000070. Surface-light image comparison
+error is below 2.4e-7 per HDR color channel, including submerged views and objects.
+The existing terrain GPU probe exceeds its old 1e-5 tolerance on this adapter
+(2.464e-5); the value is identical with both paths and its tolerance is unchanged.
+
+All 428 Node numerical/regression tests and `npm run build` pass. The held-sand
+scroll check retains its 0.22% maximum brightness jump. The 30-view water sweep
+retains its 0.000870 maximum adjacent mean-color change; this is a smoke check,
+not a guarantee for every view. The local preview and optimization-checkbox
+dependencies were also inspected. Full GPU and surface-stability results and a
+preview image are saved beside the timing reports.

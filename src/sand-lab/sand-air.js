@@ -16,7 +16,7 @@ export function createSandWind(lab){
  const geometry=lab.optimizations?.windGeometry?new SandAirGeometry(lab.sand,lab.balls||[]):null;
  let batched=false;
  const sample=p=>{if(geometry&&!batched)geometry.refresh();return sandAirVelocity(p,forcing,geometry?geometry.solid:solid,brush);};
- if(geometry){sample.beginBatch=()=>{geometry.refresh(true);batched=true;};sample.endBatch=()=>{batched=false;};}
+ if(geometry){sample.beginBatch=(spatial=true)=>{geometry.refresh(spatial);batched=true;};sample.endBatch=()=>{batched=false;};}
  sample.forcing=forcing;
  sample.brush=brush;sample.normal=p=>normalAt(p,solid);return sample;
 }

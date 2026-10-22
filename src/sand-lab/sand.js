@@ -337,6 +337,9 @@ export class SandBed{
   }
   const grouped=performance.now();for(const group of connected){
    let mass=0;const velocity=[0,0,0],nextVelocity=new Map();
+   // All force samples in this group see identical geometry. Refresh again
+   // after its motion/contact, before evaluating the next group.
+   if(this.optimizations?.windBatch)wind.beginBatch?.(false);try{
    for(const p of group){const water=samples.get(p).water,immersed=clamp(water.density*1.6),density=aggregateDensity(p.wet),air=wind(p.position),v=p.velocity.slice(),force=p.windborne&&this.optimizations?.sandQueryBounds!==false?[0,0,0]:sandWindForce(p,wind,scale),kg=p.mass*2650*scale**3,area=Math.PI*(aggregateRadius(p)*scale)**2*Math.max(.3,p.aspect||1),forceSize=Math.hypot(...force),relativeSpeed=Math.sqrt(forceSize/Math.max(1e-12,.5*1.225*.9*area)),dragLimit=1/(1+forceSize*dt/Math.max(1e-12,kg*relativeSpeed));
     // The finite test boundary stops stock, but must not keep blowing it
     // upward forever there. Slide down the wall and return to the bed so
@@ -345,6 +348,7 @@ export class SandBed{
     v[1]+=9.81/scale*(immersed/density-1)*dt;
     for(let k=0;k<3;k++){v[k]+=(water.velocity[k]-v[k])*(1-Math.exp(-dt*immersed*3));v[k]+=p.windborne?(air[k]-v[k])*(1-Math.exp(-dt*2.5))*(1-immersed):force[k]/Math.max(1e-12,kg)/scale*dt*dragLimit*(1-immersed);velocity[k]+=v[k]*p.mass;}mass+=p.mass;nextVelocity.set(p,v);
    }
+   }finally{if(this.optimizations?.windBatch)wind.endBatch?.();}
    for(let k=0;k<3;k++)velocity[k]/=mass;
    const delta=velocity.map(v=>v*dt),center=[0,1,2].map(k=>group.reduce((s,p)=>s+p.mass*p.position[k],0)/mass),angular=[0,0,0];let inertia=0;
    const tumble=group.length>1&&group.every(p=>!p.cuts?.length&&(!p.aspect||p.aspect===1));

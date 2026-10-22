@@ -11,7 +11,7 @@ export function programConstants(uniforms,enabled=true){
  }
  for(const name of ['uFieldLinear','uFieldSkipping','uFlowLinear','uFlowSkipping'])if(uniforms[name])c[name]=['bool',!!uniforms[name].value];
  if(uniforms.uPass)c.uPass=['int',uniforms.uPass.value];
- for(const name of ['uCollision','uBoundaryDensity','uReuseBoundary'])if(uniforms[name])c[name]=['bool',!!uniforms[name].value];
+ for(const name of ['uCollision','uBoundaryDensity','uReuseBoundary','uPackedGpuNeighbors','uReuseSurfaceLight'])if(uniforms[name])c[name]=['bool',!!uniforms[name].value];
  return c;
 }
 export function specializeSource(source,constants){

@@ -1,0 +1,103 @@
+{
+  "legacyTerrainTolerance": {
+    "limit": 0.00001,
+    "reference": 0.000024637741602107077,
+    "optimized": 0.000024637741602107077,
+    "unchanged": true
+  },
+  "densityReference": {
+    "backend": "GPU",
+    "particles": 150,
+    "transportError": 0.000011444091796875,
+    "countsEqual": true,
+    "sdfError": 0.000024637741602107077,
+    "worst": {
+      "p": [
+        -0.5,
+        -0.07999999821186066,
+        -0.019999999552965164
+      ],
+      "cpu": -0.06590592728332345,
+      "gpu": -0.06588128954172134,
+      "normal": [
+        -0.9127500073550382,
+        -0.4076090965921624,
+        -0.027244236981400882
+      ],
+      "gpuNormal": [
+        -0.9127494692802429,
+        -0.40761011838912964,
+        -0.02724817954003811
+      ]
+    },
+    "sandAndTiltedCupMaxError": 0.00006830692291259766,
+    "pass": false
+  },
+  "density": {
+    "backend": "GPU",
+    "particles": 150,
+    "transportError": 0.00000762939453125,
+    "countsEqual": true,
+    "sdfError": 0.000024637741602107077,
+    "worst": {
+      "p": [
+        -0.5,
+        -0.07999999821186066,
+        -0.019999999552965164
+      ],
+      "cpu": -0.06590592728332345,
+      "gpu": -0.06588128954172134,
+      "normal": [
+        -0.9127500073550382,
+        -0.4076090965921624,
+        -0.027244236981400882
+      ],
+      "gpuNormal": [
+        -0.9127494692802429,
+        -0.40761011838912964,
+        -0.02724817954003811
+      ]
+    },
+    "sandAndTiltedCupMaxError": 0.00006887316703796387,
+    "pass": false
+  },
+  "cases": [
+    {
+      "errors": {
+        "p": 7.152557373046875e-7,
+        "velocities": 0.00001068413257598877,
+        "chem": 0.0000015720725059509277,
+        "metrics": 0.006162196397781372,
+        "counts": 0,
+        "activity": 0.0006932150572538376,
+        "breakup": 0.0000693202018737793
+      },
+      "name": "Packed GPU density / transport",
+      "error": 0.006162196397781372,
+      "pass": true
+    },
+    {
+      "name": "Surface illumination reuse with objects",
+      "eye": [
+        4.8,
+        4,
+        4.4
+      ],
+      "maximum": 2.384185791015625e-7,
+      "rms": 7.134355081066871e-9,
+      "pass": true
+    },
+    {
+      "name": "Surface illumination reuse with objects",
+      "eye": [
+        0,
+        0.8,
+        1.2
+      ],
+      "maximum": 1.4901161193847656e-8,
+      "rms": 5.691643712932602e-10,
+      "pass": true
+    }
+  ],
+  "pass": true
+}
