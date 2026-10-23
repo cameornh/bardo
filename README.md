@@ -1304,11 +1304,14 @@ scintillation (stronger near the horizon) and a small subpixel seeing offset;
 see the [WMO scintillation description](https://cloudatlas.wmo.int/en/scintillation.html).
 
 **Sky / rain** now provides independent day and lunar clocks, their durations,
-manual lunar age, a phase readout, an ocean-tide toggle, and spring-tide
+manual lunar age and phase, a phase readout, an ocean-tide toggle, and spring-tide
 amplitude. The default lunar month is 29.53059 simulation days at the default
 day duration. The clocks advance with simulation time and stop on pause; changing
-either duration does not silently change the other. Lunar age controls both the
-visible phase and the moon's direction relative to the sun.
+either duration does not silently change the other. Lunar age moves the moon on
+its own test orbit; time of day moves the sun without moving the moon.
+**Moon phase (new → full → new)** changes the illuminated shape without moving
+the moon: 0/1 is new, 0.25/0.75 is quarter, and 0.5 is full. It sets a phase
+offset that then advances with the lunar clock and also changes the tidal phase.
 **Moon apparent size** defaults to 1.7× and ranges from 1–3×; changing it
 preserves integrated lunar-disc flux and does not change tides. **Look at moon**
 points the camera toward it, and the readout says whether it is above the horizon.
@@ -1389,3 +1392,57 @@ the CPU fallback and the production controls were visually inspected. Added GPU
 checks compare star covariance against the CPU reference (maximum error
 **1.66e-8**) and exercise the actual lens shader with black, 1e-9 and daylight
 radiance; black remains black and uniform incident radiance is conserved.
+
+### Sustained wind, submerged tides and night foam follow-up
+
+Test 12 only. The progressive slowdown reproduced with steady wind: settled
+wind packets accumulated as hundreds of separate sand shapes. Small wind
+deposits now merge with similar nearby deposits, or return to matching bed
+columns once directly supported by them. Both paths conserve grain volume,
+pore volume, moisture and plastic history. Unlike wet/dry layers, raised
+deposits, held material and user-edited/cut shapes stay explicit. Fine wind
+grains remain separate GPU particles. Erosion queries also reuse the wind
+geometry index until an anchored source actually changes. Sand transport and
+these bookkeeping operations still run on the CPU.
+
+The repeatable `tests/wind-duration-gpu.html` soak runs actual fluid stepping,
+sand, foam and rendering with a synchronized GPU completion check. Results
+are in `tests/results/wind-night-regression/`. With wind at 24 m/s, the original
+30–40 simulation-second window took **412.1 ms** per completed frame, including
+**219.3 ms** in sand and 714 sand parcels. The revised matching window took
+**196.9 ms**, including **39.9 ms** in sand and 160 parcels. Through 120 simulated
+seconds, the revised final window was **182.6 ms**, with 196 parcels, instead
+of continued rapid growth. These runs use 12,852 bulk water samples, a bounded
+32,768-marker fine layer, a 480 × 300 render, WebAssembly CPU neighbors and the
+browser-reported Intel UHD 630. They establish a sustained-wind improvement,
+not production animation-loop FPS or a universal frame-rate guarantee. The
+renderer and fluid solver remain substantial costs. The earlier short
+day/night timings above remain historical evidence, not the diagnosis.
+
+Simulation speed now grants only newly elapsed time plus a fractional fixed
+step. Missed whole steps are recorded as overload and discarded, rather than
+repaid in a later burst. The displayed realtime rate is capped at the requested
+speed (1.00× at speed 1); the underlying clock has the same cap up to one
+fixed-step quantization interval.
+
+Tidal import and export now use the submerged offshore strip, with a robust
+bulk-level estimate that excludes isolated flying droplets. Imports require
+nearby water and clearance from solids, inherit local velocity, and stay below
+the current surface. Changing a tide target cannot stack a surface emitter
+upward. Existing parcel/volume limits still apply.
+
+Night foam radiance is encoded before half-float storage and additive blending,
+then decoded on composition. This avoids underflow into black while retaining
+the same extinction, coverage and incident light; it adds no emissive glow.
+The darkest exposure target is lower (0.003 instead of 0.008) while retaining
+the existing slow adaptation. `tests/wind-night-gpu.html` exercises actual
+underwater-foam drawing at daylight, 1e-6 and 1e-9 light levels, sky CPU/GPU
+agreement, independent moon phases, and submerged tidal volume exchange.
+
+Validation: **443 numerical tests** and `npm run build` pass. The full GPU foam
+pass preserves normalized radiance to **0.011%** from daylight to 1e-9 lighting
+with identical coverage. The 128 sky reference checks have maximum absolute
+radiance error **1.77e-7**, relative error **2.36e-5**, and exposure error
+**8.37e-7**. A tidal withdrawal/replenishment check transfers 3,339.8 m³ each
+way, with volume error below **7e-16 lab units³** and no non-finite water state.
+Moon phase, night foam and the production controls were visually inspected.

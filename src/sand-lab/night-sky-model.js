@@ -16,6 +16,9 @@ export function moonDirection(sun,illuminated=1,elongation=null){
  const s=sun.map(v=>v/Math.hypot(...sun)),candidate=[-s[1],s[0],.08],dot=candidate.reduce((a,v,k)=>a+v*s[k],0),t=candidate.map((v,k)=>v-dot*s[k]),l=Math.hypot(...t),a=elongation??Math.acos(clamp(1-2*illuminated,-1,1));
  return s.map((v,k)=>v*Math.cos(a)-t[k]/l*Math.sin(a));
 }
+// The lab's lunar orbit is deliberately independent of the solar clock.
+// A fixed orbital reference makes scrubbing Time of day leave the moon still.
+export function lunarDirection(elongation){return moonDirection([0,-1,.35],(1-Math.cos(elongation))*.5,elongation);}
 export function starIrradiance(magnitude){return 10**(.4*(-magnitude-19+.4))*SKY_UNITS;}
 export function starColor(bv){
  // Paper eq. 8 + Planck radiance at RGB representative wavelengths.

@@ -6,6 +6,13 @@ export const erosionThreshold=(wet,memory=0)=>Math.sqrt(2*sandParticleMaterial(w
 // Every airborne packet is removed from a surface and returned on landing.
 // Reserve eight packets for the brush so global transport cannot starve it.
 export function erodeSand(bed,dt,wind,scale,water){
+ // Air probes do not move geometry. Reuse its spatial index across the batch;
+ // refresh after erosion changes an anchored source, never for free tracers.
+ const batch=bed.optimizations?.windBatch;
+ if(batch)wind.beginBatch?.(true);
+ try{return erodeSandBatch(bed,dt,wind,scale,water);}finally{if(batch)wind.endBatch?.();}
+}
+function erodeSandBatch(bed,dt,wind,scale,water){
  bed.windClock=(bed.windClock||0)+dt;if(bed.windClock<.12)return;
  const elapsed=Math.min(.25,bed.windClock);bed.windClock=0;bed.windEvents??=[];
  const mobile=bed.parcels.filter(p=>p.windborne&&!p.anchored&&!p.held&&p.mass>0).length;
@@ -35,7 +42,7 @@ export function erodeSand(bed,dt,wind,scale,water){
   const point=p.position.map((v,k)=>v+top[k]+(k===1?.01:0)),force=forcing(point,p.wet,p.memory||0),excess=force.excess;
   if(excess<=0)continue;
   const amount=Math.min(p.mass*.08,Math.PI*r*r*p.packing*rate(excess)*elapsed);
-  if(emit(point,force,amount,p.wet,p.memory||0,p.packing,r*.4)){const before=p.mass;p.mass-=amount;const shrink=Math.cbrt(p.mass/before);if(p.shapeRadius)p.shapeRadius*=shrink;if(p.cuts)p.cuts=p.cuts.map(c=>({...c,offset:c.offset.map(v=>v*shrink),radius:c.radius*shrink}));deposits++;}
+  if(emit(point,force,amount,p.wet,p.memory||0,p.packing,r*.4)){const before=p.mass;p.mass-=amount;const shrink=Math.cbrt(p.mass/before);if(p.shapeRadius)p.shapeRadius*=shrink;if(p.cuts)p.cuts=p.cuts.map(c=>({...c,offset:c.offset.map(v=>v*shrink),radius:c.radius*shrink}));deposits++;if(bed.optimizations?.windBatch)wind.beginBatch?.(true);}
  }
  const count=Math.min(192,bed.mass.length),start=bed.windCursor||0;
  if(!bed.windStride){const gcd=(a,b)=>b?gcd(b,a%b):a;let stride=Math.floor(bed.mass.length*.61803398875);while(gcd(stride,bed.mass.length)!==1)stride++;bed.windStride=stride;}

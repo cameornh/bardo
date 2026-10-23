@@ -32,14 +32,14 @@ export function settlingPatchLimit(parcel,dx,dz,limit=25){
 // stock. This retains grain volume, pore volume, moisture, plastic history
 // and centre of mass. Airborne packets and the fine GPU grains are untouched.
 export function mergeWindDeposits(bed){
- const cell=Math.min(bed.dx,bed.dz)*.5,grid=new BoundsGrid(cell),items=[];
+ const cell=Math.min(bed.dx,bed.dz),grid=new BoundsGrid(cell),items=[];
  let merged=0;
  for(const p of bed.parcels){
   if(!p.windborne||!p.anchored||p.held||p.userEdited||p.cuts?.length||p.mass<=0||shapeRadius(p)>cell)continue;
-  const r=shapeRadius(p),candidates=grid.query(p.position,r);
+  const r=shapeRadius(p),candidates=grid.query(p.position,Math.max(r,cell*.65));
   let receiver=null,slot=-1;
   for(const i of candidates){const q=items[i],s=shapeRadius(q);
-   if(s>cell||Math.hypot(...p.position.map((v,k)=>v-q.position[k]))>r+s)continue;
+   if(s>cell||Math.abs(q.wet-p.wet)>.12||Math.abs((q.memory||0)-(p.memory||0))>.12||Math.hypot(...p.position.map((v,k)=>v-q.position[k]))>Math.max(r+s,cell*.65)||Math.abs(p.position[1]-q.position[1])>Math.max(r+s,cell*.25))continue;
    receiver=q;slot=i;break;
   }
   if(!receiver){items.push(p);grid.insert(items.length-1,p.position,r);continue;}
@@ -51,4 +51,27 @@ export function mergeWindDeposits(bed){
  }
  if(merged){bed.dirty=true;bed.mergedWindDeposits=(bed.mergedWindDeposits||0)+merged;}
  return merged;
+}
+
+// Wind packets resolve transport, not permanent terrain topology. Once a
+// sub-cell packet rests directly on matching bed material, rasterize its
+// conserved stock back into the same columns. Keep unlike layers, sculptures,
+// cuts, held stock and raised deposits explicit.
+export function returnWindDeposits(bed){
+ let returned=0;
+ const cell=Math.min(bed.dx,bed.dz);
+ for(const p of bed.parcels){
+  if(!p.windborne||!p.anchored||p.held||p.userEdited||p.cuts?.length||p.mass<=0||shapeRadius(p)>cell)continue;
+  const [x,y,z]=p.position,r=shapeRadius(p),ground=bed.height(x,z),wet=bed.sample(x,z);
+  if(y-r*(p.aspect||1)>ground+.012||Math.abs(wet-p.wet)>.12)continue;
+  for(const [k,w] of bed.weights(x,z)){
+   const amount=p.mass*w,before=bed.mass[k],total=before+amount;
+   if(amount<=0)continue;
+   bed.wet[k]=(before*bed.wet[k]+amount*p.wet)/total;
+   bed.memory[k]=(before*bed.memory[k]+amount*(p.memory||0))/total;
+   bed.packing[k]=total/(before/bed.packing[k]+amount/p.packing);bed.mass[k]=total;
+  }
+  p.mass=0;returned++;bed.dirty=true;
+ }
+ bed.returnedWindDeposits=(bed.returnedWindDeposits||0)+returned;return returned;
 }

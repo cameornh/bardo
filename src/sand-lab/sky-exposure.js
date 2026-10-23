@@ -11,7 +11,7 @@ export function exposureStatistics(pixels){
 }
 export function exposureTarget(s){
  const average=Math.exp(s[0]/Math.max(1,s[3])),excess=s[1]/Math.max(1,s[3]);
- const night=1+(clamp((.008+.017*smooth(1e-5,.001,average))/Math.max(average,1e-12),1,4e7)-1)*(1-smooth(.012,.04,average));
+ const night=1+(clamp((.003+.022*smooth(1e-5,.001,average))/Math.max(average,1e-12),1,4e7)-1)*(1-smooth(.012,.04,average));
  const glare=smooth(.002,.06,excess)*smooth(32,100,s[2]);
  return night*(1-glare)+clamp(Math.sqrt(20/Math.max(20,s[2])),.08,1)*glare;
 }
@@ -28,7 +28,7 @@ void main(){ivec2 base=ivec2(gl_FragCoord.xy)*4,size=textureSize(uInput,0);vec4 
 export const EXPOSURE_ADAPT_GLSL=`precision highp float;
 uniform sampler2D uStats,uPrevious;uniform float uDt;out vec4 outColor;
 void main(){vec4 s=texelFetch(uStats,ivec2(0),0);float average=exp(s.x/max(1.,s.w)),excess=s.y/max(1.,s.w);
- float night=mix(1.,clamp((.008+.017*smoothstep(1e-5,.001,average))/max(average,1e-12),1.,4e7),1.-smoothstep(.012,.04,average));
+ float night=mix(1.,clamp((.003+.022*smoothstep(1e-5,.001,average))/max(average,1e-12),1.,4e7),1.-smoothstep(.012,.04,average));
  float glare=smoothstep(.002,.06,excess)*smoothstep(32.,100.,s.z);
  float target=mix(night,clamp(sqrt(20./max(20.,s.z)),.08,1.),glare);
  float previous=max(.001,texelFetch(uPrevious,ivec2(0),0).r),tau=target<previous?.72:target>1.?6.4:2.6;

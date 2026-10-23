@@ -25,8 +25,8 @@ export function atmosphereScatter(ray,light){
  }
  return sum;
 }
-export function atmosphereSky(direction,sun=DEFAULT_SUN,{moonPhase=1,day=0,elongation=null}={}){
- const d=normalize(direction),ground=Math.max(0,-d[1]),ray=normalize([d[0],Math.max(.001,d[1]),d[2]]),solar=atmosphereScatter(ray,sun),lunar=atmosphereScatter(ray,moonDirection(sun,moonPhase,elongation)),trans=atmosphereTransmission([0,.02,0],ray),background=nightBackground(ray,sun,day);
+export function atmosphereSky(direction,sun=DEFAULT_SUN,{moonPhase=1,day=0,elongation=null,moonPosition=null}={}){
+ const d=normalize(direction),ground=Math.max(0,-d[1]),ray=normalize([d[0],Math.max(.001,d[1]),d[2]]),solar=atmosphereScatter(ray,sun),lunar=atmosphereScatter(ray,moonPosition??moonDirection(sun,moonPhase,elongation)),trans=atmosphereTransmission([0,.02,0],ray),background=nightBackground(ray,sun,day);
  const moon=moonIrradiance(moonPhase);
  return solar.map((v,k)=>(v+lunar[k]*moon*MOON_COLOR[k]+background[k]*trans[k])*(1-.85*Math.sqrt(ground)));
 }

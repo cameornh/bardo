@@ -91,15 +91,15 @@ test('live scalar terrain sampling and refreshed wind geometry preserve changing
 
 import {SandLab} from '../src/sand-lab/lab.js';
 import {PerspectiveCamera} from 'three';
-test('predictive scheduling avoids an over-budget second solve while preserving fixed time and debt',()=>{
+test('predictive scheduling avoids an over-budget second solve while preserving fixed time and dropping overload',()=>{
  const lab=new SandLab({extensions:{has:()=>false}}),camera=new PerspectiveCamera();lab.paused=false;lab.physicsBudgetMs=95;
  let now=0,integrated=0;const original=performance.now;Object.defineProperty(performance,'now',{configurable:true,value:()=>now});
  try{
   lab.step=dt=>{integrated+=dt;now+=70;};lab.detail.advance=()=>{};
   lab.advance(.25,camera);assert.equal(integrated,lab.timestep);assert.ok(Math.abs(lab.accumulator-(.25-lab.timestep))<1e-12);
   lab.advance(.1,camera);assert.equal(integrated,lab.timestep*2);assert.equal(lab.stepCostEstimate,70);
-  lab.optimizations.predictBudget=false;const before=integrated;lab.advance(.1,camera);assert.ok(Math.abs(integrated-before-2*lab.timestep)<1e-12);
-  lab.optimizations.predictBudget=true;lab.step=dt=>{integrated+=dt;now+=1;};lab.stepCostEstimate=1;lab.advance(.1,camera);assert.ok(lab.accumulator<lab.timestep);assert.equal(lab.droppedTime,0);
+  lab.optimizations.predictBudget=false;const before=integrated;lab.advance(.1,camera);assert.ok(integrated-before>0&&integrated-before<=.1+lab.timestep);
+  lab.optimizations.predictBudget=true;lab.step=dt=>{integrated+=dt;now+=1;};lab.stepCostEstimate=1;lab.advance(.1,camera);assert.ok(lab.accumulator<lab.timestep);assert.ok(lab.droppedTime>0);
  }finally{Object.defineProperty(performance,'now',{configurable:true,value:original});}
 });
 test('changing compact sand mode rebuilds geometry without requiring an edit',()=>{
@@ -141,9 +141,9 @@ test('forty seconds of wind deposition does not recursively multiply sub-resolut
 
 test('coalescing overlapping wind deposits conserves grain/pore volume, wetness, history and centre of mass',()=>{
  const bed=new SandBed(33),parcel=(id,x,wet)=>({id,position:[x,2,0],velocity:[0,0,0],mass:1e-6,packing:.4+wet*.2,wet,memory:wet,windborne:true,anchored:true});
- bed.parcels=[parcel(1,0,.2),parcel(2,.004,.8),{...parcel(3,0,.5),held:true},{...parcel(4,0,.5),cuts:[{offset:[0,0,0],radius:.001}]},{...parcel(5,0,.5),userEdited:true},{...parcel(6,0,.5),windborne:false}];
+ bed.parcels=[parcel(1,0,.2),parcel(2,.004,.3),{...parcel(3,0,.5),held:true},{...parcel(4,0,.5),cuts:[{offset:[0,0,0],radius:.001}]},{...parcel(5,0,.5),userEdited:true},{...parcel(6,0,.5),windborne:false}];
  const volume=bed.parcels.slice(0,2).reduce((s,p)=>s+p.mass/p.packing,0),mass=bed.totalMass(),protectedBefore=structuredClone(bed.parcels.slice(2));
- assert.equal(mergeWindDeposits(bed),1);assert.equal(bed.totalMass(),mass);const q=bed.parcels[0];assert.equal(q.mass,2e-6);assert.ok(Math.abs(q.mass/q.packing-volume)<1e-20);assert.equal(q.wet,.5);assert.equal(q.memory,.5);assert.equal(q.position[0],.002);assert.deepEqual(bed.parcels.slice(2),protectedBefore);
+ assert.equal(mergeWindDeposits(bed),1);assert.equal(bed.totalMass(),mass);const q=bed.parcels[0];assert.equal(q.mass,2e-6);assert.ok(Math.abs(q.mass/q.packing-volume)<1e-20);assert.equal(q.wet,.25);assert.equal(q.memory,.25);assert.equal(q.position[0],.002);assert.deepEqual(bed.parcels.slice(2),protectedBefore);
 });
 
 import {effectiveOptimizations,optimizationPreset,optimizationMode,applyOptimizationFlags} from '../src/sand-lab/optimization-controls.js';

@@ -1,3 +1,4 @@
+import {simulationAllowance} from './simulation-clock.js';
 import {EmitterProbes} from './emitter-probes.js';
 import {predictBeach} from './beach-predict.js';
 import {StepReadback} from './gpu-step-readback.js';
@@ -83,11 +84,11 @@ export class WaterLab {
   const o=camera.position.toArray(),d=camera.getWorldDirection(new THREE.Vector3()).toArray();
   this.frameDrivenLens=true;
   // Account for *every* foreground frame, including frames awaiting a fence.
-  // Keep a bounded debt after a suspended tab; report overload, never increase gravity.
+  // Drop missed whole steps rather than fast-forwarding after a slow frame.
   const wall=Math.min(.25,Math.max(0,elapsed));
-  if(!this.paused){const added=wall*this.simulationSpeed,owed=this.accumulator+added;this.droppedTime+=Math.max(0,owed-.5);this.accumulator=Math.min(.5,owed);this.wetting.stepLens(added);}
+  if(!this.paused){const allowance=simulationAllowance(this.accumulator,wall,this.simulationSpeed,this.timestep);this.droppedTime+=allowance.dropped;this.accumulator=allowance.time;this.wetting.stepLens(allowance.added);}
   this.rateWall+=Math.max(0,elapsed);this.rateSim+=this.completedDt;this.completedDt=0;
-  if(this.rateWall>=.4){this.simRate=this.rateSim/this.rateWall;this.rateWall=0;this.rateSim=0;}
+  if(this.rateWall>=.4){this.simRate=Math.min(this.simulationSpeed,this.rateSim/this.rateWall);this.rateWall=0;this.rateSim=0;}
   if(this.asyncPending)return;
   const interactions=this.queuedInteractions.splice(0);for(const event of interactions){const tool=this.tool;this.tool=event.tool;this.interact(event.origin,event.direction);this.tool=tool;}
   this.moveHeld(o,d);if(this.paused)return;

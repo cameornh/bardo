@@ -1,4 +1,4 @@
-import {SandContactIndex,settlingPatchLimit,mergeWindDeposits} from './sand-contact-index.js';
+import {SandContactIndex,settlingPatchLimit,mergeWindDeposits,returnWindDeposits} from './sand-contact-index.js';
 import {SandStress,cross,sandWindForce} from './sand-stress.js';
 import {erodeSand} from './sand-wind.js';
 import {BoundsGrid} from './spatial-bounds.js';
@@ -192,7 +192,7 @@ export class SandBed{
   }
   const exchanged=performance.now();erodeSand(this,dt,wind,scale,sampleWater);const eroded=performance.now();
   this.stepParcels(dt,sampleWater,wind,scale,rain,waterSpacing);
-  if(this.optimizations?.mergeWindDeposits)mergeWindDeposits(this);
+  if(this.optimizations?.mergeWindDeposits){returnWindDeposits(this);mergeWindDeposits(this);}
   const stepped=performance.now();this.parcels=this.parcels.filter(p=>p.mass>0);this.update();this.stepTimes={bedExchange:exchanged-started,erosion:eroded-exchanged,parcels:stepped-eroded,sandUpdate:performance.now()-stepped};
  }
  releaseUnsupported(){
