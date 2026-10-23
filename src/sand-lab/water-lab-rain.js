@@ -3,7 +3,7 @@ import {labAirVelocity} from './water-lab-air.js';
 import {hash, clamp, rotate, vesselLocal, vesselDistance, normalAt} from './water-lab-model.js';
 
 export const RAIN_PACKET_LIMIT=4096;
-export function rainPacketRate(rate){return rate>0?Math.min(480,72+44*Math.log2(1+rate/5)):0;}
+export function rainPacketRate(rate){return rate>0?Math.min(144,48+16*Math.log2(1+rate/5)):0;}
 
 // Sub-grid precipitation packets carry real water volume. On contact their
 // momentum enters the fluid; local wet deposits become ordinary solver parcels
@@ -25,7 +25,7 @@ export class LabRain {
     this.budget=0;
     this.sourceVolume=0;
     this.capacityLimited=false;
-    this.releaseClock=0;this.releaseCursor=0;this.work={releaseCandidates:0};
+    this.releaseClock=0;this.releaseCursor=0;this.work={releaseCandidates:0};this.impactCredit=0;this.impactAllowance=Infinity;
   }
   get options() {
     if(!this.settings.has(this.kind))this.settings.set(this.kind,{enabled:false,rate:5});
@@ -120,7 +120,7 @@ export class LabRain {
     }
     const onVessel=hit.particle<0&&vesselDistance(hit.point,lab.kind,lab.motion)<.015;
     const q=onVessel?vesselLocal(hit.point,lab.motion):hit.point;
-    const cell=onVessel?Math.max(.025,.018/lab.spec.scale):s*1.5,key=`${onVessel?'v':hit.particle>=0?'w':'g'}:${q.map(v=>Math.floor(v/cell)).join(',')}`;
+    const cell=onVessel?Math.max(.025,.018/lab.spec.scale):s*1.5,key=`${onVessel?'v':hit.particle>=0?'w':'g'}:${(hit.particle>=0?[q[0],q[2]]:q).map(v=>Math.floor(v/cell)).join(',')}`;
     let p=this.deposits.get(key);
     if(!p) {
       p={age:0,slide:[0,0,0],volume:0,point:hit.point.slice(),normal:hit.normal.slice(),particle:hit.particle};
@@ -129,6 +129,8 @@ export class LabRain {
       this.deposits.set(key,p);
     }
     p.volume+=drop.volume;
+    if(hit.particle>=0){p.point=hit.point.slice();p.particle=hit.particle;}
+    if(this.impactAllowance<=0)return;this.impactAllowance--;
     const wet=lab.sand?lab.sand.materialAt(hit.point):0;
     const onBody=lab.balls?.some(b=>Math.hypot(...hit.point.map((v,k)=>v-b.position[k]))<b.radius*1.6);
     const hardness=hit.particle>=0?0:onBody||!lab.sand?1:Math.min(1,wet);
@@ -155,7 +157,7 @@ export class LabRain {
     const key=p=>p.map(v=>Math.floor(v/s)).join(',');
     const insert=p=>{const id=key(p);if(!bins.has(id))bins.set(id,[]);bins.get(id).push(p);const col=Math.floor(p[0]/s)+','+Math.floor(p[2]/s);columns.set(col,Math.max(columns.get(col)??-Infinity,p[1]));};
     for(let i=0;i<lab.count;i++)insert(Array.from(lab.positions.subarray(i*4,i*4+3)));
-    const clear=p=>{const c=p.map(v=>Math.floor(v/s));for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)for(const q of bins.get([c[0]+x,c[1]+y,c[2]+z].join(','))||[])if(Math.hypot(...p.map((v,k)=>v-q[k]))<s*.86)return false;return true;};
+    const clear=(p,separation=.86)=>{const c=p.map(v=>Math.floor(v/s));for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)for(const q of bins.get([c[0]+x,c[1]+y,c[2]+z].join(','))||[])if(Math.hypot(...p.map((v,k)=>v-q[k]))<s*separation)return false;return true;};
     const candidates=Array.from(this.deposits.values()),workLimit=Math.min(24,candidates.length);
     for(let attempt=0;attempt<workLimit&&items.length<12;attempt++) {
       const p=candidates[(this.releaseCursor+attempt)%candidates.length];this.work.releaseCandidates++;
@@ -176,7 +178,22 @@ export class LabRain {
       }
       if(volume+1e-12<pv||lab.count+items.length>=lab.particleBudget)continue;
       let position=null,best=Infinity;
-      for(let j=0;j<12;j++){
+      if(p.particle>=0){
+        // Insert rain volume inside the existing liquid, into an inter-parcel
+        // gap. Pressure redistributes it; a stack of stationary surface parcels
+        // otherwise leaves a persistent mound at every rain sampling location.
+        for(let j=0;j<8;j++){
+          const id=this.sequence+attempt*31+j*7,radius=s*(.5+Math.sqrt(j)*.7),angle=id*2.39996323;
+          const q=[point[0]+Math.cos(angle)*radius,point[1]-s*(.65+hash(id+71)*1.3),point[2]+Math.sin(angle)*radius];
+          const cx=Math.floor(q[0]/s),cz=Math.floor(q[2]/s),top=columns.get(cx+','+cz);
+          if(top===undefined||q[1]>top||!clear(q,.65)||lab.solid(q,true,false)<s*.1)continue;
+          // Do not deposit into an empty cavity below a suspended liquid sheet.
+          const c=q.map(v=>Math.floor(v/s));let support=0;
+          for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)support+=(bins.get([c[0]+x,c[1]+y,c[2]+z].join(','))||[]).length;
+          if(support<4)continue;position=q;break;
+        }
+      }
+      for(let j=0;p.particle<0&&j<12;j++){
         const radius=s*Math.sqrt(j)*1.1,angle=j*2.39996323,q=[point[0]+Math.cos(angle)*radius,point[1]+normal[1]*s*.42,point[2]+Math.sin(angle)*radius];
         const cx=Math.floor(q[0]/s),cz=Math.floor(q[2]/s);let top=-Infinity;
         for(let z=-1;z<=1;z++)for(let x=-1;x<=1;x++)top=Math.max(top,columns.get([cx+x,cz+z].join(','))??-Infinity);
@@ -216,7 +233,9 @@ export class LabRain {
   fieldItems() {
     const items=[];
     for(const p of this.deposits.values()) {
-      if(p.local)continue;
+      // Sub-grid water already belongs to the moving fluid surface. A static
+      // Gaussian here made permanent bumps/dents at old impact locations.
+      if(p.local||p.particle>=0)continue;
       const radius=Math.cbrt(p.volume)*.65,point=this.depositPoint(p),normal=this.depositNormal(p);
       // These small wet deposits use the same volume-normalized Gaussian field
       // as the fluid, keeping their water visible before parcel conversion.
@@ -226,6 +245,8 @@ export class LabRain {
   }
   step(dt) {
     const started=performance.now(),lab=this.lab,scale=lab.spec.scale;
+    this.impactCredit=Math.min(1,this.impactCredit)+dt*144;this.impactAllowance=Math.floor(this.impactCredit);this.impactCredit-=this.impactAllowance;
+    this.columns=null;
     if(this.enabled&&this.rate>0) {
       this.budget+=dt*rainPacketRate(this.rate);
       const available=Math.max(0,(lab.particleBudget-lab.count)*lab.spacing**3-this.unresolvedVolume-this.sourceVolume);
@@ -234,25 +255,36 @@ export class LabRain {
       const count=Math.min(Math.floor(this.budget),Math.max(0,RAIN_PACKET_LIMIT-this.drops.length));
       if(count&&this.sourceVolume>0) {
         const volume=this.sourceVolume/count;this.sourceVolume=0;this.budget-=count;
+        if(lab.sand&&!this.columns)this.buildSurfaceIndex();
         for(let i=0;i<count;i++) {
           const seq=++this.sequence;
           // Stable independent sky samples avoid diagonal curtains when the
           // falling packets become visible. Openings collect by sky area.
           const x=(hash(seq*2)-.5)*this.skyWidth,z=(hash(seq*2+1)-.5)*this.skyDepth;
-          this.drops.push({id:seq,sky:true,age:0,position:[x,(lab.kind==='river'?26.5:8.35)+hash(seq)*.15,z],velocity:[0,-8/scale,0],volume});
+          if(lab.sand){
+            // Rain is a surface flux, sampled over the whole periodic footprint.
+            // Its display-only sky columns must not impose an 85 m flight queue
+            // on switching precipitation on/off. Only runoff keeps ballistic mass.
+            const a=[x,9,z],b=[x,-2,z],water=this.waterHit(a,b),end=water?water.point:b;
+            const solid=this.solidHit(a,end,q=>lab.solid(q,true,false));
+            const hit=solid||water;
+            if(hit){const air=lab.air?.grid?lab.air.sampleGrid(hit.point):[lab.wind*.6/scale,0,lab.wind*.08/scale];
+              this.impact({volume,velocity:[air[0],-9/scale,air[2]]},hit);
+            }else {this.sourceVolume+=volume;continue;}
+          }else this.drops.push({id:seq,sky:true,age:0,position:[x,(lab.kind==='river'?26.5:8.35)+hash(seq)*.15,z],velocity:[0,-8/scale,0],volume});
           this.emitted+=volume;
         }
       }
     }
     this.budget=Math.min(this.budget,1);
     if(this.drops.length) {
-      this.buildSurfaceIndex();
+      if(!this.columns)this.buildSurfaceIndex();
       const alive=[];
       for(const p of this.drops) {
         p.age=(p.age||0)+dt;
         // Gravity / terminal fall plus the same ambient wind and cursor jet.
         p.velocity[1]=Math.max(-9/scale,p.velocity[1]-9.81/scale*dt);
-        const air=lab.wind||lab.jet?labAirVelocity(p.position,lab):[0,0,0];for(let k=0;k<3;k++)p.velocity[k]+=(air[k]-p.velocity[k])*(1-Math.exp(-dt*.7))*(k===1?.08:1);
+        const air=lab.wind||lab.jet?(lab.air?.grid?lab.air.sampleGrid(p.position):labAirVelocity(p.position,lab)):[0,0,0];for(let k=0;k<3;k++)p.velocity[k]+=(air[k]-p.velocity[k])*(1-Math.exp(-dt*.7))*(k===1?.08:1);
         const next=p.position.map((v,k)=>v+p.velocity[k]*dt);
         const segments=lab.sand?rainSegments(p.position,next):[[p.position,next]];let hit=null;
         for(const [a,b] of segments){

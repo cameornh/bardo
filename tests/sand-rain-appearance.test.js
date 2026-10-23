@@ -18,12 +18,13 @@ test('periodic rain sweeps split at edges, preserve travel, and never cut across
  }
  const s=rainSegments([5.4,4,0],[5.8,3,0]);assert.equal(s.length,2);close(s[1][0][0],-5.5);close(s[1][1][0],-5.2);
 });
-function fixture(){return {sand:{materialAt:()=>1},kind:'ocean',spec:{scale:10},spacing:.2,positions:new Float32Array(0),velocities:new Float32Array(0),chem:new Float32Array(0),neighborCounts:new Uint16Array(0),get count(){return this.positions.length/4},particleBudget:32768,wind:0,time:0,motion:{position:[0,0,0],tilt:0,spin:0,pitch:0},solid:(p,player,bounded)=>bounded===false?p[1]:Math.min(p[1],5.5-Math.abs(p[0]),4.9-Math.abs(p[2])),collide:p=>p,balls:[]};}
+function fixture(){return {sand:{materialAt:()=>1},kind:'ocean',spec:{scale:10},spacing:.2,positions:new Float32Array(0),velocities:new Float32Array(0),chem:new Float32Array(0),neighborCounts:new Uint16Array(0),get count(){return this.positions.length/4},particleBudget:32768,wind:0,time:0,motion:{position:[0,0,0],velocity:[0,0,0],tilt:0,spin:0,pitch:0,tiltVelocity:0,spinVelocity:0,pitchVelocity:0},solid:(p,player,bounded)=>bounded===false?p[1]:Math.min(p[1],5.5-Math.abs(p[0]),4.9-Math.abs(p[2])),collide:p=>p,balls:[]};}
 test('rain covers the complete ground footprint and conserves its physical precipitation flux',()=>{
  const lab=fixture(),r=new LabRain(lab);r.reset('ocean');r.enabled=true;r.rate=12000;close(r.skyArea,11*9.8);
+ const points=[],impact=r.impact.bind(r);r.impact=(drop,hit)=>{points.push(hit.point);impact(drop,hit);};
  for(let i=0;i<120;i++)r.step(1/60);
  close(r.emitted+r.sourceVolume,r.flux*2);close(r.emitted,r.airborneVolume+r.depositVolume+r.transferred);
- assert.ok(r.drops.some(p=>Math.abs(p.position[0])>5));assert.ok(r.drops.some(p=>Math.abs(p.position[2])>4.5));
+ assert.ok(points.some(p=>Math.abs(p[0])>5));assert.ok(points.some(p=>Math.abs(p[2])>4.5));
 });
 test('physical rain wraps without hitting confinement walls or changing the packet volume',()=>{
  const lab=fixture(),r=new LabRain(lab);r.drops=[{position:[5.49,4,0],velocity:[3,-.9,0],volume:.00001}];r.step(.1);
@@ -31,8 +32,8 @@ test('physical rain wraps without hitting confinement walls or changing the pack
 });
 test('hard wet receivers generate more impact mist at ordinary terminal rain speed',()=>{
  const lab=fixture(),counts=[];
- for(const hardness of [0,1]){const d=new LabDetail({extensions:{has:()=>false}},256);d.density=1;d.impact([0,0,0],[0,1,0],[0,-.9,0],.001,lab,hardness);counts.push(d.mistEmitted);d.dispose?.();}
- assert.ok(counts[1]>counts[0]*2);assert.ok(counts[1]>0);
+ for(const hardness of [0,1]){const d=new LabDetail({extensions:{has:()=>false}},256);d.density=1;d.impact([0,0,0],[0,1,0],[0,-.9,0],.001,lab,hardness);counts.push(Math.abs(d.spawn[2].image.data[18]));d.dispose?.();}
+ assert.ok(counts[1]>counts[0]*1.8);assert.ok(counts[1]>0);
 });
 
 import {exposureStatistics,exposureTarget} from '../src/sand-lab/sky-exposure.js';
@@ -41,4 +42,54 @@ test('a thin illuminated horizon limits dark adaptation even when almost all pix
  const stats=exposureStatistics(frame),gain=exposureTarget(stats);assert.ok(gain>1);assert.ok(gain*stats[2]<=.800001);
  assert.equal(exposureTarget(exposureStatistics(new Float32Array([1,1,1,1]))),1);
  assert.ok(exposureTarget(exposureStatistics(new Float32Array([1e-10,1e-10,1e-10,1])))>1e7);
+});
+
+import {detailOpacity} from '../src/sand-lab/water-lab-detail-opacity.js';
+import {causticReceiver,causticMoment} from '../src/sand-lab/caustic-receiver.js';
+test('rain impacts start on the first step and stop without an airborne queue; mass remains accounted for',()=>{
+ const lab=fixture(),rain=new LabRain(lab);rain.reset('ocean');rain.enabled=true;rain.rate=12000;
+ rain.step(.05);assert.ok(rain.hits>0);assert.equal(rain.drops.length,0);const hits=rain.hits;rain.enabled=false;
+ for(let i=0;i<20;i++)rain.step(.05);assert.equal(rain.hits,hits);close(rain.emitted,rain.transferred+rain.unresolvedVolume);
+});
+test('existing water gets no stationary rain kernels and inserted volume stays beneath the surface',()=>{
+ const lab=fixture(),positions=[];for(let x=-4;x<=4;x++)for(let z=-4;z<=4;z++)for(let y=1;y<=4;y++)positions.push(x*.2,y*.2,z*.2,0);
+ lab.positions=new Float32Array(positions);lab.velocities=new Float32Array(positions.length);lab.chem=lab.velocities.slice();lab.neighborCounts=new Uint16Array(lab.count);
+ const rain=new LabRain(lab);rain.reset('ocean');rain.buildSurfaceIndex();rain.impact({velocity:[0,-.9,0],volume:.04},{point:[0,.884,0],normal:[0,1,0],particle:0});
+ assert.equal(rain.fieldItems().length,0);const initial=lab.count;rain.releaseDeposits();assert.ok(lab.count>initial);
+ for(let i=initial;i<lab.count;i++)assert.ok(lab.positions[i*4+1]<.8);close(rain.transferred+rain.depositVolume,.04);
+});
+test('rain impacts use quarter opacity, spread into broad thin mist, and expire instead of persistent foam',()=>{
+ const lab=fixture(),d=new LabDetail({extensions:{has:()=>false}},256);lab.time=0;lab.wind=0;lab.turbulence=0;
+ d.impact([0,.5,0],[0,1,0],[0,-.9,0],.001,lab,1);assert.equal(d.pending,5);
+ const info=d.spawn[2].image.data;close(detailOpacity(0,.1,.65,info[2])/detailOpacity(0,.1,.65,.65),.25);
+ assert.ok(info[16]*10>=2&&info[16]*10<=3.5);assert.ok(Math.abs(info[18])<.03);
+ for(let i=0;i<65;i++){lab.time+=.1;d.advance(.1,lab);}assert.equal(d.count,0);d.dispose();
+});
+test('caustic flux stays on its receiving surface and filters continuously between photon footprints',()=>{
+ const flux=[2,.7,.2],at=[...flux,causticMoment(flux,.4)];assert.deepEqual(causticReceiver(at,.4),flux);
+ assert.deepEqual(causticReceiver(at,1.5),[0,0,0]);assert.deepEqual(causticReceiver(at,-.2),[0,0,0]);
+ let previous=0;for(let i=0;i<=100;i++){const t=i/100,sample=at.map(v=>v*t),actual=causticReceiver(sample,.4)[0];assert.ok(Math.abs(actual-previous)<=.020001);previous=actual;}
+});
+
+import {sprayShadowKernel} from '../src/sand-lab/water-lab-spray-shadows.js';
+test('rain mist uses the same shallow covariance for its light transmission and visible footprint',()=>{
+ const layout={axes:[[1,0,0],[0,0,1],[0,1,0]],span:[10,10,10],size:256};
+ const spherical=sprayShadowKernel([0,1,0,.2],[1,0,0,4],[.3,3,.02,1],layout);
+ const rain=sprayShadowKernel([0,1,0,.2],[1,0,0,4],[.3,3,-.02,1],layout);
+ close(rain.xx,spherical.xx);close(rain.yy,spherical.yy);close(rain.sigma/spherical.sigma,.22);close(rain.tau,spherical.tau);
+ const side={...layout,axes:[[1,0,0],[0,1,0],[0,0,1]]},thin=sprayShadowKernel([0,1,0,.2],[1,0,0,4],[.3,3,-.02,1],side);
+ assert.ok(thin.yy<thin.xx*.07);assert.ok(thin.det>0&&thin.tau>0);
+});
+
+import {terrainGradient} from '../src/sand-lab/terrain-gradient.js';
+import {SandBed} from '../src/sand-lab/sand.js';
+test('terrain slopes match the cubic surface and stay exactly flat beyond its clamped edges',()=>{
+ const bed=new SandBed(65);for(let i=0;i<bed.base.length;i++)bed.base[i]+=.06*Math.sin(i*1.4);bed.update();
+ for(let i=0;i<60;i++){const x=-5+i*10/59,z=-4+(i*17%59)*8/59,g=terrainGradient(bed.data,bed.n,x,z,4),h=.0001;
+  const numeric=[(bed.height(x+h,z)-bed.height(x-h,z))/(2*h),(bed.height(x,z+h)-bed.height(x,z-h))/(2*h)];
+  g.forEach((v,k)=>assert.ok(Math.abs(v-numeric[k])<.000003));
+ }
+ const flat=new Float32Array(65*65).fill(1.234567);
+ for(const [x,z] of [[0,0],[4.123,3.243],[50,20],[-90,-20]])assert.deepEqual(terrainGradient(flat,65,x,z),[0,0]);
+ assert.equal(terrainGradient(bed.data,65,50,20,4)[1],0);assert.equal(terrainGradient(bed.data,65,50,20,4)[0],0);
 });

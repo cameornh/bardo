@@ -54,8 +54,8 @@ ${AIR_SAMPLE_GLSL}
 ${FOAM_CONTACT_GLSL}
 void main(){ivec2 pixel=ivec2(gl_FragCoord.xy);int i=pixel.y*256+pixel.x,spawn=(i-uSpawnStart+uCapacity)%uCapacity;vec4 p=texelFetch(uDetailP,pixel,0),v=texelFetch(uDetailV,pixel,0),info=texelFetch(uDetailI,pixel,0);
 if(spawn<uSpawnCount){ivec2 s=ivec2(spawn%256,spawn/256);p=texelFetch(uSpawnP,s,0);v=texelFetch(uSpawnV,s,0);info=texelFetch(uSpawnI,s,0);}
-float oldAge=p.w;p.w+=uDt;if(oldAge<v.w){vec3 start=p.xyz;bool born=spawn<uSpawnCount;if(born&&uDetailFlow&&(info.y<1.5||info.y>2.5)){detailProject(p.xyz,info.y>2.5?.025:info.y<.5?.08:.18,info.y>2.5?1.2:.55);detailContact(start,p.xyz,v.xyz,max(.0005,info.x*2.),false);start=p.xyz;}bool wet;detailWetMotion(p.xyz,v.xyz,info.y,p.w,uDt,uScale,wet);if(!wet){vec2 air=beachWind(p.xz*uScale,uTime,uWind,0.,uTurbulence)/uScale;vec3 target=vec3(air.x,0,air.y),q=p.xyz-uBrushOrigin;float along=dot(q,uBrushDirection);if(along>0.)target+=uBrushDirection*uBrushStrength/uScale*exp(-dot(q-uBrushDirection*along,q-uBrushDirection*along)/(uBrushRadius*uBrushRadius))*exp(-along/25.);
-if(uAirEnabled)target=sampleAir(p.xyz);float drag=info.y>2.5?9.:info.y>1.5?3.:info.y>.5?.45:1.1;v.xyz+=(target-v.xyz)*(1.-exp(-drag*uDt));v.y+=(info.y>2.5?-.18:info.y>1.5?.45:info.y>.5?-.12:-9.81)/uScale*uDt;p.xyz+=v.xyz*uDt;}p.w=oldAge+uDt*foamDecay(info.y,wet,wet&&foamTouch(start,info.x,i));detailContact(start,p.xyz,v.xyz,max(.0005,info.x*2.),!born);info.w=uDetailCollision?labPhysicalSolid(p.xyz):100.;}
+float oldAge=p.w;p.w+=uDt;if(oldAge<v.w){bool rain=info.z<0.;float originalKind=info.y,contactRadius=rain?min(.003/uScale,info.x):max(.0005,info.x*2.);vec3 start=p.xyz;bool born=spawn<uSpawnCount;if(born&&uDetailFlow&&(info.y<1.5||info.y>2.5)){detailProject(p.xyz,info.y>2.5?.025:info.y<.5?.08:.18,info.y>2.5?1.2:.55);detailContact(start,p.xyz,v.xyz,contactRadius,false);start=p.xyz;}bool wet;detailWetMotion(p.xyz,v.xyz,info.y,p.w,uDt,uScale,wet);if(!wet){vec2 air=beachWind(p.xz*uScale,uTime,uWind,0.,uTurbulence)/uScale;vec3 target=vec3(air.x,0,air.y),q=p.xyz-uBrushOrigin;float along=dot(q,uBrushDirection);if(along>0.)target+=uBrushDirection*uBrushStrength/uScale*exp(-dot(q-uBrushDirection*along,q-uBrushDirection*along)/(uBrushRadius*uBrushRadius))*exp(-along/25.);
+if(uAirEnabled)target=sampleAir(p.xyz);float drag=info.y>2.5?9.:info.y>1.5?3.:info.y>.5?.45:1.1;v.xyz+=(target-v.xyz)*(1.-exp(-drag*uDt));v.y+=(info.y>2.5?-.18:info.y>1.5?.45:info.y>.5?-.12:-9.81)/uScale*uDt;p.xyz+=v.xyz*uDt;}if(rain){info.y=originalKind;if(wet&&info.y>2.5)detailProject(p.xyz,.025,.6);if(info.y>2.5){float growth=exp(.22*uDt);info.x*=growth;info.z/=growth*growth;}p.w=oldAge+uDt;}else p.w=oldAge+uDt*foamDecay(info.y,wet,wet&&foamTouch(start,info.x,i));detailContact(start,p.xyz,v.xyz,contactRadius,!born);info.w=uDetailCollision?labPhysicalSolid(p.xyz):100.;}
 nextPosition=p;nextVelocity=v;nextInfo=info;}`;
 function texture(data){const t=new THREE.DataTexture(data,256,data.length/1024,THREE.RGBAFormat,THREE.FloatType);t.needsUpdate=true;return t;}
 function sourceNoise(position,normal,spacing,time,seed){
@@ -168,15 +168,25 @@ export class LabDetail {
       indices.forEach((id,i)=>{if((id+1)*stride<=old.length)next.set(old.subarray(id*stride,(id+1)*stride),i*stride);});this[key]=next;
     }
   }
-  addMarker(point,velocity,kind,radius,life,opacity=.5){if(!this.enabled||this.pending>=this.capacity)return;const p=this.pending*4;this.spawn[0].image.data.set([...point,0],p);this.spawn[1].image.data.set([...velocity,life],p);this.spawn[2].image.data.set([radius,kind,opacity,100],p);const slot=(this.cursor+this.pending)%this.capacity;if(this.expiry[slot]>this.time)this.overwritten++;this.expiry[slot]=this.time+life*40;this.pending++;this.emitted++;if(kind===3)this.mistEmitted++;}
+  addMarker(point,velocity,kind,radius,life,opacity=.5){if(!this.enabled||this.pending>=this.capacity)return;const p=this.pending*4;this.spawn[0].image.data.set([...point,0],p);this.spawn[1].image.data.set([...velocity,life],p);this.spawn[2].image.data.set([radius,kind,opacity,100],p);const slot=(this.cursor+this.pending)%this.capacity;if(this.expiry[slot]>this.time)this.overwritten++;this.expiry[slot]=this.time+life*(opacity<0?1:40);this.pending++;this.emitted++;if(kind===3)this.mistEmitted++;}
   impact(point,normal,velocity,volume,lab,hardness=0){
     if(!this.enabled)return;const scale=lab.spec.scale,energy=Math.max(0,-velocity.reduce((a,v,k)=>a+v*normal[k],0))*scale;
-    const n=Math.min(72,Math.floor(Math.sqrt(volume*scale**3)*energy*180*this.density));
-    for(let i=0;i<n;i++){const id=++this.sequence,theta=hash(id+21)*Math.PI*2,ring=[Math.cos(theta),0,Math.sin(theta)],kind=this.mistEnabled&&energy>3&&hash(id+19)<Math.min(.65,this.mistDensity*(.08+.55*hardness)*clamp((energy-3)/5,0,1))?3:0;
-      const v=velocity.map((v,k)=>v*.08+normal[k]*energy*(.20+.16*hash(id+11))/scale+ring[k]*energy*.24/scale),p=point.map((v,k)=>v+normal[k]*lab.spacing*.18+ring[k]*lab.spacing*.15);
-      this.addMarker(p,v,kind,detailRadius(lab.spacing,scale,hash(id+7))*(kind===3?1.8:1)/scale,kind===3?4:.9,kind===3?.4:.65);lab.wetting?.trace(p,v,kind);
+    // Negative stored opacity tags rain-origin markers without another texture.
+    // They retain short lifetimes on water instead of becoming long-lived foam.
+    const n=Math.min(4,Math.floor(Math.sqrt(volume*scale**3)*energy*12*this.density));
+    for(let i=0;i<n;i++){const id=++this.sequence,theta=hash(id+21)*Math.PI*2,ring=[Math.cos(theta),0,Math.sin(theta)];
+      const v=velocity.map((v,k)=>v*.04+normal[k]*energy*(.12+.1*hash(id+11))/scale+ring[k]*energy*.14/scale),p=point.map((v,k)=>v+normal[k]*lab.spacing*.12+ring[k]*lab.spacing*.22);
+      this.addMarker(p,v,0,detailRadius(lab.spacing,scale,hash(id+7))/scale,.65,-.65/4);lab.wetting?.trace(p,v,0);
+    }
+    if(this.mistEnabled&&energy>3&&n){
+      const id=++this.sequence,p=point.map((v,k)=>v+normal[k]*.35/scale),v=velocity.map((v,k)=>v*.015+normal[k]*.45/scale);
+      // Broad, optically thin clouds overlap into a ground-hugging blanket.
+      // Hard receivers supply more mist, but water also receives a thin veil.
+      const opacity=(.014+.012*hardness)*this.mistDensity;
+      this.addMarker(p,v,3,(2.+1.5*hash(id+7))/scale,3.+hash(id+11)*2.,-opacity);lab.wetting?.trace(p,v,3);
     }
   }
+
   advance(dt,lab,jet=lab.jet){
     if(!dt)return;
     // Trim work before the ring first fills; vacant texture rows need no
@@ -192,13 +202,14 @@ export class LabDetail {
     if(this.cpu){
       const [p,v,info]=this.fallback.map(t=>t.image.data);
       for(let j=0;j<this.pending;j++){const o=(this.cursor+j)%this.capacity*4;for(let k=0;k<3;k++)this.fallback[k].image.data.set(this.spawn[k].image.data.subarray(j*4,j*4+4),o);}
-      for(let i=0;i<this.activeSpan;i++){const o=i*4,oldAge=p[o+3];p[o+3]+=dt;if(oldAge>=v[o+3])continue;let start=Array.from(p.subarray(o,o+3)),velocity=Array.from(v.subarray(o,o+3)),kind=info[o+1];const born=(i-this.cursor+this.capacity)%this.capacity<this.pending;
-        if(born&&lab.count&&(kind<1.5||kind===3)){let point=projectDetailSurface(start,lab.spacing,this.flow,kind===3?.025:kind<.5?.08:.18,kind===3?1.2:.55);if(u.uDetailCollision.value){const contact=detailContact(start,point,velocity,Math.max(.0005,info[o]*2),lab);point=contact.position;velocity=contact.velocity;}start=point;}
+      for(let i=0;i<this.activeSpan;i++){const o=i*4,oldAge=p[o+3];p[o+3]+=dt;if(oldAge>=v[o+3])continue;let start=Array.from(p.subarray(o,o+3)),velocity=Array.from(v.subarray(o,o+3)),kind=info[o+1];const born=(i-this.cursor+this.capacity)%this.capacity<this.pending,rain=info[o+2]<0,originalKind=kind,contactRadius=rain?Math.min(.003/lab.spec.scale,info[o]):Math.max(.0005,info[o]*2);
+        if(born&&lab.count&&(kind<1.5||kind===3)){let point=projectDetailSurface(start,lab.spacing,this.flow,kind===3?.025:kind<.5?.08:.18,kind===3?1.2:.55);if(u.uDetailCollision.value){const contact=detailContact(start,point,velocity,contactRadius,lab);point=contact.position;velocity=contact.velocity;}start=point;}
         let step=lab.count?detailFluidMotion(start,velocity,kind,dt,lab.spec.scale,lab.spacing,this.flow,p[o+3]):{wet:false};
         if(lab.count)kind=step.kind;
-        p[o+3]=oldAge+dt*foamDecay(kind,!!step.wet,!!step.wet&&this.contact.touching(start,info[o],i));
+        p[o+3]=oldAge+dt*(rain?1:foamDecay(kind,!!step.wet,!!step.wet&&this.contact.touching(start,info[o],i)));
         if(!step.wet)step=detailStep(start,velocity,kind,lab.spec.scale,dt,lab.time,lab.wind,lab.windTurbulence??lab.turbulence,jet,lab.radius,lab.windStrength,lab.air?lab.air.sample(start):null);
-        if(u.uDetailCollision.value)step=detailContact(start,step.position,step.velocity,Math.max(.0005,info[o]*2),lab,born?null:this.previousMotion);
+        if(rain){kind=originalKind;if(step.wet&&kind===3)step.position=projectDetailSurface(step.position,lab.spacing,this.flow,.025,.6);if(kind===3){const growth=Math.exp(.22*dt);info[o]*=growth;info[o+2]/=growth*growth;}}
+        if(u.uDetailCollision.value)step=detailContact(start,step.position,step.velocity,contactRadius,lab,born?null:this.previousMotion);
         p.set(step.position,o);v.set(step.velocity,o);info[o+1]=kind;info[o+3]=u.uDetailCollision.value?lab.solid(step.position,true,false):100;}
       for(const t of this.fallback)t.needsUpdate=true;this.bind(this.fallback);
     }else{
@@ -210,10 +221,10 @@ export class LabDetail {
     this.cursor=(this.cursor+this.pending)%this.capacity;this.pending=0;this.count=0;for(const expiry of this.expiry)if(expiry>this.time)this.count++;
   }
   dispose(){this.contact.dispose();this.flow.dispose();this.geometryDefaults.uLabBed.value.dispose();for(const t of [...this.spawn,...this.fallback,...(this.targets||[]),this.geometry,this.material])t.dispose();}
-  static async verify(renderer){
+  static async verify(renderer,{rain=false}={}){
     const gpu=new LabDetail(renderer,1024),cpu=new LabDetail(renderer,1024);cpu.cpu=true;
     const lab={spec:{scale:.2},time:0,wind:7,turbulence:.8,radius:1,windStrength:20,jet:{origin:[-2,1,0],direction:[1,0,0]}};
-    for(const system of [gpu,cpu]){system.cursor=900;system.pending=769;for(let i=0;i<769;i++){system.spawn[0].image.data.set([(i%3)*.2,1,0,0],i*4);system.spawn[1].image.data.set([.3,2,0,2],i*4);system.spawn[2].image.data.set([.004,i%4,.4,0],i*4);}}
-    try{for(let i=0;i<20;i++){lab.time+=.01;gpu.advance(.01,lab);cpu.advance(.01,lab);}let error=0;const target=gpu.targets[1-gpu.current];for(let k=0;k<3;k++){const data=new Float32Array(4096);renderer.readRenderTargetPixels(target,0,0,256,4,data,0,k);for(let i=0;i<4096;i++)error=Math.max(error,Math.abs(data[i]-cpu.fallback[k].image.data[i]));}return {error,pass:!gpu.cpu&&error<1e-4};}finally{gpu.dispose();cpu.dispose();}
+    for(const system of [gpu,cpu]){system.cursor=900;system.pending=769;for(let i=0;i<769;i++){system.spawn[0].image.data.set([(i%3)*.2,1,0,0],i*4);system.spawn[1].image.data.set([.3,2,0,2],i*4);system.spawn[2].image.data.set([.004,i%4,rain&&i%3===0?-.4:.4,0],i*4);}}
+    try{for(let i=0;i<20;i++){lab.time+=.01;gpu.advance(.01,lab);cpu.advance(.01,lab);}let error=0;const target=gpu.targets[1-gpu.current];for(let k=0;k<3;k++){const data=new Float32Array(4096);renderer.readRenderTargetPixels(target,0,0,256,4,data,0,k);for(let i=0;i<4096;i++)error=Math.max(error,Math.abs(data[i]-cpu.fallback[k].image.data[i]));}return {error,pass:!gpu.cpu&&error<1e-4};}finally{await renderer.warmObjectPrograms?.([],gpu.camera);gpu.dispose();cpu.dispose();}
   }
 }

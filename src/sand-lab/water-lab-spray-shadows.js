@@ -21,10 +21,10 @@ export function sprayShadowLayout(bounds={min:LAB_FIELD_MIN,max:LAB_FIELD_MAX},s
 // depth planes and footprint filtering as the GPU deep-opacity map.
 export function sprayShadowKernel(position,velocity,info,layout){
  const age=position[3],life=velocity[3];if(life<=0||age>=life||info[0]<=0)return null;
- const s=info[0]*(.75+.25*Math.sin(Math.min(1,age/life)*Math.PI)),stretch=info[1]<.5?1.2:0,d=normalize([velocity[0],velocity[1]+1e-8,velocity[2]]),axes=layout.axes||[U,V,SPRAY_LIGHT],axis=axes.map(a=>dot(a,d));
- const a=s*s*(1+stretch*axis[0]**2),b=s*s*stretch*axis[0]*axis[1],c=s*s*(1+stretch*axis[1]**2),xx=a+(layout.span[0]/layout.size*.6)**2,yy=c+(layout.span[1]/layout.size*.6)**2,det=xx*yy-b*b;
- const cross=[s*s*stretch*axis[0]*axis[2],s*s*stretch*axis[1]*axis[2]],coupling=[(cross[0]*yy-cross[1]*b)/det,(cross[1]*xx-cross[0]*b)/det];
- const sigma=Math.sqrt(Math.max(1e-12,s*s*(1+stretch*axis[2]**2)-dot(cross,coupling))),opacity=Math.min(.98,detailOpacity(info[1],age,life,info[2]));
+ const s=info[0]*(.75+.25*Math.sin(Math.min(1,age/life)*Math.PI)),stretch=info[1]<.5?1.2:0,d=normalize([velocity[0],velocity[1]+1e-8,velocity[2]]),axes=layout.axes||[U,V,SPRAY_LIGHT],axis=axes.map(a=>dot(a,d)),up=axes.map(a=>a[1]),flatten=info[2]<0&&info[1]>2.5?1-.22**2:0;
+ const a=s*s*(1+stretch*axis[0]**2-flatten*up[0]**2),b=s*s*(stretch*axis[0]*axis[1]-flatten*up[0]*up[1]),c=s*s*(1+stretch*axis[1]**2-flatten*up[1]**2),xx=a+(layout.span[0]/layout.size*.6)**2,yy=c+(layout.span[1]/layout.size*.6)**2,det=xx*yy-b*b;
+ const cross=[s*s*(stretch*axis[0]*axis[2]-flatten*up[0]*up[2]),s*s*(stretch*axis[1]*axis[2]-flatten*up[1]*up[2])],coupling=[(cross[0]*yy-cross[1]*b)/det,(cross[1]*xx-cross[0]*b)/det];
+ const sigma=Math.sqrt(Math.max(1e-12,s*s*(1+stretch*axis[2]**2-flatten*up[2]**2)-dot(cross,coupling))),opacity=Math.min(.98,detailOpacity(info[1],age,life,info[2]));
  return {center:axes.map(a=>dot(a,position)),xx,xy:b,yy,det,coupling,sigma,tau:-Math.log(1-opacity)*Math.sqrt((a*c-b*b)/det)};
 }
 export function sprayOpticalDepth(kernel,x,y,depth){
@@ -48,8 +48,9 @@ uniform highp sampler2D uDetailP,uDetailV,uDetailI;uniform vec3 uSprayU,uSprayV,
 out vec2 vDelta;flat out vec3 vInverse;flat out vec2 vCoupling;flat out float vSigma,vDepth,vTau;
 void main(){int id=gl_InstanceID*uShadowStride;ivec2 uv=ivec2(id%256,id/256);vec4 p=texelFetch(uDetailP,uv,0),v=texelFetch(uDetailV,uv,0),info=texelFetch(uDetailI,uv,0);gl_Position=vec4(2,2,2,1);vTau=0.;if(v.w<=0.||p.w>=v.w||info.x<=0.)return;
  float s=info.x*(.75+.25*sin(min(1.,p.w/v.w)*3.14159265359)),stretch=info.y<.5?1.2:0.;vec3 direction=normalize(v.xyz+vec3(0,1e-8,0)),d=vec3(dot(direction,uSprayU),dot(direction,uSprayV),dot(direction,uSprayL));
- float a=s*s*(1.+stretch*d.x*d.x),b=s*s*stretch*d.x*d.y,c=s*s*(1.+stretch*d.y*d.y),xx=a+pow(uSpraySpan.x/uShadowSize*.6,2.),yy=c+pow(uSpraySpan.y/uShadowSize*.6,2.),det=xx*yy-b*b;
- vInverse=vec3(yy,-b,xx)/det;vec2 crossDepth=s*s*stretch*d.xy*d.z;vCoupling=vec2(dot(crossDepth,vInverse.xy),dot(crossDepth,vInverse.yz));vSigma=sqrt(max(1e-12,s*s*(1.+stretch*d.z*d.z)-dot(crossDepth,vCoupling)));
+ vec3 up=vec3(uSprayU.y,uSprayV.y,uSprayL.y);float flatten=info.z<0.&&info.y>2.5?1.-.22*.22:0.;
+ float a=s*s*(1.+stretch*d.x*d.x-flatten*up.x*up.x),b=s*s*(stretch*d.x*d.y-flatten*up.x*up.y),c=s*s*(1.+stretch*d.y*d.y-flatten*up.y*up.y),xx=a+pow(uSpraySpan.x/uShadowSize*.6,2.),yy=c+pow(uSpraySpan.y/uShadowSize*.6,2.),det=xx*yy-b*b;
+ vInverse=vec3(yy,-b,xx)/det;vec2 crossDepth=s*s*(stretch*d.xy*d.z-flatten*up.xy*up.z);vCoupling=vec2(dot(crossDepth,vInverse.xy),dot(crossDepth,vInverse.yz));vSigma=sqrt(max(1e-12,s*s*(1.+stretch*d.z*d.z-flatten*up.z*up.z)-dot(crossDepth,vCoupling)));
  vec3 center=vec3(dot(p.xyz,uSprayU),dot(p.xyz,uSprayV),dot(p.xyz,uSprayL));vDepth=center.z;
  float opacity=min(.98,detailOpacity(info.y,p.w,v.w,info.z));vTau=-log(1.-opacity)*sqrt((a*c-b*b)/det)*float(min(uShadowStride,uActiveSpan-id));
  // Cholesky projects the full covariance onto the light plane without a camera.

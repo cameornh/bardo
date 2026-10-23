@@ -1,0 +1,77 @@
+{
+  "records": {
+    "glass": {
+      "count": 0,
+      "sum": 0.0000320867111440748,
+      "max": 5.960464477539063e-8,
+      "depth": 0,
+      "finalChanged": 0,
+      "finalMax": 5.960464477539063e-8,
+      "relativeMax": 2.0234640895828022e-7
+    },
+    "glassWithoutShadows": {
+      "count": 0,
+      "sum": 0.0000320867111440748,
+      "max": 5.960464477539063e-8,
+      "depth": 0,
+      "finalChanged": 0,
+      "finalMax": 5.960464477539063e-8,
+      "relativeMax": 2.0234640895828022e-7
+    },
+    "mirror": {
+      "count": 7117,
+      "sum": 1788.7763913914969,
+      "max": 2.320170741295442,
+      "depth": 2.8493330478668213,
+      "finalChanged": 0,
+      "finalMax": 5.960464477539063e-8,
+      "relativeMax": 2.0234640895828022e-7
+    },
+    "mirrorWithoutShadows": {
+      "count": 7117,
+      "sum": 1788.7764709692856,
+      "max": 2.320170741295442,
+      "depth": 2.8493330478668213,
+      "finalChanged": 0,
+      "finalMax": 5.960464477539063e-8,
+      "relativeMax": 2.0234640895828022e-7
+    },
+    "rock": {
+      "count": 7420,
+      "sum": 248.40582870304934,
+      "max": 0.06401712261140347,
+      "depth": 2.8493330478668213,
+      "finalChanged": 0,
+      "finalMax": 5.960464477539063e-8,
+      "relativeMax": 2.0234640895828022e-7
+    },
+    "rockWithoutShadows": {
+      "count": 7420,
+      "sum": 248.40582870304934,
+      "max": 0.06401712261140347,
+      "depth": 2.8493330478668213,
+      "finalChanged": 0,
+      "finalMax": 5.960464477539063e-8,
+      "relativeMax": 2.0234640895828022e-7
+    },
+    "light": {
+      "count": 30076,
+      "sum": 52000.89187336556,
+      "max": 6.999628145742463,
+      "depth": 2.8493330478668213,
+      "finalChanged": 0,
+      "finalMax": 0.0015188530087471008,
+      "relativeMax": 0.018277822871787155
+    },
+    "lightWithoutShadows": {
+      "count": 30076,
+      "sum": 52000.89187336556,
+      "max": 6.999628145742463,
+      "depth": 2.8493330478668213,
+      "finalChanged": 0,
+      "finalMax": 0.0015188530087471008,
+      "relativeMax": 0.018277822871787155
+    }
+  },
+  "pass": true
+}

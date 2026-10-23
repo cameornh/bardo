@@ -22,6 +22,9 @@ float supportRadius=3.*info.x*(info.y<.5?sqrt(2.2):1.);
 if(!gaussianIntersectsView(p.xyz,supportRadius,vec2(projectionMatrix[0][0],projectionMatrix[1][1]),uResolution)){gl_Position=vec4(2,2,2,1);return;}
 float s=info.x*(.75+.25*sin(min(1.,age/life)*3.14159)),z=-p.z;vec3 direction=normalize(mat3(viewMatrix)*velocity.xyz+vec3(0,1e-8,0)),jx=vec3(projectionMatrix[0][0]/z,0,projectionMatrix[0][0]*p.x/(z*z)),jy=vec3(0,projectionMatrix[1][1]/z,projectionMatrix[1][1]*p.y/(z*z));
 float stretch=info.y<.5?1.2:0.,xx=s*s*(dot(jx,jx)+stretch*pow(dot(jx,direction),2.)),xy=s*s*(dot(jx,jy)+stretch*dot(jx,direction)*dot(jy,direction)),yy=s*s*(dot(jy,jy)+stretch*pow(dot(jy,direction),2.));
+// Rain mist spreads horizontally as a shallow 3D Gaussian sheet. Project
+// its actual covariance so it stays a blanket at grazing camera angles.
+if(info.z<0.&&info.y>2.5){vec3 up=mat3(viewMatrix)*vec3(0,1,0);float ax=dot(jx,up),ay=dot(jy,up),flatten=1.-.22*.22;xx-=s*s*flatten*ax*ax;xy-=s*s*flatten*ax*ay;yy-=s*s*flatten*ay*ay;}
 float area=sqrt(max(0.,xx*yy-xy*xy));xx+=1.4/(uResolution.x*uResolution.x);yy+=1.4/(uResolution.y*uResolution.y);float filtered=sqrt(max(1e-15,xx*yy-xy*xy));
 float l=sqrt(max(0.,pow((xx-yy)*.5,2.)+xy*xy)),e1=max(1e-12,(xx+yy)*.5+l),e2=max(1e-12,(xx+yy)*.5-l);vec2 axis=abs(xy)>1e-12?normalize(vec2(e1-yy,xy)):xx>=yy?vec2(1,0):vec2(0,1);vec4 clip=projectionMatrix*p;
 vOptical=texelFetch(uDetailPaths,uv,0);vViewTau=texelFetch(uDetailViewTau,uv,0).rgb;vScatter=texelFetch(uDetailScatter,uv,0).rgb;

@@ -1,0 +1,14 @@
+{
+  "backend": "GPU",
+  "detailParity": {
+    "error": 0.00007772445678710938,
+    "pass": true
+  },
+  "causticReceiverError": 0.00010556698828723121,
+  "firstImpactSeconds": 0.08333333333333333,
+  "hitsAfterStop": 0,
+  "liveMarkers": 768,
+  "rainMassError": -2.042810365310288e-14,
+  "nonFinite": 0,
+  "pass": true
+}

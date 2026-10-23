@@ -1,0 +1,9 @@
+{
+  "backend": "GPU",
+  "slopeSamples": 128,
+  "slopeError": 0.0006883071224201842,
+  "finiteDifferenceError": 0.0140836137409171,
+  "shadowError": 0.00000880751758813858,
+  "shadowPeak": 0.014377590268850327,
+  "pass": true
+}

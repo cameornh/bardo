@@ -1,0 +1,8 @@
+{
+  "fixture": "heavy rain with live water and mist",
+  "seconds": 4,
+  "backend": "GPU",
+  "max": 5616.87841796875,
+  "invalid": 0,
+  "programs": 88
+}

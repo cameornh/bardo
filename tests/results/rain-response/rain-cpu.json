@@ -1,0 +1,29 @@
+{
+  "scope": "CPU rainfall bookkeeping at 12000 mm/min; fixed bulk fluid, detail emission stubbed; last 60 of 260 steps at dt 0.05; not overall FPS",
+  "baselineCommit": "f07f57a",
+  "before": {
+    "meanMs": 65.4302919500001,
+    "p95Ms": 81.24197600000025,
+    "firstImpactSeconds": 7.349999999999982,
+    "hitsInSecondAfterStop": 522,
+    "drops": 3133,
+    "deposits": 1468,
+    "staticWaterKernels": 1468,
+    "count": 14320
+  },
+  "after": {
+    "meanMs": 28.253120783333316,
+    "p95Ms": 34.009400000000824,
+    "firstImpactSeconds": 0.05,
+    "hitsInSecondAfterStop": 0,
+    "drops": 0,
+    "deposits": 1045,
+    "staticWaterKernels": 187,
+    "count": 15470
+  },
+  "meanReduction": 0.5681950983051777,
+  "notes": [
+    "After staticWaterKernels is the count of ground-only deposit kernels; existing-water reservoirs generate no stationary kernels.",
+    "Reservoir insertion raises the water particle count sooner because precipitation no longer waits for a sky flight queue."
+  ]
+}
