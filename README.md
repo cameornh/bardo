@@ -1300,7 +1300,10 @@ individual instanced Gaussians with their angular covariance projected directly
 into camera pixels (`J C Jᵀ`), including a subpixel reconstruction footprint.
 There is no star image texture or latitude/longitude pole singularity. They do
 not spawn or move with the camera. Fainter stars have bounded atmospheric
-scintillation (stronger near the horizon) and a small subpixel seeing offset;
+brightness scintillation (at most ±0.4%, strongest near the horizon) and small,
+symmetric Gaussian edge changes. The star center stays at its catalogue position; atmospheric twinkle
+never translates the whole star. The changing covariance is normalized to
+preserve flux separately from the brightness twinkle;
 see the [WMO scintillation description](https://cloudatlas.wmo.int/en/scintillation.html).
 
 **Sky / rain** now provides independent day and lunar clocks, their durations,
@@ -1446,3 +1449,9 @@ radiance error **1.77e-7**, relative error **2.36e-5**, and exposure error
 **8.37e-7**. A tidal withdrawal/replenishment check transfers 3,339.8 m³ each
 way, with volume error below **7e-16 lab units³** and no non-finite water state.
 Moon phase, night foam and the production controls were visually inspected.
+
+The centered-twinkle GPU check in `tests/sand-sky-gpu.html` captures the actual
+star vertex shader across 21 direction/time cases. Centers have zero temporal
+drift; projected edges match the CPU covariance reference within 0.00006 pixels.
+The sampled total brightness variation stays below 0.33%. Numerical results and
+a visually inspected preview are in `tests/results/centered-star-twinkle/`.

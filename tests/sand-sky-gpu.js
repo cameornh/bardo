@@ -1,3 +1,4 @@
+import {verifyStarTwinkle} from './star-twinkle-verify.js';
 import {STAR_COVARIANCE_GLSL,projectStar} from '../src/sand-lab/star-gaussians.js';
 import {LENS_FRAGMENT} from '../src/sand-lab/water-lab-wetting.js';
 import * as THREE from 'three';
@@ -49,3 +50,11 @@ $('optics').onclick=()=>{try{const geometry=new THREE.PlaneGeometry(2,2),scene=n
  const texture=(v)=>{const t=new THREE.DataTexture(new Float32Array(v),1,1,THREE.RGBAFormat,THREE.FloatType);t.needsUpdate=true;return t;},image=texture([0,0,0,1]),sky=texture([0,0,0,1]),film=texture([.7,.2,2,1]);material.fragmentShader=LENS_FRAGMENT;material.uniforms={uImage:{value:image},uLensField:{value:film},uAmbient:{value:1},uSunlight:{value:0},uViewMatrix:{value:new THREE.Matrix4()},uDaySun:{value:new THREE.Vector3(0,1,0)},uDayTint:{value:new THREE.Vector3(1,1,1)},uAtmosphere:{value:sky},uAtmosphereSize:{value:new THREE.Vector2(1,1)}};material.needsUpdate=true;const lens=[];for(const level of [0,1e-9,1]){image.image.data.set([level,level,level,1]);sky.image.data.set([level,level,level,1]);image.needsUpdate=sky.needsUpdate=true;r.setRenderTarget(probe);r.render(scene,new THREE.Camera());const value=pixels(probe)[0];lens.push({input:level,output:value,error:Math.abs(level-value),pass:Math.abs(level-value)<Math.max(1e-15,level*1e-5)});}for(const t of [image,sky,film,probe,geometry,material])t.dispose();render('moonless stars',0,0,[0,.45,-1]);result.textContent=JSON.stringify({projectionError,projectionPass:projectionError<1e-6,lens,pass:projectionError<1e-6&&lens.every(x=>x.pass)},null,2);}catch(e){result.textContent=e.stack;}};
 
 $('bounds').onclick=()=>{try{const results=[];draw.stars.geometry.instanceCount=0;for(const look of [[0,.45,-1],[0,1,0],[0,-.5,-1]]){render('sky bound',0,0,look);draw.skyBounds=false;draw.drawKey=null;draw.render({adaptive:false});const before=pixels(target);draw.skyBounds=true;draw.drawKey=null;draw.render({adaptive:false});const after=pixels(target);let maximum=0;for(let i=0;i<before.length;i++)maximum=Math.max(maximum,Math.abs(before[i]-after[i]));results.push({look,maximum,pass:maximum<1e-7});}draw.stars.geometry.instanceCount=8404;result.textContent=JSON.stringify({results,pass:results.every(x=>x.pass)},null,2);}catch(e){result.textContent=e.stack;}};
+
+let twinkleFrame=0;
+$('twinkle').onclick=()=>{try{
+ cancelAnimationFrame(twinkleFrame);const check=verifyStarTwinkle(r);render('centered twinkle',0,0,equatorialLook([0,1,0]));result.textContent=JSON.stringify(check,null,2);
+ let previous=performance.now();const until=previous+8000;
+ const preview=now=>{draw.render({dt:Math.min(.1,(now-previous)/1000),adaptive:false});previous=now;if(now<until)twinkleFrame=requestAnimationFrame(preview);};
+ twinkleFrame=requestAnimationFrame(preview);
+}catch(e){result.textContent=e.stack;}};

@@ -1,7 +1,7 @@
 import {mediumHistorySettings,mediumSkyDepth} from '../src/sand-lab/water-lab-medium-shadows.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {starDirection,projectStar,scintillation} from '../src/sand-lab/star-gaussians.js';
+import {starDirection,projectStar,scintillation,starSeeingCovariance} from '../src/sand-lab/star-gaussians.js';
 import {lunarPhase,moonIrradiance,moonDirection,starIrradiance,starColor,celestialDirection} from '../src/sand-lab/night-sky-model.js';
 import {atmosphereSky,atmosphereTransmission} from '../src/sand-lab/atmosphere-model.js';
 import {exposureTarget,exposureStatistics,adaptExposure} from '../src/sand-lab/sky-exposure.js';
@@ -24,7 +24,7 @@ test('star photometry preserves magnitude ratios, warm/cool colors and flux thro
  const p=projectStar([.6,0,-.8],800,650);let integral=0,step=.025;
  for(let y=-5;y<=5;y+=step)for(let x=-5;x<=5;x+=step)integral+=Math.exp(-.5*(p.yy*x*x-2*p.xy*x*y+p.xx*y*y)/p.det)/(2*Math.PI*Math.sqrt(p.det))*step*step;
  close(integral,1,.0001);
- for(let t=0;t<10;t+=.1){close(scintillation(0,.5,t,3),1);assert.ok(Math.abs(scintillation(6,.1,t,3)-1)<.09);}
+ for(let t=0;t<10;t+=.1){close(scintillation(0,.5,t,3),1);assert.ok(Math.abs(scintillation(6,.1,t,3)-1)<.004);}
 
  const a=celestialDirection([1,0,0],0),b=celestialDirection([1,0,0],24);a.forEach((v,k)=>close(v,b[k]));close(Math.hypot(...celestialDirection([.6,.8,0],7)),1);
 });
@@ -32,6 +32,21 @@ test('clear moonless sky remains faint, moonlight scatters, and horizon extincti
  const s=[0,-1,0],newMoon=atmosphereSky([0,1,0],s,{moonPhase:0}),full=atmosphereSky([0,1,0],s,{moonPhase:1});assert.ok(full[2]>newMoon[2]*100);assert.ok(newMoon.every(v=>v>0&&v<1e-8));
  const trans=atmosphereTransmission([0,.02,0],[1,0,0]);assert.ok(trans[0]>trans[2]);
  const dark=exposureTarget(exposureStatistics(new Float32Array([1e-9,1e-9,1e-9,1])));assert.ok(dark>1e6&&dark<=4e7);assert.ok(adaptExposure(1,dark,1)<dark*.01);close(exposureTarget(exposureStatistics(new Float32Array([.3,.3,.3,1]))),1);
+});
+test('stellar seeing changes Gaussian edges while preserving centroid, flux and a bounded footprint',()=>{
+ const base=projectStar([.6,.1,-Math.sqrt(.63)],800,650),footprints=[];
+ for(const time of [0,.4,1,2,4,8]){
+  assert.deepEqual(starSeeingCovariance(base,0,.1,time,3),base);
+  const c=starSeeingCovariance(base,6,.1,time,3);footprints.push(c.xx);
+  assert.ok(c.det>0);assert.ok(Math.abs(c.xx/base.xx-1)<.12&&Math.abs(c.yy/base.yy-1)<.12);
+  let mass=0,mx=0,my=0;const step=.05;
+  for(let iy=-100;iy<=100;iy++)for(let ix=-100;ix<=100;ix++){
+   const x=ix*step,y=iy*step,v=Math.exp(-.5*(c.yy*x*x-2*c.xy*x*y+c.xx*y*y)/c.det)/(2*Math.PI*Math.sqrt(c.det))*step*step;
+   mass+=v;mx+=x*v;my+=y*v;
+  }
+  close(mass,1,1e-8);close(mx,0,1e-12);close(my,0,1e-12);
+ }
+ assert.ok(Math.max(...footprints)-Math.min(...footprints)>.005);
 });
 test('tide envelope has spring/neap modulation and two highs per solar day at frozen lunar phase',()=>{
  const spring=tidalElevation(12,0),full=tidalElevation(12,LUNAR_MONTH/2),neap=Math.abs(tidalElevation(12,LUNAR_MONTH/4));close(spring,full);assert.ok(spring>neap*2.5);close(tidalElevation(0,0),spring);close(tidalElevation(6,0),-spring);
