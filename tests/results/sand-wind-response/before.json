@@ -1,0 +1,30 @@
+{
+  "backend": "GPU",
+  "numerical": {
+    "samples": 32,
+    "maxError": 2.806432783941659e-7,
+    "pass": true
+  },
+  "wind": 40,
+  "moved": 0.002204415504385074,
+  "massError": 0,
+  "albedo": [
+    0.68,
+    0.44,
+    0.19
+  ],
+  "grains": {
+    "alive": 1835,
+    "onScreen": 1835,
+    "visiblePixels": 10646,
+    "meanVisibleRadiance": [
+      0.09833433258984906,
+      0.1384450027634896,
+      0.09011979710499043
+    ],
+    "maxAlpha": 0.9149250388145447,
+    "emitted": 1920,
+    "nonFinite": 0,
+    "capacity": 8192
+  }
+}

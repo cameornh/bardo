@@ -1,10 +1,12 @@
 import * as THREE from 'three';
+import {SAND_AIR_RESPONSE,SAND_COLOR_GLSL} from './sand-material.js';
+import {LAB_SUN} from './water-lab-lighting.js';
 import {QUAD_VERTEX,SH_GLSL} from '../shaders.js';
 import {floatTexture} from './uniforms.js';
 import {SAND_AIR_GLSL,createSandWind} from './sand-air.js';
 import {LAB_GEOMETRY_GLSL} from './water-lab-model.js';
-import {grainStep,GRAIN_MOTION_GLSL} from './sand-grain-motion.js';
-import {grainBirth,sandParticleMaterial} from './particulate-material.js';
+import {grainStep,grainDrag,GRAIN_MOTION_GLSL} from './sand-grain-motion.js';
+import {grainBirth} from './particulate-material.js';
 import {DETAIL_FLOW_GLSL} from './water-lab-detail-environment.js';
 import {LAB_FIELD_GLSL} from './water-lab-field.js';
 import {SOLUTE_GLSL} from './water-lab-solutes.js';
@@ -18,13 +20,14 @@ if(spawn.w>0.){outP=spawn;outV=texelFetch(uSpawnV,uv,0);}if(outP.w<=0.)return;
 float dt=min(uGrainDt,max(0.,outV.w-outP.w+uGrainDt));outP.w-=uGrainDt;if(dt<=0.)return;
 vec4 info=texelFetch(uGrainInfo,uv,0),flow=uDetailFlow?detailFlowSample(outP.xyz):vec4(0);float wet=smoothstep(.08,.3,flow.x);
 vec3 air=mix(sandAir(outP.xyz),flow.yzw/max(.001,flow.x),wet);
-moveGrain(outP.xyz,outV.xyz,dt,air,uGrainScale,info.y*(1.+7.*wet),1.-wet*1000./info.w);
+moveGrain(outP.xyz,outV.xyz,dt,air,uGrainScale,grainDrag(info.y,wet),1.-wet*1000./info.w);
 if(labPhysicalSolid(outP.xyz)<0.||abs(outP.x)>5.5||abs(outP.z)>4.9)outP.w=0.;}`;
 const vertex=`precision highp float;precision highp int;
 uniform sampler2D uGrainP,uGrainV,uGrainInfo;uniform vec2 uResolution;uniform vec3 uSH[16];uniform int uSHDegree;
-uniform float uAmbient,uSunlight,uGrainScale,uTannins,uTurbidity;uniform vec3 uDaySun,uDayTint,uGrainAlbedo,uEye;
+uniform float uAmbient,uSunlight,uGrainScale,uTannins,uTurbidity;uniform vec3 uDaySun,uDayTint,uEye;
 out vec2 vQ;out float vAlpha,vDepth;flat out vec3 vColor;
 ${SH_GLSL}
+${SAND_COLOR_GLSL}
 ${LAB_FIELD_GLSL}
 ${SOLUTE_GLSL}
 void main(){ivec2 uv=ivec2(gl_InstanceID%64,gl_InstanceID/64);vec4 source=texelFetch(uGrainP,uv,0),velocity=texelFetch(uGrainV,uv,0),p=viewMatrix*vec4(source.xyz,1);
@@ -39,10 +42,13 @@ float age=velocity.w-source.w;vAlpha=.48*smoothstep(0.,.08,age)*smoothstep(0.,.7
 float b[16];basisSH(vec3(0,1,0),b);vec3 sky=vec3(0);for(int i=0;i<16;i++){if(i>=(uSHDegree+1)*(uSHDegree+1))break;sky+=uSH[i]*b[i]*(i==0?1.:i<4?2./3.:i<9?.25:0.);}
 // A grain receives light over all faces, rather than acting like an upward
 // leaf. Include a modest sandy-ground bounce; never add unlit blue emission.
-vec3 ambient=max(vec3(0),mix(sky,uSH[0]*.282095,.65))*uAmbient;
-vec3 direct=uDayTint*uSunlight*(.34+.48*max(0.,uDaySun.y));
-vec3 bounce=uGrainAlbedo*uDayTint*uSunlight*max(0.,uDaySun.y)*.25;
-vColor=uGrainAlbedo*(.8+.4*seed)*texelFetch(uGrainInfo,uv,0).z*(ambient+direct+bounce);
+vec3 ambient=max(vec3(0),mix(sky,uSH[0]*.282095,.3))*uAmbient;
+// Match the solid sand's incident sun spectrum/intensity, not just its tint.
+vec3 sunRadiance=vec3(${LAB_SUN.join(',')})*uDayTint*uSunlight;
+vec3 direct=sunRadiance*(.34+.48*max(0.,uDaySun.y));
+vec3 albedo=sandAlbedo(texelFetch(uGrainInfo,uv,0).z);
+vec3 bounce=albedo*sunRadiance*max(0.,uDaySun.y)*.25;
+vColor=albedo*(.94+.12*seed)*(ambient+direct+bounce);
 // Submerged grains attenuate along occupied water only. A few samples are
 // enough for these tiny tracers; the bulk water still owns refraction.
 vec3 ray=source.xyz-uEye,tau=vec3(0),scatter=vec3(0);
@@ -59,7 +65,7 @@ export class SandGrains{
   this.info=new Float32Array(CAPACITY*4);this.infoTexture=floatTexture(this.info,WIDTH,HEIGHT);
   this.p=new Float32Array(CAPACITY*4);this.v=this.p.slice();this.spawnP=this.p.slice();this.spawnV=this.p.slice();
   this.inputP=floatTexture(this.p,WIDTH,HEIGHT);this.inputV=floatTexture(this.v,WIDTH,HEIGHT);this.birthP=floatTexture(this.spawnP,WIDTH,HEIGHT);this.birthV=floatTexture(this.spawnV,WIDTH,HEIGHT);
-  this.u={...uniforms,...lab.air.uniforms,...lab.detail.flow.u,uDetailFlow:lab.detail.u.uDetailFlow,uGrainInfo:{value:this.infoTexture},uGrainAlbedo:{value:new THREE.Vector3(...sandParticleMaterial().albedo)},uAirTime:{value:0},uSandBrushPoint:{value:new THREE.Vector3()},uSandBrushNormal:{value:new THREE.Vector3(0,1,0)},uSandBrushDistance:{value:-1},uGrainP:{value:this.inputP},uGrainV:{value:this.inputV},uSpawnP:{value:this.birthP},uSpawnV:{value:this.birthV},uGrainDt:{value:0},uGrainScale:{value:lab.spec.scale}};
+  this.u={...uniforms,...lab.air.uniforms,...lab.detail.flow.u,uDetailFlow:lab.detail.u.uDetailFlow,uGrainInfo:{value:this.infoTexture},uAirTime:{value:0},uSandBrushPoint:{value:new THREE.Vector3()},uSandBrushNormal:{value:new THREE.Vector3(0,1,0)},uSandBrushDistance:{value:-1},uGrainP:{value:this.inputP},uGrainV:{value:this.inputV},uSpawnP:{value:this.birthP},uSpawnV:{value:this.birthV},uGrainDt:{value:0},uGrainScale:{value:lab.spec.scale}};
   this.targets=[0,1].map(()=>new THREE.WebGLRenderTarget(WIDTH,HEIGHT,{count:2,type:THREE.FloatType,depthBuffer:false,minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter}));this.index=0;
   this.quad=new THREE.PlaneGeometry(2,2);this.compute=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:kernel,uniforms:this.u,depthTest:false,depthWrite:false});this.computeScene=new THREE.Scene();this.computeScene.add(new THREE.Mesh(this.quad,this.compute));this.camera=new THREE.Camera();
   this.geometry=new THREE.InstancedBufferGeometry();this.geometry.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));this.geometry.setIndex([0,1,2,0,2,3]);this.geometry.instanceCount=CAPACITY;
@@ -69,16 +75,16 @@ export class SandGrains{
  get active(){return this.emitted>0&&this.clock<=(this.until||0);}
  advance(dt){const lab=this.lab,cpu=lab.gpu.cpu||!this.renderer.extensions.has('EXT_color_buffer_float');if(this.bed!==lab.sand||cpu!==this.cpu){this.reset();this.bed=lab.sand;this.cpu=cpu;}if(dt<=0)return;
   this.clock+=dt;this.spawnP.fill(0);this.spawnV.fill(0);const events=lab.sand.windEvents?.splice(0)||[];
-  if(this.enabled)for(const e of events){const count=Math.min(192,Math.max(24,Math.round(Math.cbrt(e.amount)*lab.spec.scale*1100)));
+  if(this.enabled)for(const e of events){const count=Math.max(1,Math.round(Math.min(192,Math.max(24,Math.cbrt(e.amount)*lab.spec.scale*1100))*(e.submerged?1:Math.sqrt(SAND_AIR_RESPONSE))));
    for(let j=0;j<count;j++){const i=this.cursor++%CAPACITY,o=i*4,b=grainBirth(e,j,lab.spec.scale);
     this.spawnP.set([...b.position,b.life+b.delay],o);this.spawnV.set([...b.velocity,b.life],o);
-    this.info.set([b.radius,b.drag,b.albedo[0]/sandParticleMaterial().albedo[0],b.density],o);this.until=this.clock+3;this.emitted++;}}
+    this.info.set([b.radius,b.drag,b.wetness,b.density],o);this.until=this.clock+3;this.emitted++;}}
   this.infoTexture.needsUpdate=events.length>0;
   if(this.clock>(this.until||0))return;
   this.u.uGrainScale.value=lab.spec.scale;this.u.uGrainDt.value=dt;const wind=lab.sandWind||createSandWind(lab),brush=wind.brush;this.u.uAirTime.value=wind.forcing?.time??lab.time;this.u.uSandBrushDistance.value=brush?.distance??-1;if(brush){this.u.uSandBrushPoint.value.fromArray(brush.point);this.u.uSandBrushNormal.value.fromArray(brush.normal);}
   if(cpu){for(let o=0;o<this.p.length;o+=4){if(this.spawnP[o+3]>0){this.p.set(this.spawnP.subarray(o,o+4),o);this.v.set(this.spawnV.subarray(o,o+4),o);}if(this.p[o+3]<=0)continue;
     const h=Math.min(dt,Math.max(0,this.v[o+3]-this.p[o+3]+dt));this.p[o+3]-=dt;if(h<=0)continue;
-    const p=Array.from(this.p.subarray(o,o+3)),f=this.u.uDetailFlow.value?lab.detail.flow.sample(p):[0,0,0,0],t=Math.max(0,Math.min(1,(f[0]-.08)/.22)),wet=t*t*(3-2*t),air=wind(p).map((v,k)=>v*(1-wet)+f[k+1]/Math.max(.001,f[0])*wet),next=grainStep(p,Array.from(this.v.subarray(o,o+3)),h,air,lab.spec.scale,this.info[o+1]*(1+7*wet),1-wet*1000/this.info[o+3]);this.p.set(next.position,o);this.v.set(next.velocity,o);if(lab.solid(next.position,false,false)<0||Math.abs(next.position[0])>5.5||Math.abs(next.position[2])>4.9)this.p[o+3]=0;}
+    const p=Array.from(this.p.subarray(o,o+3)),f=this.u.uDetailFlow.value?lab.detail.flow.sample(p):[0,0,0,0],t=Math.max(0,Math.min(1,(f[0]-.08)/.22)),wet=t*t*(3-2*t),air=wind(p).map((v,k)=>v*(1-wet)+f[k+1]/Math.max(.001,f[0])*wet),next=grainStep(p,Array.from(this.v.subarray(o,o+3)),h,air,lab.spec.scale,grainDrag(this.info[o+1],wet),1-wet*1000/this.info[o+3]);this.p.set(next.position,o);this.v.set(next.velocity,o);if(lab.solid(next.position,false,false)<0||Math.abs(next.position[0])>5.5||Math.abs(next.position[2])>4.9)this.p[o+3]=0;}
    this.inputP.needsUpdate=this.inputV.needsUpdate=true;return;}
   this.birthP.needsUpdate=this.birthV.needsUpdate=true;const old=this.renderer.getRenderTarget(),target=this.targets[this.index];this.renderer.setRenderTarget(target);this.renderer.render(this.computeScene,this.camera);this.renderer.setRenderTarget(old);this.u.uGrainP.value=target.textures[0];this.u.uGrainV.value=target.textures[1];this.index=1-this.index;
  }
@@ -98,9 +104,9 @@ export class SandGrains{
 export function verifySandGrains(renderer){
  const data=new Float32Array(32*4);for(let i=0;i<32;i++)data.set([i*.071-1,.2+i*.13,Math.sin(i)*.4,1],i*4);
  const texture=floatTexture(data,32,1),target=new THREE.WebGLRenderTarget(32,1,{count:2,type:THREE.FloatType,depthBuffer:false});
- const uniforms={probe:{value:texture}},geometry=new THREE.PlaneGeometry(2,2),material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:`precision highp float;precision highp int;uniform sampler2D probe;layout(location=0)out vec4 a;layout(location=1)out vec4 b;${GRAIN_MOTION_GLSL}void main(){vec3 p=texelFetch(probe,ivec2(gl_FragCoord.xy),0).xyz,v=vec3(.8,-.3,.2);float drag=.6+gl_FragCoord.x*.3,gravity=1.-mod(floor(gl_FragCoord.x),2.)*1000./2650.;moveGrain(p,v,.067,vec3(4,.2,-1),10.,drag,gravity);a=vec4(p,1);b=vec4(v,1);}`,uniforms,depthTest:false,depthWrite:false}),scene=new THREE.Scene();scene.add(new THREE.Mesh(geometry,material));const old=renderer.getRenderTarget(),a=data.slice(),b=data.slice();
+ const uniforms={probe:{value:texture}},geometry=new THREE.PlaneGeometry(2,2),material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:`precision highp float;precision highp int;uniform sampler2D probe;layout(location=0)out vec4 a;layout(location=1)out vec4 b;${GRAIN_MOTION_GLSL}void main(){vec3 p=texelFetch(probe,ivec2(gl_FragCoord.xy),0).xyz,v=vec3(.8,-.3,.2);float immersed=mod(floor(gl_FragCoord.x),5.)/4.,drag=grainDrag(.6+gl_FragCoord.x*.3,immersed),gravity=1.-immersed*1000./2650.;moveGrain(p,v,.067,vec3(4,.2,-1),10.,drag,gravity);a=vec4(p,1);b=vec4(v,1);}`,uniforms,depthTest:false,depthWrite:false}),scene=new THREE.Scene();scene.add(new THREE.Mesh(geometry,material));const old=renderer.getRenderTarget(),a=data.slice(),b=data.slice();
  try{renderer.setRenderTarget(target);renderer.render(scene,new THREE.Camera());renderer.readRenderTargetPixels(target,0,0,32,1,a);renderer.readRenderTargetPixels(target,0,0,32,1,b,undefined,1);let maxError=0;
-  for(let i=0;i<32;i++){const next=grainStep(Array.from(data.subarray(i*4,i*4+3)),[.8,-.3,.2],.067,[4,.2,-1],10,.6+(i+.5)*.3,1-(i%2)*1000/2650);for(let k=0;k<3;k++)maxError=Math.max(maxError,Math.abs(next.position[k]-a[i*4+k]),Math.abs(next.velocity[k]-b[i*4+k]));}
+  for(let i=0;i<32;i++){const next=grainStep(Array.from(data.subarray(i*4,i*4+3)),[.8,-.3,.2],.067,[4,.2,-1],10,grainDrag(.6+(i+.5)*.3,(i%5)/4),1-(i%5)/4*1000/2650);for(let k=0;k<3;k++)maxError=Math.max(maxError,Math.abs(next.position[k]-a[i*4+k]),Math.abs(next.velocity[k]-b[i*4+k]));}
   return {samples:32,maxError,pass:maxError<2e-6};
  }finally{renderer.setRenderTarget(old);for(const x of [texture,target,geometry,material])x.dispose();}
 }

@@ -1,3 +1,4 @@
+import {SAND_COLOR_GLSL} from './sand-material.js';
 import {StarGaussians} from './star-gaussians.js';
 import {SAND_TRACE_GLSL} from './surface-trace.js';
 import {LabExposure} from './sky-exposure.js';
@@ -31,6 +32,7 @@ ${LAB_GEOMETRY_GLSL}
 ${GLASS_WETTING_GLSL}
 ${LAB_FIELD_GLSL}
 ${SH_GLSL}
+${SAND_COLOR_GLSL}
 ${WATER_MATERIAL_GLSL}
 ${SOLUTE_GLSL}
 ${LAB_LIGHTING_GLSL}
@@ -65,7 +67,7 @@ vec3 surfaceColorFrom(vec3 p,vec3 n,vec3 view){float sandMoisture=uStation==6?sa
 // Choose an overriding object material before doing the discarded sand lighting.
 if(uReuseSurfaceLight){int diffuseBody=-1,emissiveBody=-1;for(int i=0;i<uBodyCount;i++){float kind=texelFetch(uBodies,ivec2((i*2+1)%256,(i*2+1)/256),0).w;if(kind>1.5&&abs(bodyDistance(p,i))<max(.00001,labBody(i).w*.02)){diffuseBody=i;if(kind>2.5)emissiveBody=i;}}if(emissiveBody>=0)return bodyExtra(emissiveBody,0).rgb*uLights*4.;if(diffuseBody>=0)return bodyExtra(diffuseBody,0).rgb*(environment(n)*mediumSky(p+n*.025)*sandAmbientVisibility(p,n)+max(0.,dot(n,sun()))*sunRadiance(p+n*.025)+lightAt(p,n));}
 vec3 base=uStation==2?vec3(.38,.62,.65):uStation==4||uStation==6?vec3(.42,.31,.16):vec3(.32,.37,.38);if(uStation==2){for(int i=0;i<3;i++){vec3 light=vec3(float(i-1)*2.7,.65,-2.87);if(length(p-light)<.16)return (i==0?vec3(4.,.12,.08):i==1?vec3(.1,3.,.5):vec3(.15,.3,5.))*uLights;}}if(uStation!=4&&uStation!=6){vec2 tile=abs(n.y)>.5?p.xz:abs(n.x)>.5?p.zy:p.xy;float checker=mod(floor(tile.x*1.8)+floor(tile.y*1.8),2.);base*=mix(.675,mix(.35,1.,checker),1.-smoothstep(14.,27.,length(p-uEye)));vec2 grid=abs(fract(tile*1.8)-.5);float aa=min(.3,length(p-uEye)*.003);base*=1.-.3*smoothstep(.46-aa,.48+aa,max(grid.x,grid.y))*(1.-smoothstep(12.,35.,length(p-uEye)));}if(uStation==4){vec3 bed=texture(uLabBed,p.xz/vec2(12,120)+.5).rgb;base=mix(vec3(.31,.23,.13),vec3(.62,.46,.24),smoothstep(-.02,.14,bed.r));base*=1.-.2*clamp(bed.g,0.,1.);if(riverRockDistance(p)<.035)base=vec3(.25,.27,.26);}
-if(uStation==6){float grain=fract(sin(dot(floor(p*700.),vec3(12.91,78.233,31.53)))*43758.5453);base=mix(vec3(.63,.48,.28),vec3(.24,.16,.08),sandMoisture*.85)*(1.+(grain-.5)*.08);}
+if(uStation==6){float grain=fract(sin(dot(floor(p*700.),vec3(12.91,78.233,31.53)))*43758.5453);base=sandAlbedo(sandMoisture)*(1.+(grain-.5)*.08);}
 if(uStation==1&&p.y>1.)base=vec3(.25,.29,.27);if(uStation==0&&p.y>2.)base=vec3(.18,.23,.25);vec3 caustic=texture(uCaustics,p.xz/uLightExtent+.5).rgb;float wetCoverage=1.-exp(-wetFilm.w);if(uStation==6)wetCoverage=max(wetCoverage,sandMoisture*.65);base*=1.-.2*wetCoverage;vec3 direct=uReuseSurfaceLight?sunRadiance(p+n*.025):vec3(0);vec3 color=(uReuseSurfaceLight?dielectricHighlightsLit(p,n,view,.15,.02,direct):dielectricHighlights(p,n,view,.15,.02))*wetCoverage+base*(environment(n)*mediumSky(p+n*.025)*sandAmbientVisibility(p,n)+foamFloorRadiance(p+n*.025,n)+(uReuseSurfaceLight?direct:sunRadiance(p+n*.025))*max(0.,dot(n,sun()))+lightAt(p,n)+caustic*.35*uSunlight*max(0.,n.y));for(int i=0;i<uBodyCount;i++){vec4 b=labBody(i),v=texelFetch(uBodies,ivec2((i*2+1)%256,(i*2+1)/256),0);if(v.w>1.5&&abs(bodyDistance(p,i))<max(.00001,labBody(i).w*.02))color=bodyExtra(i,0).rgb*(environment(n)*mediumSky(p+n*.025)*sandAmbientVisibility(p,n)+max(0.,dot(n,sun()))*sunRadiance(p+n*.025)+lightAt(p,n));}for(int i=0;i<uBodyCount;i++){if(texelFetch(uBodies,ivec2((i*2+1)%256,(i*2+1)/256),0).w>2.5&&abs(bodyDistance(p,i))<max(.00001,labBody(i).w*.02))color=bodyExtra(i,0).rgb*uLights*4.;}return color;}
 vec3 surfaceColor(vec3 p,vec3 n){return surfaceColorFrom(p,n,normalize(uEye-p));}
 // One bounded reflected scene query. Reflected receivers use their actual

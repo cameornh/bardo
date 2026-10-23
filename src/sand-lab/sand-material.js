@@ -1,5 +1,11 @@
 const clamp=x=>Math.max(0,Math.min(1,x));
 const smooth=x=>{const t=clamp(x);return t*t*(3-2*t);};
+// Effective aerodynamic coupling of heavy sand, independent of the shared
+// wind field. Water, objects and the player still receive that same wind.
+export const SAND_AIR_RESPONSE=.4;
+export const SAND_DRY_ALBEDO=[.63,.48,.28],SAND_WET_ALBEDO=[.24,.16,.08];
+export function sandAlbedo(wet=0){const w=clamp(wet)*.85;return SAND_DRY_ALBEDO.map((v,k)=>v*(1-w)+SAND_WET_ALBEDO[k]*w);}
+export const SAND_COLOR_GLSL=`vec3 sandAlbedo(float wet){return mix(vec3(${SAND_DRY_ALBEDO.join(',')}),vec3(${SAND_WET_ALBEDO.join(',')}),clamp(wet,0.,1.)*.85);}`;
 // One constitutive curve over the entire saturation range. Plastic history is
 // a strength contribution, never a substitute for the actual water content.
 // A barely damp handful must not acquire a permanent clay bond.

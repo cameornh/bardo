@@ -18,7 +18,8 @@ test('short wet and dried overhangs retain shape; a long wet overhang fractures 
 test('wind bending accumulates down a column and dries to a more vulnerable structure',()=>{
  const run=(wind,wet)=>{const b=flat();stressFixture(b,{length:0,column:12,wet,z:0,x:0});advance(b,6,wind);return b;};
  assert.equal(run(0,.95).stress.failures,0);assert.equal(run(40,.95).stress.failures,0);
- assert.ok(run(80,.95).stress.failures>0);assert.ok(run(40,0).stress.failures>0);
+ assert.equal(run(80,.95).stress.failures,0,'reduced wind coupling preserves the wet column at the old failure speed');
+ assert.ok(run(140,.95).stress.failures>0);assert.ok(run(70,0).stress.failures>0);
 });
 test('a brief overload accumulates damage rather than breaking on one noisy frame',()=>{
  const b=flat();stressFixture(b,{length:7,z:0,x:0});b.stress=new SandStress();b.stress.step(b,1/1000,()=>[0,0,0],10,empty);assert.equal(b.stress.failures,0);
@@ -82,7 +83,7 @@ test('a narrow normal-incidence brush erodes its hit even between terrain cells'
  }
 });
 test('global wind leaves a transport reserve for the brush; local jet releases grains outward',()=>{
- const b=flat(),lab=realWindLab(b,40);erodeSand(b,.13,createSandWind(lab),10,empty);assert.equal(b.parcels.length,24);
+ const b=flat(),lab=realWindLab(b,80);erodeSand(b,.13,createSandWind(lab),10,empty);assert.equal(b.parcels.length,24);
  lab.wind=0;lab.jet={origin:[.08,2,0],direction:[0,-1,0]};const flow=createSandWind(lab),prior=b.parcels.length;erodeSand(b,.13,flow,10,empty);assert.ok(b.parcels.length>prior);
  for(const p of b.parcels.slice(prior)){assert.ok(p.velocity[1]>0,'impinging jet must not shoot a new grain straight into the ground');}
 });

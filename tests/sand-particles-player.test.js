@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {sandParticleMaterial,particleRelease,grainBirth} from '../src/sand-lab/particulate-material.js';
-import {grainStep} from '../src/sand-lab/sand-grain-motion.js';
+import {grainStep,grainDrag} from '../src/sand-lab/sand-grain-motion.js';
+import {sandAlbedo} from '../src/sand-lab/sand-material.js';
 import {detailEmissionWeight} from '../src/sand-lab/water-lab-detail.js';
 import {WATER_MATERIAL} from '../src/water-material.js';
 import {erodeSand} from '../src/sand-lab/sand-wind.js';
@@ -33,7 +34,15 @@ test('dry births spread trajectories and time; cohesion narrows spread without e
  assert.ok(Math.max(...dry.map(a=>a.drag))/Math.min(...dry.map(a=>a.drag))>3);
  const end=dry.map(a=>grainStep(a.position,a.velocity,.4,[4,0,0],10,a.drag).position);
  assert.ok(Math.max(...end.map(p=>p[2]))-Math.min(...end.map(p=>p[2]))>.3,'a cloud disperses laterally instead of tracking one packet');
- assert.ok(dry.every(b=>b.albedo[0]>b.albedo[1]&&b.albedo[1]>b.albedo[2]*2));
+ for(const w of [0,.25,.5,.75,1])for(const b of samples(w))assert.deepEqual(b.albedo,sandAlbedo(w),'airborne grains use the solid sand palette at the same wetness');
+});
+test('heavy sand accelerates more slowly in air while retaining current response under water',()=>{
+ const position=[0,2,0],velocity=[0,0,0],flow=[4,0,0],base=2.5;
+ const previous=grainStep(position,velocity,.4,flow,10,base),airborne=grainStep(position,velocity,.4,flow,10,grainDrag(base,0));
+ assert.ok(airborne.velocity[0]>0&&airborne.velocity[0]<previous.velocity[0]*.6);
+ assert.ok(airborne.position[1]<previous.position[1],'gravity wins sooner over upward drag');
+ assert.equal(grainDrag(base,1),base*8,'submerged drag is preserved');
+ for(let i=1;i<=100;i++)assert.ok(grainDrag(base,i/100)>grainDrag(base,(i-1)/100),'immersion blends continuously');
 });
 test('shared water release threshold preserves its previously tuned Weber response',()=>{
  for(const scale of [.1,1,10])for(const spacing of [.02,.2])for(const activity of [0,.01,.1,1,4]){

@@ -1,0 +1,149 @@
+{
+  "fixture": "One 0.13-second erosion pass on a flat 33x33 dry/wet bed; scale 10; uniform physical wind; conserved sand stock",
+  "rows": [
+    {
+      "wet": 0,
+      "wind": 5,
+      "beforeMoved": 0,
+      "afterMoved": 0,
+      "afterFraction": null,
+      "massError": 0
+    },
+    {
+      "wet": 0,
+      "wind": 12,
+      "beforeMoved": 0.00040823583749755645,
+      "afterMoved": 1.652512243892749e-05,
+      "afterFraction": 0.040479352670811035,
+      "massError": 1.4210854715202004e-14
+    },
+    {
+      "wet": 0,
+      "wind": 24,
+      "beforeMoved": 0.0025593489479508636,
+      "afterMoved": 0.0008540849675447968,
+      "afterFraction": 0.33371180910231796,
+      "massError": 2.1316282072803006e-14
+    },
+    {
+      "wet": 0,
+      "wind": 40,
+      "beforeMoved": 0.006921927249074975,
+      "afterMoved": 0.002858047441544189,
+      "afterFraction": 0.4128976423330843,
+      "massError": 1.4210854715202004e-14
+    },
+    {
+      "wet": 0,
+      "wind": 80,
+      "beforeMoved": 0.019808250000000003,
+      "afterMoved": 0.01051072563133418,
+      "afterFraction": 0.5306236356737308,
+      "massError": 1.4210854715202004e-14
+    },
+    {
+      "wet": 0,
+      "wind": 180,
+      "beforeMoved": 0.019808250000000003,
+      "afterMoved": 0.019808250000000003,
+      "afterFraction": 1.0,
+      "massError": 7.105427357601002e-15
+    },
+    {
+      "wet": 0.3,
+      "wind": 5,
+      "beforeMoved": 0,
+      "afterMoved": 0,
+      "afterFraction": null,
+      "massError": 0
+    },
+    {
+      "wet": 0.3,
+      "wind": 12,
+      "beforeMoved": 0,
+      "afterMoved": 0,
+      "afterFraction": null,
+      "massError": 0
+    },
+    {
+      "wet": 0.3,
+      "wind": 24,
+      "beforeMoved": 0,
+      "afterMoved": 0,
+      "afterFraction": null,
+      "massError": 0
+    },
+    {
+      "wet": 0.3,
+      "wind": 40,
+      "beforeMoved": 0.0010207407063422779,
+      "afterMoved": 0,
+      "afterFraction": 0.0,
+      "massError": 0
+    },
+    {
+      "wet": 0.3,
+      "wind": 80,
+      "beforeMoved": 0.012605185614243607,
+      "afterMoved": 0.003218832137293646,
+      "afterFraction": 0.25535777384003217,
+      "massError": -7.105427357601002e-15
+    },
+    {
+      "wet": 0.3,
+      "wind": 180,
+      "beforeMoved": 0.019808250000000003,
+      "afterMoved": 0.019808250000000003,
+      "afterFraction": 1.0,
+      "massError": 7.105427357601002e-15
+    },
+    {
+      "wet": 1,
+      "wind": 5,
+      "beforeMoved": 0,
+      "afterMoved": 0,
+      "afterFraction": null,
+      "massError": 0
+    },
+    {
+      "wet": 1,
+      "wind": 12,
+      "beforeMoved": 0,
+      "afterMoved": 0,
+      "afterFraction": null,
+      "massError": 0
+    },
+    {
+      "wet": 1,
+      "wind": 24,
+      "beforeMoved": 0,
+      "afterMoved": 0,
+      "afterFraction": null,
+      "massError": 0
+    },
+    {
+      "wet": 1,
+      "wind": 40,
+      "beforeMoved": 0,
+      "afterMoved": 0,
+      "afterFraction": null,
+      "massError": 0
+    },
+    {
+      "wet": 1,
+      "wind": 80,
+      "beforeMoved": 0,
+      "afterMoved": 0,
+      "afterFraction": null,
+      "massError": 0
+    },
+    {
+      "wet": 1,
+      "wind": 180,
+      "beforeMoved": 0.019808250000000003,
+      "afterMoved": 0.00027497388109950355,
+      "afterFraction": 0.013881785675135537,
+      "massError": -1.4210854715202004e-14
+    }
+  ]
+}

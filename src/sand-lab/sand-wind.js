@@ -2,7 +2,7 @@ import {AIR_DENSITY,sandParticleMaterial,particleRelease} from './particulate-ma
 import {shapeRadius} from './sand-shape.js';
 import {sandColumn} from './sand-support.js';
 const noise=i=>{const x=Math.sin(i*12.9898)*43758.5453;return x-Math.floor(x);};
-export const erosionThreshold=(wet,memory=0)=>Math.sqrt(2*sandParticleMaterial(wet,memory).yieldStress/AIR_DENSITY);
+export const erosionThreshold=(wet,memory=0)=>{const m=sandParticleMaterial(wet,memory);return Math.sqrt(2*m.yieldStress/(AIR_DENSITY*m.airResponse));};
 // Every airborne packet is removed from a surface and returned on landing.
 // Reserve eight packets for the brush so global transport cannot starve it.
 export function erodeSand(bed,dt,wind,scale,water){
@@ -19,12 +19,12 @@ function erodeSandBatch(bed,dt,wind,scale,water){
  let available=Math.max(0,(wind.brush?32:24)-mobile);if(!available)return;
  const forcing=(point,wet,memory)=>{
   const liquid=water(point),submerged=liquid.density>.08,flow=submerged?liquid.velocity:wind(point),speed=Math.hypot(...flow)*scale,material=sandParticleMaterial(wet,memory);
-  return {flow,speed,material,submerged,...particleRelease(material,{speed,density:submerged?1000:AIR_DENSITY,shear:submerged?.035:1})};
+  return {flow,speed,material,submerged,...particleRelease(material,{speed,density:submerged?1000:AIR_DENSITY,shear:submerged?.035:material.airResponse})};
  };
  const emit=(point,force,mass,wet,memory,packing,spread)=>{
   if(mass<=1e-10)return false;
   const {flow,speed,material,submerged}=force,r=Math.cbrt(mass/(packing*4*Math.PI/3)),n=wind.normal?.(point)||[0,1,0];
-  const velocity=flow.map(v=>v*(submerged?.65:.12)),vn=velocity.reduce((s,v,k)=>s+v*n[k],0),lift=(.6+Math.min(2.8,speed*.025))/scale;
+  const response=submerged?1:Math.sqrt(material.airResponse),velocity=flow.map(v=>v*(submerged?.65:.12*response)),vn=velocity.reduce((s,v,k)=>s+v*n[k],0),lift=(.6+Math.min(2.8,speed*.025))*response/scale;
   for(let k=0;k<3;k++)velocity[k]+=n[k]*(lift-Math.min(vn,0));
   const p={id:bed.nextId++,position:point.map((v,k)=>v+n[k]*(r+.006)),velocity,mass,wet,memory,packing,windborne:true};
   if(bed.optimizations?.patchFloor&&r<=Math.min(bed.dx,bed.dz)*.5)p.looseResolved=true;

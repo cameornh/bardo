@@ -1476,3 +1476,19 @@ reference exactly, and the visible illuminated-spray control still renders.
 The numerical tests cover 7,680 visible support cases. Twenty relevant tests
 and `npm run build` pass. Captures/readbacks are in
 `tests/results/distant-light-flash/`. Historical water-lab snapshots are unchanged.
+
+Windblown sand now shares the solid sand's dry-to-wet albedo curve and incident
+sun spectrum. Grain-to-grain color variation is ±6% instead of ±20%, and the
+sky response retains more of the upper hemisphere's diffuse illumination.
+Sand's effective aerodynamic coupling is 0.4 of its previous value for
+entrainment, structural loading and airborne drag; launch impulses and fine
+particle counts are also reduced. This changes sand's response to both ambient
+wind and the brush without weakening the wind field or changing water response.
+Submerged grain drag/release and gravity-driven bond loading are preserved.
+
+In the controlled flat-bed check at 24/40/80 m/s, dry sand transport is
+33.4%/41.3%/53.1% of the previous amount, with mass error below 2.2e-14 lab
+units³. The 32 GPU/reference grain checks (including partial immersion) agree
+within 3.7e-7 lab units. Fifty-three relevant numerical tests and the build
+pass. `tests/sand-grain-appearance-gpu.html` and
+`tests/results/sand-wind-response/` retain the inspected color/transport check.

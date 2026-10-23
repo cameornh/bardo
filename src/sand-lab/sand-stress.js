@@ -1,6 +1,6 @@
 import {shapeRadius,shapeDistance,shapeBlend} from './sand-shape.js';
 import {sandFeet,supportsSand,hasSandBond} from './sand-support.js';
-import {sandAdhesion,sandMaterial} from './sand-material.js';
+import {sandAdhesion,sandMaterial,SAND_AIR_RESPONSE} from './sand-material.js';
 import {SandShapeStamp} from './sand-cache.js';
 import {BoundsGrid} from './spatial-bounds.js';
 
@@ -22,7 +22,7 @@ export function sandWindForce(p,wind,scale){
  }
  const relative=air.map((v,k)=>(v-(p.velocity?.[k]||0))*scale),speed=Math.hypot(...relative);
  const area=Math.PI*(r*scale)**2*Math.max(.3,p.aspect||1);
- return relative.map(v=>.5*1.225*.9*area*speed*v);
+ return relative.map(v=>.5*1.225*.9*SAND_AIR_RESPONSE*area*speed*v);
 }
 function joint(p,q,bed){
  const r=shapeRadius(p);if(!q){const feet=sandFeet(p).filter(f=>p.position[1]+f[1]<=bed.height(p.position[0]+f[0],p.position[2]+f[2])+.002);
