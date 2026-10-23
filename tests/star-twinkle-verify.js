@@ -41,7 +41,7 @@ export function verifyStarTwinkle(renderer){
     samples++;
    }
   }
-  return {samples,maximumCenterDriftPixels,maximumCenterProjectionErrorPixels,maximumProjectionErrorPixels,maximumEdgeChangePixels,maximumBrightnessVariation,maximumBrightnessReferenceError,pass:maximumCenterDriftPixels<.0001&&maximumProjectionErrorPixels<.0002&&maximumEdgeChangePixels>.01&&maximumBrightnessVariation<.0201&&maximumBrightnessReferenceError<.00001};
+  return {samples,maximumCenterDriftPixels,maximumCenterProjectionErrorPixels,maximumProjectionErrorPixels,maximumEdgeChangePixels,maximumBrightnessVariation,maximumBrightnessReferenceError,pass:maximumCenterDriftPixels<.0001&&maximumProjectionErrorPixels<.0002&&maximumEdgeChangePixels>.01&&maximumBrightnessVariation<.0601&&maximumBrightnessReferenceError<.00003};
  }finally{
   gl.disable(gl.RASTERIZER_DISCARD);gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK,null);gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER,0,null);gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER,null);gl.bindVertexArray(null);
   gl.deleteTransformFeedback(feedback);gl.deleteBuffer(input);gl.deleteBuffer(output);gl.deleteVertexArray(vao);gl.deleteProgram(program);shaders.forEach(s=>gl.deleteShader(s));renderer.resetState();

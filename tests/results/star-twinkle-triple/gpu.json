@@ -1,0 +1,10 @@
+{
+  "samples": 63,
+  "maximumCenterDriftPixels": 0,
+  "maximumCenterProjectionErrorPixels": 0.000029991148691789,
+  "maximumProjectionErrorPixels": 0.00007336604938693072,
+  "maximumEdgeChangePixels": 1.7001498919776727,
+  "maximumBrightnessVariation": 0.050952136979208085,
+  "maximumBrightnessReferenceError": 0.000015693194955868073,
+  "pass": true
+}

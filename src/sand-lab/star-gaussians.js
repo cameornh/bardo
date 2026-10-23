@@ -2,13 +2,14 @@ import * as THREE from 'three';
 import catalogue from './bright-stars.json' with {type:'json'};
 import {starIrradiance,starColor} from './night-sky-model.js';
 export const STAR_SIGMA=.00016;
+export const STAR_TWINKLE_GAIN=3;
 export function starDirection(ra,dec){const a=ra*Math.PI/180,d=dec*Math.PI/180;return [Math.sin(a-Math.PI)*Math.cos(d),Math.sin(d),Math.cos(a-Math.PI)*Math.cos(d)];}
 // CPU reference of J C J^T, C = sigma² (I - direction direction^T).
 // J*direction=0, so projection reduces to sigma² J J^T. No polar UVs.
 export function projectStar(d,fx,fy,sigma=STAR_SIGMA){const z=-d[2],s=sigma*sigma,z2=z*z;const xx=s*fx*fx/z2*(1+d[0]*d[0]/z2)+.25,yy=s*fy*fy/z2*(1+d[1]*d[1]/z2)+.25,xy=s*fx*fy*d[0]*d[1]/(z2*z2);return {xx,yy,xy,det:xx*yy-xy*xy,solidAngle:z*z*z/(fx*fy)};}
 // Faint, compact points show the most seeing; broader projected footprints
 // average it out. Weight the unmodified covariance so breathing cannot feed back.
-export function starTwinkleStrength(magnitude,cov){const t=Math.max(0,Math.min(1,(magnitude-1.5)/4)),compact=cov?Math.min(1,.65/Math.sqrt((cov.xx+cov.yy)*.5)):1;return t*t*(3-2*t)*compact;}
+export function starTwinkleStrength(magnitude,cov){const t=Math.max(0,Math.min(1,(magnitude-1.5)/4)),compact=cov?Math.min(1,.65/Math.sqrt((cov.xx+cov.yy)*.5)):1;return STAR_TWINKLE_GAIN*t*t*(3-2*t)*compact;}
 export function scintillation(magnitude,elevation,time,seed,cov){const amplitude=(.008+.012*(1-Math.max(0,elevation))**2)*starTwinkleStrength(magnitude,cov);return 1+amplitude*(.65*Math.sin(time*5.1+seed)+.35*Math.sin(time*8.7+seed*2.7));}
 // Atmospheric seeing changes a centered Gaussian's footprint, not its sky
 // direction. T C T^T stays positive definite; flux is normalized after shaping.
@@ -19,7 +20,7 @@ export function starSeeingCovariance(cov,magnitude,elevation,time,seed){
  return {...cov,xx,xy,yy,det:xx*yy-xy*xy};
 }
 export const STAR_COVARIANCE_GLSL=`vec3 starCovariance(vec3 d,vec2 focal){float z=-d.z,s=${STAR_SIGMA**2};return vec3(s*focal.x*focal.x/(z*z)*(1.+d.x*d.x/(z*z))+.25,s*focal.x*focal.y*d.x*d.y/pow(z,4.),s*focal.y*focal.y/(z*z)*(1.+d.y*d.y/(z*z))+.25);}`;
-export const STAR_SEEING_GLSL=`float starTwinkleStrength(float magnitude,vec3 cov){return smoothstep(1.5,5.5,magnitude)*min(1.,.65/sqrt((cov.x+cov.z)*.5));}
+export const STAR_SEEING_GLSL=`float starTwinkleStrength(float magnitude,vec3 cov){return ${STAR_TWINKLE_GAIN.toFixed(1)}*smoothstep(1.5,5.5,magnitude)*min(1.,.65/sqrt((cov.x+cov.z)*.5));}
 vec3 starSeeingCovariance(vec3 cov,float magnitude,float elevation,float time,float seed){
  float amount=starTwinkleStrength(magnitude,cov)*(.055+.045*pow(1.-max(0.,elevation),2.));
  float breathe=amount*.5*sin(time*1.7+seed*1.3),stretch=amount*.65*sin(time*3.7+seed),shear=amount*.5*sin(time*2.9+seed*1.7),a=1.+breathe+stretch,b=1.+breathe-stretch;
