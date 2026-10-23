@@ -45,7 +45,7 @@ void main(){
  float yy=s*s*dot(jy,jy)+trail*trail*flow.y*flow.y+.09;
  float l=sqrt(max(0.,pow((xx-yy)*.5,2.)+xy*xy)),e1=max(1e-8,(xx+yy)*.5+l),e2=max(1e-8,(xx+yy)*.5-l);
  vec2 axis=abs(xy)>1e-8?normalize(vec2(e1-yy,xy)):xx>=yy?vec2(1,0):vec2(0,1);
- vAlpha=(.17+.17*rh(seed+29.))*rainFade*smoothstep(1.5,5.,-p.z/max(s,trail));float support=gaussianSupport(vAlpha,.005);
+ vAlpha=(.0425+.0425*rh(seed+29.))*rainFade*smoothstep(1.5,5.,-p.z/max(s,trail));float support=gaussianSupport(vAlpha,.005);
  vec4 clip=projectionMatrix*p;clip.xy+=2.*support*(axis*sqrt(e1)*position.x+vec2(-axis.y,axis.x)*sqrt(e2)*position.y)/uResolution*clip.w;
  if(support<=0.||p.z>-.05||labOpaque(center)<0.||vessel(center)<0.)clip=vec4(2,2,2,1);
  gl_Position=clip;vQ=position.xy*support;vDepth=length(p.xyz);
