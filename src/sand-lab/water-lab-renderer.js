@@ -205,9 +205,8 @@ u.uEye.value.copy(c.position);u.uInverseProjection.value.copy(c.projectionMatrix
  present(dirty=true){const r=this.renderer,f=this.field,u=this.u;this.lab.wetting.updateUniforms(u);u.uImage.value=this.shellTarget.texture;
  // Project catalogue Gaussians every presentation, even while physics waits.
  // Reuse opaque/water depths; no atmosphere ray march or star image texture.
- r.setRenderTarget(this.starTarget);r.render(this.copyScene,this.quadCamera);this.stars.render(r,f.camera,this.exposure,this.presentationDt??1/60);u.uImage.value=this.starTarget.texture;
+ r.setRenderTarget(u.uLensCount.value?this.starTarget:f.target);r.render(this.copyScene,this.quadCamera);this.stars.render(r,f.camera,this.exposure,this.presentationDt??1/60);u.uImage.value=this.starTarget.texture;
  if(u.uLensCount.value){r.setRenderTarget(this.lensField);r.render(this.lensFieldScene,this.quadCamera);r.setRenderTarget(f.target);r.render(this.lensScene,this.quadCamera);}
- else{r.setRenderTarget(f.target);r.render(this.copyScene,this.quadCamera);}
  this.exposure.present(f.target,this.presentationDt??1/60,{dirty:true,cpu:this.lab.gpu.cpu});}
 
 }

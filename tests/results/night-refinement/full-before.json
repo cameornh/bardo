@@ -217,5 +217,6 @@
         }
       ]
     }
-  ]
+  ],
+  "comparisonCaveat": "Historical run: baseline native neighbor kernel failed to load. Do not use as a matched comparison; use full-before-native.json and full-after-native.json."
 }

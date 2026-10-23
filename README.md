@@ -1359,16 +1359,25 @@ levels, avoiding false opaque shadows when the sky becomes very dim.
 Performance evidence is in `tests/results/night-refinement/`, with a repeatable
 `tests/night-performance-gpu.html` harness. The browser reported **Intel UHD 630**.
 The synchronized full-simulation check uses 12,852+ bulk parcels, 32,768 fine
-markers, a 480 × 300 render, and the production medium-shadow dimensions. Before
-this change, day/night averaged 236.6/206.2 ms. Two updated runs measured
-228.2/196.8 ms and 242.8/208.5 ms. This is **not a verified sustained speedup**;
-the modest difference is within run variation. These are completed-work timings,
-not production animation-loop FPS. The reported 1–2 FPS state has not been
-reproduced in this controlled fixture; avoid treating the cache/copy fixes as a
-complete explanation for that regression. A separate 960 × 600 rendering-only
-check measured 219.6/217.7/221.0 ms for day, night and advancing lunar age in the
-final revision (baseline 231.3/279.2/261.3 ms); the expensive surface rendering
-still dominates, and these short runs do not establish steady-state simulation gains.
+markers, a 480 × 300 render, and the production medium-shadow dimensions.
+`full-before-native.json` and `full-after-native.json` explicitly record the same
+**WebAssembly CPU neighbor backend** and the GPU adapter. Earlier full-simulation
+samples are retained for audit, but their baseline's native kernel failed to
+load; do not use them as a matched comparison. The corrected comparison does
+**not establish a simulation speedup**: baseline day/night means were
+217.2/201.0 ms; the final run was 214.4/229.7 ms. Night was slower in that run,
+including a higher CPU physics cost, so the full-scene regression remains open.
+These are completed-work timings, not
+production animation-loop FPS. The reported 1–2 FPS state has not been reproduced
+in this controlled fixture; avoid treating the cache/copy fixes as a complete
+explanation for that regression.
+
+A separate 960 × 600 rendering-only check measured 219.6/217.7/221.0 ms for day,
+night and advancing lunar age (baseline 231.3/279.2/261.3 ms). It does not run the
+neighbor kernel. The expensive surface rendering still dominates, and these
+short runs do not establish steady-state simulation gains. The final star
+presentation also skips an unnecessary image copy whenever the camera lens is
+dry. No simulation detail was reduced for these changes.
 
 Validation: **436 numerical tests** and `npm run build` pass. The dedicated
 `tests/sand-sky-gpu.html` preview checks 128 phase/time/direction combinations:
