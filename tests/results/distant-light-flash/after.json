@@ -1,0 +1,298 @@
+{
+  "backend": "GPU",
+  "numeric": {
+    "samples": 50,
+    "mismatches": 0,
+    "pass": true
+  },
+  "results": [
+    {
+      "kind": 0,
+      "forward": -0.04,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 0,
+      "forward": 0,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 0,
+      "forward": 0.028,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 0,
+      "forward": 0.035,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 0,
+      "forward": 0.04,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 0,
+      "forward": 0.05,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 0,
+      "forward": 0.08,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 0,
+      "forward": 0.12,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 0,
+      "forward": 0.3,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 0,
+      "forward": 1,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 1,
+      "forward": -0.04,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 1,
+      "forward": 0,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 1,
+      "forward": 0.028,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 1,
+      "forward": 0.035,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 1,
+      "forward": 0.04,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 1,
+      "forward": 0.05,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 1,
+      "forward": 0.08,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 1,
+      "forward": 0.12,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 1,
+      "forward": 0.3,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 1,
+      "forward": 1,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 2,
+      "forward": -0.04,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 2,
+      "forward": 0,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 2,
+      "forward": 0.028,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 2,
+      "forward": 0.035,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 2,
+      "forward": 0.04,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 2,
+      "forward": 0.05,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 2,
+      "forward": 0.08,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 2,
+      "forward": 0.12,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 2,
+      "forward": 0.3,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 2,
+      "forward": 1,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 3,
+      "forward": -0.04,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 3,
+      "forward": 0,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 3,
+      "forward": 0.028,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 3,
+      "forward": 0.035,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 3,
+      "forward": 0.04,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 3,
+      "forward": 0.05,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 3,
+      "forward": 0.08,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 3,
+      "forward": 0.12,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 3,
+      "forward": 0.3,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    },
+    {
+      "kind": 3,
+      "forward": 1,
+      "coveredPixels": 0,
+      "alphaSum": 0,
+      "peakGreen": 0
+    }
+  ],
+  "worst": {
+    "kind": 0,
+    "forward": -0.04,
+    "coveredPixels": 0,
+    "alphaSum": 0,
+    "peakGreen": 0
+  },
+  "pass": true
+}

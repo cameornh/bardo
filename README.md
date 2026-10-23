@@ -1461,3 +1461,18 @@ brightness variation is at most 5.10%, with CPU/GPU flux agreement within
 Results and the inspected preview are in `tests/results/star-twinkle-triple/`;
 earlier strengths remain recorded in `tests/results/star-twinkle-strength/` and
 `tests/results/centered-star-twinkle/`.
+
+Sand-lab distant-light flashes: lit spray, foam, bubbles and mist now test their
+finite 3D Gaussian support against the viewing cone before projection and
+lighting. A particle far below the viewer previously expanded across 237,582
+of 256,000 pixels when its center approached the camera plane. The perspective
+Jacobian caused the colored wash; exposure and light intensity were not the
+cause. Conservative bounds include the longest covariance axis and pixel
+reconstruction margin, preserving visible edge particles.
+
+`tests/sand-light-flash-gpu.html` checks 40 camera orientations/particle kinds
+with no stray coverage after the fix; 50 GPU bounds checks match the CPU
+reference exactly, and the visible illuminated-spray control still renders.
+The numerical tests cover 7,680 visible support cases. Twenty relevant tests
+and `npm run build` pass. Captures/readbacks are in
+`tests/results/distant-light-flash/`. Historical water-lab snapshots are unchanged.

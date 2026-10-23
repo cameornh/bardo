@@ -16,6 +16,9 @@ uniform highp sampler2D uDetailPaths,uDetailViewTau,uDetailScatter;
 void main(){int id=int(aDetailId);ivec2 uv=ivec2(id%256,id/256);vec4 source=texelFetch(uDetailP,uv,0),velocity=texelFetch(uDetailV,uv,0),info=texelFetch(uDetailI,uv,0);vec4 p=viewMatrix*vec4(source.xyz,1);float life=velocity.w,age=source.w;
 vQ=position.xy*3.;vDepth=length(p.xyz);vAlpha=0.;vOptical=vec4(0,0,0,1);vViewTau=vec3(0);vScatter=vec3(0);vCenter=vec4(source.xyz,-p.z);vKindRadiusClearance=vec3(info.y,info.x,info.w);
 if(age>=life||life<=0.||p.z>-max(.025,info.x*1.5)){gl_Position=vec4(2,2,2,1);return;}
+// Include the longest covariance axis (spray stretches along velocity).
+float supportRadius=3.*info.x*(info.y<.5?sqrt(2.2):1.);
+if(!gaussianIntersectsView(p.xyz,supportRadius,vec2(projectionMatrix[0][0],projectionMatrix[1][1]),uResolution)){gl_Position=vec4(2,2,2,1);return;}
 float s=info.x*(.75+.25*sin(min(1.,age/life)*3.14159)),z=-p.z;vec3 direction=normalize(mat3(viewMatrix)*velocity.xyz+vec3(0,1e-8,0)),jx=vec3(projectionMatrix[0][0]/z,0,projectionMatrix[0][0]*p.x/(z*z)),jy=vec3(0,projectionMatrix[1][1]/z,projectionMatrix[1][1]*p.y/(z*z));
 float stretch=info.y<.5?1.2:0.,xx=s*s*(dot(jx,jx)+stretch*pow(dot(jx,direction),2.)),xy=s*s*(dot(jx,jy)+stretch*dot(jx,direction)*dot(jy,direction)),yy=s*s*(dot(jy,jy)+stretch*pow(dot(jy,direction),2.));
 float area=sqrt(max(0.,xx*yy-xy*xy));xx+=1.4/(uResolution.x*uResolution.x);yy+=1.4/(uResolution.y*uResolution.y);float filtered=sqrt(max(1e-15,xx*yy-xy*xy));
@@ -30,7 +33,7 @@ clip.xy+=support*(axis*sqrt(e1)*position.x+vec2(-axis.y,axis.x)*sqrt(e2)*positio
 const opticalPaths=`precision highp float;precision highp int;
 layout(location=0)out vec4 outColor;layout(location=1)out vec4 outTau;layout(location=2)out vec4 outScatter;
 uniform highp sampler2D uDetailP,uDetailV,uDetailI,uWaterSurface,uOpaqueRead;
-uniform vec3 uEye,uSH[16];uniform int uSHDegree;uniform mat4 uViewMatrix,uProjection;
+uniform vec3 uEye,uSH[16];uniform int uSHDegree;uniform mat4 uViewMatrix,uProjection;uniform vec2 uResolution;
 uniform float uScale,uSpacing,uTurbidity,uTannins,uAmbient,uSunlight,uLights,uDetailLightScale;
 ${DETAIL_OPACITY_GLSL}${GAUSSIAN_BOUNDS_GLSL}
 ${LAB_FIELD_GLSL}
@@ -47,6 +50,7 @@ vec3 detailIncident(vec3 q,vec3 ray){
 }
 void main(){ivec2 uv=ivec2(gl_FragCoord.xy);vec4 source=texelFetch(uDetailP,uv,0),velocity=texelFetch(uDetailV,uv,0);outColor=vec4(0,0,0,-1);outTau=vec4(0);outScatter=vec4(0);
 if(source.w>=velocity.w||velocity.w<=0.)return;vec4 p=uViewMatrix*vec4(source.xyz,1);vec4 info=texelFetch(uDetailI,uv,0);if(uTightGaussians&&detailOpacity(info.y,source.w,velocity.w,info.z)<=.0001)return;if(p.z>-max(.025,info.x*1.5))return;float depth=length(p.xyz);vec4 clip=uProjection*p;
+if(!gaussianIntersectsView(p.xyz,3.*info.x*(info.y<.5?sqrt(2.2):1.),vec2(uProjection[0][0],uProjection[1][1]),uResolution))return;
 vec2 centerUv=clip.xy/clip.w*.5+.5;
 // Cull only when the entire Gaussian support misses the image. A fixed
 // center-only margin left visible off-screen kernels with black lighting.
