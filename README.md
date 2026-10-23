@@ -1275,3 +1275,67 @@ retains its 0.000870 maximum adjacent mean-color change; this is a smoke check,
 not a guarantee for every view. The local preview and optimization-checkbox
 dependencies were also inspected. Full GPU and surface-stability results and a
 preview image are saved beside the timing reports.
+
+### Test 12 — clear night sky, lunar clock and ocean tides
+
+This revision is isolated to the sand lab. Tests 01–11, their exposure behavior,
+and saved terrain/clay data are unchanged. Clouds remain out of scope.
+
+The clear sky adapts [Jensen et al., *A Physically-Based Night Sky Model*
+(SIGGRAPH 2001)](https://graphics.cs.yale.edu/sites/default/files/nightsky.pdf):
+phase-dependent Lommel–Seeliger moon shading, earthshine, atmospheric extinction,
+moonlight scattering, catalogued stars, and faint airglow/galactic/zodiacal
+background. Solar and lunar discs use radiometric intensities; the sand lab's
+exposure range now accommodates night radiance while retaining the slower
+adaptation times. Sky illumination still enters material response through SH,
+and the moving moon supplies direct lighting and shadows when it dominates the
+sun. Water reflections use the same celestial sky.
+
+The 8,404 stars through magnitude 6.5 use J2000 positions, visual magnitudes and
+B−V colors from Hoffleit & Warren's **Bright Star Catalogue, 5th Revised Ed.
+(1991)**, distributed as [CDS V/50](https://cdsarc.cds.unistra.fr/viz-bin/cat/V/50).
+`tools/import-bright-stars.py /path/to/catalog.gz` reproduces the factual subset
+in `src/sand-lab/bright-stars.json`; missing B−V uses 0.65. Star sources are
+flux-normalized angular Gaussians with covariance projected into the spherical
+texture, including polar distortion, and mip filtering for subpixel appearance.
+They do not spawn or move with the camera.
+
+**Sky / rain** now provides independent day and lunar clocks, their durations,
+manual lunar age, a phase readout, an ocean-tide toggle, and spring-tide
+amplitude. The default lunar month is 29.53059 simulation days at the default
+day duration. The clocks advance with simulation time and stop on pause; changing
+either duration does not silently change the other. Lunar age controls both the
+visible phase and the moon's direction relative to the sun.
+
+Tides combine lunar and solar semidiurnal terms, following the
+[NOAA harmonic-constituent description](https://tidesandcurrents.noaa.gov/about_harmonic_constituents).
+New/full moons reinforce spring tides; quarter moons produce weaker neap tides.
+The finite ocean exchanges actual water parcels with an unresolved offshore
+reservoir. Gravity and the existing water solver spread that water toward the
+shore. Exchange is bounded to 24 parcels per quarter simulation second and the
+existing particle budget; the UI reports net volume and capacity limits. Held
+water and sand edits survive index remapping. Initial water placement is retained;
+exchange tracks changes from the tide phase at the first simulation step.
+
+This is an economical RGB single-scattering adaptation, not the paper's complete
+spectral/multiple-scattering renderer. Lunar motion is a coherent test orbit,
+not a date/location ephemeris; the star sphere uses a fixed 40° latitude. The
+moon albedo and unresolved galactic/zodiacal backgrounds are procedural
+approximations. Tides use an approximate 75-square-lab-unit wet area and an
+offshore volume boundary, not a planetary gravity solver or a prediction for a
+real coastline. Rapid clock changes can outpace the bounded exchange rate.
+
+Atmospheric integration runs on the GPU into a cached 192 × 96 patch, with an
+explicit 48 × 24 CPU fallback. Static stars, extinction samples and the changing
+sky patch share one atlas to remain within the reflection pass's 16-texture
+limit. SH projection, clock advancement and bounded tidal bookkeeping run on
+the CPU; ordinary fluid constraints/transport retain their existing backend.
+The atlas's star mip chain is built once, rather than filtered every sky update.
+
+Validation: **434 numerical tests** and `npm run build` pass. The dedicated
+`tests/sand-sky-gpu.html` preview checks 128 phase/time/direction combinations:
+maximum absolute GPU/reference radiance error **1.79e-7**, maximum relative error
+**4.26e-5**; night-range GPU exposure error **6.73e-7**. Tidal export/import
+conserves parcel volume to floating-point precision and subsequent fluid
+stepping remains finite. Day, sunset, moonlit and moonless sky, crescent detail,
+the CPU fallback and the production controls were visually inspected.

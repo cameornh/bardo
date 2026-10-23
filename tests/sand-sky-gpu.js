@@ -1,0 +1,37 @@
+import * as THREE from 'three';
+import {SandLab} from '../src/sand-lab/lab.js';
+import {WaterLabRenderer} from '../src/sand-lab/water-lab-renderer.js';
+import {MotionDetail} from '../src/lod.js';
+import {installProgramSpecialization} from '../src/sand-lab/program-specialization.js';
+import {QUAD_VERTEX,TONEMAP_FRAGMENT} from '../src/shaders.js';
+import {ATMOSPHERE_GLSL,atmosphereSky} from '../src/sand-lab/atmosphere-model.js';
+import {moonDirection,celestialMatrix} from '../src/sand-lab/night-sky-model.js';
+import {LUNAR_MONTH,lunarState} from '../src/sand-lab/tides.js';
+import {LabExposure,exposureStatistics,exposureTarget,adaptExposure} from '../src/sand-lab/sky-exposure.js';
+const $=id=>document.getElementById(id),result=$('result'),r=new THREE.WebGLRenderer({preserveDrawingBuffer:true});r.autoClear=false;r.setSize(960,600);document.body.insertBefore(r.domElement,result);
+r.debug.onShaderError=(gl,p,v,f)=>{throw Error(gl.getShaderInfoLog(f)||gl.getProgramInfoLog(p));};window.addEventListener('error',e=>result.textContent=e.error?.stack||e.message);
+const lab=new SandLab(r);lab.paused=true;lab.lunarCycle=false;lab.detail.enabled=false;lab.wetting.cameraEnabled=false;lab.wind=0;installProgramSpecialization(r,()=>true);
+const camera=new THREE.PerspectiveCamera(65,960/600,.01,300),target=new THREE.WebGLRenderTarget(960,600,{type:THREE.FloatType}),output=new THREE.Scene();output.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:TONEMAP_FRAGMENT,uniforms:{uImage:{value:target.texture}}})));
+const field={renderer:r,camera,target,output,quadCamera:new THREE.Camera(),resolution:new THREE.Vector2(960,600),motion:new MotionDetail(),minPixelSigma:2,uniforms:{uView:{value:0},uSHDegree:{value:3}},water:{uniforms:{uWaterRoughness:{value:.08},uTurbidity:{value:0}}}};for(const key of ['beach','grass','grains','soft','optics','lightTest'])field[key]={count:0};
+const draw=new WaterLabRenderer(field,lab);draw.adaptiveResolution=false;
+function pixels(t){const p=new Float32Array(t.width*t.height*4);r.readRenderTargetPixels(t,0,0,t.width,t.height,p);return p;}
+function render(name,day,age,look=null,fov=65){camera.fov=fov;camera.updateProjectionMatrix();lab.day=day;lab.lunarDay=age;lab.syncUniforms();lab.revision++;camera.position.set(0,2.8,3.8);camera.up.set(0,1,0);if(look)camera.lookAt(camera.position.clone().add(new THREE.Vector3(...look)));else camera.lookAt(0,3.8,-4);camera.updateMatrixWorld();draw.render({dt:1/15,adaptive:false});draw.exposure.present(target,180,{dirty:true});const p=pixels(target);result.textContent=JSON.stringify({fixture:name,day,lunarDay:age,illuminated:lab.moonPhase,skyBackend:draw.atmosphere.cpu?'CPU reference':'GPU cached atmosphere',exposureBackend:draw.exposure.backend,exposure:draw.exposure.read(),nonFinite:p.filter(v=>!Number.isFinite(v)).length},null,2);}
+$('day').onclick=()=>render('day',14,LUNAR_MONTH/2);
+$('sunset').onclick=()=>render('sunset',18.1,LUNAR_MONTH/2,[-1,.08,.5]);
+$('full').onclick=()=>render('moonlit beach',5,LUNAR_MONTH/2,[-.6,.12,-.7]);
+$('new').onclick=()=>render('moonless stars',0,0,[0,.45,-1]);
+$('crescent').onclick=()=>{lab.day=18.4;lab.lunarDay=3.5;lab.syncUniforms();render('crescent',18.4,3.5,moonDirection(lab.u.uSolarDirection.value.toArray(),lab.moonPhase,lunarState(3.5).elongation));};
+$('moon-close').onclick=()=>{lab.day=18.4;lab.lunarDay=3.5;lab.syncUniforms();render('crescent (8° inspection)',18.4,3.5,moonDirection(lab.u.uSolarDirection.value.toArray(),lab.moonPhase,lunarState(3.5).elongation),8);};
+$('cpu').onclick=()=>{lab.gpu.cpu=true;render('CPU sky fallback',18.1,LUNAR_MONTH/2,[-1,.08,.5]);lab.gpu.cpu=false;};
+$('numeric').onclick=()=>{try{
+ const checks=[],geometry=new THREE.PlaneGeometry(2,2),scene=new THREE.Scene(),t=new THREE.WebGLRenderTarget(8,1,{type:THREE.FloatType,depthBuffer:false});
+ const rays=[[0,1,0],[1,.001,0],[1,.1,0],[-1,.3,0],[0,-1,0],[.2,.8,.6],[0,.01,-1],[0,.2,1]].map(d=>new THREE.Vector3(...d).normalize());
+ const uniforms={uRays:{value:rays},uSun:{value:new THREE.Vector3()},uAtmosphereMoonDirection:{value:new THREE.Vector3()},uAtmosphereMoon:{value:1},uAtmosphereRotation:{value:new THREE.Matrix3()}};
+ const material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:`precision highp float;out vec4 color;uniform vec3 uRays[8],uSun;${ATMOSPHERE_GLSL}void main(){color=vec4(atmosphereSky(uRays[int(gl_FragCoord.x)],uSun),1);}`,uniforms});scene.add(new THREE.Mesh(geometry,material));let absolute=0,relative=0;
+ for(const day of [0,5.9,12,18.2])for(const age of [0,3.5,LUNAR_MONTH/4,LUNAR_MONTH/2]){lab.day=day;lab.lunarDay=age;lab.syncUniforms();const sun=lab.u.uSolarDirection.value.toArray(),lunar=lunarState(age),options={moonPhase:lunar.illuminated,day,elongation:lunar.elongation};uniforms.uSun.value.fromArray(sun);uniforms.uAtmosphereMoonDirection.value.fromArray(moonDirection(sun,lunar.illuminated,lunar.elongation));uniforms.uAtmosphereMoon.value=lunar.illuminated;uniforms.uAtmosphereRotation.value.fromArray(celestialMatrix(day));r.setRenderTarget(t);r.render(scene,new THREE.Camera());const gpu=pixels(t);for(let i=0;i<8;i++){const cpu=atmosphereSky(rays[i].toArray(),sun,options);for(let k=0;k<3;k++){const error=Math.abs(cpu[k]-gpu[i*4+k]);absolute=Math.max(absolute,error);relative=Math.max(relative,error/Math.max(1e-9,Math.abs(cpu[k])));}}}
+ // Meter in the new night range, not just the previous daylight range.
+ const meter=new LabExposure(r);let exposureError=0;for(const radiance of [1,.001,1e-8,1e-10]){material.fragmentShader=`precision highp float;out vec4 color;void main(){color=vec4(vec3(${radiance.toExponential()}),1.);}`;material.needsUpdate=true;r.setRenderTarget(t);r.render(scene,new THREE.Camera());const stats=exposureStatistics(pixels(t)),previous=meter.state<0?1:meter.read()[0],expected=adaptExposure(previous,exposureTarget(stats),.5);meter.update(t,.5);exposureError=Math.max(exposureError,Math.abs(meter.read()[0]-expected)/Math.max(1,expected));}
+ meter.dispose();material.dispose();t.dispose();geometry.dispose();render('moonless stars',0,0,[0,.45,-1]);result.textContent=JSON.stringify({samples:128,maximumAbsoluteRadianceError:absolute,maximumRelativeRadianceError:relative,relativeExposureError:exposureError,pass:absolute<.0001&&relative<.02&&exposureError<.0001},null,2);
+}catch(e){result.textContent=e.stack;}};
+$('tide').onclick=async()=>{try{result.textContent='Checking tidal exchange…';await new Promise(resolve=>setTimeout(resolve,0));lab.configure('ocean');lab.lunarCycle=false;lab.tidesEnabled=true;lab.tideAmplitude=2;lab.day=12;lab.lunarDay=0;const initial=lab.count;lab.tide.step(lab,.3);lab.day=18;for(let i=0;i<20;i++){lab.tide.step(lab,.3);if(i%5===0)await new Promise(resolve=>setTimeout(resolve,0));}const low=lab.count;lab.day=12;for(let i=0;i<40;i++){lab.tide.step(lab,.3);if(i%5===0)await new Promise(resolve=>setTimeout(resolve,0));}const high=lab.count,volumeError=(high-initial)*lab.spacing**3-lab.tide.exchanged;lab.step(lab.timestep);render('tide exchange',12,0);result.textContent=JSON.stringify({initial,low,high,imported:lab.tide.imported*lab.spec.scale**3,exported:lab.tide.exported*lab.spec.scale**3,volumeError,nonFinite:lab.positions.filter(v=>!Number.isFinite(v)).length,pass:low<initial&&high>low&&Math.abs(volumeError)<1e-8&&lab.positions.every(Number.isFinite)},null,2);}catch(e){result.textContent=e.stack;}};
+$('day').click();

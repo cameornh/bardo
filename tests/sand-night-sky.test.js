@@ -1,0 +1,39 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {starAtlas} from '../src/sand-lab/celestial-sky.js';
+import {lunarPhase,moonIrradiance,moonDirection,starIrradiance,starColor,celestialDirection} from '../src/sand-lab/night-sky-model.js';
+import {atmosphereSky,atmosphereTransmission} from '../src/sand-lab/atmosphere-model.js';
+import {exposureTarget,exposureStatistics,adaptExposure} from '../src/sand-lab/sky-exposure.js';
+import {LUNAR_MONTH,lunarState,advanceSkyClocks,tidalElevation,TideBoundary} from '../src/sand-lab/tides.js';
+const close=(a,b,tol=1e-9)=>assert.ok(Math.abs(a-b)<tol,`${a} != ${b}`);
+test('lunar irradiance follows a continuous phase curve and is much fainter than sunlight',()=>{
+ close(lunarPhase(1),1);close(lunarPhase(0),0);assert.ok(moonIrradiance(1)>5e-7&&moonIrradiance(1)<2e-6);assert.ok(moonIrradiance(0)<moonIrradiance(1)*.001);
+ let previous=-1;for(let f=0;f<=1;f+=.001){const v=lunarPhase(f);assert.ok(Number.isFinite(v)&&v>=previous);previous=v;}
+ assert.ok(lunarPhase(.5)<.4); // a quarter is less than half of full irradiance
+});
+test('moon orbit, visible phase and lunar clock agree; daily and monthly clocks are independent',()=>{
+ for(const age of [0,3,7.3826475,14.765295,22,29.53059]){const state=lunarState(age),sun=[0,1,0],moon=moonDirection(sun,state.illuminated,state.elongation);close(Math.hypot(...moon),1);close((1-moon[1])*.5,state.illuminated);}
+ const state={day:23.5,daySeconds:180,lunarDay:14,lunarSeconds:600,cycle:true,lunarCycle:false};advanceSkyClocks(state,10);close(state.lunarDay,14);assert.ok(state.day<1);
+ state.cycle=false;state.lunarCycle=true;const day=state.day;advanceSkyClocks(state,600);close(state.day,day);close(state.lunarDay,14);
+});
+test('star photometry preserves magnitude ratios, warm/cool colors and flux through spherical projection',()=>{
+ close(starIrradiance(1)/starIrradiance(6),100,1e-10);assert.ok(starColor(1.5)[0]>starColor(1.5)[2]);assert.ok(starColor(-.2)[2]>starColor(-.2)[0]);
+ for(const dec of [0,60,89]){const a=starAtlas([[.01,dec,2,.65]],256,128);let flux=0;for(let y=0;y<a.height;y++)for(let x=0;x<a.width;x++){const i=(y*a.width+x)*4,l=a.data[i]*.2126+a.data[i+1]*.7152+a.data[i+2]*.0722;flux+=l*(2*Math.PI/a.width)*(Math.PI/a.height)*Math.cos(((y+.5)/a.height-.5)*Math.PI)/a.scale;}close(flux/starIrradiance(2),1,1e-6);}
+ const a=celestialDirection([1,0,0],0),b=celestialDirection([1,0,0],24);a.forEach((v,k)=>close(v,b[k]));close(Math.hypot(...celestialDirection([.6,.8,0],7)),1);
+});
+test('clear moonless sky remains faint, moonlight scatters, and horizon extinction reddens stars',()=>{
+ const s=[0,-1,0],newMoon=atmosphereSky([0,1,0],s,{moonPhase:0}),full=atmosphereSky([0,1,0],s,{moonPhase:1});assert.ok(full[2]>newMoon[2]*100);assert.ok(newMoon.every(v=>v>0&&v<1e-8));
+ const trans=atmosphereTransmission([0,.02,0],[1,0,0]);assert.ok(trans[0]>trans[2]);
+ const dark=exposureTarget(exposureStatistics(new Float32Array([1e-9,1e-9,1e-9,1])));assert.ok(dark>1e6&&dark<=4e7);assert.ok(adaptExposure(1,dark,1)<dark*.01);close(exposureTarget(exposureStatistics(new Float32Array([.3,.3,.3,1]))),1);
+});
+test('tide envelope has spring/neap modulation and two highs per solar day at frozen lunar phase',()=>{
+ const spring=tidalElevation(12,0),full=tidalElevation(12,LUNAR_MONTH/2),neap=Math.abs(tidalElevation(12,LUNAR_MONTH/4));close(spring,full);assert.ok(spring>neap*2.5);close(tidalElevation(0,0),spring);close(tidalElevation(6,0),-spring);
+ const span=10000,values=Array.from({length:span+1},(_,i)=>{const days=i/span*2;return tidalElevation(days*24,days);});let peaks=[];for(let i=1;i<span;i++)if(values[i]>values[i-1]&&values[i]>values[i+1])peaks.push(i/span*48);assert.ok(peaks.length>=3);assert.ok(peaks[1]-peaks[0]>12&&peaks[1]-peaks[0]<12.5);
+});
+function boundaryLab(){const points=[];for(let z=-4.5;z<-3.7;z+=.25)for(let x=-4.6;x<4.7;x+=.25)for(let y=0;y<1;y+=.25)points.push(x,y,z,0);const positions=new Float32Array(points);return {day:12,lunarDay:0,tideAmplitude:1.5,tidesEnabled:true,spec:{scale:10},spacing:.25,positions,velocities:new Float32Array(points.length),chem:new Float32Array(points.length),get count(){return this.positions.length/4;},particleBudget:2048,solid:()=>1,detail:{remapEmitters(){}},gpu:{},revision:0};}
+test('offshore tide exchanges conserve parcel volume, preserve held water, and respect capacity',()=>{
+ const lab=boundaryLab(),tide=new TideBoundary(),initial=lab.count;lab.positions[3]=1;lab.held={ids:[0],offsets:[[0,0,0]]};tide.step(lab,.3);lab.day=18;
+ for(let i=0;i<10;i++)tide.step(lab,.3);assert.ok(lab.count<initial);close((lab.count-initial)*lab.spacing**3,tide.exchanged);assert.equal(lab.positions[lab.held.ids[0]*4+3],1);
+ lab.day=12;for(let i=0;i<20;i++)tide.step(lab,.3);assert.ok(tide.imported>0);close((lab.count-initial)*lab.spacing**3,tide.exchanged);assert.ok(lab.count<=lab.particleBudget);
+ const count=lab.count;lab.tidesEnabled=false;lab.day=6;for(let i=0;i<10;i++)tide.step(lab,.3);assert.equal(lab.count,count);assert.ok(lab.positions.every(Number.isFinite));
+});

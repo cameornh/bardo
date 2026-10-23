@@ -6,10 +6,10 @@ export const labSky=atmosphereSky;
 export function diffuseSHBand(i){return i===0?1:i<4?2/3:i<9?1/4:0;}
 export function phaseHG(cosine,g=.55){return (1-g*g)/(4*Math.PI*(1+g*g-2*g*cosine)**1.5);}
 export const LAB_LIGHTING_GLSL=`
-uniform vec3 uDaySun,uDayTint,uSolarDirection;uniform float uDaySky;uniform highp sampler2D uAtmosphere;
+uniform vec3 uDaySun,uDayTint,uSolarDirection;uniform float uDaySky;uniform highp sampler2D uAtmosphere;uniform vec2 uAtmosphereSize;
 #define LAB_SUN (vec3(1.9,1.75,1.45)*uDayTint)
 vec3 labSunDirection(){return uDaySun;}
-vec3 labSky(vec3 d){d=normalize(d);float el=asin(clamp(d.y,-1.,1.))/1.570796327;vec2 uv=vec2(atan(d.x,d.z)/6.283185307+.5,.5+.5*sign(el)*sqrt(abs(el)));return texture(uAtmosphere,uv).rgb;}
+vec3 labSky(vec3 d){d=normalize(d);float el=asin(clamp(d.y,-1.,1.))/1.570796327;vec2 uv=vec2(atan(d.x,d.z)/6.283185307+.5,.5+.5*sign(el)*sqrt(abs(el)));vec2 pixel=clamp(uv*uAtmosphereSize,vec2(.5),uAtmosphereSize-.5);return textureLod(uAtmosphere,(pixel+vec2(0,1024))/vec2(2048,1152),0.).rgb;}
 float diffuseSHBand(int i){return i==0?1.:i<4?2./3.:i<9?.25:0.;}
 float phaseHG(float cosine,float g){return (1.-g*g)/(12.56637061*pow(max(.001,1.+g*g-2.*g*cosine),1.5));}
 // GGX returns BRDF * cosine. No constant direct fill on back-facing surfaces.

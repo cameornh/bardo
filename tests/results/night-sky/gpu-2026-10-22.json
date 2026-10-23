@@ -1,0 +1,7 @@
+{
+  "samples": 128,
+  "maximumAbsoluteRadianceError": 1.7939825580626234e-7,
+  "maximumRelativeRadianceError": 0.0000425524052777446,
+  "relativeExposureError": 6.725673644255014e-7,
+  "pass": true
+}

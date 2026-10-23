@@ -1,0 +1,10 @@
+{
+  "initial": 12852,
+  "low": 12372,
+  "high": 12852,
+  "imported": 3339.8046581517638,
+  "exported": 3339.8046581517638,
+  "volumeError": 1.6653345369377348e-16,
+  "nonFinite": 0,
+  "pass": true
+}
