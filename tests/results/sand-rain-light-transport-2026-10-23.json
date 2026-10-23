@@ -1,0 +1,22 @@
+{
+  "waterAttenuationRelativeError": 2.554582093148059e-7,
+  "buriedLightBlocked": true,
+  "foamPixels": 882,
+  "minimumFoamToWaterRatio": 0.9520488551962195,
+  "meanFoamToWaterRatio": 1.0654625179417139,
+  "cores": [
+    {
+      "core": 0.7810322251189064,
+      "halo": 0.01971327095660058,
+      "pass": true
+    },
+    {
+      "core": 0.06809112863811606,
+      "halo": 0.003056757335784255,
+      "pass": true
+    }
+  ],
+  "groundFarMax": 0.000033703306741017514,
+  "groundNearMax": 11.689999714493752,
+  "pass": true
+}

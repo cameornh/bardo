@@ -1,0 +1,13 @@
+{
+  "backend": "GPU",
+  "rainSamples": 1024,
+  "error": 0.000005995724347229725,
+  "firstSpawnMs": 634.1999999880791,
+  "programsBeforeObject": 40,
+  "programsFirstObject": 40,
+  "programsSecondObject": 40,
+  "max": 2.901880979537964,
+  "invalid": 0,
+  "programs": 40,
+  "pass": true
+}

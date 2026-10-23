@@ -1,0 +1,26 @@
+{
+  "resolution": [
+    800,
+    500
+  ],
+  "simulation": "paused; rendering and display-only rain measured",
+  "clear": {
+    "meanMs": 168.14166666567326,
+    "minMs": 150.69999998807907,
+    "maxMs": 177.89999997615814
+  },
+  "heavyRain": {
+    "meanMs": 172.99999999503294,
+    "minMs": 155.19999998807907,
+    "maxMs": 189.5
+  },
+  "additionalHeavyRainMs": 4.858333329359681,
+  "firstLightMs": 337.9000000357628,
+  "subsequentLight": {
+    "meanMs": 348.82500000794727,
+    "minMs": 329.0999999642372,
+    "maxMs": 370.7000000476837
+  },
+  "noNewPrograms": true,
+  "pass": true
+}

@@ -1,3 +1,4 @@
+import {LOCAL_LIGHT_GLSL} from './local-light.js';
 import {GAUSSIAN_BOUNDS_GLSL} from './gaussian-bounds.js';
 import {DETAIL_OPACITY_GLSL} from './water-lab-detail-opacity.js';
 import {LAB_LIGHT_VISIBILITY_GLSL} from './water-lab-light-visibility.js';
@@ -42,11 +43,13 @@ ${SH_GLSL}
 ${SOLUTE_GLSL}
 ${DETAIL_LIGHT_GLSL}
 ${LAB_LIGHT_VISIBILITY_GLSL}
+${LOCAL_LIGHT_GLSL}
 vec3 detailEnvironment(vec3 normal){float b[16];basisSH(normal,b);vec3 light=vec3(0);for(int i=0;i<16;i++){if(i>=(uSHDegree+1)*(uSHDegree+1))break;light+=uSH[i]*b[i]*diffuseSHBand(i);}return max(vec3(0),light)*uAmbient;}
-vec3 detailObjectLight(vec3 p,vec3 ray,float kind,vec3 normal){vec3 light=vec3(0);for(int i=0;i<uBodyCount;i++){float material=texelFetch(uBodies,ivec2((i*2+1)%256,(i*2+1)/256),0).w;if(material<2.5)continue;vec4 b=labBody(i);vec3 delta=b.xyz-p;float r=length(delta),path=0.;vec3 tau=vec3(0);for(int k=0;k<4;k++){vec4 a=parcelSample(mix(p,b.xyz,(float(k)+.5)/4.));tau+=soluteExtinction(a.yzw/max(.001,a.x),uTannins,uTurbidity)*smoothstep(.12,.24,a.x)*r*uScale/4.;}light+=bodyExtra(i,0).rgb*uLights*7.*b.w*b.w/(b.w*b.w+r*r)*exp(-tau)*detailAlbedo(kind)*detailResponse(kind,-ray,normal,delta/max(r,.001))*bodyTransmissionExcept(p,delta/max(r,.001),max(r,.001),uScale,b.w*.4,0.,i);}return light;}
+vec3 detailObjectLight(vec3 p,vec3 ray,float kind,vec3 normal){vec3 light=vec3(0);for(int i=0;i<uBodyCount;i++){float material=texelFetch(uBodies,ivec2((i*2+1)%256,(i*2+1)/256),0).w;if(material>2.5)light+=objectLight(p,i)*detailAlbedo(kind)*detailResponse(kind,-ray,normal,normalize(labBody(i).xyz-p));}return light;}
+
 vec3 detailIncident(vec3 q,vec3 ray){
  vec3 light=detailEnvironment(vec3(0,1,0))*mediumSky(q)+LAB_SUN*uSunlight*sunTransmission(q,uScale)*3.14159265*phaseHG(dot(ray,labSunDirection()),.55);
- if(uStation==2)for(int i=0;i<3;i++){vec3 lamp=poolLamp(i);light+=poolColor(i)*3.*uLights*poolFalloff(q,lamp)*poolTransmission(q,i,uScale)*3.14159265*phaseHG(dot(ray,normalize(lamp-q)),.55);}return light;
+ if(uStation==2)for(int i=0;i<3;i++){vec3 lamp=poolLamp(i);light+=poolColor(i)*3.*uLights*poolFalloff(q,lamp)*poolTransmission(q,i,uScale)*3.14159265*phaseHG(dot(ray,normalize(lamp-q)),.55);}return light+objectVolumeIncident(q,ray);
 }
 void main(){ivec2 uv=ivec2(gl_FragCoord.xy);vec4 source=texelFetch(uDetailP,uv,0),velocity=texelFetch(uDetailV,uv,0);outColor=vec4(0,0,0,-1);outTau=vec4(0);outScatter=vec4(0);
 if(source.w>=velocity.w||velocity.w<=0.)return;vec4 p=uViewMatrix*vec4(source.xyz,1);vec4 info=texelFetch(uDetailI,uv,0);if(uTightGaussians&&detailOpacity(info.y,source.w,velocity.w,info.z)<=.0001)return;if(p.z>-max(.025,info.x*1.5))return;float depth=length(p.xyz);vec4 clip=uProjection*p;
@@ -66,8 +69,8 @@ white+=detailObjectLight(source.xyz,ray,kind,normal);
 if(uStation==2)for(int i=0;i<3;i++){vec3 lamp=poolLamp(i),delta=lamp-source.xyz;float r=length(delta),response=detailClusterResponse(detailResponse(kind,-ray,normal,delta/max(r,.0001)),sprayPool(source.xyz,i));white+=poolColor(i)*3.*uLights*poolFalloff(source.xyz,lamp)*detailAlbedo(kind)*response*bodyTransmission(source.xyz,delta/max(r,.0001),r,uScale,.06,0.)*mediumPool(source.xyz,i);}
 // Retain the water's foreground scattering when a translucent marker covers
 // it. Extinction alone incorrectly paints a dark decal over this radiance.
-float lengthStep=(depth-begin)/8.,path=0.;vec3 incident=lengthStep>.00001?detailIncident(uEye+ray*mix(begin,depth,.35),ray):vec3(0);
-for(int i=0;i<8;i++){if(lengthStep<=.00001)break;vec3 q=uEye+ray*(begin+(float(i)+.5)*lengthStep);vec4 a=parcelSample(q);float wet=smoothstep(.12,.24,a.x)*lengthStep*uScale;if(wet<=0.)continue;vec3 c=a.yzw/max(a.x,.0001),ext=soluteExtinction(c,uTannins,uTurbidity);detailTransportStep(outTau.rgb,outScatter.rgb,ext,soluteScatter(c,uTannins,uTurbidity),incident,wet);path+=wet;}
+float lengthStep=(depth-begin)/8.,path=0.;
+for(int i=0;i<8;i++){if(lengthStep<=.00001)break;vec3 q=uEye+ray*(begin+(float(i)+.5)*lengthStep);vec4 a=parcelSample(q);float wet=smoothstep(.12,.24,a.x)*lengthStep*uScale;if(wet<=0.)continue;vec3 c=a.yzw/max(a.x,.0001),ext=soluteExtinction(c,uTannins,uTurbidity);detailTransportStep(outTau.rgb,outScatter.rgb,ext,soluteScatter(c,uTannins,uTurbidity),detailIncident(q,ray),wet);path+=wet;}
 outColor=vec4(white*uDetailLightScale,path);outScatter.rgb*=uDetailLightScale;
 }`;
 const fragment=`precision highp float;precision highp int;in vec2 vQ;in float vAlpha,vDepth;
@@ -80,6 +83,9 @@ void main(){
  if(vKindRadiusClearance.z<vKindRadiusClearance.y*3.){vec4 viewRay=uInverseProjection*vec4(uv*2.-1.,1,1);vec3 viewPoint=viewRay.xyz*(-vCenter.w/viewRay.z),point=uEye+mat3(uCameraMatrix)*viewPoint;if(labPhysicalSolid(point)<0.)discard;}
  float surface=texture(uWaterSurface,uv).a;bool wet=vOptical.a>0.;
  vec3 radiance=wet?vOptical.rgb*exp(-vViewTau)+vScatter:vOptical.rgb;
+ // Multiple scattering erases fine-marker contrast before the whole water
+ // column becomes opaque. Fade that contrast into the resolved water image.
+ if(wet)a*=exp(-dot(vViewTau,vec3(.1)));
  if(any(isnan(radiance))||any(isinf(radiance)))discard;outColor=vec4(max(vec3(0),radiance)*a,a);
 }`;
 // Accumulate optical density with only a short reconstruction footprint.
@@ -87,14 +93,14 @@ void main(){
 // This is not a distance field or a camera-motion blur, and does not move water.
 const reconstruct=`precision highp float;in vec2 vUv;out vec4 outColor;uniform sampler2D uMist,uOpaqueRead;uniform vec2 uResolution;uniform float uDetailLightScale;
 void main(){float center=texture(uOpaqueRead,vUv).a,total=0.;vec4 field=vec4(0);for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 uv=vUv+vec2(x,y)*1.25/uResolution;float depth=texture(uOpaqueRead,uv).a,edge=exp(-abs(depth-center)*18.),w=(x==0?.6:.2)*(y==0?.6:.2)*edge;field+=texture(uMist,uv)*w;total+=w;}field/=max(total,.0001);float density=field.a;if(density<.00001)discard;float alpha=1.-exp(-density);vec3 light=field.rgb/max(density,.00001)/uDetailLightScale;outColor=vec4(light*alpha,alpha);}`;
-// Encode faint HDR radiance before half-float storage/blending, decode once
-// on composition. Optical depth and opacity stay unscaled. This keeps night
-// foam from quantizing to opaque black without making the water emissive.
+// Normalize faint radiance for the explicit CPU/reference checks, decode once
+// on composition. Float targets preserve both tiny moonless radiance and bright
+// lamps in the same frame; a single half-float scale cannot represent both.
 export function detailLightScale(sunlight,ambient,sh,lights){const peak=Math.max(Math.abs(sunlight)*22,Math.abs(ambient)*Math.max(0,...sh.flatMap(v=>v.toArray())),lights*7,1e-10);return Math.max(1,Math.min(1e10,1/peak));}
 export class LabDetailRenderer {
  constructor(lab,uniforms){this.lab=lab;this.uniforms=uniforms;const g=this.geometry=new THREE.InstancedBufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));g.setIndex([0,1,2,0,2,3]);g.setAttribute('aDetailId',new THREE.InstancedBufferAttribute(Float32Array.from({length:lab.detail.capacity},(_,i)=>i),1));g.instanceCount=lab.detail.capacity;this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:vertex,fragmentShader:fragment,uniforms:{...uniforms,uHideMist:{value:false},uDetailLightScale:{value:1},uDetailP:lab.detail.u.uDetailP,uDetailV:lab.detail.u.uDetailV,uDetailI:lab.detail.u.uDetailI},transparent:true,depthTest:false,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor});this.scene=new THREE.Scene();const mesh=new THREE.Mesh(g,this.material);mesh.frustumCulled=false;this.scene.add(mesh);
- this.paths=new THREE.WebGLRenderTarget(256,lab.detail.capacity/256,{count:3,type:THREE.HalfFloatType,depthBuffer:false,minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter});this.material.uniforms.uDetailPaths={value:this.paths.textures[0]};this.material.uniforms.uDetailViewTau={value:this.paths.textures[1]};this.material.uniforms.uDetailScatter={value:this.paths.textures[2]};
- this.target=new THREE.WebGLRenderTarget(1,1,{type:THREE.HalfFloatType,depthBuffer:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});this.quadGeometry=new THREE.PlaneGeometry(2,2);this.reconstruct=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:reconstruct,uniforms:{...uniforms,uDetailLightScale:this.material.uniforms.uDetailLightScale,uMist:{value:this.target.texture}},transparent:true,depthTest:false,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});this.opticalMaterial=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:opticalPaths,uniforms:this.material.uniforms,depthTest:false,depthWrite:false});this.opticalScene=new THREE.Scene();this.opticalScene.add(new THREE.Mesh(this.quadGeometry,this.opticalMaterial));this.composite=new THREE.Scene();this.composite.add(new THREE.Mesh(this.quadGeometry,this.reconstruct));this.camera=new THREE.Camera();
+ this.paths=new THREE.WebGLRenderTarget(256,lab.detail.capacity/256,{count:3,type:THREE.FloatType,depthBuffer:false,minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter});this.material.uniforms.uDetailPaths={value:this.paths.textures[0]};this.material.uniforms.uDetailViewTau={value:this.paths.textures[1]};this.material.uniforms.uDetailScatter={value:this.paths.textures[2]};
+ this.target=new THREE.WebGLRenderTarget(1,1,{type:THREE.FloatType,depthBuffer:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});this.quadGeometry=new THREE.PlaneGeometry(2,2);this.reconstruct=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:reconstruct,uniforms:{...uniforms,uDetailLightScale:this.material.uniforms.uDetailLightScale,uMist:{value:this.target.texture}},transparent:true,depthTest:false,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});this.opticalMaterial=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:opticalPaths,uniforms:this.material.uniforms,depthTest:false,depthWrite:false});this.opticalScene=new THREE.Scene();this.opticalScene.add(new THREE.Mesh(this.quadGeometry,this.opticalMaterial));this.composite=new THREE.Scene();this.composite.add(new THREE.Mesh(this.quadGeometry,this.reconstruct));this.camera=new THREE.Camera();
  }
  render(renderer,camera,timers){if(!this.lab.detail.enabled||!this.lab.detail.count)return;this.material.uniforms.uDetailLightScale.value=detailLightScale(this.lab.sunlight,this.lab.ambient,this.uniforms.uSH.value,(this.lab.kind==='pool'||this.lab.balls.some(b=>b.kind==='light'))?this.lab.lights:0);this.geometry.instanceCount=this.lab.detail.activeSpan;const size=this.uniforms.uResolution.value;if(this.target.width!==size.x||this.target.height!==size.y)this.target.setSize(size.x,size.y);const old=renderer.getRenderTarget(),color=renderer.getClearColor(new THREE.Color()),alpha=renderer.getClearAlpha();const key=[this.lab.kind,this.lab.revision,this.lab.lightDay,this.lab.lightEditRevision,this.material.uniforms.uDetailLightScale.value,this.lab.detail.time,this.lab.detail.emitted,this.lab.ambient,this.lab.sunlight,this.lab.lights,this.lab.tannins,size.x,size.y,...camera.matrixWorld.elements,...camera.projectionMatrix.elements].join(',');if(key!==this.pathsKey){this.pathsKey=key;timers?.begin('foam lighting');renderer.setRenderTarget(this.paths);renderer.setScissor(0,0,256,Math.ceil(this.lab.detail.activeSpan/256));renderer.setScissorTest(true);renderer.render(this.opticalScene,this.camera);renderer.setScissorTest(false);timers?.end();}timers?.begin('foam splats');renderer.setRenderTarget(this.target);renderer.setClearColor(0,0);renderer.clear();renderer.render(this.scene,camera);renderer.setRenderTarget(old);renderer.setClearColor(color,alpha);renderer.render(this.composite,this.camera);timers?.end();}
  dispose(){for(const resource of [this.geometry,this.material,this.target,this.paths,this.opticalMaterial,this.quadGeometry,this.reconstruct])resource.dispose();}

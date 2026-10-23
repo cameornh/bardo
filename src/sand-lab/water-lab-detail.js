@@ -169,10 +169,10 @@ export class LabDetail {
     }
   }
   addMarker(point,velocity,kind,radius,life,opacity=.5){if(!this.enabled||this.pending>=this.capacity)return;const p=this.pending*4;this.spawn[0].image.data.set([...point,0],p);this.spawn[1].image.data.set([...velocity,life],p);this.spawn[2].image.data.set([radius,kind,opacity,100],p);const slot=(this.cursor+this.pending)%this.capacity;if(this.expiry[slot]>this.time)this.overwritten++;this.expiry[slot]=this.time+life*40;this.pending++;this.emitted++;if(kind===3)this.mistEmitted++;}
-  impact(point,normal,velocity,volume,lab){
+  impact(point,normal,velocity,volume,lab,hardness=0){
     if(!this.enabled)return;const scale=lab.spec.scale,energy=Math.max(0,-velocity.reduce((a,v,k)=>a+v*normal[k],0))*scale;
     const n=Math.min(72,Math.floor(Math.sqrt(volume*scale**3)*energy*180*this.density));
-    for(let i=0;i<n;i++){const id=++this.sequence,theta=hash(id+21)*Math.PI*2,ring=[Math.cos(theta),0,Math.sin(theta)],kind=this.mistEnabled&&n>30&&energy>10&&hash(id+19)<Math.min(.3,this.mistDensity*.12)?3:0;
+    for(let i=0;i<n;i++){const id=++this.sequence,theta=hash(id+21)*Math.PI*2,ring=[Math.cos(theta),0,Math.sin(theta)],kind=this.mistEnabled&&energy>3&&hash(id+19)<Math.min(.65,this.mistDensity*(.08+.55*hardness)*clamp((energy-3)/5,0,1))?3:0;
       const v=velocity.map((v,k)=>v*.08+normal[k]*energy*(.20+.16*hash(id+11))/scale+ring[k]*energy*.24/scale),p=point.map((v,k)=>v+normal[k]*lab.spacing*.18+ring[k]*lab.spacing*.15);
       this.addMarker(p,v,kind,detailRadius(lab.spacing,scale,hash(id+7))*(kind===3?1.8:1)/scale,kind===3?4:.9,kind===3?.4:.65);lab.wetting?.trace(p,v,kind);
     }

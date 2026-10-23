@@ -1,3 +1,4 @@
+import {rainSegments} from './rain-appearance.js';
 import {labAirVelocity} from './water-lab-air.js';
 import {hash, clamp, rotate, vesselLocal, vesselDistance, normalAt} from './water-lab-model.js';
 
@@ -40,8 +41,9 @@ export class LabRain {
 
   // All stations receive the same physical rainfall depth. mm/min intentionally
   // exposes accelerated test rainfall rather than quietly changing it by scene.
-  get skyDepth(){return this.lab.kind==='river'?117:8.4;}
-  get skyArea(){return 9.6*this.skyDepth;}
+  get skyWidth(){return this.lab.sand?11:9.6;}
+  get skyDepth(){return this.lab.sand?9.8:this.lab.kind==='river'?117:8.4;}
+  get skyArea(){return this.skyWidth*this.skyDepth;}
   get flux(){return this.rate/60000/this.lab.spec.scale*this.skyArea;}
   buildSurfaceIndex() {
     const {positions,spacing}=this.lab;
@@ -127,7 +129,10 @@ export class LabRain {
       this.deposits.set(key,p);
     }
     p.volume+=drop.volume;
-    lab.detail?.impact(hit.point,hit.normal,drop.velocity,drop.volume,lab);
+    const wet=lab.sand?lab.sand.materialAt(hit.point):0;
+    const onBody=lab.balls?.some(b=>Math.hypot(...hit.point.map((v,k)=>v-b.position[k]))<b.radius*1.6);
+    const hardness=hit.particle>=0?0:onBody||!lab.sand?1:Math.min(1,wet);
+    lab.detail?.impact(hit.point,hit.normal,drop.velocity,drop.volume,lab,hardness);
   }
   appendParcels(items) {
     if(!items.length)return;
@@ -233,7 +238,7 @@ export class LabRain {
           const seq=++this.sequence;
           // Stable independent sky samples avoid diagonal curtains when the
           // falling packets become visible. Openings collect by sky area.
-          const x=(hash(seq*2)-.5)*9.6,z=(hash(seq*2+1)-.5)*this.skyDepth;
+          const x=(hash(seq*2)-.5)*this.skyWidth,z=(hash(seq*2+1)-.5)*this.skyDepth;
           this.drops.push({id:seq,sky:true,age:0,position:[x,(lab.kind==='river'?26.5:8.35)+hash(seq)*.15,z],velocity:[0,-8/scale,0],volume});
           this.emitted+=volume;
         }
@@ -248,10 +253,14 @@ export class LabRain {
         // Gravity / terminal fall plus the same ambient wind and cursor jet.
         p.velocity[1]=Math.max(-9/scale,p.velocity[1]-9.81/scale*dt);
         const air=lab.wind||lab.jet?labAirVelocity(p.position,lab):[0,0,0];for(let k=0;k<3;k++)p.velocity[k]+=(air[k]-p.velocity[k])*(1-Math.exp(-dt*.7))*(k===1?.08:1);
-        const next=p.position.map((v,k)=>v+p.velocity[k]*dt),water=this.waterHit(p.position,next),solid=this.solidHit(p.position,next);
-        lab.wetting?.hitLens(p.position,next);
-        const hit=solid&&(!water||solid.t<water.t)?solid:water;
-        if(hit)this.impact(p,hit);else{p.position=next;alive.push(p);}
+        const next=p.position.map((v,k)=>v+p.velocity[k]*dt);
+        const segments=lab.sand?rainSegments(p.position,next):[[p.position,next]];let hit=null;
+        for(const [a,b] of segments){
+          const water=this.waterHit(a,b),solid=this.solidHit(a,b,q=>lab.solid(q,true,false));
+          lab.wetting?.hitLens(a,b);hit=solid&&(!water||solid.t<water.t)?solid:water;
+          if(hit)break;p.position=b;
+        }
+        if(hit)this.impact(p,hit);else alive.push(p);
       }
       this.drops=alive;
     }

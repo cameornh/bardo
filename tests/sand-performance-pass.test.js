@@ -17,9 +17,9 @@ test('sand broadphase preserves the full smooth CSG field, including flattened a
  const bed=new SandBed(17);for(let i=0;i<90;i++)bed.parcels.push({id:i+1,position:[rand(i*3)*8-4,rand(i*3+1)*3,rand(i*3+2)*8-4],mass:.004+rand(i)*.03,wet:.5,packing:.6,aspect:i%3?.12:1,held:i%7===0,windborne:i%11===0,cuts:i%2?[{offset:[.08,0,0],radius:.11}]:[]});
  for(let i=0;i<450;i++){const p=[rand(i*5)*12-6,rand(i*5+1)*6-1,rand(i*5+2)*12-6];bed.optimizations={sandQueryBounds:false};const expected=bed.distance(p,i%2===0);bed.optimizations.sandQueryBounds=true;assert.ok(Math.abs(bed.distance(p,i%2===0)-expected)<1e-12);}
 });
-test('program specialization changes only draw-constant features and invalidates when objects appear',()=>{
+test('program specialization preserves empty scenes and can prepare object-capable variants',()=>{
  const uniforms={uStation:{value:6},uBodyCount:{value:0},uSandCount:{value:2},uSandMin:{value:{x:0,y:0,z:0}},uSandMax:{value:{x:0,y:0,z:0}},uFieldLinear:{value:true}};
- const constants=programConstants(uniforms);assert.deepEqual(constants.uBodyCount,['int',0]);assert.deepEqual(constants.uSandCount,['int',0]);
+ const constants=programConstants(uniforms);assert.deepEqual(constants.uBodyCount,['int',0]);assert.equal(programConstants(uniforms,true,true).uBodyCount,undefined);assert.deepEqual(constants.uSandCount,['int',0]);
  const source='uniform int uStation; uniform float uScale; uniform bool uFieldLinear;';assert.equal(specializeSource(source,constants),'const int uStation=6; uniform float uScale; const bool uFieldLinear=true;');
  uniforms.uBodyCount.value=1;uniforms.uSandMax.value.y=1;assert.equal(programConstants(uniforms).uBodyCount,undefined);assert.equal(programConstants(uniforms).uSandCount,undefined);assert.deepEqual(programConstants(uniforms,false),{});
 });
@@ -169,4 +169,15 @@ test('switching optimization combinations invalidates live water queries without
   assert.equal(lab.sand,bed);assert.equal(lab.positions,positions);
   const actual=lab.waterAt(p);assert.ok(Math.abs(actual.density-reference.density)<1e-12);assert.deepEqual(actual.velocity,reference.velocity);
  }
+});
+
+test('object warmup prepares render and compute variants without changing simulation uniforms',async()=>{
+ const {installProgramSpecialization}=await import('../src/sand-lab/program-specialization.js');
+ const material={isShaderMaterial:true,uniforms:{uBodyCount:{value:0},uPass:{value:0}},onBeforeCompile(){},customProgramCacheKey(){return 'test';}},scene={traverse(fn){fn({material});}},draws=[],compiled=[];
+ const source=()=>({vertexShader:'uniform int uBodyCount;',fragmentShader:'uniform int uPass; uniform int uBodyCount;'});
+ const renderer={render(){const s=source();material.onBeforeCompile(s);draws.push(s.fragmentShader);},async compileAsync(){const s=source();material.onBeforeCompile(s);compiled.push(s.fragmentShader);}};
+ installProgramSpecialization(renderer,()=>true);renderer.render(scene,{});await renderer.warmObjectPrograms([scene],{});assert.equal(material.uniforms.uBodyCount.value,0);
+ renderer.render(scene,{});await renderer.warmObjectPrograms([scene],{});assert.equal(compiled.length,1);assert.ok(draws.every(s=>s.includes('const int uBodyCount=0')));assert.ok(compiled[0].includes('uniform int uBodyCount'));
+ material.uniforms.uPass.value=1;renderer.render(scene,{});await renderer.warmObjectPrograms([scene],{});assert.equal(compiled.length,2);assert.ok(compiled[1].includes('const int uPass=1'));
+ material.uniforms.uBodyCount.value=1;renderer.render(scene,{});assert.ok(draws.at(-1).includes('uniform int uBodyCount'));assert.equal(compiled.length,2);
 });
