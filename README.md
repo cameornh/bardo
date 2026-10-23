@@ -1300,8 +1300,10 @@ individual instanced Gaussians with their angular covariance projected directly
 into camera pixels (`J C Jᵀ`), including a subpixel reconstruction footprint.
 There is no star image texture or latitude/longitude pole singularity. They do
 not spawn or move with the camera. Fainter stars have bounded atmospheric
-brightness scintillation (at most ±0.4%, strongest near the horizon) and small,
-symmetric Gaussian edge changes. The star center stays at its catalogue position; atmospheric twinkle
+brightness scintillation (at most ±2%, strongest near the horizon) and small,
+symmetric Gaussian edge changes with about ±5% size breathing. Both effects
+strengthen continuously for dimmer stars and weaken for broader projected
+footprints. The star center stays at its catalogue position; atmospheric twinkle
 never translates the whole star. The changing covariance is normalized to
 preserve flux separately from the brightness twinkle;
 see the [WMO scintillation description](https://cloudatlas.wmo.int/en/scintillation.html).
@@ -1451,7 +1453,10 @@ way, with volume error below **7e-16 lab units³** and no non-finite water state
 Moon phase, night foam and the production controls were visually inspected.
 
 The centered-twinkle GPU check in `tests/sand-sky-gpu.html` captures the actual
-star vertex shader across 21 direction/time cases. Centers have zero temporal
-drift; projected edges match the CPU covariance reference within 0.00006 pixels.
-The sampled total brightness variation stays below 0.33%. Numerical results and
-a visually inspected preview are in `tests/results/centered-star-twinkle/`.
+star vertex shader across 63 magnitude/direction/time cases. After the stronger
+edge and size tuning, centers still have zero temporal drift; projected edges
+match the CPU covariance reference within 0.000063 pixels. The sampled total
+brightness variation is at most 1.70%, with CPU/GPU flux agreement within
+0.0000047. Ten night-sky numerical tests and the production build pass.
+Results and the inspected preview are in `tests/results/star-twinkle-strength/`;
+the earlier, weaker effect is recorded in `tests/results/centered-star-twinkle/`.
