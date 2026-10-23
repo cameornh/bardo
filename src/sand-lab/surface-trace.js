@@ -16,13 +16,19 @@ float sandCellExit(vec3 p,vec3 d){
 }
 `;
 export const SAND_TRACE_GLSL=`
+uniform float uSandSkyCeiling;
 float traceOpaque(vec3 o,vec3 d){
  float hit=1e4;
  for(int j=0;j<uBodyCount;j++)if(texelFetch(uBodies,ivec2((j*2+1)%256,(j*2+1)/256),0).w>.5)hit=min(hit,traceBody(o,d,j,hit));
  vec2 interval=uSandCount>0?sandRayInterval(o,d):vec2(1e4,-1.);
  float t=.00001,last=t;
  for(int i=0;i<256;i++){
-  vec3 p=o+d*t;float h=labOpaque(p);
+  vec3 p=o+d*t;
+  // Cubic terrain interpolation is a convex combination, and parcel bounds
+  // include blending support. Above both, an upward ray cannot hit sand.
+  // Bodies were traced separately, so tall / airborne objects still occlude.
+  if(uStation==6&&d.y>=0.&&p.y>uSandSkyCeiling)break;
+  float h=labOpaque(p);
   if(h<.00003){
    // A steep terrain edit or a finite-precision bin crossing may overshoot.
    // Locate the first boundary instead of shading an arbitrary interior point.

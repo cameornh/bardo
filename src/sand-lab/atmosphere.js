@@ -1,5 +1,4 @@
 import {lunarState,LUNAR_MONTH} from './tides.js';
-import {createSkyAtlas} from './celestial-sky.js';
 import {celestialMatrix,moonDirection} from './night-sky-model.js';
 import * as THREE from 'three';
 import {QUAD_VERTEX} from '../shaders.js';
@@ -13,23 +12,27 @@ export class BeachAtmosphere{
  constructor(renderer){
   this.renderer=renderer;this.supported=renderer.extensions.has('EXT_color_buffer_float');this.cpu=!this.supported;
   const filter=renderer.extensions.has('OES_texture_float_linear')?THREE.LinearFilter:THREE.NearestFilter;
-  this.target=new THREE.WebGLRenderTarget(192,96,{type:THREE.FloatType,depthBuffer:false,minFilter:filter,magFilter:filter,wrapS:THREE.RepeatWrapping});
   this.fallback=new THREE.DataTexture(new Float32Array(48*24*4),48,24,THREE.RGBAFormat,THREE.FloatType);this.fallback.minFilter=this.fallback.magFilter=filter;this.fallback.wrapS=THREE.RepeatWrapping;
   const extinction=new Float32Array(128*4);for(let i=0;i<128;i++){const a=((i+.5)/128)**2*Math.PI/2;extinction.set([...atmosphereTransmission([0,.02,0],[Math.cos(a),Math.sin(a),0]),1],i*4);}
-  this.atlas=createSkyAtlas(extinction);if(filter===THREE.NearestFilter){this.atlas.minFilter=this.atlas.magFilter=filter;this.atlas.generateMipmaps=false;}renderer.initTexture(this.atlas);
-  // Stars keep their prefiltered mip chain. Only level zero of the small
-  // atmosphere rectangle changes; no full-atlas filtering on the frame path.
-  this.atlas.generateMipmaps=false;
-  this.u={uAtmosphere:{value:this.atlas},uAtmosphereSize:{value:new THREE.Vector2(192,96)},uMoonPhase:{value:1},uMoonDirection:{value:new THREE.Vector3()},uCelestialRotation:{value:new THREE.Matrix3()},uSolarRadiance:{value:new THREE.Vector3()}};
+  // Tiny lighting lookup, independent of the star geometry. Render directly
+  // into it: copyTextureToTexture queries GL state and stalled the frame queue.
+  this.lookup=new THREE.WebGLRenderTarget(256,128,{type:THREE.FloatType,depthBuffer:false,minFilter:filter,magFilter:filter});
+  this.lookup.viewport.set(0,0,192,96);renderer.initRenderTarget(this.lookup);
+  this.atlas=this.lookup.texture;
+  const data=new Float32Array(256*128*4);data.set(extinction,112*256*4);
+  this.cpuLookup=new THREE.DataTexture(data,256,128,THREE.RGBAFormat,THREE.FloatType);this.cpuLookup.minFilter=this.cpuLookup.magFilter=filter;this.cpuLookup.needsUpdate=true;
+  // One initialization upload. No texture copies or GL queries during updates.
+  const ext=new THREE.DataTexture(extinction,128,1,THREE.RGBAFormat,THREE.FloatType);ext.needsUpdate=true;renderer.copyTextureToTexture(ext,this.atlas,null,new THREE.Vector2(0,112));ext.dispose();
+  this.u={uAtmosphere:{value:this.atlas},uAtmosphereSize:{value:new THREE.Vector2(192,96)},uMoonPhase:{value:1},uMoonSize:{value:1.7},uMoonDirection:{value:new THREE.Vector3()},uCelestialRotation:{value:new THREE.Matrix3()},uSolarRadiance:{value:new THREE.Vector3()}};
   this.uniforms={uAtmosphereSun:{value:new THREE.Vector3(...DEFAULT_SUN)},uAtmosphereMoon:{value:1},uAtmosphereMoonDirection:{value:new THREE.Vector3()},uAtmosphereRotation:{value:new THREE.Matrix3().fromArray(celestialMatrix())}};
   this.geometry=new THREE.PlaneGeometry(2,2);this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:fragment,uniforms:this.uniforms,depthTest:false,depthWrite:false});this.scene=new THREE.Scene();this.scene.add(new THREE.Mesh(this.geometry,this.material));this.camera=new THREE.Camera();this.revision=0;
  }
  update(lab,sh){
-  this.cpu=lab.gpu.cpu||!this.supported;const sun=lab.u.uSolarDirection.value.toArray(),lunar=lunarState(lab.lunarDay??LUNAR_MONTH/2),options={moonPhase:lunar.illuminated,day:lab.day,elongation:lunar.elongation},key=`${Math.round(lab.day*50)}:${Math.round(lunar.age*200)}:${lab.sunIntensity}:${this.cpu}`;const changed=key!==this.key;this.uniforms.uAtmosphereSun.value.fromArray(sun);this.uniforms.uAtmosphereMoon.value=options.moonPhase;this.uniforms.uAtmosphereMoonDirection.value.fromArray(moonDirection(sun,options.moonPhase,options.elongation));this.u.uMoonDirection.value.copy(this.uniforms.uAtmosphereMoonDirection.value);this.uniforms.uAtmosphereRotation.value.fromArray(celestialMatrix(options.day));this.u.uMoonPhase.value=options.moonPhase;this.u.uCelestialRotation.value.copy(this.uniforms.uAtmosphereRotation.value);
+  this.cpu=lab.gpu.cpu||!this.supported;const sun=lab.u.uSolarDirection.value.toArray(),lunar=lunarState(lab.lunarDay??LUNAR_MONTH/2),options={moonPhase:lunar.illuminated,day:lab.day,elongation:lunar.elongation},key=`${Math.round(lab.day*50)}:${Math.round(lunar.age*200)}:${lab.sunIntensity}:${this.cpu}`;const changed=key!==this.key;this.uniforms.uAtmosphereSun.value.fromArray(sun);this.uniforms.uAtmosphereMoon.value=options.moonPhase;this.uniforms.uAtmosphereMoonDirection.value.fromArray(moonDirection(sun,options.moonPhase,options.elongation));this.u.uMoonDirection.value.copy(this.uniforms.uAtmosphereMoonDirection.value);this.uniforms.uAtmosphereRotation.value.fromArray(celestialMatrix(options.day));this.u.uMoonPhase.value=options.moonPhase;this.u.uMoonSize.value=lab.moonSize??1.7;this.u.uCelestialRotation.value.copy(this.uniforms.uAtmosphereRotation.value);
   // The visible solar disc must not inherit the active (possibly lunar) light.
   this.u.uSolarRadiance.value.fromArray(atmosphereTransmission([0,.02,0],sun).map(v=>v*22/(Math.PI*.00465**2)*(lab.sunIntensity??1)));if(!changed)return false;this.key=key;
-  if(this.cpu){const {data,width,height}=this.fallback.image;for(let y=0;y<height;y++)for(let x=0;x<width;x++)data.set([...atmosphereSky(directionAt(x,y,width,height),sun,options),1],(y*width+x)*4);this.fallback.needsUpdate=true;this.renderer.copyTextureToTexture(this.fallback,this.atlas,null,new THREE.Vector2(0,1024));this.u.uAtmosphereSize.value.set(48,24);}
-  else{const old=this.renderer.getRenderTarget();this.renderer.setRenderTarget(this.target);this.renderer.render(this.scene,this.camera);this.renderer.copyTextureToTexture(this.target.texture,this.atlas,null,new THREE.Vector2(0,1024));this.renderer.setRenderTarget(old);this.u.uAtmosphereSize.value.set(192,96);}
+  if(this.cpu){const {data,width,height}=this.fallback.image;for(let y=0;y<height;y++)for(let x=0;x<width;x++)data.set([...atmosphereSky(directionAt(x,y,width,height),sun,options),1],(y*width+x)*4);for(let y=0;y<height;y++)this.cpuLookup.image.data.set(data.subarray(y*width*4,(y+1)*width*4),y*256*4);this.cpuLookup.needsUpdate=true;this.u.uAtmosphere.value=this.cpuLookup;this.u.uAtmosphereSize.value.set(48,24);}
+  else{const old=this.renderer.getRenderTarget();this.renderer.setRenderTarget(this.lookup);this.renderer.render(this.scene,this.camera);this.u.uAtmosphere.value=this.atlas;this.renderer.setRenderTarget(old);this.u.uAtmosphereSize.value.set(192,96);}
   // Only 64 directions on the CPU, when solar angle changes. No GPU readback
   // or atmosphere march in the main water / foam / reflection passes.
   const coeff=projectSH(d=>atmosphereSky(d,sun,options));sh.forEach((v,i)=>v.fromArray(coeff,i*3));this.revision++;
@@ -43,5 +46,5 @@ export class BeachAtmosphere{
   let error=0;for(let y=0;y<3;y++)for(let x=0;x<6;x++){const reference=atmosphereSky(rays[x].toArray(),suns[y]);for(let k=0;k<3;k++)error=Math.max(error,Math.abs(data[(y*6+x)*4+k]-reference[k]));}
   return {backend:'GPU',samples:18,maxRadianceError:error,tolerance:.0001,pass:Number.isFinite(error)&&error<.0001};
  }
- dispose(){for(const resource of [this.target,this.fallback,this.atlas,this.geometry,this.material])resource.dispose();}
+ dispose(){for(const resource of [this.fallback,this.lookup,this.cpuLookup,this.geometry,this.material])resource.dispose();}
 }

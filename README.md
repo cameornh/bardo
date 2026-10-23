@@ -1296,9 +1296,12 @@ B−V colors from Hoffleit & Warren's **Bright Star Catalogue, 5th Revised Ed.
 (1991)**, distributed as [CDS V/50](https://cdsarc.cds.unistra.fr/viz-bin/cat/V/50).
 `tools/import-bright-stars.py /path/to/catalog.gz` reproduces the factual subset
 in `src/sand-lab/bright-stars.json`; missing B−V uses 0.65. Star sources are
-flux-normalized angular Gaussians with covariance projected into the spherical
-texture, including polar distortion, and mip filtering for subpixel appearance.
-They do not spawn or move with the camera.
+individual instanced Gaussians with their angular covariance projected directly
+into camera pixels (`J C Jᵀ`), including a subpixel reconstruction footprint.
+There is no star image texture or latitude/longitude pole singularity. They do
+not spawn or move with the camera. Fainter stars have bounded atmospheric
+scintillation (stronger near the horizon) and a small subpixel seeing offset;
+see the [WMO scintillation description](https://cloudatlas.wmo.int/en/scintillation.html).
 
 **Sky / rain** now provides independent day and lunar clocks, their durations,
 manual lunar age, a phase readout, an ocean-tide toggle, and spring-tide
@@ -1306,6 +1309,9 @@ amplitude. The default lunar month is 29.53059 simulation days at the default
 day duration. The clocks advance with simulation time and stop on pause; changing
 either duration does not silently change the other. Lunar age controls both the
 visible phase and the moon's direction relative to the sun.
+**Moon apparent size** defaults to 1.7× and ranges from 1–3×; changing it
+preserves integrated lunar-disc flux and does not change tides. **Look at moon**
+points the camera toward it, and the readout says whether it is above the horizon.
 
 Tides combine lunar and solar semidiurnal terms, following the
 [NOAA harmonic-constituent description](https://tidesandcurrents.noaa.gov/about_harmonic_constituents).
@@ -1325,17 +1331,52 @@ approximations. Tides use an approximate 75-square-lab-unit wet area and an
 offshore volume boundary, not a planetary gravity solver or a prediction for a
 real coastline. Rapid clock changes can outpace the bounded exchange rate.
 
-Atmospheric integration runs on the GPU into a cached 192 × 96 patch, with an
-explicit 48 × 24 CPU fallback. Static stars, extinction samples and the changing
-sky patch share one atlas to remain within the reflection pass's 16-texture
-limit. SH projection, clock advancement and bounded tidal bookkeeping run on
-the CPU; ordinary fluid constraints/transport retain their existing backend.
-The atlas's star mip chain is built once, rather than filtered every sky update.
+Atmospheric integration runs directly on the GPU into a cached 192 × 96 patch
+of a 256 × 128 lighting lookup, with an explicit 48 × 24 CPU fallback. An
+extinction row shares that lookup. Removing the old 2048 × 1152 star/sky atlas
+also removes the per-update texture copy and its synchronous GL state queries.
+SH projection, clock advancement and bounded tidal bookkeeping run on the CPU;
+ordinary fluid constraints/transport retain their existing backend.
 
-Validation: **434 numerical tests** and `npm run build` pass. The dedicated
+The faint procedural Milky Way now has a broad band, central bulge and dark
+rift. Slow dark adaptation reveals it; brighter sky, moonlight and nearby lights
+wash it out through the same exposure meter. Very dim vision loses some color.
+This approximates perceptual loss of faint sky detail, not atmospheric transport
+of city light pollution. Camera droplets refract and reflect incident radiance
+instead of adding a fixed glow that became white discs at night. Individual
+star points currently draw only in the direct sky view; water/glass reflection
+paths retain atmosphere, sun, moon and unresolved galactic light, but do not
+yet reproduce the individual star Gaussians.
+
+Continuous lunar intensity changes no longer invalidate the entire medium
+shadow history or force caustics to rerender every frame. Explicit light edits
+still refresh immediately. Sky-only controls no longer rebuild fluid density.
+Upward rays above the conservative sand bounds skip the terrain marcher; GPU
+pixel comparisons against the unbounded reference match exactly in three views.
+Night sky transmission also uses a radiance denominator appropriate to night
+levels, avoiding false opaque shadows when the sky becomes very dim.
+
+Performance evidence is in `tests/results/night-refinement/`, with a repeatable
+`tests/night-performance-gpu.html` harness. The browser reported **Intel UHD 630**.
+The synchronized full-simulation check uses 12,852+ bulk parcels, 32,768 fine
+markers, a 480 × 300 render, and the production medium-shadow dimensions. Before
+this change, day/night averaged 236.6/206.2 ms. Two updated runs measured
+228.2/196.8 ms and 242.8/208.5 ms. This is **not a verified sustained speedup**;
+the modest difference is within run variation. These are completed-work timings,
+not production animation-loop FPS. The reported 1–2 FPS state has not been
+reproduced in this controlled fixture; avoid treating the cache/copy fixes as a
+complete explanation for that regression. A separate 960 × 600 rendering-only
+check measured 219.6/217.7/221.0 ms for day, night and advancing lunar age in the
+final revision (baseline 231.3/279.2/261.3 ms); the expensive surface rendering
+still dominates, and these short runs do not establish steady-state simulation gains.
+
+Validation: **436 numerical tests** and `npm run build` pass. The dedicated
 `tests/sand-sky-gpu.html` preview checks 128 phase/time/direction combinations:
 maximum absolute GPU/reference radiance error **1.79e-7**, maximum relative error
 **4.26e-5**; night-range GPU exposure error **6.73e-7**. Tidal export/import
 conserves parcel volume to floating-point precision and subsequent fluid
 stepping remains finite. Day, sunset, moonlit and moonless sky, crescent detail,
-the CPU fallback and the production controls were visually inspected.
+the CPU fallback and the production controls were visually inspected. Added GPU
+checks compare star covariance against the CPU reference (maximum error
+**1.66e-8**) and exercise the actual lens shader with black, 1e-9 and daylight
+radiance; black remains black and uniform incident radiance is conserved.

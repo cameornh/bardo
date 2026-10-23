@@ -31,15 +31,19 @@ export function celestialDirection(d,day=0){const m=celestialMatrix(day);return 
 export function nightBackground(d,sun,day=0){
  const e=celestialDirection(d,day),pole=[.198076,.455984,.867666],latitude=e.reduce((s,v,k)=>s+v*pole[k],0);
  // Smooth unresolved galactic band, not a photograph or a cloud layer.
- const band=Math.exp(-latitude*latitude/.025),elongation=Math.acos(clamp(d.reduce((s,v,k)=>s+v*sun[k],0),-1,1));
+ const along=e[0]*.974-e[2]*.223,across=e[0]*-.101+e[1]*.89-e[2]*.445;
+ const granularity=.72+.18*Math.sin(along*18+Math.sin(across*11))+.10*Math.sin(along*43+across*23);
+ const ridge=latitude+.012*Math.sin(along*19),rift=1-.66*Math.exp(-ridge*ridge/.0005)*( .65+.35*Math.sin(along*12)**2);
+ const bulge=Math.exp(-((along+.75)**2+across**2)*3);
+ const band=Math.exp(-latitude*latitude/.014)*granularity*rift*(1+1.8*bulge),elongation=Math.acos(clamp(d.reduce((s,v,k)=>s+v*sun[k],0),-1,1));
  const ecliptic=d[0]*.3+d[1]*.4+d[2]*.8660254;
  const zodiacal=Math.exp(-ecliptic*ecliptic/.018)*Math.exp(-elongation/.42);
  const airglow=1/Math.sqrt(1-(6360/6450)**2*(1-d[1]*d[1]));
- return [0,1,2].map(k=>SKY_UNITS/Math.PI*(4e-8+2e-8*band*[1.04,1,.94][k]+1.2e-7*zodiacal*[1.1,1,.85][k]+5.1e-8*airglow*[.65,1,.45][k]));
+ return [0,1,2].map(k=>SKY_UNITS/Math.PI*(4e-8+3e-7*band*[1.04,1,.94][k]+1.2e-7*zodiacal*[1.1,1,.85][k]+5.1e-8*airglow*[.65,1,.45][k]));
 }
 export const NIGHT_MODEL_GLSL=`
 const float SKY_UNITS=22./1905.;
 float lunarPhase(float lit){float phi=acos(clamp(2.*lit-1.,-1.,1.));if(phi<1e-5)return 1.;if(phi>3.14149265)return 0.;float h=phi*.5;return max(0.,1.-sin(h)*tan(h)*log(1./tan(h*.5)));}
 float moonIrradiance(float lit){return ${FULL_MOON_RATIO}*(lunarPhase(lit)+.19/1905.*lunarPhase(1.-lit));}
-vec3 nightBackground(vec3 d,vec3 sun,mat3 rotation){vec3 e=rotation*d;float latitude=dot(e,vec3(.198076,.455984,.867666)),band=exp(-latitude*latitude/.025),elongation=acos(clamp(dot(d,sun),-1.,1.)),ecliptic=dot(d,vec3(.3,.4,.8660254));float zodiacal=exp(-ecliptic*ecliptic/.018)*exp(-elongation/.42),airglow=inversesqrt(1.-pow(6360./6450.,2.)*(1.-d.y*d.y));return SKY_UNITS/3.14159265*(vec3(4e-8)+2e-8*band*vec3(1.04,1,.94)+1.2e-7*zodiacal*vec3(1.1,1,.85)+5.1e-8*airglow*vec3(.65,1,.45));}
+vec3 nightBackground(vec3 d,vec3 sun,mat3 rotation){vec3 e=rotation*d;float latitude=dot(e,vec3(.198076,.455984,.867666)),along=dot(e,vec3(.974,0,-.223)),across=dot(e,vec3(-.101,.89,-.445)),granularity=.72+.18*sin(along*18.+sin(across*11.))+.10*sin(along*43.+across*23.),ridge=latitude+.012*sin(along*19.),rift=1.-.66*exp(-ridge*ridge/.0005)*(.65+.35*pow(sin(along*12.),2.)),bulge=exp(-(pow(along+.75,2.)+across*across)*3.),band=exp(-latitude*latitude/.014)*granularity*rift*(1.+1.8*bulge),elongation=acos(clamp(dot(d,sun),-1.,1.)),ecliptic=dot(d,vec3(.3,.4,.8660254));float zodiacal=exp(-ecliptic*ecliptic/.018)*exp(-elongation/.42),airglow=inversesqrt(1.-pow(6360./6450.,2.)*(1.-d.y*d.y));return SKY_UNITS/3.14159265*(vec3(4e-8)+3e-7*band*vec3(1.04,1,.94)+1.2e-7*zodiacal*vec3(1.1,1,.85)+5.1e-8*airglow*vec3(.65,1,.45));}
 `;

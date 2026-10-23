@@ -1,0 +1,32 @@
+{
+  "results": [
+    {
+      "look": [
+        0,
+        0.45,
+        -1
+      ],
+      "maximum": 0,
+      "pass": true
+    },
+    {
+      "look": [
+        0,
+        1,
+        0
+      ],
+      "maximum": 0,
+      "pass": true
+    },
+    {
+      "look": [
+        0,
+        -0.5,
+        -1
+      ],
+      "maximum": 0,
+      "pass": true
+    }
+  ],
+  "pass": true
+}

@@ -1,6 +1,7 @@
+import {mediumHistorySettings,mediumSkyDepth} from '../src/sand-lab/water-lab-medium-shadows.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {starAtlas} from '../src/sand-lab/celestial-sky.js';
+import {starDirection,projectStar,scintillation} from '../src/sand-lab/star-gaussians.js';
 import {lunarPhase,moonIrradiance,moonDirection,starIrradiance,starColor,celestialDirection} from '../src/sand-lab/night-sky-model.js';
 import {atmosphereSky,atmosphereTransmission} from '../src/sand-lab/atmosphere-model.js';
 import {exposureTarget,exposureStatistics,adaptExposure} from '../src/sand-lab/sky-exposure.js';
@@ -18,7 +19,13 @@ test('moon orbit, visible phase and lunar clock agree; daily and monthly clocks 
 });
 test('star photometry preserves magnitude ratios, warm/cool colors and flux through spherical projection',()=>{
  close(starIrradiance(1)/starIrradiance(6),100,1e-10);assert.ok(starColor(1.5)[0]>starColor(1.5)[2]);assert.ok(starColor(-.2)[2]>starColor(-.2)[0]);
- for(const dec of [0,60,89]){const a=starAtlas([[.01,dec,2,.65]],256,128);let flux=0;for(let y=0;y<a.height;y++)for(let x=0;x<a.width;x++){const i=(y*a.width+x)*4,l=a.data[i]*.2126+a.data[i+1]*.7152+a.data[i+2]*.0722;flux+=l*(2*Math.PI/a.width)*(Math.PI/a.height)*Math.cos(((y+.5)/a.height-.5)*Math.PI)/a.scale;}close(flux/starIrradiance(2),1,1e-6);}
+ for(const dec of [0,60,89,90]){const d=starDirection(12,dec);close(Math.hypot(...d),1);const p=projectStar([0,0,-1],800,800);close(p.xx,p.yy);close(p.xy,0);assert.ok(p.det>0);}
+ // Numerically integrate a skewed projected Gaussian and recover its flux.
+ const p=projectStar([.6,0,-.8],800,650);let integral=0,step=.025;
+ for(let y=-5;y<=5;y+=step)for(let x=-5;x<=5;x+=step)integral+=Math.exp(-.5*(p.yy*x*x-2*p.xy*x*y+p.xx*y*y)/p.det)/(2*Math.PI*Math.sqrt(p.det))*step*step;
+ close(integral,1,.0001);
+ for(let t=0;t<10;t+=.1){close(scintillation(0,.5,t,3),1);assert.ok(Math.abs(scintillation(6,.1,t,3)-1)<.09);}
+
  const a=celestialDirection([1,0,0],0),b=celestialDirection([1,0,0],24);a.forEach((v,k)=>close(v,b[k]));close(Math.hypot(...celestialDirection([.6,.8,0],7)),1);
 });
 test('clear moonless sky remains faint, moonlight scatters, and horizon extinction reddens stars',()=>{
@@ -36,4 +43,15 @@ test('offshore tide exchanges conserve parcel volume, preserve held water, and r
  for(let i=0;i<10;i++)tide.step(lab,.3);assert.ok(lab.count<initial);close((lab.count-initial)*lab.spacing**3,tide.exchanged);assert.equal(lab.positions[lab.held.ids[0]*4+3],1);
  lab.day=12;for(let i=0;i<20;i++)tide.step(lab,.3);assert.ok(tide.imported>0);close((lab.count-initial)*lab.spacing**3,tide.exchanged);assert.ok(lab.count<=lab.particleBudget);
  const count=lab.count;lab.tidesEnabled=false;lab.day=6;for(let i=0;i<10;i++)tide.step(lab,.3);assert.equal(lab.count,count);assert.ok(lab.positions.every(Number.isFinite));
+});
+
+test('moon intensity does not invalidate extinction history; material changes do',()=>{
+ const lab={kind:'ocean',spec:{scale:10},tannins:0,ambient:1,sunlight:1,lights:1,day:14,lunarDay:1};const a=mediumHistorySettings(lab,0,false);
+ lab.day=22;lab.lunarDay=10;lab.sunlight=1e-6;lab.ambient=.3;assert.equal(mediumHistorySettings(lab,0,false),a);
+ lab.tannins=1;assert.notEqual(mediumHistorySettings(lab,0,false),a);
+});
+test('ambient transmission is invariant to daylight versus tiny night radiance',()=>{
+ const options={sample:()=>[0,0,0,0],solid:()=>1,glass:()=>1,scale:10,organic:0,turbidity:0,step:.1};
+ const bright=mediumSkyDepth([0,0,0],()=>1,{...options,sky:()=>[1,.8,.5]}),dark=mediumSkyDepth([0,0,0],()=>1,{...options,sky:()=>[1e-10,.8e-10,.5e-10]});
+ bright.forEach((v,k)=>close(v,dark[k]));
 });

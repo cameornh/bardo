@@ -1,0 +1,749 @@
+{
+  "complete": true,
+  "adapter": "ANGLE (Intel, ANGLE Metal Renderer: Intel(R) UHD Graphics 630, Unspecified Version)",
+  "resolution": [
+    960,
+    600
+  ],
+  "bulk": 12852,
+  "results": [
+    {
+      "mode": "day",
+      "mean": 219.59999999403954,
+      "samples": [
+        {
+          "ms": 238.19999998807907,
+          "rows": 6,
+          "full": false,
+          "sky": 1,
+          "gpu": {
+            "surface": 129.182594112,
+            "atmosphere": 0.5015034880000001,
+            "spray shadows": 0,
+            "density": 22.068228272000002,
+            "medium shadows": 1.06719104,
+            "photons": 0.621999,
+            "front": 24.413805792,
+            "background": 60.921486512,
+            "water": 31.563536416000005,
+            "blobs": 12.283765392000003,
+            "sand grains": 0,
+            "rain / lens": 5.868111680000001
+          }
+        },
+        {
+          "ms": 220.89999997615814,
+          "rows": 6,
+          "full": false,
+          "sky": 1,
+          "gpu": {
+            "surface": 127.21782508960001,
+            "atmosphere": 0.4012027904000001,
+            "spray shadows": 0,
+            "density": 24.9841494176,
+            "medium shadows": 0.9855862320000001,
+            "photons": 0.621999,
+            "front": 23.186394433600004,
+            "background": 59.5107890096,
+            "water": 31.105245932800006,
+            "blobs": 13.415395713600002,
+            "sand grains": 0,
+            "rain / lens": 5.639622344000001
+          }
+        },
+        {
+          "ms": 236.40000000596046,
+          "rows": 6,
+          "full": false,
+          "sky": 1,
+          "gpu": {
+            "surface": 126.41824287168004,
+            "atmosphere": 0.3209622323200001,
+            "spray shadows": 0,
+            "density": 26.433402534080003,
+            "medium shadows": 0.9439023856000002,
+            "photons": 0.621999,
+            "front": 22.20548214688,
+            "background": 58.504097807680004,
+            "water": 30.96907974624001,
+            "blobs": 14.739583170880003,
+            "sand grains": 0,
+            "rain / lens": 5.543547875200002
+          }
+        },
+        {
+          "ms": 256.7999999821186,
+          "rows": 6,
+          "full": false,
+          "sky": 1,
+          "gpu": {
+            "surface": 125.59931069734401,
+            "atmosphere": 0.2567697858560001,
+            "spray shadows": 0,
+            "density": 25.066788627264003,
+            "medium shadows": 0.8457553084800001,
+            "photons": 0.5644322,
+            "front": 21.419652117504,
+            "background": 57.629494846144006,
+            "water": 30.544547196992006,
+            "blobs": 16.005616536704004,
+            "sand grains": 0,
+            "rain / lens": 5.345555100160002
+          }
+        },
+        {
+          "ms": 272,
+          "rows": 6,
+          "full": false,
+          "sky": 1,
+          "gpu": {
+            "surface": 125.05821495787522,
+            "atmosphere": 0.20541582868480007,
+            "spray shadows": 0,
+            "density": 22.319064101811204,
+            "medium shadows": 0.8093040467840001,
+            "photons": 0.5644322,
+            "front": 20.788838094003204,
+            "background": 56.830195876915205,
+            "water": 30.221487757593607,
+            "blobs": 17.217693229363203,
+            "sand grains": 0,
+            "rain / lens": 5.1217604801280014
+          }
+        },
+        {
+          "ms": 187.5,
+          "rows": 6,
+          "full": false,
+          "sky": 1,
+          "gpu": {
+            "surface": 124.88913836630019,
+            "atmosphere": 0.16433266294784007,
+            "spray shadows": 0,
+            "density": 24.599084481448966,
+            "medium shadows": 0.7772098374272001,
+            "photons": 0.5644322,
+            "front": 20.294553875202563,
+            "background": 56.20202310153217,
+            "water": 29.930390206074886,
+            "blobs": 18.462171183490565,
+            "sand grains": 0,
+            "rain / lens": 4.992274784102401
+          }
+        },
+        {
+          "ms": 194.7999999821186,
+          "rows": 6,
+          "full": false,
+          "sky": 1,
+          "gpu": {
+            "surface": 124.88931029304015,
+            "atmosphere": 0.13146613035827207,
+            "spray shadows": 0,
+            "density": 21.828750785159173,
+            "medium shadows": 0.7306510699417601,
+            "photons": 0.5644322,
+            "front": 19.916709700162052,
+            "background": 55.68356848122574,
+            "water": 29.69709536485991,
+            "blobs": 19.591936746792452,
+            "sand grains": 0,
+            "rain / lens": 4.852053227281921
+          }
+        },
+        {
+          "ms": 184.90000000596046,
+          "rows": 6,
+          "full": false,
+          "sky": 1,
+          "gpu": {
+            "surface": 124.91301463443214,
+            "atmosphere": 0.10517290428661766,
+            "spray shadows": 0,
+            "density": 19.58061702812734,
+            "medium shadows": 0.7331208559534081,
+            "photons": 0.5644322,
+            "front": 19.60101756012964,
+            "background": 55.302904584980595,
+            "water": 29.496626291887928,
+            "blobs": 20.512466197433962,
+            "sand grains": 0,
+            "rain / lens": 4.759209181825537
+          }
+        },
+        {
+          "ms": 213.69999998807907,
+          "rows": 6,
+          "full": false,
+          "sky": 1,
+          "gpu": {
+            "surface": 125.14667790754571,
+            "atmosphere": 0.08413832342929413,
+            "spray shadows": 0,
+            "density": 22.184960022501873,
+            "medium shadows": 0.7019966847627266,
+            "photons": 0.5644322,
+            "front": 19.375163848103714,
+            "background": 54.99594006798448,
+            "water": 29.373751033510345,
+            "blobs": 21.40182295794717,
+            "sand grains": 0,
+            "rain / lens": 4.6948505454604295
+          }
+        },
+        {
+          "ms": 220.69999998807907,
+          "rows": 6,
+          "full": false,
+          "sky": 1,
+          "gpu": {
+            "surface": 125.33002532603656,
+            "atmosphere": 0.06731065874343531,
+            "spray shadows": 0,
+            "density": 24.412468018001498,
+            "medium shadows": 0.6933973478101814,
+            "photons": 0.5179289600000001,
+            "front": 19.16901447848297,
+            "background": 54.696268454387585,
+            "water": 29.240617426808278,
+            "blobs": 22.22412496635774,
+            "sand grains": 0,
+            "rain / lens": 4.642563636368344
+          }
+        },
+        {
+          "ms": 205.59999999403954,
+          "rows": 6,
+          "full": false,
+          "sky": 1,
+          "gpu": {
+            "surface": 125.56098646082928,
+            "atmosphere": 0.05384852699474825,
+            "spray shadows": 0,
+            "density": 21.9499576144012,
+            "medium shadows": 0.7077178782481451,
+            "photons": 0.5179289600000001,
+            "front": 19.01474478278638,
+            "background": 54.46061476351007,
+            "water": 29.208843741446625,
+            "blobs": 22.876783173086192,
+            "sand grains": 0,
+            "rain / lens": 4.634617309094676
+          }
+        },
+        {
+          "ms": 203.7000000178814,
+          "rows": 6,
+          "full": false,
+          "sky": 1,
+          "gpu": {
+            "surface": 125.75383856866341,
+            "atmosphere": 0.0430788215957986,
+            "spray shadows": 0,
+            "density": 24.27926589152096,
+            "medium shadows": 0.656224302598516,
+            "photons": 0.5179289600000001,
+            "front": 18.895812226229104,
+            "background": 54.29370861080806,
+            "water": 29.130058193157303,
+            "blobs": 23.434259538468957,
+            "sand grains": 0,
+            "rain / lens": 4.619827047275741
+          }
+        }
+      ]
+    },
+    {
+      "mode": "night",
+      "mean": 217.68333333730698,
+      "samples": [
+        {
+          "ms": 208.7999999821186,
+          "rows": 6,
+          "full": false,
+          "sky": 2,
+          "gpu": {
+            "surface": 126.73725910793965,
+            "atmosphere": 0.0844818666605113,
+            "spray shadows": 0,
+            "density": 18.60842868477359,
+            "medium shadows": 0.6486395308354818,
+            "photons": 0.4609931680000001,
+            "front": 18.650370350610753,
+            "background": 54.088097514389595,
+            "water": 28.88911973145379,
+            "blobs": 25.109671511485512,
+            "sand grains": 0,
+            "rain / lens": 4.484192132931316
+          }
+        },
+        {
+          "ms": 193.59999999403954,
+          "rows": 6,
+          "full": false,
+          "sky": 2,
+          "gpu": {
+            "surface": 126.77869048635172,
+            "atmosphere": 0.06758549332840905,
+            "spray shadows": 0,
+            "density": 22.42524274781887,
+            "medium shadows": 0.6491616246683855,
+            "photons": 0.4609931680000001,
+            "front": 18.579629480488602,
+            "background": 54.10057801151168,
+            "water": 28.839112385163034,
+            "blobs": 25.259370609188412,
+            "sand grains": 0,
+            "rain / lens": 4.481403506345053
+          }
+        },
+        {
+          "ms": 252.40000000596046,
+          "rows": 6,
+          "full": false,
+          "sky": 2,
+          "gpu": {
+            "surface": 126.75128558908139,
+            "atmosphere": 0.05406839466272724,
+            "spray shadows": 0,
+            "density": 20.103243998255095,
+            "medium shadows": 0.6813458997347084,
+            "photons": 0.4609931680000001,
+            "front": 18.570403384390882,
+            "background": 54.03969580920935,
+            "water": 28.814906508130427,
+            "blobs": 25.32627988735073,
+            "sand grains": 0,
+            "rain / lens": 4.453606005076043
+          }
+        },
+        {
+          "ms": 232.2000000178814,
+          "rows": 6,
+          "full": false,
+          "sky": 2,
+          "gpu": {
+            "surface": 126.72396167126512,
+            "atmosphere": 0.043254715730181796,
+            "spray shadows": 0,
+            "density": 23.15751179860408,
+            "medium shadows": 0.6375435197877667,
+            "photons": 0.4609931680000001,
+            "front": 18.52838910751271,
+            "background": 53.92037344736748,
+            "water": 28.794825206504342,
+            "blobs": 25.480373909880583,
+            "sand grains": 0,
+            "rain / lens": 4.537118204060834
+          }
+        },
+        {
+          "ms": 225.10000002384186,
+          "rows": 6,
+          "full": false,
+          "sky": 2,
+          "gpu": {
+            "surface": 126.6749693370121,
+            "atmosphere": 0.03460377258414544,
+            "spray shadows": 0,
+            "density": 20.709809238883263,
+            "medium shadows": 0.6460180158302133,
+            "photons": 0.4609931680000001,
+            "front": 18.48489448601017,
+            "background": 53.87816535789399,
+            "water": 28.787226965203473,
+            "blobs": 25.52468252790447,
+            "sand grains": 0,
+            "rain / lens": 4.496727763248668
+          }
+        },
+        {
+          "ms": 205.30000001192093,
+          "rows": 6,
+          "full": false,
+          "sky": 2,
+          "gpu": {
+            "surface": 126.8163750696097,
+            "atmosphere": 0.02768301806731635,
+            "spray shadows": 0,
+            "density": 22.88776379110661,
+            "medium shadows": 0.6535810126641708,
+            "photons": 0.4158775344000001,
+            "front": 18.465698988808136,
+            "background": 53.8209820863152,
+            "water": 28.80449817216278,
+            "blobs": 25.725195822323577,
+            "sand grains": 0,
+            "rain / lens": 4.633432210598935
+          }
+        },
+        {
+          "ms": 296,
+          "rows": 6,
+          "full": false,
+          "sky": 2,
+          "gpu": {
+            "surface": 126.81950005568777,
+            "atmosphere": 0.022146414453853083,
+            "spray shadows": 0,
+            "density": 20.504927632885288,
+            "medium shadows": 0.6337480101313366,
+            "photons": 0.4158775344000001,
+            "front": 18.46169239104651,
+            "background": 53.81511906905216,
+            "water": 28.814631937730226,
+            "blobs": 25.728056657858865,
+            "sand grains": 0,
+            "rain / lens": 4.610662568479148
+          }
+        },
+        {
+          "ms": 192,
+          "rows": 6,
+          "full": false,
+          "sky": 2,
+          "gpu": {
+            "surface": 126.73346624455021,
+            "atmosphere": 0.017717131563082467,
+            "spray shadows": 0,
+            "density": 18.63194210630823,
+            "medium shadows": 0.6514316081050694,
+            "photons": 0.4158775344000001,
+            "front": 18.440670312837206,
+            "background": 53.78261185524173,
+            "water": 28.78410535018418,
+            "blobs": 25.726078726287092,
+            "sand grains": 0,
+            "rain / lens": 4.583863454783319
+          }
+        },
+        {
+          "ms": 184.09999999403954,
+          "rows": 6,
+          "full": false,
+          "sky": 2,
+          "gpu": {
+            "surface": 126.83742239564017,
+            "atmosphere": 0.014173705250465974,
+            "spray shadows": 0,
+            "density": 21.522220085046584,
+            "medium shadows": 0.6390952864840556,
+            "photons": 0.4158775344000001,
+            "front": 18.460552650269765,
+            "background": 53.81147268419339,
+            "water": 28.753950680147344,
+            "blobs": 25.811446381029675,
+            "sand grains": 0,
+            "rain / lens": 4.5436237638266554
+          }
+        },
+        {
+          "ms": 192.80000001192093,
+          "rows": 6,
+          "full": false,
+          "sky": 2,
+          "gpu": {
+            "surface": 126.87945431651214,
+            "atmosphere": 0.01133896420037278,
+            "spray shadows": 0,
+            "density": 19.397559068037268,
+            "medium shadows": 0.6583930291872445,
+            "photons": 0.4158775344000001,
+            "front": 18.510375320215815,
+            "background": 53.802044747354714,
+            "water": 28.754327344117875,
+            "blobs": 25.81270690482374,
+            "sand grains": 0,
+            "rain / lens": 4.513299011061324
+          }
+        },
+        {
+          "ms": 207.5,
+          "rows": 6,
+          "full": false,
+          "sky": 2,
+          "gpu": {
+            "surface": 127.07134645320973,
+            "atmosphere": 0.009071171360298225,
+            "spray shadows": 0,
+            "density": 22.154597054429814,
+            "medium shadows": 0.6926978233497957,
+            "photons": 0.4158775344000001,
+            "front": 18.47431705617265,
+            "background": 53.80810239788377,
+            "water": 28.7764450752943,
+            "blobs": 26.012481923858996,
+            "sand grains": 0,
+            "rain / lens": 4.53230560884906
+          }
+        },
+        {
+          "ms": 222.40000000596046,
+          "rows": 6,
+          "full": false,
+          "sky": 2,
+          "gpu": {
+            "surface": 126.95019336256777,
+            "atmosphere": 0.00725693708823858,
+            "spray shadows": 0,
+            "density": 23.95391104354385,
+            "medium shadows": 0.6441082586798366,
+            "photons": 0.3794018275200001,
+            "front": 18.471120244938124,
+            "background": 53.74508171830702,
+            "water": 28.75582266023544,
+            "blobs": 25.9781687390872,
+            "sand grains": 0,
+            "rain / lens": 4.4817278870792485
+          }
+        }
+      ]
+    },
+    {
+      "mode": "lunar",
+      "mean": 221.01666667064032,
+      "samples": [
+        {
+          "ms": 240.60000002384186,
+          "rows": 6,
+          "full": false,
+          "sky": 4,
+          "gpu": {
+            "surface": 126.73050963016624,
+            "atmosphere": 0.22483307314507406,
+            "spray shadows": 0,
+            "density": 22.394316113788452,
+            "medium shadows": 0.6468066841242088,
+            "photons": 0.3794018275200001,
+            "front": 18.500567732741327,
+            "background": 53.700387664494855,
+            "water": 28.67439553986595,
+            "blobs": 25.855158693064094,
+            "sand grains": 0,
+            "rain / lens": 4.524834374838128
+          }
+        },
+        {
+          "ms": 201.7000000178814,
+          "rows": 6,
+          "full": false,
+          "sky": 4,
+          "gpu": {
+            "surface": 126.852157504133,
+            "atmosphere": 0.17986645851605926,
+            "spray shadows": 0,
+            "density": 20.079036091030765,
+            "medium shadows": 0.645945347299367,
+            "photons": 0.35180446201600013,
+            "front": 18.47870398619306,
+            "background": 53.700026931595886,
+            "water": 28.733999631892765,
+            "blobs": 25.939426954451278,
+            "sand grains": 0,
+            "rain / lens": 4.5731840998705025
+          }
+        },
+        {
+          "ms": 213.90000000596046,
+          "rows": 6,
+          "full": false,
+          "sky": 5,
+          "gpu": {
+            "surface": 126.9192756033064,
+            "atmosphere": 0.14389316681284742,
+            "spray shadows": 0,
+            "density": 20.651912072824615,
+            "medium shadows": 0.6802228778394936,
+            "photons": 0.35180446201600013,
+            "front": 18.45974638895445,
+            "background": 53.79835454527671,
+            "water": 28.734516505514215,
+            "blobs": 25.926658163561022,
+            "sand grains": 0,
+            "rain / lens": 4.567647279896402
+          }
+        },
+        {
+          "ms": 196.7999999821186,
+          "rows": 6,
+          "full": false,
+          "sky": 5,
+          "gpu": {
+            "surface": 126.83495328264512,
+            "atmosphere": 0.24714773345027793,
+            "spray shadows": 0,
+            "density": 22.639746058259693,
+            "medium shadows": 0.6404781022715949,
+            "photons": 0.35180446201600013,
+            "front": 18.43451351116356,
+            "background": 53.75328343622137,
+            "water": 28.744463004411376,
+            "blobs": 25.90269333084882,
+            "sand grains": 0,
+            "rain / lens": 4.696134423917122
+          }
+        },
+        {
+          "ms": 239.90000000596046,
+          "rows": 6,
+          "full": false,
+          "sky": 6,
+          "gpu": {
+            "surface": 126.8497624261161,
+            "atmosphere": 0.19771818676022235,
+            "spray shadows": 0,
+            "density": 24.817496846607757,
+            "medium shadows": 0.6459322818172759,
+            "photons": 0.35180446201600013,
+            "front": 18.43187740893085,
+            "background": 53.7276599489771,
+            "water": 28.7761536035291,
+            "blobs": 25.914071464679058,
+            "sand grains": 0,
+            "rain / lens": 4.652907539133698
+          }
+        },
+        {
+          "ms": 234,
+          "rows": 6,
+          "full": false,
+          "sky": 6,
+          "gpu": {
+            "surface": 126.81380914089289,
+            "atmosphere": 0.29064114940817787,
+            "spray shadows": 0,
+            "density": 26.186180677286206,
+            "medium shadows": 0.6565790254538207,
+            "photons": 0.35180446201600013,
+            "front": 18.39821852714468,
+            "background": 53.70472775918168,
+            "water": 28.76730588282328,
+            "blobs": 25.94355697174325,
+            "sand grains": 0,
+            "rain / lens": 4.646859031306958
+          }
+        },
+        {
+          "ms": 238.7000000178814,
+          "rows": 6,
+          "full": false,
+          "sky": 6,
+          "gpu": {
+            "surface": 126.87529691271433,
+            "atmosphere": 0.2325129195265423,
+            "spray shadows": 0,
+            "density": 27.428294541828965,
+            "medium shadows": 0.6335300203630566,
+            "photons": 0.35180446201600013,
+            "front": 18.380874621715748,
+            "background": 53.71229880734535,
+            "water": 28.805827906258624,
+            "blobs": 25.976295577394602,
+            "sand grains": 0,
+            "rain / lens": 4.638087225045567
+          }
+        },
+        {
+          "ms": 213.59999999403954,
+          "rows": 6,
+          "full": false,
+          "sky": 7,
+          "gpu": {
+            "surface": 127.08202033017147,
+            "atmosphere": 0.18601033562123384,
+            "spray shadows": 0,
+            "density": 25.88866883346317,
+            "medium shadows": 0.6525070162904453,
+            "photons": 0.3290435696128001,
+            "front": 18.3972662973726,
+            "background": 53.80263904587628,
+            "water": 28.8121955250069,
+            "blobs": 26.06991946191568,
+            "sand grains": 0,
+            "rain / lens": 4.581769780036454
+          }
+        },
+        {
+          "ms": 250.80000001192093,
+          "rows": 6,
+          "full": false,
+          "sky": 7,
+          "gpu": {
+            "surface": 126.9343492641372,
+            "atmosphere": 0.29007466849698704,
+            "spray shadows": 0,
+            "density": 26.987801666770537,
+            "medium shadows": 0.6398554130323563,
+            "photons": 0.3290435696128001,
+            "front": 18.382096237898082,
+            "background": 53.761811236701035,
+            "water": 28.778722820005523,
+            "blobs": 26.01171896953255,
+            "sand grains": 0,
+            "rain / lens": 4.528665824029163
+          }
+        },
+        {
+          "ms": 219.5,
+          "rows": 6,
+          "full": false,
+          "sky": 8,
+          "gpu": {
+            "surface": 126.93296221130976,
+            "atmosphere": 0.23205973479758965,
+            "spray shadows": 0,
+            "density": 28.62087473341643,
+            "medium shadows": 0.642134330425885,
+            "photons": 0.3290435696128001,
+            "front": 18.391276990318467,
+            "background": 53.705832389360836,
+            "water": 28.78801125600442,
+            "blobs": 26.04784157562604,
+            "sand grains": 0,
+            "rain / lens": 4.524965859223331
+          }
+        },
+        {
+          "ms": 206.19999998807907,
+          "rows": 6,
+          "full": false,
+          "sky": 8,
+          "gpu": {
+            "surface": 126.86173636904782,
+            "atmosphere": 0.3150641878380717,
+            "spray shadows": 0,
+            "density": 29.485916186733142,
+            "medium shadows": 0.6763572643407081,
+            "photons": 0.3290435696128001,
+            "front": 18.365921592254775,
+            "background": 53.65733271148867,
+            "water": 28.784559004803537,
+            "blobs": 26.053923060500836,
+            "sand grains": 0,
+            "rain / lens": 4.551239487378665
+          }
+        },
+        {
+          "ms": 196.5,
+          "rows": 6,
+          "full": false,
+          "sky": 8,
+          "gpu": {
+            "surface": 126.73622189523826,
+            "atmosphere": 0.2520513502704574,
+            "spray shadows": 0,
+            "density": 31.278349549386515,
+            "medium shadows": 0.6331524114725665,
+            "photons": 0.3290435696128001,
+            "front": 18.34673727380382,
+            "background": 53.63334936919094,
+            "water": 28.760663603842833,
+            "blobs": 25.99547164840067,
+            "sand grains": 0,
+            "rain / lens": 4.512941389902933
+          }
+        }
+      ]
+    }
+  ]
+}

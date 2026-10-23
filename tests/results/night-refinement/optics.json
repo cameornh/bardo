@@ -1,0 +1,15 @@
+{
+  "fixture": "celestial pole / no latitude warp",
+  "day": 0,
+  "lunarDay": 0,
+  "illuminated": 0,
+  "skyBackend": "GPU cached atmosphere",
+  "exposureBackend": "GPU",
+  "exposure": [
+    18226082,
+    18225960,
+    4.389343888355768e-10,
+    0
+  ],
+  "nonFinite": 0
+}

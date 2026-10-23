@@ -35,7 +35,10 @@ void main(){vec4 s=texelFetch(uStats,ivec2(0),0);float average=exp(s.x/max(1.,s.
  float value=exp(mix(log(previous),log(target),1.-exp(-max(0.,uDt)/tau)));
  outColor=vec4(value,target,average,excess);}`;
 const output=`precision highp float;in vec2 vUv;out vec4 outColor;uniform sampler2D uImage,uExposure;
-void main(){vec3 c=texture(uImage,vUv).rgb*texelFetch(uExposure,ivec2(0),0).r;c=c/(c+vec3(.7));outColor=vec4(pow(max(c,vec3(0)),vec3(1./2.2)),1.);}`;
+void main(){vec4 state=texelFetch(uExposure,ivec2(0),0);vec3 c=texture(uImage,vUv).rgb*state.r;
+// Rod-dominated dark adaptation reduces chroma. It does not brighten faint
+// structure when nearby lights keep the exposure low (perceptual skyglow).
+float scotopic=(1.-smoothstep(1e-8,1e-5,state.b))*smoothstep(1e3,1e6,state.r);float y=dot(c,vec3(.2126,.7152,.0722));c=mix(c,y*vec3(.82,.96,1.12),scotopic*.72);c=c/(c+vec3(.7));outColor=vec4(pow(max(c,vec3(0)),vec3(1./2.2)),1.);}`;
 export class LabExposure{
  constructor(renderer){
   this.renderer=renderer;this.camera=new THREE.Camera();this.geometry=new THREE.PlaneGeometry(2,2);this.levels=[];this.cpu=false;this.value=1;this.stats=[0,0,0,1];this.age=Infinity;
