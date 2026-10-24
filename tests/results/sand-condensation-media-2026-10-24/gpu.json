@@ -1,0 +1,74 @@
+{
+  "rows": [
+    {
+      "mode": "Air",
+      "error": 2.348838204491166e-8,
+      "pixel": [
+        0.2027209848165512,
+        0.24192044138908386,
+        0.24700000882148743,
+        0.3799999952316284
+      ],
+      "pass": true
+    },
+    {
+      "mode": "Behind blue glass",
+      "error": 2.114173716649681e-8,
+      "pixel": [
+        0.061162710189819336,
+        0.18334141373634338,
+        0.24700000882148743,
+        0.3799999952316284
+      ],
+      "pass": true
+    },
+    {
+      "mode": "Glass and water",
+      "error": 1.761218205650894e-8,
+      "pixel": [
+        0.026469197124242783,
+        0.15620684623718262,
+        0.2330796867609024,
+        0.3799999952316284
+      ],
+      "pass": true
+    },
+    {
+      "mode": "Submerged black/tinted glass",
+      "error": 2.9066379941822262e-8,
+      "pixel": [
+        0.14494340121746063,
+        0.3362323045730591,
+        0.3613556921482086,
+        1
+      ],
+      "pass": true
+    },
+    {
+      "mode": "Airborne droplet: original diameter",
+      "error": 1.1920928910669204e-8,
+      "pixel": [
+        0.699999988079071,
+        0.20000000298023224,
+        0,
+        1
+      ],
+      "pass": true
+    },
+    {
+      "mode": "Immersed bubble: half diameter",
+      "error": 5.960464455334602e-9,
+      "pixel": [
+        0.3499999940395355,
+        0.10000000149011612,
+        0,
+        1
+      ],
+      "pass": true
+    }
+  ],
+  "pass": true,
+  "contextLost": false,
+  "programs": 4,
+  "physics": "none; 3 bead draws and 3 single-pixel optical checks"
+}

@@ -7,15 +7,11 @@ import {detailStep} from '../src/sand-lab/water-lab-detail.js';
 import {sprayShadowKernel} from '../src/sand-lab/water-lab-spray-shadows.js';
 function fixture(wet=1){const lab={spacing:1,sand:{materialAt:()=>wet,distance:p=>p[1]},balls:[],count:0,particleBudget:100,solid:p=>p[1]};return new SurfaceDrops({lab,appendParcels(){},addWaterDeposit(){}});}
 const hit={point:[0,0,0],normal:[0,1,0],particle:-1};
-test('one rain packet reveals individual, dispersed beads over time instead of a rosette burst',()=>{
- const drops=fixture();drops.impact({volume:.2},hit);assert.equal(drops.beads().length,0);
- let previous=0;for(let i=0;i<200;i++){drops.step(.02);const count=drops.beads().length;assert.ok(count-previous<=1);previous=count;}
- const beads=drops.beads();assert.equal(beads.length,DROP_BEADS);assert.ok(beads.every(b=>b.radius<=.1&&Math.abs(b.position[1]-b.radius*.5)<1e-9));
- // Carpet coverage, not a tight center cluster or concentric placement rings.
- const extents=[0,2].map(k=>Math.max(...beads.map(b=>b.position[k]))-Math.min(...beads.map(b=>b.position[k])));assert.ok(extents.every(x=>x>1));
- const distances=beads.map((b,i)=>Math.min(...beads.filter((_,j)=>j!==i).map(c=>Math.hypot(b.position[0]-c.position[0],b.position[2]-c.position[2]))));
- assert.ok(Math.min(...distances)>.06);assert.ok(distances.reduce((a,b)=>a+b,0)/beads.length>.12);
- assert.equal(drops.volume,.2);
+test('individual rain contacts leave one bead each instead of growing reservoir clusters',()=>{
+ const drops=fixture();drops.impact({volume:.002},hit);for(let i=0;i<100;i++)drops.step(.02);assert.equal(drops.beads().length,1);
+ for(let i=1;i<48;i++){const x=(i%8-3.5)*.15,z=(Math.floor(i/8)-2.5)*.15;drops.impact({volume:.002},{...hit,point:[x,0,z]});drops.step(.08);}
+ const beads=drops.beads();assert.equal(beads.length,48);assert.ok(beads.every(b=>b.radius<=.1&&Math.abs(b.position[1]-b.radius*.5)<1e-9));
+ assert.ok(Math.abs(drops.volume-.096)<1e-12);
 });
 test('wet sand continuously retains more surface water while dry sand absorbs it',()=>{
  let previous=0;for(let i=0;i<=20;i++){const wet=i/20,d=fixture(wet);d.impact({volume:.001},hit);d.step(.1);let retained=0;for(const p of d.patches.values())retained+=p.volume;

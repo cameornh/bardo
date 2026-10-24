@@ -40,7 +40,7 @@ export class SurfaceDrops {
    const distance=Math.hypot(...local.map((v,k)=>v-q.local[k]));if(distance<nearest&&this.frame(q).normal.reduce((n,v,k)=>n+v*hit.normal[k],0)>.8){p=q;nearest=distance;}
   }
   if(!p){p={id:++this.sequence,body,local,localNormal:body?rotate(hit.normal,body.tilt,body.spin,true,body.pitch):hit.normal.slice(),point:hit.point.slice(),normal:hit.normal.slice(),volume:0,shown:0,age:0,beads:[],beadClock:0,arrivals:[]};this.patches.set(key,p);}
-  p.volume+=volume;if(p.arrivals.length<DROP_BEADS)p.arrivals.push(local);this.revision++;return true;
+  p.volume+=volume;if(p.beads.length>=DROP_BEADS)p.beads.shift();if(p.arrivals.length<DROP_BEADS)p.arrivals.push(local);this.revision++;return true;
  }
  step(dt){
   const lab=this.lab,s=lab.spacing,pv=s**3;
@@ -52,13 +52,16 @@ export class SurfaceDrops {
    p.age+=dt;p.waterClock=(p.waterClock??.25)+dt;p.shown+=(p.volume-p.shown)*(1-Math.exp(-dt/.22));
    if(p.body&&!lab.balls.includes(p.body)){p.point=this.frame(p).point;p.normal=this.frame(p).normal;p.body=null;}
    const {point,normal}=this.frame(p);
-   // A flux packet represents many raindrops. Reveal its small surface beads
-   // individually; their optical radius is capped while all mass stays in the
-   // conservative patch reservoir until it coalesces into resolved water.
+   // Each impact leaves one bead at its own contact, not a rosette grown
+   // around a reservoir centre. The reservoir still conserves all rain mass.
    p.beadClock+=dt;
-   const target=Math.min(DROP_BEADS,Math.ceil(p.volume/(4*Math.PI/3*(s*.1)**3)));
+   const target=Math.min(DROP_BEADS,p.beads.length+p.arrivals.length);
+   if(beadBudget<=0&&p.beads.length===0&&p.arrivals.length){
+    let donor=null;for(const q of this.patches.values())if(q.beads.length>(donor?.beads.length??1))donor=q;
+    if(donor){donor.beads.pop();beadBudget++;}
+   }
    if(beadBudget>0&&p.beads.length<target&&p.beadClock>=DROP_BEAD_INTERVAL){this.addBead(p);beadBudget--;p.beadClock%=DROP_BEAD_INTERVAL;}
-   if(p.waterClock>=.25&&lab.waterAt&&lab.waterAt(point.map((v,k)=>v+normal[k]*.02)).density>.08){
+   if(p.waterClock>=.25&&lab.waterAt&&lab.waterAt(point.map((v,k)=>v+normal[k]*Math.max(.02,s*.35))).density>.24){
     // Submerged beads join water mass; never decorate the free surface.
     this.rain.addWaterDeposit(point,p.volume);this.patches.delete(key);continue;
    }
@@ -92,7 +95,7 @@ export class SurfaceDrops {
    const local=p.body?bodyLocal(q,p.body):q;let distance=Infinity;
    for(const b of p.beads)distance=Math.min(distance,Math.hypot(...local.map((x,k)=>x-b.point[k])));
    if(distance>best){best=distance;chosen=local;normal=p.body?rotate(nn,p.body.tilt,p.body.spin,true,p.body.pitch):nn;}
-   if(j===0&&distance>s*.24)break;
+   if(j===0&&distance>s*.12)break;
   }
   if(chosen)p.beads.push({point:chosen,normal});
  }

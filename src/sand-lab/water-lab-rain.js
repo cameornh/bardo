@@ -1,8 +1,13 @@
+import {rainBodyHeight} from './rain-object-contacts.js';
+import {bodyNormal} from './objects.js';
 import {SurfaceDrops} from './surface-drops.js';
 import {rainSegments} from './rain-appearance.js';
 import {labAirVelocity} from './water-lab-air.js';
 import {hash, clamp, rotate, vesselLocal, vesselDistance, normalAt} from './water-lab-model.js';
 
+// A progressive, evenly distributed sequence covers the complete footprint
+// without the empty patches / repeated clusters of independent random hits.
+export function rainFootprintSample(sequence){return [((.5+sequence*.7548776662466927)%1)-.5,((.5+sequence*.5698402909980532)%1)-.5];}
 export const RAIN_PACKET_LIMIT=4096;
 export function rainPacketRate(rate){return rate>0?Math.min(144,48+16*Math.log2(1+rate/5)):0;}
 
@@ -268,14 +273,21 @@ export class LabRain {
           const seq=++this.sequence;
           // Stable independent sky samples avoid diagonal curtains when the
           // falling packets become visible. Openings collect by sky area.
-          const x=(hash(seq*2)-.5)*this.skyWidth,z=(hash(seq*2+1)-.5)*this.skyDepth;
+          const sample=lab.sand?rainFootprintSample(seq):[hash(seq*2)-.5,hash(seq*2+1)-.5],x=sample[0]*this.skyWidth,z=sample[1]*this.skyDepth;
           if(lab.sand){
             // Rain is a surface flux, sampled over the whole periodic footprint.
             // Its display-only sky columns must not impose an 85 m flight queue
             // on switching precipitation on/off. Only runoff keeps ballistic mass.
             const a=[x,9,z],b=[x,-2,z],water=this.waterHit(a,b),end=water?water.point:b;
-            const solid=this.solidHit(a,end,q=>lab.solid(q,true,false));
-            const hit=solid||water;
+            // Thin glass is a physical receiver too. Resolve its exact surface
+            // before testing the approximate water columns; a column's broad
+            // support can otherwise swallow an exposed sphere/rim.
+            const [bodyY,bodyIndex]=rainBodyHeight(x,z,lab.balls),bodyPoint=[x,bodyY,z];
+            const exposedBody=bodyIndex>=0&&(!water||bodyY>=water.point[1]||lab.waterAt?.(bodyPoint).density<.18);
+            const stop=exposedBody?bodyPoint:end;
+            const solid=this.solidHit(a,stop,q=>lab.sand.distance?lab.sand.distance(q):lab.solid(q,false,false));
+            const bodyHit=exposedBody?{point:bodyPoint,normal:bodyNormal(bodyPoint,lab.balls[bodyIndex]),particle:-1}:null;
+            const hit=solid||bodyHit||water;
             if(hit){const air=lab.air?.grid?lab.air.sampleGrid(hit.point):[lab.wind*.6/scale,0,lab.wind*.08/scale];
               this.impact({volume,velocity:[air[0],-9/scale,air[2]]},hit);
             }else {this.sourceVolume+=volume;continue;}

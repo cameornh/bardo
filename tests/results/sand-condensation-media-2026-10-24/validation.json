@@ -1,0 +1,26 @@
+{
+  "numerical_tests": {
+    "suite": "npm test",
+    "passed": 505,
+    "failed": 0,
+    "focused_checks_after_final_vertex_change": 7
+  },
+  "build": "npm run build",
+  "gpu": {
+    "report": "gpu.json",
+    "preview": "preview.png",
+    "scope": "Actual bead shaders, isolated glass-water fragment, and actual blob vertex stage with a trivial readback fragment. No fluid solver or full scene renderer."
+  },
+  "changes": [
+    "One bead per rain contact; progressive full-footprint rain sampling; analytic exposed-object contacts.",
+    "Glass tint and occupied-water extinction/scattering for condensation.",
+    "Separate foreground-water correction for late glass composition without double attenuation.",
+    "Half-diameter optical lobes when immersed in the bulk water field; camera-independent size, unchanged airborne drops and physical water mass."
+  ],
+  "limitations": [
+    "Full beach integration was not visually rechecked. An earlier full-renderer fixture triggered a graphics-process failure and was removed. The graphics service recovered automatically; no restart was requested or performed.",
+    "The screenshot bubble was inferred to be an immersed reconstructed water lobe; that exact spontaneous occurrence was not reproduced.",
+    "The small optical transport passes approximate incident light with sky spherical harmonics and direct sunlight. They do not add local lamp scattering."
+  ],
+  "safety": "Existing CPU constraint fallback is unchanged. The final fixture creates no graphics context until its button is clicked and contains no full scene programs."
+}

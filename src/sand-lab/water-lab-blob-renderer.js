@@ -1,6 +1,12 @@
 import * as THREE from 'three';
 import {BLOB_FAMILIES, BLOB_KERNELS, LabBlobFamilies, blobFamily, sampleBlob} from './water-lab-blobs.js';
 import {QUAD_VERTEX} from '../shaders.js';
+import {LAB_FIELD_GLSL} from './water-lab-field.js';
+
+export const UNDERWATER_BUBBLE_DIAMETER=.5;
+// This scale belongs only to the submerged optical lobes. It never changes
+// parcel mass, buoyancy, rain accumulation, or the above-water water surface.
+export function bubbleKernel(kernel,center,scale=UNDERWATER_BUBBLE_DIAMETER){return {...kernel,position:kernel.position.map((v,k)=>center[k]+(v-center[k])*scale),sigma:kernel.sigma*scale};}
 
 export const BLOB_DENSITY_GLSL = `
 vec4 blobSample(vec3 p){
@@ -13,14 +19,18 @@ vec4 blobSample(vec3 p){
   return sum;
 }`;
 
-const vertex = `precision highp float;precision highp int;
-in vec4 aParcel;uniform highp sampler2D uBlobKernels;
+export const BLOB_VERTEX = `precision highp float;precision highp int;
+${LAB_FIELD_GLSL}
+in vec4 aParcel;uniform highp sampler2D uBlobKernels;uniform float uBubbleSize;
 flat out vec4 vK[5],vA[2],vBound;flat out vec3 vChem;
 void main(){
-  for(int i=0;i<5;i++)vK[i]=texelFetch(uBlobKernels,ivec2(i,gl_InstanceID),0);
+  // Only lobes embedded in bulk water get the bubble presentation scale.
+  // Use world-space immersion, so orbiting the camera cannot resize drops.
+  float size=mix(1.,uBubbleSize,smoothstep(.12,.24,parcelSample(aParcel.xyz).x));
+  for(int i=0;i<5;i++){vK[i]=texelFetch(uBlobKernels,ivec2(i,gl_InstanceID),0);vK[i].xyz=aParcel.xyz+(vK[i].xyz-aParcel.xyz)*size;vK[i].w*=size;}
   vA[0]=texelFetch(uBlobKernels,ivec2(5,gl_InstanceID),0);vA[1]=texelFetch(uBlobKernels,ivec2(6,gl_InstanceID),0);
-  vChem=texelFetch(uBlobKernels,ivec2(7,gl_InstanceID),0).xyz;vBound=aParcel;
-  vec4 p=viewMatrix*vec4(aParcel.xyz,1);float z=-p.z,r=aParcel.w;
+  vChem=texelFetch(uBlobKernels,ivec2(7,gl_InstanceID),0).xyz;vBound=vec4(aParcel.xyz,aParcel.w*size);
+  vec4 p=viewMatrix*vec4(aParcel.xyz,1);float z=-p.z,r=vBound.w;
   if(z+r<0.){gl_Position=vec4(2,2,2,1);return;}
   if(z<=r+.01){gl_Position=vec4(position.xy,0,1);return;}
   // Conservative perspective bounds of the family. The queried primitives
@@ -84,13 +94,13 @@ export class LabBlobRenderer {
   constructor(uniforms, common) {
     this.families = new LabBlobFamilies();
     this.texture = new THREE.DataTexture(new Float32Array(8 * BLOB_FAMILIES * 4), 8, BLOB_FAMILIES, THREE.RGBAFormat, THREE.FloatType);
-    this.u = {...uniforms, uBlobKernels: {value: this.texture}};
+    this.u = {...uniforms, uBlobKernels: {value: this.texture},uBubbleSize:{value:1}};
     this.geometry = new THREE.InstancedBufferGeometry();
     this.geometry.setAttribute('position', new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0], 3));
     this.geometry.setIndex([0,1,2,0,2,3]);
     this.geometry.setAttribute('aParcel', new THREE.InstancedBufferAttribute(new Float32Array(BLOB_FAMILIES * 4), 4).setUsage(THREE.DynamicDrawUsage));
     this.geometry.instanceCount = 0;
-    this.material = new THREE.ShaderMaterial({glslVersion: THREE.GLSL3, vertexShader: vertex, fragmentShader: fragment(common), uniforms: this.u});
+    this.material = new THREE.ShaderMaterial({glslVersion: THREE.GLSL3, vertexShader: BLOB_VERTEX, fragmentShader: fragment(common), uniforms: this.u});
     this.mesh = new THREE.Mesh(this.geometry, this.material);this.mesh.frustumCulled = false;
     this.scene = new THREE.Scene();this.scene.add(this.mesh);
   }
