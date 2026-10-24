@@ -25,7 +25,24 @@ export class LabWaterField {
  setup(spacing,bounds){const layout=fieldLayout(spacing,this.ratio,bounds),key=[spacing,...layout.min,...layout.max].join();if(this.layoutKey!==key){this.layoutKey=key;this.u.uFieldOrigin.value.fromArray(layout.min);this.spacing=spacing;this.layout=layout;this.target?.dispose();this.target=new THREE.WebGLRenderTarget(layout.width,layout.height,{type:THREE.FloatType,depthBuffer:false,minFilter:this.linear?THREE.LinearFilter:THREE.NearestFilter,magFilter:this.linear?THREE.LinearFilter:THREE.NearestFilter});this.u.uFieldSize.value.fromArray(layout.dimensions);this.u.uFieldAtlas.value.set(layout.width,layout.height);this.u.uFieldDx.value=layout.dx;this.u.uFieldColumns.value=layout.columns;this.u.uFieldMacroRow.value=layout.macro.offset;}
  this.u.uFieldSkipping.value=this.emptySpace;return layout;
  }
- allocateItems(n,neededSlices){if(!this.capacity||n>this.capacity||neededSlices>(this.slices||24)){this.slices=neededSlices;this.uniforms.uFieldSlices.value=this.slices;this.capacity=2**Math.ceil(Math.log2(Math.max(64,n)));for(const name of ['centers','channels','shapes']){this[name]?.dispose();this[name]=new THREE.DataTexture(new Float32Array(this.capacity*4),64,this.capacity/64,THREE.RGBAFormat,THREE.FloatType);}const prior=this.geometry,geometry=new THREE.InstancedBufferGeometry();geometry.setAttribute('position',prior.getAttribute('position').clone());geometry.setIndex(prior.index.clone());geometry.setAttribute('aParticle',new THREE.InstancedBufferAttribute(Float32Array.from({length:this.capacity},(_,i)=>i),1,false,this.slices));this.geometry=geometry;this.scene.children[0].geometry=geometry;prior.dispose();this.uniforms.uCenters.value=this.centers;this.uniforms.uChannels.value=this.channels;this.uniforms.uShapes.value=this.shapes;}
+ allocateItems(n,neededSlices){
+  // Changing Gaussian support only changes the instance divisor. It must not
+  // destroy/re-upload every field texture, nor leave the maximum slice count
+  // stuck at the largest transient kernel seen during a compression blend.
+  let grew=false;
+  if(!this.capacity||n>this.capacity){
+   this.capacity=2**Math.ceil(Math.log2(Math.max(64,n)));grew=true;
+   for(const name of ['centers','channels','shapes']){this[name]?.dispose();this[name]=new THREE.DataTexture(new Float32Array(this.capacity*4),64,this.capacity/64,THREE.RGBAFormat,THREE.FloatType);}
+   this.particleIndices=Float32Array.from({length:this.capacity},(_,i)=>i);
+   this.uniforms.uCenters.value=this.centers;this.uniforms.uChannels.value=this.channels;this.uniforms.uShapes.value=this.shapes;
+  }
+  if(grew||this.slices!==neededSlices){
+   this.slices=neededSlices;this.uniforms.uFieldSlices.value=this.slices;
+   // Dispose the old vertex binding too; retaining it would leak VAOs whenever
+   // the divisor changes. The large texture storage stays in place.
+   const prior=this.geometry,geometry=new THREE.InstancedBufferGeometry();geometry.setAttribute('position',prior.getAttribute('position').clone());geometry.setIndex(prior.index.clone());
+   geometry.setAttribute('aParticle',new THREE.InstancedBufferAttribute(this.particleIndices,1,false,this.slices));this.geometry=geometry;this.scene.children[0].geometry=geometry;prior.dispose();
+  }
  }
  renderGPU(n){ this.geometry.instanceCount=n*this.slices;const r=this.renderer,old=r.getRenderTarget(),color=r.getClearColor(new THREE.Color()),alpha=r.getClearAlpha();r.setRenderTarget(this.target);r.setClearColor(0,0);r.clear();r.render(this.scene,this.camera);r.setRenderTarget(old);r.setClearColor(color,alpha);this.u.uLabField.value=this.target.texture;if(this.emptySpace)(this.occupancy??=new FieldOccupancy(r)).update(this.target,this.layout);
  }

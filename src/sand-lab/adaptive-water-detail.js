@@ -2,13 +2,14 @@
 // the camera. Fine kernels are retained at every exposed liquid boundary.
 export const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
 export function stableDrawingSize(width,height,adaptive=true,fixedScale){
- const scale=fixedScale??(adaptive?.65:1);
+ // Keep the old loaded-scene pixel budget, without motion-driven reallocations.
+ const scale=fixedScale??(adaptive?.5:1);
  return {width:Math.max(1,Math.round(width*scale)),height:Math.max(1,Math.round(height*scale)),scale};
 }
 export function distanceDetail(distance,spacing,pixelsPerUnit,motion=1){
  const footprint=spacing*pixelsPerUnit/Math.max(spacing,distance);
- const far=1-smooth(2,12,footprint);
- return 1+far*1.25+Math.min(.75,Math.max(0,motion-1)*.10)*( .25+.75*far);
+ const far=1-smooth(4,36,footprint);
+ return 1+far*3+Math.min(1,Math.max(0,motion-1)*.12)*(.15+.85*far);
 }
 // Bounded double-precision reference for the shader's interpolated entry/exit
 // search. Useful for camera sweeps without constructing a graphics context.
@@ -43,7 +44,7 @@ export class InteriorWaterCompression {
    // Retain the exact kernel outside the bounded numeric indexing domain.
    if(Math.max(Math.abs(cx),Math.abs(cy),Math.abs(cz))>510){result.push(p);unchangedWork+=Math.max(.018,p.radius*.95)**3*(p.flatten||1);continue;}
    const key=address(cx,cy,cz);let g=groups.get(key);
-   if(!g){g={items:[],phase:0,volume:0,x:0,y:0,z:0,dye:0,tannin:0,sediment:0,moment:0,speed2:0,work:0};groups.set(key,g);}
+   if(!g){g={items:[],residual:[],coarse:{kind:'water',position:[0,0,0],wet:0},phase:0,eligible:false,volume:0,x:0,y:0,z:0,dye:0,tannin:0,sediment:0,moment:0,speed2:0,work:0};groups.set(key,g);}
    const volume=p.volume,sigma=Math.max(.018,p.radius*.95),o=p.sourceIndex*4;
    g.items.push(p);g.volume+=volume;g.x+=x*volume;g.y+=y*volume;g.z+=z*volume;
    g.dye+=(p.dye||0)*volume;g.tannin+=(p.tannin||0)*volume;g.sediment+=(p.sediment||0)*volume;
@@ -53,14 +54,17 @@ export class InteriorWaterCompression {
   let merged=0,voxelWork=unchangedWork,referenceWork=unchangedWork;
   for(const [key,g] of groups){
    if(!g.items.length){groups.delete(key);continue;}
-   let neighbours=0;for(const offset of offsets)if((groups.get(key+offset)?.items.length||0)>=4)neighbours++;
+   let surrounded=g.items.length>=4;for(const offset of offsets){if(!surrounded)break;if((groups.get(key+offset)?.items.length||0)<4)surrounded=false;}
    const x=g.x/g.volume,y=g.y/g.volume,z=g.z/g.volume,dye=g.dye/g.volume,tannin=g.tannin/g.volume,sediment=g.sediment/g.volume;
    let chemError=0;for(const p of g.items)chemError=Math.max(chemError,Math.abs((p.dye||0)-dye),Math.abs((p.tannin||0)-tannin),Math.abs((p.sediment||0)-sediment));
-   const quiet=1-smooth(.12,1.2,Math.sqrt(g.speed2/g.volume));
-   const target=g.items.length>=4?smooth(.94,1,neighbours/26)*quiet*(1-smooth(.005,.04,chemError)):0;
+   // Eligibility has hysteresis, but the actual density transition is smooth.
+   // A fractional quietness target kept BOTH representations alive forever.
+   const speed=Math.sqrt(g.speed2/g.volume);
+   g.eligible=surrounded&&speed<(g.eligible?1.05:.55)&&chemError<(g.eligible?.04:.015);
+   const target=g.eligible?1:0;
    g.phase+=Math.max(-dt/.4,Math.min(dt/.9,target-g.phase));const blend=smooth(0,1,g.phase);referenceWork+=g.work;
-   if(blend<1){for(const p of g.items)result.push(blend?{...p,volume:p.volume*(1-blend)}:p);voxelWork+=g.work;}
-   if(blend>0){const sigma=Math.sqrt(Math.max(1e-12,g.moment/g.volume-(x*x+y*y+z*z)/3));result.push({kind:'water',position:[x,y,z],radius:sigma/.95,volume:g.volume*blend,dye,tannin,sediment,wet:0});voxelWork+=sigma**3;merged++;}
+   if(blend<1){for(let i=0;i<g.items.length;i++){const p=g.items[i];if(!blend)result.push(p);else{const q=g.residual[i]??={};Object.assign(q,p);q.volume=p.volume*(1-blend);result.push(q);}}voxelWork+=g.work;}
+   if(blend>0){const sigma=Math.sqrt(Math.max(1e-12,g.moment/g.volume-(x*x+y*y+z*z)/3)),q=g.coarse;q.position[0]=x;q.position[1]=y;q.position[2]=z;Object.assign(q,{radius:sigma/.95,volume:g.volume*blend,dye,tannin,sediment});result.push(q);voxelWork+=sigma**3;merged++;}
   }
   this.stats={sourceKernels:items.length,kernels:result.length,mergedCells:merged,estimatedVoxelWork:voxelWork/Math.max(1e-20,referenceWork),backend:'CPU grouping / GPU Gaussian reconstruction; CPU field fallback'};
   return result;
@@ -74,8 +78,8 @@ uniform float uDetailMotion;uniform bool uDistanceDetail;
 float waterDetailScale(float distance){
  if(!uDistanceDetail)return 1.;
  float focal=uResolution.y*uProjection[1][1]*.5;
- float footprint=uSpacing*focal/max(uSpacing,distance),far=1.-smoothstep(2.,12.,footprint);
- return 1.+far*1.25+min(.75,max(0.,uDetailMotion-1.)*.10)*(.25+.75*far);
+ float footprint=uSpacing*focal/max(uSpacing,distance),far=1.-smoothstep(4.,36.,footprint);
+ return 1.+far*3.+min(1.,max(0.,uDetailMotion-1.)*.12)*(.15+.85*far);
 }
 float waterTraceStep(float distance){return uSpacing*.28*waterDetailScale(distance);}
 `;
@@ -83,9 +87,10 @@ float waterTraceStep(float distance){return uSpacing*.28*waterDetailScale(distan
 export const WATER_SURFACE_SEARCH_GLSL=`float traceWater(vec3 o,vec3 d,float begin,float end,bool viewDependent){float t=begin,last=t;if(begin>end)return 1e4;for(int i=0;i<512;i++){float skip=fieldEmptyAdvance(o+d*t,d,PARCEL_ISO);if(skip>0.){float until=t+skip;int skipped=0;for(int j=0;j<32;j++){if(i+skipped>=512)break;last=t;t+=(viewDependent?waterTraceStep(t):uSpacing*.28);skipped++;if(t>=until||t>end)break;}i+=skipped-1;if(t>end)break;continue;}if(rho(o+d*t)>=PARCEL_ISO){float a=last,b=t;for(int j=0;j<9;j++){float m=(a+b)*.5;if(rho(o+d*m)<PARCEL_ISO)a=m;else b=m;}return (a+b)*.5;}last=t;t+=(viewDependent?waterTraceStep(t):uSpacing*.28);if(t>end)break;}return 1e4;}`;
 export const WATER_COLUMN_GLSL=`vec4 waterColumn(vec3 p,vec3 direction,float depth){
  float path=0.,stepSize=uSpacing*.35*waterDetailScale(depth);vec3 sum=vec3(0);bool exited=false;
+ vec4 previous=parcelSample(p);vec3 priorChemical=previous.yzw/max(previous.x,.0001);
  for(int i=0;i<100;i++){
-  float next=path+stepSize;if(rho(p+direction*next)<PARCEL_ISO){exited=true;break;}
-  vec4 a=parcelSample(p+direction*((path+next)*.5));sum+=a.yzw/max(a.x,.0001)*stepSize;path=next;
+  float next=path+stepSize;vec4 a=parcelSample(p+direction*next);if(a.x<PARCEL_ISO){exited=true;break;}
+  vec3 chemical=a.yzw/max(a.x,.0001);sum+=(priorChemical+chemical)*(.5*stepSize);priorChemical=chemical;path=next;
  }
  // Refine once after the march, keeping the shader's large loops unnested.
  if(exited){

@@ -38,8 +38,8 @@ test('compression wakes smoothly without losing mass, with no camera input',()=>
  for(let i=0;i<6;i++)c.update(items,lab,.1);assert.equal(c.stats.kernels,items.length);
 });
 test('distance reduction is continuous, monotone and does not resize the pixel grid',()=>{
- for(const motion of [1,2,10]){let last=distanceDetail(.1,.2,320,motion);for(let d=.101;d<70;d+=.001){const value=distanceDetail(d,.2,320,motion);assert.ok(value>=last-1e-12);assert.ok(value-last<.001);last=value;}}
- for(const speed of [0,.001,50,500,10000])assert.deepEqual(stableDrawingSize(960,640,true),{width:624,height:416,scale:.65});
+ for(const motion of [1,2,10]){let last=distanceDetail(.1,.2,320,motion);for(let d=.101;d<70;d+=.001){const value=distanceDetail(d,.2,320,motion);assert.ok(value>=last-1e-12);assert.ok(value-last<.002);last=value;}}
+ assert.deepEqual(stableDrawingSize(960,640,true),{width:480,height:320,scale:.5});
  assert.deepEqual(stableDrawingSize(960,640,false),{width:960,height:640,scale:1});
  assert.deepEqual(stableDrawingSize(960,640,true,.5),{width:480,height:320,scale:.5});
 });

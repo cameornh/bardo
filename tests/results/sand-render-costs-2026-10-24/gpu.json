@@ -1,0 +1,25 @@
+{
+  "scope": "Same bounded field and pixel count; query counts and optional GPU time, not full-scene FPS",
+  "pixels": 10240,
+  "meanFieldReads": {
+    "before": 65.3099609375,
+    "after": 26.3857421875
+  },
+  "fieldReadReduction": 0.5959920690696707,
+  "medianGpuMs": [
+    1.185416,
+    0.621999
+  ],
+  "medianDrawAndReadbackMs": [
+    5.699999995529652,
+    5.5
+  ],
+  "meanColorError": 0.00014309982701282326,
+  "maxColorError": 0.19451862573623657,
+  "halfColorError": 0.0004882216453552246,
+  "edgeMaskChanges": 14,
+  "fieldRestoreError": 0,
+  "textureReused": true,
+  "nonFinite": 0,
+  "pass": true
+}

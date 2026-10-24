@@ -1,0 +1,97 @@
+{
+  "physicalParcels": 12852,
+  "scope": "Reconstruction grouping CPU costs; not full-scene FPS",
+  "rows": [
+    {
+      "speedMetresPerSecond": 0,
+      "before": {
+        "kernels": 7932,
+        "estimatedVoxelWork": 0.6563516860230241,
+        "groupingMedianMs": 4.409646000000066,
+        "groupingP95Ms": 5.794675999999981
+      },
+      "after": {
+        "kernels": 7931,
+        "estimatedVoxelWork": 0.656218235862758,
+        "groupingMedianMs": 2.5963259999999764,
+        "groupingP95Ms": 3.2379629999999224
+      }
+    },
+    {
+      "speedMetresPerSecond": 0.35,
+      "before": {
+        "kernels": 13556,
+        "estimatedVoxelWork": 1.0939489471497115,
+        "groupingMedianMs": 3.4985670000000937,
+        "groupingP95Ms": 4.058313999999882
+      },
+      "after": {
+        "kernels": 7931,
+        "estimatedVoxelWork": 0.656218235862758,
+        "groupingMedianMs": 2.376254999999901,
+        "groupingP95Ms": 2.6022579999998925
+      }
+    },
+    {
+      "speedMetresPerSecond": 0.7,
+      "before": {
+        "kernels": 13556,
+        "estimatedVoxelWork": 1.0939489471497115,
+        "groupingMedianMs": 3.3643299999998817,
+        "groupingP95Ms": 3.8135919999999714
+      },
+      "after": {
+        "kernels": 12852,
+        "estimatedVoxelWork": 1,
+        "groupingMedianMs": 2.2221549999999297,
+        "groupingP95Ms": 2.521490999999969
+      }
+    },
+    {
+      "speedMetresPerSecond": 1.3,
+      "before": {
+        "kernels": 12852,
+        "estimatedVoxelWork": 1,
+        "groupingMedianMs": 3.5007530000000315,
+        "groupingP95Ms": 5.250163000000157
+      },
+      "after": {
+        "kernels": 12852,
+        "estimatedVoxelWork": 1,
+        "groupingMedianMs": 2.194774000000052,
+        "groupingP95Ms": 2.436824999999999
+      }
+    }
+  ],
+  "screenPixels": {
+    "before": 259584,
+    "after": 153600
+  },
+  "distanceScale": [
+    {
+      "distance": 1,
+      "before": 1,
+      "after": 1
+    },
+    {
+      "distance": 3,
+      "before": 1,
+      "after": 2.312934027777778
+    },
+    {
+      "distance": 6,
+      "before": 1.0607407407407408,
+      "after": 3.6636284722222223
+    },
+    {
+      "distance": 12,
+      "before": 1.9259259259259258,
+      "after": 3.9848090277777777
+    },
+    {
+      "distance": 24,
+      "before": 2.234074074074074,
+      "after": 4
+    }
+  ]
+}

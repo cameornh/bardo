@@ -1,0 +1,5 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Water rendering cost check</title><style>body{font:14px system-ui;background:#242b30;color:#eee;margin:16px;max-width:900px}button{padding:8px}canvas{width:100%;image-rendering:auto}pre{white-space:pre-wrap}</style></head><body>
+<p>Bounded water rendering comparison: existing Gaussian field, camera rays and water depth. No full-scene lighting programs or simulation.</p>
+<button id="run">Run small before / after check</button><p>Previous sampling (left), revised sampling (right).</p>
+<canvas id="comparison" width="512" height="160"></canvas><pre id="result">Ready</pre><canvas id="gpu" width="1" height="1" hidden></canvas>
+<script type="module" src="./sand-render-costs-gpu.js"></script></body></html>

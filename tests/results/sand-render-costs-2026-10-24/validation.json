@@ -1,0 +1,18 @@
+{
+  "tests": { "passed": 524, "failed": 0 },
+  "build": "passed",
+  "regressionsCorrected": [
+    "Fixed render scale had raised pixel count 69% above the previous loaded-scene floor; restored 0.5 scale without camera-driven resizing",
+    "Fractional quietness kept both Gaussian representations indefinitely; eligibility hysteresis now allows continuous fades to finish",
+    "Slice-range changes recreated field textures and never shrank the drawing range; textures now persist and ranges shrink",
+    "Water columns sampled density twice per interval; endpoint chemistry now reuses the boundary query"
+  ],
+  "additionalSavings": [
+    "Smooth distance sampling starts earlier and reaches four times spacing; nearby detail and refined boundary positions retained",
+    "Reused Gaussian objects and early neighbor rejection reduce CPU grouping work",
+    "Half-float HDR on three color-only composites; depth and density remain full float"
+  ],
+  "validationScope": "CPU numerical suite plus bounded real-GPU field reconstruction, camera tracing, shader timing, image comparison and texture-reuse checks",
+  "fullSceneFpsMeasured": false,
+  "physics": "Unchanged physical parcel count, forces and time stepping; distance decisions affect drawing only"
+}
