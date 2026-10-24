@@ -1,0 +1,14 @@
+{
+  "pass": false,
+  "reason": "GPU pressure time budget exceeded.",
+  "last": {
+    "totalMs": 113.80000000004657,
+    "pressureMs": 99.4000000001397,
+    "contactMs": 0,
+    "particles": 13293,
+    "draws": 84,
+    "readbacks": 1,
+    "contactMemoryBytes": 0
+  },
+  "rows": []
+}

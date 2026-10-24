@@ -1,0 +1,6 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Bounded GPU pressure check</title><style>body{font:15px system-ui;background:#202a30;color:#e8eef0;margin:24px;max-width:1000px}button{padding:9px;margin:0 8px 12px 0}pre{white-space:pre-wrap;line-height:1.5}a{color:#bfefff}</style></head><body>
+<p>Isolated water-pressure computation. No beach rendering or scene shaders.</p>
+<button id="validate">Validate 175 water samples</button><button id="benchmark" disabled>Compare beach pressure</button>
+<button id="trajectory" disabled>Check four simulated seconds</button>
+<p id="status">No graphics work has started. Validation is required before a larger comparison.</p><pre id="result"></pre>
+<script type="module" src="./bounded-pressure-gpu.js"></script></body></html>

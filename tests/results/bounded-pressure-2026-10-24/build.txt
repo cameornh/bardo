@@ -1,0 +1,26 @@
+
+> bardo-material-field@0.1.0 build
+> vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 232 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/subsurface-worker-BUJojcpn.js    3.95 kB
+dist/assets/terrain-worker-C3g2Wj9t.js       8.73 kB
+dist/assets/photon-worker-CUH7naAK.js       11.75 kB
+dist/assets/density-BM9g0XNV.wasm           12.95 kB │ gzip:   8.04 kB
+dist/index.html                             35.63 kB │ gzip:   8.09 kB
+dist/assets/main-Qh2TCdY9.css                1.84 kB │ gzip:   0.85 kB
+dist/assets/main-Dd7oI3dg.css                2.96 kB │ gzip:   1.17 kB
+dist/assets/index-DmZtBUhg.js                2.38 kB │ gzip:   1.21 kB
+dist/assets/gpu-timing-B5RbN-jJ.js         527.66 kB │ gzip: 136.55 kB
+dist/assets/main-COjwNxmT.js               581.43 kB │ gzip: 190.71 kB
+dist/assets/main-D1Kh2A4P.js               767.46 kB │ gzip: 269.54 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.54s

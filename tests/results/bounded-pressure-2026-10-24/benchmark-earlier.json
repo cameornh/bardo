@@ -1,0 +1,94 @@
+{
+  "pass": true,
+  "description": "Pressure and exact CPU contacts only, including GPU transfers. Not whole-scene FPS.",
+  "particles": 13293,
+  "backend": "GPU pressure and simple beach contacts",
+  "cpu": {
+    "meanMs": 59.21666666665502,
+    "minMs": 57.29999999993015,
+    "maxMs": 61.5,
+    "sdMs": 1.5137334272862724
+  },
+  "gpu": {
+    "meanMs": 33.31666666667055,
+    "minMs": 29.600000000093132,
+    "maxMs": 37.699999999953434,
+    "sdMs": 2.5373323699036012
+  },
+  "speedup": 1.777388694346617,
+  "maxError": 0.0010835453867912292,
+  "rows": [
+    {
+      "totalMs": 45.90000000002328,
+      "pressureMs": 34,
+      "contactMs": 0,
+      "particles": 13293,
+      "draws": 84,
+      "readbacks": 1,
+      "contactMemoryBytes": 0
+    },
+    {
+      "totalMs": 28.79999999993015,
+      "pressureMs": 23.900000000023283,
+      "contactMs": 0,
+      "particles": 13293,
+      "draws": 84,
+      "readbacks": 1,
+      "contactMemoryBytes": 0
+    },
+    {
+      "totalMs": 27.199999999953434,
+      "pressureMs": 21.5,
+      "contactMs": 0,
+      "particles": 13293,
+      "draws": 84,
+      "readbacks": 1,
+      "contactMemoryBytes": 0
+    },
+    {
+      "totalMs": 24.29999999993015,
+      "pressureMs": 18.900000000023283,
+      "contactMs": 0,
+      "particles": 13293,
+      "draws": 84,
+      "readbacks": 1,
+      "contactMemoryBytes": 0
+    },
+    {
+      "totalMs": 32.59999999997672,
+      "pressureMs": 27.600000000093132,
+      "contactMs": 0,
+      "particles": 13293,
+      "draws": 84,
+      "readbacks": 1,
+      "contactMemoryBytes": 0
+    },
+    {
+      "totalMs": 29.70000000006985,
+      "pressureMs": 24.599999999976717,
+      "contactMs": 0,
+      "particles": 13293,
+      "draws": 84,
+      "readbacks": 1,
+      "contactMemoryBytes": 0
+    },
+    {
+      "totalMs": 27.300000000046566,
+      "pressureMs": 22.199999999953434,
+      "contactMs": 0,
+      "particles": 13293,
+      "draws": 84,
+      "readbacks": 1,
+      "contactMemoryBytes": 0
+    },
+    {
+      "totalMs": 26.599999999976717,
+      "pressureMs": 21.20000000006985,
+      "contactMs": 0,
+      "particles": 13293,
+      "draws": 84,
+      "readbacks": 1,
+      "contactMemoryBytes": 0
+    }
+  ]
+}

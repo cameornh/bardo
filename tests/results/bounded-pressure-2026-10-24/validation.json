@@ -1,0 +1,59 @@
+{
+  "pass": true,
+  "backend": "GPU pressure and simple beach contacts",
+  "validation": {
+    "pass": true,
+    "rows": [
+      {
+        "name": "Dense free water and held points",
+        "pass": true,
+        "error": 8.940696716308594e-8,
+        "heldError": 0,
+        "tolerance": 0.00028000000000000003,
+        "finite": true,
+        "ms": 638.1000000000931
+      },
+      {
+        "name": "Tilted cup and sloping ground",
+        "pass": true,
+        "error": 0.00003987550735473633,
+        "heldError": 0,
+        "tolerance": 0.00028000000000000003,
+        "finite": true,
+        "ms": 246.9000000001397
+      },
+      {
+        "name": "Sparse surface water",
+        "pass": true,
+        "error": 0,
+        "heldError": 0,
+        "tolerance": 0.00028000000000000003,
+        "finite": true,
+        "ms": 116.60000000009313
+      }
+    ]
+  },
+  "geometry": {
+    "pass": true,
+    "rows": [
+      {
+        "name": "GPU beach bounds and boulders",
+        "pass": true,
+        "error": 0.000014781951904296875,
+        "heldError": 0,
+        "tolerance": 0.00028000000000000003,
+        "finite": true,
+        "ms": 16.5999999998603
+      },
+      {
+        "name": "GPU cup, player and ground contacts",
+        "pass": true,
+        "error": 0.000010013580322265625,
+        "heldError": 0,
+        "tolerance": 0.00028000000000000003,
+        "finite": true,
+        "ms": 10.899999999906868
+      }
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "pass": true,
+  "description": "60 coupled pressure/prediction/transport steps, four simulated seconds. CPU transport in both paths. Camera-independent.",
+  "rows": [
+    {
+      "backend": "Full WebAssembly CPU reference",
+      "count": 3024,
+      "volume": 81.64800000000004,
+      "meanHeight": 0.270376723458323,
+      "upperHeight": 0.7547328472137451,
+      "peakSpeed": 2.1520030533435754,
+      "minClearance": 0.02100018725618556,
+      "pressureTime": {
+        "meanMs": 20.391666666682188,
+        "minMs": 15.300000000046566,
+        "maxMs": 24.800000000046566,
+        "sdMs": 1.8685370094171834
+      }
+    },
+    {
+      "backend": "GPU pressure and simple beach contacts",
+      "count": 3024,
+      "volume": 81.64800000000004,
+      "meanHeight": 0.2705650878488279,
+      "upperHeight": 0.7557420134544373,
+      "peakSpeed": 2.182254682385143,
+      "minClearance": 0.020999535719200473,
+      "pressureTime": {
+        "meanMs": 34.14666666664416,
+        "minMs": 6.399999999906868,
+        "maxMs": 73.19999999995343,
+        "sdMs": 14.447900270361364
+      }
+    }
+  ],
+  "maxPositionError": 0.44219160079956055,
+  "meanPositionError": 0.009838876225275352
+}
