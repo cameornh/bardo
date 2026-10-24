@@ -1,0 +1,11 @@
+{
+  "page": "tests/sand-condensation-preview.html",
+  "state": "Browser tab: 2, Title: \"Condensation appearance check\", URL: \"http://localhost:5173/tests/sand-condensation-preview.html\".\n1 AXWebArea Condensation appearance check, URL: localhost:5173/tests/sand-condensation-preview.html\n\t2 text Small rendering check. Rain attachment runs on the CPU; no water constraint shader or continuous simulation is started.\n\t3 button Add 2 seconds of rain, ID: rain\n\t4 button Change viewing angle, ID: angle\n\t5 button Toggle tannins, ID: tannin\n\t6 button Mist / bubble sizes, ID: mist\n\t7 button Reset beads, ID: reset\n\t8 text {\n  \"mode\": \"Rain beads on glass and wet sand\",\n  \"beads\": 110,\n  \"volume\": 0.004800000000000006,\n  \"tannins\": 0,\n  \"programs\": 4,\n  \"contextLost\": false,\n  \"physics\": \"CPU attachment only; no fluid solver\"\n}\n\nThe focused UI element is 1 AXWebArea Condensation appearance check, URL: localhost:5173/tests/sand-condensation-preview.html",
+  "errors": [],
+  "checked": [
+    "round beads: high and shallow viewing angles",
+    "blue and amber tannin tint",
+    "production mist/bubble covariance vertex"
+  ],
+  "scope": "Small static fixture. CPU rain attachment; no fluid contact solver."
+}

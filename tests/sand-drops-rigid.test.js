@@ -9,7 +9,7 @@ function fixture(wet=1){const lab={spacing:.2,spec:{scale:10},sand:{materialAt:(
 const hit=point=>({point,normal:[0,1,0],particle:-1});
 test('surface beads are rain-only, smaller than bulk, and dry sand absorbs instead',()=>{
  const dry=fixture(0);dry.rain.impact({volume:.001,velocity:[0,-1,0]},hit([0,0,0]));assert.equal(dry.rain.surfaceDrops.patches.size,0);close(dry.rain.depositVolume,.001);
- const wet=fixture(),drops=wet.rain.surfaceDrops;wet.rain.impact({volume:.001,velocity:[0,-1,0]},hit([0,0,0]));drops.step(.1);assert.equal(drops.beads().length,16);assert.ok(drops.beads().every(b=>b.radius<wet.spacing*.3));assert.equal(drops.fieldItems().length,0);
+ const wet=fixture(),drops=wet.rain.surfaceDrops;wet.rain.impact({volume:.001,velocity:[0,-1,0]},hit([0,0,0]));drops.step(.1);assert.equal(drops.beads().length,1);assert.ok(drops.beads().every(b=>b.radius<wet.spacing*.3));assert.equal(drops.fieldItems().length,0);
  assert.equal(drops.impact({volume:.1},{...hit([0,1,0]),particle:0}),false);close(drops.volume,.001);
 });
 test('nearby accumulation transitions continuously into one parcel without summoning distant rain',()=>{

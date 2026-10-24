@@ -39,7 +39,7 @@ export function detailStep(position,velocity,kind,scale,dt,time,wind,turbulence,
   const air=windAt(position[0]*scale,position[2]*scale,time,wind,0,turbulence),target=[air[0]/scale,0,air[1]/scale];
   if(jet){const q=position.map((v,k)=>v-jet.origin[k]),t=q.reduce((v,x,k)=>v+x*jet.direction[k],0),r2=q.reduce((v,x,k)=>v+(x-t*jet.direction[k])**2,0),w=t>0?Math.exp(-r2/(radius*radius))*Math.exp(-t/25):0;for(let k=0;k<3;k++)target[k]+=jet.direction[k]*strength/scale*w;}
   if(airOverride)target.splice(0,3,...airOverride);
-  if(rain&&kind===3)for(let k=0;k<3;k++)target[k]*=.12;
+  if(rain&&kind===3){for(let k=0;k<3;k++)target[k]*=.18;target[1]+=.32/scale;}
   const drag=kind===3?(rain?1.4:9):kind===2?3:kind===1?.45:1.1,mix=1-Math.exp(-drag*dt),v=velocity.map((v,k)=>v+(target[k]-v)*mix);
   v[1]+=(kind===3?(rain?-.035:-.18):kind===2?.45:kind===1?-.12:-9.81)/scale*dt;
   return {position:position.map((p,k)=>p+v[k]*dt),velocity:v};
@@ -56,7 +56,7 @@ ${FOAM_CONTACT_GLSL}
 void main(){ivec2 pixel=ivec2(gl_FragCoord.xy);int i=pixel.y*256+pixel.x,spawn=(i-uSpawnStart+uCapacity)%uCapacity;vec4 p=texelFetch(uDetailP,pixel,0),v=texelFetch(uDetailV,pixel,0),info=texelFetch(uDetailI,pixel,0);
 if(spawn<uSpawnCount){ivec2 s=ivec2(spawn%256,spawn/256);p=texelFetch(uSpawnP,s,0);v=texelFetch(uSpawnV,s,0);info=texelFetch(uSpawnI,s,0);}
 float oldAge=p.w;p.w+=uDt;if(oldAge<v.w){bool rain=info.z<0.;float originalKind=info.y,contactRadius=rain?min(.003/uScale,info.x):max(.0005,info.x*2.);vec3 start=p.xyz;bool born=spawn<uSpawnCount;if(born&&uDetailFlow&&(info.y<1.5||info.y>2.5)){detailProject(p.xyz,info.y>2.5?.025:info.y<.5?.08:.18,info.y>2.5?1.2:.55);detailContact(start,p.xyz,v.xyz,contactRadius,false);start=p.xyz;}bool wet;detailWetMotion(p.xyz,v.xyz,info.y,p.w,uDt,uScale,wet);if(!wet){vec2 air=beachWind(p.xz*uScale,uTime,uWind,0.,uTurbulence)/uScale;vec3 target=vec3(air.x,0,air.y),q=p.xyz-uBrushOrigin;float along=dot(q,uBrushDirection);if(along>0.)target+=uBrushDirection*uBrushStrength/uScale*exp(-dot(q-uBrushDirection*along,q-uBrushDirection*along)/(uBrushRadius*uBrushRadius))*exp(-along/25.);
-if(uAirEnabled)target=sampleAir(p.xyz);if(rain&&originalKind>2.5)target*=.12;float drag=info.y>2.5?(rain?1.4:9.):info.y>1.5?3.:info.y>.5?.45:1.1;v.xyz+=(target-v.xyz)*(1.-exp(-drag*uDt));v.y+=(info.y>2.5?(rain?-.035:-.18):info.y>1.5?.45:info.y>.5?-.12:-9.81)/uScale*uDt;p.xyz+=v.xyz*uDt;}if(rain){info.y=originalKind;if(wet&&info.y>2.5)detailProject(p.xyz,.025,.6);if(info.y>2.5){float growth=exp(.09*uDt);info.x*=growth;info.z/=growth*growth;}p.w=oldAge+uDt;}else p.w=oldAge+uDt*foamDecay(info.y,wet,wet&&foamTouch(start,info.x,i));detailContact(start,p.xyz,v.xyz,contactRadius,!born);info.w=uDetailCollision?labPhysicalSolid(p.xyz):100.;}
+if(uAirEnabled)target=sampleAir(p.xyz);if(rain&&originalKind>2.5){target*=.18;target.y+=.32/uScale;}float drag=info.y>2.5?(rain?1.4:9.):info.y>1.5?3.:info.y>.5?.45:1.1;v.xyz+=(target-v.xyz)*(1.-exp(-drag*uDt));v.y+=(info.y>2.5?(rain?-.035:-.18):info.y>1.5?.45:info.y>.5?-.12:-9.81)/uScale*uDt;p.xyz+=v.xyz*uDt;}if(rain){info.y=originalKind;if(wet&&info.y>2.5)detailProject(p.xyz,.025,.6);if(info.y>2.5){float growth=exp(.09*uDt);info.x*=growth;info.z/=growth*growth;}p.w=oldAge+uDt;}else p.w=oldAge+uDt*foamDecay(info.y,wet,wet&&foamTouch(start,info.x,i));detailContact(start,p.xyz,v.xyz,contactRadius,!born);info.w=uDetailCollision?labPhysicalSolid(p.xyz):100.;}
 nextPosition=p;nextVelocity=v;nextInfo=info;}`;
 function texture(data){const t=new THREE.DataTexture(data,256,data.length/1024,THREE.RGBAFormat,THREE.FloatType);t.needsUpdate=true;return t;}
 function sourceNoise(position,normal,spacing,time,seed){
@@ -180,10 +180,10 @@ export class LabDetail {
       this.addMarker(p,v,0,detailRadius(lab.spacing,scale,hash(id+7))/scale,.65,-.65/4*1.5);lab.wetting?.trace(p,v,0);
     }
     if(this.mistEnabled&&energy>3&&n){
-      const id=++this.sequence,p=point.map((v,k)=>v+normal[k]*.08/scale),v=velocity.map((v,k)=>v*.004+normal[k]*.08/scale);
-      // Broad, optically thin clouds overlap into a ground-hugging blanket.
+      const id=++this.sequence,p=point.map((v,k)=>v+normal[k]*.08/scale),v=velocity.map((v,k)=>v*.004+normal[k]*.18/scale+(k===1?.28/scale:0));
+      // Broad, optically thin clouds lift and overlap into an airborne blanket.
       // Hard receivers supply more mist, but water also receives a thin veil.
-      const opacity=(.006+.006*hardness)*this.mistDensity;
+      const opacity=(.004+.004*hardness)*this.mistDensity;
       this.addMarker(p,v,3,(3.2+1.6*hash(id+7))/scale,8.+hash(id+11)*4.,-opacity);lab.wetting?.trace(p,v,3);
     }
   }

@@ -1534,3 +1534,34 @@ shadow transmission, and rigid terrain/body contacts with angular impulses.
 Cups can tip on uneven support and collide with one another. Resetting the sand
 scene now clears its shape stamp so repeating an identical scoop cannot retain
 an empty collision/render cache. Historical scene modules remain unchanged.
+
+### Condensation appearance and safe CPU contacts — October 24
+
+Rain beads now appear individually over time and use spaced surface samples
+instead of a fixed sixteen-bead rosette. Wet sand continuously retains more
+rainwater as saturation rises; dry sand still absorbs it. Optical detail is
+limited to 16,384 beads and 64 births per step. The water-volume ledger and
+smooth conversion into bulk drops continue independently of that display limit.
+
+Beads use spherical covariance, a half-strength blue/tannin water tint, and
+compact highlights. They no longer refract a pre-glass background image or
+paint broad sky reflections over transparent receivers. Rain mist lifts at
+roughly 0.3 m/s, has more vertical depth, and remains optically thin. Bubble
+radii are 55% of their previous visual size, including their shadow footprints.
+These changes are confined to the lab modules; historical scene code is intact.
+
+The mandatory CPU sand/object constraint path remains enabled. Multiplication
+replaces costly generic powers in its inner loops; squared-distance rejection
+avoids per-probe object allocations, and sphere distances skip rotation.
+Two matched, unprofiled CPU benchmark pairs with 12,852 water samples and six
+objects averaged **326.8 → 139.7 ms** per constraint solve (**2.34× faster**).
+This is a component benchmark, not an end-to-end FPS claim. Numerical contact
+checks still agree with the reference within 1e-6, including held samples,
+rotated cups, overlap recovery, and all eight material/shape spawn combinations.
+Run `node tests/sand-contact-benchmark.mjs [reference-checkout]` to repeat it.
+
+All **498 numerical tests** and the production build pass. `tests/sand-condensation-preview.html` checks bead tint, viewing
+angles, mist covariance, and bubble size in a small, static rendering fixture
+with CPU-only attachment and no fluid constraint shaders. Browser checks had
+no graphics errors or lost contexts. Evidence and timing samples are in
+`tests/results/sand-condensation-2026-10-24/`.

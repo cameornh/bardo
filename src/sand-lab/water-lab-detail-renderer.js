@@ -1,6 +1,6 @@
 import {LOCAL_LIGHT_GLSL} from './local-light.js';
 import {GAUSSIAN_BOUNDS_GLSL} from './gaussian-bounds.js';
-import {DETAIL_OPACITY_GLSL} from './water-lab-detail-opacity.js';
+import {DETAIL_OPACITY_GLSL,DETAIL_RADIUS_GLSL} from './water-lab-detail-opacity.js';
 import {LAB_LIGHT_VISIBILITY_GLSL} from './water-lab-light-visibility.js';
 import {SOLUTE_GLSL} from './water-lab-solutes.js';
 import * as THREE from 'three';
@@ -8,13 +8,13 @@ import {SH_GLSL,QUAD_VERTEX} from '../shaders.js';
 import {LAB_FIELD_GLSL} from './water-lab-field.js';
 import {LAB_GEOMETRY_GLSL} from './water-lab-model.js';
 import {DETAIL_LIGHT_GLSL} from './water-lab-detail-optics.js';
-const vertex=`precision highp float;precision highp int;
-${DETAIL_OPACITY_GLSL}${GAUSSIAN_BOUNDS_GLSL}
+export const DETAIL_VERTEX=`precision highp float;precision highp int;
+${DETAIL_OPACITY_GLSL}${DETAIL_RADIUS_GLSL}${GAUSSIAN_BOUNDS_GLSL}
 in float aDetailId;uniform highp sampler2D uDetailP,uDetailV,uDetailI;uniform vec2 uResolution;uniform vec3 uEye;
 out vec2 vQ;out float vAlpha,vDepth;
 flat out vec4 vOptical;flat out vec3 vViewTau,vScatter;flat out vec4 vCenter;flat out vec3 vKindRadiusClearance;
 uniform highp sampler2D uDetailPaths,uDetailViewTau,uDetailScatter;
-void main(){int id=int(aDetailId);ivec2 uv=ivec2(id%256,id/256);vec4 source=texelFetch(uDetailP,uv,0),velocity=texelFetch(uDetailV,uv,0),info=texelFetch(uDetailI,uv,0);vec4 p=viewMatrix*vec4(source.xyz,1);float life=velocity.w,age=source.w;
+void main(){int id=int(aDetailId);ivec2 uv=ivec2(id%256,id/256);vec4 source=texelFetch(uDetailP,uv,0),velocity=texelFetch(uDetailV,uv,0),info=texelFetch(uDetailI,uv,0);info.x=detailDisplayRadius(info.x,info.y);vec4 p=viewMatrix*vec4(source.xyz,1);float life=velocity.w,age=source.w;
 vQ=position.xy*3.;vDepth=length(p.xyz);vAlpha=0.;vOptical=vec4(0,0,0,1);vViewTau=vec3(0);vScatter=vec3(0);vCenter=vec4(source.xyz,-p.z);vKindRadiusClearance=vec3(info.y,info.x,info.w);
 if(age>=life||life<=0.||p.z>-max(.025,info.x*1.5)){gl_Position=vec4(2,2,2,1);return;}
 // Include the longest covariance axis (spray stretches along velocity).
@@ -22,9 +22,9 @@ float supportRadius=3.*info.x*(info.y<.5?sqrt(2.2):1.);
 if(!gaussianIntersectsView(p.xyz,supportRadius,vec2(projectionMatrix[0][0],projectionMatrix[1][1]),uResolution)){gl_Position=vec4(2,2,2,1);return;}
 float s=info.x*(.75+.25*sin(min(1.,age/life)*3.14159)),z=-p.z;vec3 direction=normalize(mat3(viewMatrix)*velocity.xyz+vec3(0,1e-8,0)),jx=vec3(projectionMatrix[0][0]/z,0,projectionMatrix[0][0]*p.x/(z*z)),jy=vec3(0,projectionMatrix[1][1]/z,projectionMatrix[1][1]*p.y/(z*z));
 float stretch=info.y<.5?1.2:0.,xx=s*s*(dot(jx,jx)+stretch*pow(dot(jx,direction),2.)),xy=s*s*(dot(jx,jy)+stretch*dot(jx,direction)*dot(jy,direction)),yy=s*s*(dot(jy,jy)+stretch*pow(dot(jy,direction),2.));
-// Rain mist spreads horizontally as a shallow 3D Gaussian sheet. Project
+// Rain mist spreads horizontally as a broad 3D Gaussian cloud. Project
 // its actual covariance so it stays a blanket at grazing camera angles.
-if(info.z<0.&&info.y>2.5){vec3 up=mat3(viewMatrix)*vec3(0,1,0);float ax=dot(jx,up),ay=dot(jy,up),flatten=1.-.22*.22;xx-=s*s*flatten*ax*ax;xy-=s*s*flatten*ax*ay;yy-=s*s*flatten*ay*ay;}
+if(info.z<0.&&info.y>2.5){vec3 up=mat3(viewMatrix)*vec3(0,1,0);float ax=dot(jx,up),ay=dot(jy,up),flatten=1.-.52*.52;xx-=s*s*flatten*ax*ax;xy-=s*s*flatten*ax*ay;yy-=s*s*flatten*ay*ay;}
 float area=sqrt(max(0.,xx*yy-xy*xy));xx+=1.4/(uResolution.x*uResolution.x);yy+=1.4/(uResolution.y*uResolution.y);float filtered=sqrt(max(1e-15,xx*yy-xy*xy));
 float l=sqrt(max(0.,pow((xx-yy)*.5,2.)+xy*xy)),e1=max(1e-12,(xx+yy)*.5+l),e2=max(1e-12,(xx+yy)*.5-l);vec2 axis=abs(xy)>1e-12?normalize(vec2(e1-yy,xy)):xx>=yy?vec2(1,0):vec2(0,1);vec4 clip=projectionMatrix*p;
 vOptical=texelFetch(uDetailPaths,uv,0);vViewTau=texelFetch(uDetailViewTau,uv,0).rgb;vScatter=texelFetch(uDetailScatter,uv,0).rgb;
@@ -39,7 +39,7 @@ layout(location=0)out vec4 outColor;layout(location=1)out vec4 outTau;layout(loc
 uniform highp sampler2D uDetailP,uDetailV,uDetailI,uWaterSurface,uOpaqueRead;
 uniform vec3 uEye,uSH[16];uniform int uSHDegree;uniform mat4 uViewMatrix,uProjection;uniform vec2 uResolution;
 uniform float uScale,uSpacing,uTurbidity,uTannins,uAmbient,uSunlight,uLights,uDetailLightScale;
-${DETAIL_OPACITY_GLSL}${GAUSSIAN_BOUNDS_GLSL}
+${DETAIL_OPACITY_GLSL}${DETAIL_RADIUS_GLSL}${GAUSSIAN_BOUNDS_GLSL}
 ${LAB_FIELD_GLSL}
 ${LAB_GEOMETRY_GLSL}
 ${SH_GLSL}
@@ -55,7 +55,7 @@ vec3 detailIncident(vec3 q,vec3 ray){
  if(uStation==2)for(int i=0;i<3;i++){vec3 lamp=poolLamp(i);light+=poolColor(i)*3.*uLights*poolFalloff(q,lamp)*poolTransmission(q,i,uScale)*3.14159265*phaseHG(dot(ray,normalize(lamp-q)),.55);}return light+objectVolumeIncident(q,ray);
 }
 void main(){ivec2 uv=ivec2(gl_FragCoord.xy);vec4 source=texelFetch(uDetailP,uv,0),velocity=texelFetch(uDetailV,uv,0);outColor=vec4(0,0,0,-1);outTau=vec4(0);outScatter=vec4(0);
-if(source.w>=velocity.w||velocity.w<=0.)return;vec4 p=uViewMatrix*vec4(source.xyz,1);vec4 info=texelFetch(uDetailI,uv,0);if(uTightGaussians&&detailOpacity(info.y,source.w,velocity.w,info.z)<=.0001)return;if(p.z>-max(.025,info.x*1.5))return;float depth=length(p.xyz);vec4 clip=uProjection*p;
+if(source.w>=velocity.w||velocity.w<=0.)return;vec4 p=uViewMatrix*vec4(source.xyz,1);vec4 info=texelFetch(uDetailI,uv,0);info.x=detailDisplayRadius(info.x,info.y);if(uTightGaussians&&detailOpacity(info.y,source.w,velocity.w,info.z)<=.0001)return;if(p.z>-max(.025,info.x*1.5))return;float depth=length(p.xyz);vec4 clip=uProjection*p;
 if(!gaussianIntersectsView(p.xyz,3.*info.x*(info.y<.5?sqrt(2.2):1.),vec2(uProjection[0][0],uProjection[1][1]),uResolution))return;
 vec2 centerUv=clip.xy/clip.w*.5+.5;
 // Cull only when the entire Gaussian support misses the image. A fixed
@@ -101,7 +101,7 @@ void main(){float center=texture(uOpaqueRead,vUv).a,total=0.;vec4 field=vec4(0);
 // lamps in the same frame; a single half-float scale cannot represent both.
 export function detailLightScale(sunlight,ambient,sh,lights){const peak=Math.max(Math.abs(sunlight)*22,Math.abs(ambient)*Math.max(0,...sh.flatMap(v=>v.toArray())),lights*7,1e-10);return Math.max(1,Math.min(1e10,1/peak));}
 export class LabDetailRenderer {
- constructor(lab,uniforms){this.lab=lab;this.uniforms=uniforms;const g=this.geometry=new THREE.InstancedBufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));g.setIndex([0,1,2,0,2,3]);g.setAttribute('aDetailId',new THREE.InstancedBufferAttribute(Float32Array.from({length:lab.detail.capacity},(_,i)=>i),1));g.instanceCount=lab.detail.capacity;this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:vertex,fragmentShader:fragment,uniforms:{...uniforms,uHideMist:{value:false},uDetailLightScale:{value:1},uDetailP:lab.detail.u.uDetailP,uDetailV:lab.detail.u.uDetailV,uDetailI:lab.detail.u.uDetailI},transparent:true,depthTest:false,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor});this.scene=new THREE.Scene();const mesh=new THREE.Mesh(g,this.material);mesh.frustumCulled=false;this.scene.add(mesh);
+ constructor(lab,uniforms){this.lab=lab;this.uniforms=uniforms;const g=this.geometry=new THREE.InstancedBufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));g.setIndex([0,1,2,0,2,3]);g.setAttribute('aDetailId',new THREE.InstancedBufferAttribute(Float32Array.from({length:lab.detail.capacity},(_,i)=>i),1));g.instanceCount=lab.detail.capacity;this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:DETAIL_VERTEX,fragmentShader:fragment,uniforms:{...uniforms,uHideMist:{value:false},uDetailLightScale:{value:1},uDetailP:lab.detail.u.uDetailP,uDetailV:lab.detail.u.uDetailV,uDetailI:lab.detail.u.uDetailI},transparent:true,depthTest:false,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor});this.scene=new THREE.Scene();const mesh=new THREE.Mesh(g,this.material);mesh.frustumCulled=false;this.scene.add(mesh);
  this.paths=new THREE.WebGLRenderTarget(256,lab.detail.capacity/256,{count:3,type:THREE.FloatType,depthBuffer:false,minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter});this.material.uniforms.uDetailPaths={value:this.paths.textures[0]};this.material.uniforms.uDetailViewTau={value:this.paths.textures[1]};this.material.uniforms.uDetailScatter={value:this.paths.textures[2]};
  this.target=new THREE.WebGLRenderTarget(1,1,{type:THREE.FloatType,depthBuffer:false,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});this.quadGeometry=new THREE.PlaneGeometry(2,2);this.reconstruct=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:reconstruct,uniforms:{...uniforms,uDetailLightScale:this.material.uniforms.uDetailLightScale,uMist:{value:this.target.texture}},transparent:true,depthTest:false,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});this.opticalMaterial=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:opticalPaths,uniforms:this.material.uniforms,depthTest:false,depthWrite:false});this.opticalScene=new THREE.Scene();this.opticalScene.add(new THREE.Mesh(this.quadGeometry,this.opticalMaterial));this.composite=new THREE.Scene();this.composite.add(new THREE.Mesh(this.quadGeometry,this.reconstruct));this.camera=new THREE.Camera();
  }

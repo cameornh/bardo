@@ -5,7 +5,7 @@ import {rotate,length,clamp} from './water-lab-model.js';
 // shell: density < (shell volume + cavity volume) / shell volume (~1.65).
 export const MATERIALS={glass:{ratio:.22,color:[.75,.94,1]},mirror:{ratio:1,color:[.92,.94,1]},rock:{ratio:1.3,color:[.35,.27,.19]},light:{ratio:1,color:[1,.48,.12]}};
 export function bodyLocal(p,b){return rotate(p.map((v,k)=>v-b.position[k]),b.tilt||0,b.spin||0,true,b.pitch||0);}
-export function bodyDistance(p,b){const q=bodyLocal(p,b);if(b.shape!=='cup')return length(q)-b.radius;const r=b.radius,rad=Math.hypot(q[0],q[2]),wall=r*.16;return Math.min(Math.max(Math.abs(rad-r*.84)-wall,Math.abs(q[1])-r),Math.max(rad-r,Math.abs(q[1]+r)-wall));}
+export function bodyDistance(p,b){if(b.shape!=='cup')return Math.hypot(p[0]-b.position[0],p[1]-b.position[1],p[2]-b.position[2])-b.radius;const q=bodyLocal(p,b),r=b.radius,rad=Math.hypot(q[0],q[2]),wall=r*.16;return Math.min(Math.max(Math.abs(rad-r*.84)-wall,Math.abs(q[1])-r),Math.max(rad-r,Math.abs(q[1]+r)-wall));}
 export function bodyNormal(p,b){const e=Math.max(.000001,Math.min(.002,b.radius*.02)),n=[0,1,2].map(k=>{const a=p.slice(),c=p.slice();a[k]+=e;c[k]-=e;return bodyDistance(a,b)-bodyDistance(c,b);}),l=length(n)||1;return n.map(v=>v/l);}
 export function makeBody(kind,shape,radius,position,velocity=[0,0,0]){const m=MATERIALS[kind];return {kind,shape,radius,position:position.slice(),velocity:velocity.slice(),color:m.color.slice(),ratio:m.ratio,tilt:0,pitch:0,spin:0,omega:[0,0,0],submerged:0,airVolume:shape==='cup'?Math.PI*radius**3*1.84*.68**2:0,waterVolume:0,held:false};}
 export function recolorLatest(bodies,color){const b=bodies.at(-1);if(b)b.color=color.map(v=>clamp(v,0,1));return b;}

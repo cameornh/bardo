@@ -72,13 +72,13 @@ test('caustic flux stays on its receiving surface and filters continuously betwe
 });
 
 import {sprayShadowKernel} from '../src/sand-lab/water-lab-spray-shadows.js';
-test('rain mist uses the same shallow covariance for its light transmission and visible footprint',()=>{
+test('rain mist uses the same airborne covariance for its light transmission and visible footprint',()=>{
  const layout={axes:[[1,0,0],[0,0,1],[0,1,0]],span:[10,10,10],size:256};
  const spherical=sprayShadowKernel([0,1,0,.2],[1,0,0,4],[.3,3,.02,1],layout);
  const rain=sprayShadowKernel([0,1,0,.2],[1,0,0,4],[.3,3,-.02,1],layout);
- close(rain.xx,spherical.xx);close(rain.yy,spherical.yy);close(rain.sigma/spherical.sigma,.22);close(rain.tau,spherical.tau);
+ close(rain.xx,spherical.xx);close(rain.yy,spherical.yy);close(rain.sigma/spherical.sigma,.52);close(rain.tau,spherical.tau);
  const side={...layout,axes:[[1,0,0],[0,1,0],[0,0,1]]},thin=sprayShadowKernel([0,1,0,.2],[1,0,0,4],[.3,3,-.02,1],side);
- assert.ok(thin.yy<thin.xx*.07);assert.ok(thin.det>0&&thin.tau>0);
+ assert.ok(thin.yy<thin.xx*.3);assert.ok(thin.det>0&&thin.tau>0);
 });
 
 import {terrainGradient} from '../src/sand-lab/terrain-gradient.js';
@@ -117,7 +117,7 @@ test('rain traces real sphere and cup surfaces before emitting mist',()=>{
   assert.ok(hit&&hit.point[1]>1);assert.ok(Math.abs(bodyDistance(hit.point,body)-.003)<.0001);assert.ok(hit.normal[1]>.8);
  }
 });
-test('rain mist drifts more slowly than free spray and stays close to its receiving surface',()=>{
+test('rain mist drifts more slowly than free spray and lifts gently above its receiving surface',()=>{
  let p=[0,1,0],v=[0,0,0];for(let i=0;i<100;i++){const next=detailStep(p,v,3,10,.01,i*.01,20,0,null,1,0,null,true);p=next.position;v=next.velocity;}
- assert.ok(Math.hypot(p[0],p[2])>.02&&Math.hypot(p[0],p[2])<.3);assert.ok(Math.abs(p[1]-1)<.01);
+ assert.ok(Math.hypot(p[0],p[2])>.02&&Math.hypot(p[0],p[2])<.3);assert.ok(p[1]>1.01&&p[1]<1.04);
 });

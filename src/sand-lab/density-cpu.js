@@ -1,6 +1,7 @@
 import {NEIGHBORS,boundaryMetric,boundaryKernel} from './water-lab-model.js';
 
 // The same PBF equations and Float32 iteration boundaries as solveDensity.
+// Integer powers stay as products: generic powers dominate this CPU loop.
 // Scalar neighbor loops avoid millions of short-lived vectors in the safe
 // sand/object path. Geometry callbacks remain the authoritative CPU SDF.
 export function solveDensityCPU(positions,neighbors,spacing,iterations=3,collide=p=>p,boundary=null){
@@ -14,7 +15,7 @@ export function solveDensityCPU(positions,neighbors,spacing,iterations=3,collide
    for(let a=0;a<NEIGHBORS;a++){
     const j=neighbors[i*NEIGHBORS+a];if(j<0)break;const k=j*4;
     const x=pos[o]-pos[k],y=pos[o+1]-pos[k+1],z=pos[o+2]-pos[k+2],r2=x*x+y*y+z*z;
-    if(r2>=h2)continue;const r=Math.sqrt(r2);const q=Math.max(0,1-r*r/h2);rho+=volume*w*q**3;
+    if(r2>=h2)continue;const r=Math.sqrt(r2);const q=Math.max(0,1-r*r/h2);rho+=volume*w*q*q*q;
     if(r<1e-6)continue;const c=g*(h-r)**2/r;
     const xg=x*c*volume,yg=y*c*volume,zg=z*c*volume;
     sum+=xg*xg+yg*yg+zg*zg;gx+=xg;gy+=yg;gz+=zg;
@@ -34,7 +35,7 @@ export function solveDensityCPU(positions,neighbors,spacing,iterations=3,collide
     const j=neighbors[i*NEIGHBORS+a];if(j<0)break;const k=j*4;
     const x=pos[o]-pos[k],y=pos[o+1]-pos[k+1],z=pos[o+2]-pos[k+2],r2=x*x+y*y+z*z;
     if(r2<1e-12||r2>=h2)continue;const r=Math.sqrt(r2);
-    const q=Math.max(0,1-r*r/h2),scorr=-.00015*(w*q**3/reference)**4,c=g*(h-r)**2/r;
+    const q=Math.max(0,1-r*r/h2),ratio=w*q*q*q/reference,ratio2=ratio*ratio,scorr=-.00015*ratio2*ratio2,c=g*(h-r)**2/r;
     const force=(lambda[i]+lambda[j]+scorr)*volume;
     dx+=force*(x*c);dy+=force*(y*c);dz+=force*(z*c);
    }
