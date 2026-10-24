@@ -11,8 +11,8 @@ export function beadRadius(volume){return Math.cbrt(Math.max(0,volume)*3/(4*Math
 // Rain-only capillary water, distinct from airborne spray and bulk solver water.
 // The CPU owns conservative volumes/attachment; the GPU draws the small beads.
 export class SurfaceDrops {
- constructor(rain){this.rain=rain;this.lab=rain.lab;this.patches=new Map();this.births=[];this.absorbed=0;this.sequence=0;this.revision=0;}
- get volume(){let v=this.absorbed;for(const p of this.patches.values())v+=p.volume;for(const p of this.births)v+=p.volume;return v;}
+ constructor(rain){this.rain=rain;this.lab=rain.lab;this.patches=new Map();this.births=[];this.absorbed=0;this.drained=0;this.sequence=0;this.revision=0;}
+ get volume(){let v=this.absorbed+this.drained;for(const p of this.patches.values())v+=p.volume;for(const p of this.births)v+=p.volume;return v;}
  receiver(hit){if(hit.particle>=0)return null;return this.lab.balls.find(b=>Math.abs(bodyDistance(hit.point,b))<.008)||null;}
  frame(p){return p.body?{point:rotate(p.local,p.body.tilt,p.body.spin,false,p.body.pitch).map((v,k)=>v+p.body.position[k]),normal:rotate(p.localNormal,p.body.tilt,p.body.spin,false,p.body.pitch)}:{point:p.point.slice(),normal:p.normal.slice()};}
  absorb(point,volume){
@@ -27,13 +27,13 @@ export class SurfaceDrops {
  impact(drop,hit){
   if(hit.particle>=0)return false;
   // The player capsule is not a condensation receiver. Rain can still hit
-  // it, splash and run off through the ordinary rain volume ledger.
-  if(this.lab.player&&this.lab.playerDistance?.(hit.point)<=.008)return false;
+  // it and splash, but never build a stationary reservoir on the player.
+  if(this.lab.player&&this.lab.playerDistance?.(hit.point)<=.008){this.drained+=drop.volume;return true;}
   const body=this.receiver(hit);let volume=drop.volume;
   if(!body){
    const absorbed=this.absorb(hit.point,volume);this.absorbed+=absorbed;volume-=absorbed;
-   if(volume>1e-14)this.rain.addDeposit(hit,volume);
-   return true; // sand retains pore water/runoff, never visible surface beads
+   this.drained+=Math.max(0,volume);
+   return true; // excess percolates below sand; no surface/bulk water reservoir
   }
   if(volume<=1e-14)return true;
   const local=body?bodyLocal(hit.point,body):hit.point.slice(),size=this.lab.spacing*.9;

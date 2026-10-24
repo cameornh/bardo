@@ -1,0 +1,17 @@
+{
+  "numericalTests": { "passed": 520, "failed": 0 },
+  "build": "passed",
+  "preview": "Bounded CPU cross-section and small GPU reconstruction/surface-search check; no full scene run",
+  "rendering": {
+    "interiors": "Continuous volume-preserving mixtures in quiet surrounded water; exposed surface kernels remain fine",
+    "distance": "Smooth footprint-based water ray steps; fixed pixel grid during camera movement",
+    "backends": "CPU grouping, GPU Gaussian density reconstruction, explicit CPU field reference/fallback",
+    "physics": "Physical parcel count, forces and time stepping unchanged; no camera input to simulation"
+  },
+  "rain": "Sand/player impacts absorb or drain without visible reservoirs; object condensation and existing-water accumulation retained",
+  "condensationOpacity": { "before": 0.38, "after": 0.19 },
+  "limits": [
+    "Grouping benchmark measures reconstruction inputs and CPU grouping, not frame rate or simulation throughput",
+    "Camera stability is numerically checked on bounded fields; full-scene flicker remains visually unverified"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "sourceKernels": 1728,
+  "kernels": 1280,
+  "mergedCells": 64,
+  "estimatedVoxelWork": 0.7672259989437016,
+  "backend": "CPU grouping / GPU Gaussian reconstruction; CPU field fallback",
+  "maximumSurfaceError": 0,
+  "volumeError": 1.7053025658242404e-13,
+  "pass": true,
+  "gpu": {
+    "maximumDensityError": 9.5367431640625e-7,
+    "nonFinite": 0,
+    "atlas": [
+      210,
+      211
+    ],
+    "pass": true
+  },
+  "cameraSearch": {
+    "maximumEntryError": 0.00020450282536543796,
+    "maximumThicknessError": 0.00025767582306279735,
+    "maximumSoluteError": 5.6624412547723324e-8,
+    "nonFinite": 0,
+    "pass": true
+  }
+}

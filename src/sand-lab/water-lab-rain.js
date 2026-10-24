@@ -133,6 +133,9 @@ export class LabRain {
   }
   addDeposit(hit,volume){
     const lab=this.lab,s=lab.spacing;
+    // Only explicit solid-object condensation and existing liquid can create
+    // bulk parcels in the beach. Legacy/removed receivers drain into sand too.
+    if(lab.sand&&hit.particle<0){this.surfaceDrops.drained+=volume;return;}
     const onVessel=hit.particle<0&&vesselDistance(hit.point,lab.kind,lab.motion)<.015;
     const q=onVessel?vesselLocal(hit.point,lab.motion):hit.point;
     const cell=onVessel?Math.max(.025,.018/lab.spec.scale):s*1.5,key=`${onVessel?'v':hit.particle>=0?'w':'g'}:${(hit.particle>=0?[q[0],q[2]]:q).map(v=>Math.floor(v/cell)).join(',')}`;
@@ -162,6 +165,7 @@ export class LabRain {
   // parcels occupy space; choose the lowest available local surface, rather
   // than repeatedly stacking parcels above the first impacted particle.
   releaseDeposits() {
+    if(this.lab.sand)for(const [key,p] of this.deposits)if(p.particle<0){this.surfaceDrops.drained+=p.volume;this.deposits.delete(key);}
     const lab=this.lab,s=lab.spacing,pv=s**3;
     this.work.releaseCandidates=0;
     let readyVolume=0;for(const p of this.deposits.values())readyVolume+=p.volume;
@@ -242,7 +246,7 @@ export class LabRain {
       p.localNormal=rotate(newN,lab.motion.tilt,lab.motion.spin,true,lab.motion.pitch);
     }
   }
-  douse(){const count=Math.min(32,RAIN_PACKET_LIMIT-this.drops.length);if(count<=0)return;const lab=this.lab,pv=lab.spacing**3,volume=Math.min(pv*12,Math.max(0,(lab.particleBudget-lab.count)*pv-this.unresolvedVolume));if(!volume)return;
+  douse(){const count=Math.min(32,RAIN_PACKET_LIMIT-this.drops.length);if(count<=0)return;const lab=this.lab,pv=lab.spacing**3,volume=Math.min(pv*12,Math.max(0,(lab.particleBudget-lab.count)*pv-(this.unresolvedVolume-this.surfaceDrops.absorbed-this.surfaceDrops.drained)));if(!volume)return;
     for(let i=0;i<count;i++){const q=[(hash(i+this.sequence)-.5)*3,1.2+hash(i+6)*.4,(hash(i+13)-.5)*2],point=rotate(q,lab.motion.tilt,lab.motion.spin,false,lab.motion.pitch).map((v,k)=>v+lab.motion.position[k]),velocity=rotate([0,-2/lab.spec.scale,0],lab.motion.tilt,lab.motion.spin,false,lab.motion.pitch);this.drops.push({id:++this.sequence,position:point,velocity,volume:volume/count});}this.emitted+=volume;
   }
   fieldItems() {
@@ -250,7 +254,7 @@ export class LabRain {
     for(const p of this.deposits.values()) {
       // Sub-grid water already belongs to the moving fluid surface. A static
       // Gaussian here made permanent bumps/dents at old impact locations.
-      if(p.local||p.particle>=0)continue;
+      if(this.lab.sand||p.local||p.particle>=0)continue;
       const radius=Math.cbrt(p.volume)*.65,point=this.depositPoint(p),normal=this.depositNormal(p);
       // These small wet deposits use the same volume-normalized Gaussian field
       // as the fluid, keeping their water visible before parcel conversion.
@@ -264,7 +268,7 @@ export class LabRain {
     this.columns=null;
     if(this.enabled&&this.rate>0) {
       this.budget+=dt*rainPacketRate(this.rate);
-      const available=Math.max(0,(lab.particleBudget-lab.count)*lab.spacing**3-(this.unresolvedVolume-this.surfaceDrops.absorbed)-this.sourceVolume);
+      const available=Math.max(0,(lab.particleBudget-lab.count)*lab.spacing**3-(this.unresolvedVolume-this.surfaceDrops.absorbed-this.surfaceDrops.drained)-this.sourceVolume);
       this.capacityLimited=available<this.flux*dt;
       this.sourceVolume+=Math.min(available,this.flux*dt);
       const count=Math.min(Math.floor(this.budget),Math.max(0,RAIN_PACKET_LIMIT-this.drops.length));

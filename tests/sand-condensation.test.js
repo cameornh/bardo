@@ -14,9 +14,9 @@ test('individual rain contacts leave one bead each instead of growing reservoir 
  const beads=drops.beads();assert.equal(beads.length,48);assert.ok(beads.every(b=>b.radius<=.1&&Math.abs(b.position[1]-b.radius*.5)<1e-9));
  assert.ok(Math.abs(drops.volume-.096)<1e-12);
 });
-test('all sand wetness levels absorb or shed rain without condensation',()=>{
+test('all sand wetness levels absorb or drain rain without visible water',()=>{
  for(let i=0;i<=20;i++){const wet=i/20,d=fixture(wet,false);d.impact({volume:.001},hit);d.step(.1);
-  assert.equal(d.beads().length,0);assert.equal(d.patches.size,0);assert.ok(Math.abs(d.rain.runoff-.001*wet*wet)<1e-12);assert.ok(Math.abs(d.volume+d.rain.runoff-.001)<1e-12);
+  assert.equal(d.beads().length,0);assert.equal(d.patches.size,0);assert.equal(d.rain.runoff,0);assert.ok(Math.abs(d.drained-.001*wet*wet)<1e-12);assert.ok(Math.abs(d.volume-.001)<1e-12);
  }
 });
 test('beads use a half-strength blue water tint that continuously becomes amber with tannins',()=>{

@@ -1,0 +1,15 @@
+{
+  "fixture": "Calm seeded beach, existing kernel sizes and shoreline images",
+  "physicsParcels": 12852,
+  "sourceKernels": 13181,
+  "kernels": 8261,
+  "mergedCells": 704,
+  "estimatedVoxelWork": 0.6871072465111647,
+  "backend": "CPU grouping / GPU Gaussian reconstruction; CPU field fallback",
+  "groupingMs": {
+    "median": 3.9919029999999793,
+    "p95": 8.552584000000024
+  },
+  "volumeError": 6.181721801112872e-12,
+  "scope": "CPU grouping only; estimated Gaussian voxel work, not measured GPU time or FPS"
+}

@@ -3,6 +3,7 @@ import {beadGlassTransmission,BEAD_TRANSPORT_GLSL} from './surface-drop-optics.j
 import {SH_GLSL} from '../shaders.js';
 import {LAB_LIGHTING_GLSL} from './water-lab-lighting.js';
 import {SOLUTE_GLSL,soluteCoefficients} from './water-lab-solutes.js';
+export const SURFACE_DROP_OPACITY=.19;
 export function surfaceDropTint(tannins=0){const c=soluteCoefficients([0,0,0],tannins).extinction.map(x=>Math.exp(-x*2)),peak=Math.max(...c);return c.map(x=>.5+.5*x/peak);}
 // Covariance-projected, spherical water beads. Kept out of the coarse
 // liquid field so tiny drops cannot become voxel-sized mounds on a receiver.
@@ -22,7 +23,7 @@ uniform sampler2D uOpaqueRead,uWaterSurface;uniform vec2 uResolution;uniform vec
 ${SH_GLSL}${LAB_LIGHTING_GLSL}${SOLUTE_GLSL}
 vec3 beadEnvironment(vec3 n){float b[16];basisSH(n,b);vec3 c=vec3(0);for(int i=0;i<16;i++){if(i>=(uSHDegree+1)*(uSHDegree+1))break;c+=b[i]*uSH[i]*diffuseSHBand(i);}return max(c,vec3(0))*uAmbient;}
 void main(){vec2 uv=gl_FragCoord.xy/uResolution;float solid=texture(uOpaqueRead,uv).a;if(vDepth>solid+vRadius*1.5)discard;
- float q=dot(vQ,vQ),a=exp(-q*.5)*.38;if(a<.01)discard;vec3 view=normalize(uEye-vWorld);
+ float q=dot(vQ,vQ),gaussian=exp(-q*.5),a=gaussian*${SURFACE_DROP_OPACITY};if(gaussian<.01/.38)discard;vec3 view=normalize(uEye-vWorld);
  // Round cap normals are expressed in camera axes, matching the projected
  // Gaussian. Never sample a pre-glass image or offset the background: that
  // painted camera-dependent gray ribbons over transparent receivers.
