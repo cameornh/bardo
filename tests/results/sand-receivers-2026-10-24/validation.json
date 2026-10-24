@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-24",
+  "numericalTests": {
+    "command": "npm test",
+    "passed": 512,
+    "failed": 0
+  },
+  "build": {
+    "command": "npm run build",
+    "passed": true
+  },
+  "preview": {
+    "path": "tests/sand-boulders-layout.html",
+    "backend": "CPU reference canvas; no WebGL context",
+    "inspected": true,
+    "scope": "Boulder layout and embedding only; full renderer not exercised"
+  },
+  "checks": [
+    "No condensation on sand or player",
+    "Partial and full submersion removes condensation and preserves rain mass",
+    "Water drag dissipates translational and rotational energy in still water",
+    "Currents can still apply torque",
+    "Fixed boulders collide with moving objects and player without moving",
+    "No initial water samples overlap boulders"
+  ]
+}

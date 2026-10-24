@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {makeBody} from '../src/sand-lab/objects.js';
 import {SurfaceDrops,DROP_BEADS} from '../src/sand-lab/surface-drops.js';
 import {surfaceDropTint} from '../src/sand-lab/surface-drop-renderer.js';
 import {detailDisplayRadius} from '../src/sand-lab/water-lab-detail-opacity.js';
 import {detailStep} from '../src/sand-lab/water-lab-detail.js';
 import {sprayShadowKernel} from '../src/sand-lab/water-lab-spray-shadows.js';
-function fixture(wet=1){const lab={spacing:1,sand:{materialAt:()=>wet,distance:p=>p[1]},balls:[],count:0,particleBudget:100,solid:p=>p[1]};return new SurfaceDrops({lab,appendParcels(){},addWaterDeposit(){}});}
+function fixture(wet=1,objects=true){const body=makeBody('rock','cup',5,[0,4.2,0]),lab={spacing:1,sand:{materialAt:()=>wet,distance:p=>p[1]},balls:objects?[body]:[],count:0,particleBudget:100,solid:p=>p[1]},rain={lab,runoff:0,appendParcels(){},addWaterDeposit(){},addDeposit(hit,volume){this.runoff+=volume;}};return new SurfaceDrops(rain);}
 const hit={point:[0,0,0],normal:[0,1,0],particle:-1};
 test('individual rain contacts leave one bead each instead of growing reservoir clusters',()=>{
  const drops=fixture();drops.impact({volume:.002},hit);for(let i=0;i<100;i++)drops.step(.02);assert.equal(drops.beads().length,1);
@@ -13,9 +14,9 @@ test('individual rain contacts leave one bead each instead of growing reservoir 
  const beads=drops.beads();assert.equal(beads.length,48);assert.ok(beads.every(b=>b.radius<=.1&&Math.abs(b.position[1]-b.radius*.5)<1e-9));
  assert.ok(Math.abs(drops.volume-.096)<1e-12);
 });
-test('wet sand continuously retains more surface water while dry sand absorbs it',()=>{
- let previous=0;for(let i=0;i<=20;i++){const wet=i/20,d=fixture(wet);d.impact({volume:.001},hit);d.step(.1);let retained=0;for(const p of d.patches.values())retained+=p.volume;
-  assert.ok(retained>=previous);assert.ok(Math.abs(retained-.001*wet*wet)<1e-12);assert.ok(Math.abs(d.volume-.001)<1e-12);if(i===0)assert.equal(d.beads().length,0);previous=retained;
+test('all sand wetness levels absorb or shed rain without condensation',()=>{
+ for(let i=0;i<=20;i++){const wet=i/20,d=fixture(wet,false);d.impact({volume:.001},hit);d.step(.1);
+  assert.equal(d.beads().length,0);assert.equal(d.patches.size,0);assert.ok(Math.abs(d.rain.runoff-.001*wet*wet)<1e-12);assert.ok(Math.abs(d.volume+d.rain.runoff-.001)<1e-12);
  }
 });
 test('beads use a half-strength blue water tint that continuously becomes amber with tannins',()=>{

@@ -29,11 +29,11 @@ test('exposed glass keeps rain beads despite nearby coarse water kernels; full i
  const {b,lab,d}=fixture();d.impact({volume:.001},{point:[0,.85,0],normal:[0,1,0],particle:-1});d.step(.3);assert.equal(d.beads().length,1);assert.equal([...d.patches.values()][0].body,b);
  lab.waterAt=()=>({density:1});d.step(.3);assert.equal(d.patches.size,0);
 });
-test('real rain flux reaches glass and spreads across wet sand, with conserved mass',()=>{
+test('real rain flux reaches glass while wet sand has no condensation, with conserved mass',()=>{
  const {b,lab}=fixture();lab.rain=new LabRain(lab);lab.rain.enabled=true;lab.rain.rate=120;let glass=0,sand=0;
  const impact=lab.rain.impact.bind(lab.rain);lab.rain.impact=(drop,hit)=>{if(Math.abs(bodyDistance(hit.point,b))<.008)glass++;else sand++;impact(drop,hit);};
  for(let i=0;i<150;i++)lab.rain.step(1/30);
- assert.ok(glass>=3,glass);assert.ok(sand>300,sand);assert.ok(lab.rain.surfaceDrops.beads().length>300);assert.ok([...lab.rain.surfaceDrops.patches.values()].some(p=>p.body===b&&p.beads.length));
+ assert.ok(glass>=3,glass);assert.ok(sand>300,sand);assert.ok(lab.rain.surfaceDrops.beads().length>=3);assert.ok([...lab.rain.surfaceDrops.patches.values()].every(p=>p.body===b));assert.ok([...lab.rain.surfaceDrops.patches.values()].some(p=>p.body===b&&p.beads.length));
  close(lab.rain.emitted,lab.rain.transferred+lab.rain.unresolvedVolume);
 });
 test('late glass transport equals correctly ordered layers without fogging the transmitted background twice',async()=>{

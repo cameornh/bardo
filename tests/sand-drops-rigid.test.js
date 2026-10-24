@@ -5,15 +5,15 @@ import {makeBody,bodyDistance,cupHydrostatics} from '../src/sand-lab/objects.js'
 import {bodyMass,bodyImpulse,integrateOrientation,resolveBodyTerrain,resolveBodyPairs,bodyContactPoints} from '../src/sand-lab/rigid-contacts.js';
 import {LabRain} from '../src/sand-lab/water-lab-rain.js';
 const close=(a,b,t=1e-8)=>assert.ok(Math.abs(a-b)<t,`${a} != ${b}`);
-function fixture(wet=1){const lab={spacing:.2,spec:{scale:10},sand:{materialAt:()=>wet,distance:p=>p[1]},balls:[],positions:new Float32Array(),velocities:new Float32Array(),chem:new Float32Array(),neighborCounts:new Uint16Array(),get count(){return this.positions.length/4},particleBudget:10000,solid(p){return Math.min(p[1],...this.balls.map(b=>bodyDistance(p,b)))},motion:{position:[0,0,0],tilt:0,spin:0,pitch:0}};lab.rain=new LabRain(lab);return lab;}
+function fixture(wet=1,objects=false){const lab={spacing:.2,spec:{scale:10},sand:{materialAt:()=>wet,distance:p=>p[1]},balls:[],positions:new Float32Array(),velocities:new Float32Array(),chem:new Float32Array(),neighborCounts:new Uint16Array(),get count(){return this.positions.length/4},particleBudget:10000,solid(p){return Math.min(p[1],...this.balls.map(b=>bodyDistance(p,b)))},motion:{position:[0,0,0],tilt:0,spin:0,pitch:0}};if(objects)lab.balls.push(makeBody('rock','cup',5,[0,4.2,0]));lab.rain=new LabRain(lab);return lab;}
 const hit=point=>({point,normal:[0,1,0],particle:-1});
-test('surface beads are rain-only, smaller than bulk, and dry sand absorbs instead',()=>{
+test('surface beads stay on rigid receivers while all sand absorbs or sheds rain',()=>{
  const dry=fixture(0);dry.rain.impact({volume:.001,velocity:[0,-1,0]},hit([0,0,0]));assert.equal(dry.rain.surfaceDrops.patches.size,0);close(dry.rain.depositVolume,.001);
- const wet=fixture(),drops=wet.rain.surfaceDrops;wet.rain.impact({volume:.001,velocity:[0,-1,0]},hit([0,0,0]));drops.step(.1);assert.equal(drops.beads().length,1);assert.ok(drops.beads().every(b=>b.radius<wet.spacing*.3));assert.equal(drops.fieldItems().length,0);
+ const wet=fixture(1,true),drops=wet.rain.surfaceDrops;wet.rain.impact({volume:.001,velocity:[0,-1,0]},hit([0,0,0]));drops.step(.1);assert.equal(drops.beads().length,1);assert.ok(drops.beads().every(b=>b.radius<wet.spacing*.3));assert.equal(drops.fieldItems().length,0);
  assert.equal(drops.impact({volume:.1},{...hit([0,1,0]),particle:0}),false);close(drops.volume,.001);
 });
 test('nearby accumulation transitions continuously into one parcel without summoning distant rain',()=>{
- const lab=fixture(),d=lab.rain.surfaceDrops,pv=lab.spacing**3;
+ const lab=fixture(1,true),d=lab.rain.surfaceDrops,pv=lab.spacing**3;
  d.impact({volume:pv*.5},hit([0,0,0]));d.impact({volume:pv*.5},hit([1,0,0]));d.step(.2);assert.equal(d.births.length,0);
  d.impact({volume:pv*.5},hit([0,0,0]));d.step(.01);assert.equal(d.births.length,1);assert.ok(d.fieldItems()[0].volume<pv*.001);
  const position=d.births[0].position.slice();d.step(.5);assert.ok(d.fieldItems()[0].volume>0&&d.fieldItems()[0].volume<pv);assert.ok(d.beads().length>0);
@@ -69,7 +69,7 @@ test('deeply interlocked equal cups recover while a small sphere can occupy the 
 });
 
 test('adjacent rain beads coalesce across spatial cell borders',()=>{
- const lab=fixture(),d=lab.rain.surfaceDrops,pv=lab.spacing**3;
+ const lab=fixture(1,true),d=lab.rain.surfaceDrops,pv=lab.spacing**3;
  d.impact({volume:pv*.5},hit([-.001,0,0]));d.impact({volume:pv*.5},hit([.001,0,0]));d.step(.1);assert.equal(d.births.length,1);close(d.volume,pv);
 });
 

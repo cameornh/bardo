@@ -124,7 +124,15 @@ export class LabRain {
         for(const {o,w,crown} of targets)for(let k=0;k<3;k++)lab.velocities[o+k]+=(drop.velocity[k]+kick*(crown[k]-mean[k]))*impulse*w/sum;
       }
     }
-    if(!lab.sand||!this.surfaceDrops.impact(drop,hit)){
+    if(!lab.sand||!this.surfaceDrops.impact(drop,hit))this.addDeposit(hit,drop.volume);
+    if(this.impactAllowance<=0)return;this.impactAllowance--;
+    const wet=lab.sand?lab.sand.materialAt(hit.point):0;
+    const onBody=lab.balls?.some(b=>Math.hypot(...hit.point.map((v,k)=>v-b.position[k]))<b.radius*1.6);
+    const hardness=hit.particle>=0?0:onBody||!lab.sand?1:Math.min(1,wet);
+    lab.detail?.impact(hit.point,hit.normal,drop.velocity,drop.volume,lab,hardness);
+  }
+  addDeposit(hit,volume){
+    const lab=this.lab,s=lab.spacing;
     const onVessel=hit.particle<0&&vesselDistance(hit.point,lab.kind,lab.motion)<.015;
     const q=onVessel?vesselLocal(hit.point,lab.motion):hit.point;
     const cell=onVessel?Math.max(.025,.018/lab.spec.scale):s*1.5,key=`${onVessel?'v':hit.particle>=0?'w':'g'}:${(hit.particle>=0?[q[0],q[2]]:q).map(v=>Math.floor(v/cell)).join(',')}`;
@@ -135,14 +143,8 @@ export class LabRain {
       if(hit.particle>=0)p.offset=hit.point.map((v,k)=>v-lab.positions[hit.particle*4+k]);
       this.deposits.set(key,p);
     }
-    p.volume+=drop.volume;
+    p.volume+=volume;
     if(hit.particle>=0){p.point=hit.point.slice();p.particle=hit.particle;}
-    }
-    if(this.impactAllowance<=0)return;this.impactAllowance--;
-    const wet=lab.sand?lab.sand.materialAt(hit.point):0;
-    const onBody=lab.balls?.some(b=>Math.hypot(...hit.point.map((v,k)=>v-b.position[k]))<b.radius*1.6);
-    const hardness=hit.particle>=0?0:onBody||!lab.sand?1:Math.min(1,wet);
-    lab.detail?.impact(hit.point,hit.normal,drop.velocity,drop.volume,lab,hardness);
   }
   addWaterDeposit(point,volume){
     const s=this.lab.spacing,key='w:'+point.map(v=>Math.floor(v/s)).join(',');let p=this.deposits.get(key);

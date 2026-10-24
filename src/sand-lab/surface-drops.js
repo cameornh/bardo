@@ -26,8 +26,15 @@ export class SurfaceDrops {
  }
  impact(drop,hit){
   if(hit.particle>=0)return false;
+  // The player capsule is not a condensation receiver. Rain can still hit
+  // it, splash and run off through the ordinary rain volume ledger.
+  if(this.lab.player&&this.lab.playerDistance?.(hit.point)<=.008)return false;
   const body=this.receiver(hit);let volume=drop.volume;
-  if(!body){const absorbed=this.absorb(hit.point,volume);this.absorbed+=absorbed;volume-=absorbed;}
+  if(!body){
+   const absorbed=this.absorb(hit.point,volume);this.absorbed+=absorbed;volume-=absorbed;
+   if(volume>1e-14)this.rain.addDeposit(hit,volume);
+   return true; // sand retains pore water/runoff, never visible surface beads
+  }
   if(volume<=1e-14)return true;
   const local=body?bodyLocal(hit.point,body):hit.point.slice(),size=this.lab.spacing*.9;
   const localNormal=body?rotate(hit.normal,body.tilt,body.spin,true,body.pitch):hit.normal,axis=localNormal.reduce((best,v,k)=>Math.abs(v)>Math.abs(localNormal[best])?k:best,0),face=axis*2+Number(localNormal[axis]>0);
@@ -43,15 +50,22 @@ export class SurfaceDrops {
   p.volume+=volume;if(p.beads.length>=DROP_BEADS)p.beads.shift();if(p.arrivals.length<DROP_BEADS)p.arrivals.push(local);this.revision++;return true;
  }
  step(dt){
-  const lab=this.lab,s=lab.spacing,pv=s**3;
+  const lab=this.lab,s=lab.spacing,pv=s**3,wasActive=this.patches.size||this.births.length;
   // Optical detail has a fixed budget; conservative water mass and coalescence
   // continue even when a long rain session fills the display budget.
   let beadBudget=SURFACE_BEAD_LIMIT;for(const p of this.patches.values())beadBudget-=p.beads.length;beadBudget=Math.min(64,beadBudget);
   if(this.sandWetDirty){lab.sand.dirty=true;lab.sand.revision++;this.sandWetDirty=false;}
   for(const [key,p] of this.patches){
-   p.age+=dt;p.waterClock=(p.waterClock??.25)+dt;p.shown+=(p.volume-p.shown)*(1-Math.exp(-dt/.22));
-   if(p.body&&!lab.balls.includes(p.body)){p.point=this.frame(p).point;p.normal=this.frame(p).normal;p.body=null;}
+   p.age+=dt;p.waterClock=(p.waterClock??.1)+dt;p.shown+=(p.volume-p.shown)*(1-Math.exp(-dt/.22));
    const {point,normal}=this.frame(p);
+   if(!p.body||!lab.balls.includes(p.body)){
+    const births=this.births.filter(b=>b.patch===p);this.births=this.births.filter(b=>b.patch!==p);
+    this.rain.addDeposit({point,normal,particle:-1},p.volume+births.reduce((sum,b)=>sum+b.volume,0));this.patches.delete(key);continue;
+   }
+   const pose=[...p.body.position,p.body.tilt,p.body.spin,p.body.pitch].join(',');
+   if(p.waterClock>=.1||p.waterPose!==pose){
+    p.waterClock=0;p.waterPose=pose;this.clearSubmerged(p);
+   }
    // Each impact leaves one bead at its own contact, not a rosette grown
    // around a reservoir centre. The reservoir still conserves all rain mass.
    p.beadClock+=dt;
@@ -61,11 +75,6 @@ export class SurfaceDrops {
     if(donor){donor.beads.pop();beadBudget++;}
    }
    if(beadBudget>0&&p.beads.length<target&&p.beadClock>=DROP_BEAD_INTERVAL){this.addBead(p);beadBudget--;p.beadClock%=DROP_BEAD_INTERVAL;}
-   if(p.waterClock>=.25&&lab.waterAt&&lab.waterAt(point.map((v,k)=>v+normal[k]*Math.max(.02,s*.35))).density>.24){
-    // Submerged beads join water mass; never decorate the free surface.
-    this.rain.addWaterDeposit(point,p.volume);this.patches.delete(key);continue;
-   }
-   if(p.waterClock>=.25)p.waterClock=0;
    if(p.volume+1e-12>=pv&&!this.births.some(b=>b.patch===p)&&lab.count+this.births.length<lab.particleBudget){
     let position=point.map((v,k)=>v+normal[k]*s*.45);
     for(let j=0;j<8;j++){const d=lab.solid(position,false,false);if(d>=s*.4)break;const n=normalAt(position,q=>lab.solid(q,false,false));position=position.map((v,k)=>v+n[k]*(s*.4-d));}
@@ -77,7 +86,20 @@ export class SurfaceDrops {
    if(b.body){b.position=rotate(b.local,b.body.tilt,b.body.spin,false,b.body.pitch).map((v,k)=>v+b.body.position[k]);b.velocity=pointVelocity(b.body,b.position);}
    b.age+=dt;if(b.age>=DROP_MERGE_SECONDS)done.push(b);}
   if(done.length){this.rain.appendParcels(done);this.births=this.births.filter(b=>!done.includes(b));}
-  if(this.patches.size||this.births.length)this.revision++;
+  // Invalidating the final removed patch is essential: otherwise its old
+  // GPU instances stay visible even though the water ledger is already clear.
+  if(wasActive||this.patches.size||this.births.length)this.revision++;
+ }
+ clearSubmerged(p){
+  if(!this.lab.waterAt)return;
+  const b=p.body,world=local=>rotate(local,b.tilt,b.spin,false,b.pitch).map((v,k)=>v+b.position[k]);
+  const submerged=local=>{const q=world(local),n=bodyNormal(q,b),offset=Math.max(.004,Math.min(this.lab.spacing*.35,b.radius*.25));return this.lab.waterAt(q.map((v,k)=>v+n[k]*offset)).density>.24;};
+  const count=p.beads.length+p.arrivals.length,kept=p.beads.filter(bead=>!submerged(bead.point)),arrivals=p.arrivals.filter(local=>!submerged(local));
+  const fraction=count?1-(kept.length+arrivals.length)/count:Number(submerged(p.local)),point=this.frame(p).point;
+  if(fraction>0){this.rain.addWaterDeposit(point,p.volume*fraction);p.volume*=1-fraction;p.shown*=1-fraction;p.beads=kept;p.arrivals=arrivals;}
+  // An incipient large drop is still attached capillary water. Immersion
+  // merges its entire reserved mass as well, rather than leaving a ghost blob.
+  if(submerged(p.local)){const wet=this.births.filter(x=>x.patch===p);for(const drop of wet)this.rain.addWaterDeposit(point,drop.volume);this.births=this.births.filter(x=>x.patch!==p);}
  }
  fieldItems(){return this.births.map(p=>({kind:'water',position:p.position,radius:Math.cbrt(p.volume*smooth(p.age/DROP_MERGE_SECONDS))*.65,volume:p.volume*smooth(p.age/DROP_MERGE_SECONDS),wet:0,dye:0,tannin:0,sediment:0}));}
  addBead(p){

@@ -8,14 +8,14 @@ export function bodyLocal(p,b){return rotate(p.map((v,k)=>v-b.position[k]),b.til
 export function bodyDistance(p,b){if(b.shape!=='cup')return Math.hypot(p[0]-b.position[0],p[1]-b.position[1],p[2]-b.position[2])-b.radius;const q=bodyLocal(p,b),r=b.radius,rad=Math.hypot(q[0],q[2]),wall=r*.16;return Math.min(Math.max(Math.abs(rad-r*.84)-wall,Math.abs(q[1])-r),Math.max(rad-r,Math.abs(q[1]+r)-wall));}
 export function bodyNormal(p,b){const e=Math.max(.000001,Math.min(.002,b.radius*.02)),n=[0,1,2].map(k=>{const a=p.slice(),c=p.slice();a[k]+=e;c[k]-=e;return bodyDistance(a,b)-bodyDistance(c,b);}),l=length(n)||1;return n.map(v=>v/l);}
 export function makeBody(kind,shape,radius,position,velocity=[0,0,0]){const m=MATERIALS[kind];return {kind,shape,radius,position:position.slice(),velocity:velocity.slice(),color:m.color.slice(),ratio:m.ratio,tilt:0,pitch:0,spin:0,omega:[0,0,0],submerged:0,airVolume:shape==='cup'?Math.PI*radius**3*1.84*.68**2:0,waterVolume:0,held:false};}
-export function recolorLatest(bodies,color){const b=bodies.at(-1);if(b)b.color=color.map(v=>clamp(v,0,1));return b;}
+export function recolorLatest(bodies,color){const b=bodies.findLast(b=>!b.fixed);if(b)b.color=color.map(v=>clamp(v,0,1));return b;}
 export function bodyVolume(b){return Math.PI*b.radius**3*(b.shape==='cup'?1.84*(1-.68**2)+.32:4/3);}
 // The walker uses metres; bodies use lab units. A finite player mass transfers
 // momentum both ways instead of treating every movable body as static terrain.
 export function playerBodyContact(walker,body,probe,scale=1){
  const q=probe.map(v=>v/scale),distance=bodyDistance(q,body)*scale;
  if(distance>=walker.radius+.002)return false;
- const n=bodyNormal(q,body),bodyMass=Math.max(.0001,(bodyVolume(body)*body.ratio+(body.waterVolume||0))*1000*scale**3),ip=1/(walker.mass||80),ib=body.held?0:1/bodyMass,total=ip+ib;
+ const n=bodyNormal(q,body),bodyMass=Math.max(.0001,(bodyVolume(body)*body.ratio+(body.waterVolume||0))*1000*scale**3),ip=1/(walker.mass||80),ib=body.held||body.fixed?0:1/bodyMass,total=ip+ib;
  const penetration=Math.max(0,walker.radius-distance+.0001),relative=walker.velocity.reduce((s,v,k)=>s+(v-body.velocity[k]*scale)*n[k],0),impulse=Math.max(0,-relative)/total;
  for(let k=0;k<3;k++){walker.position[k]+=n[k]*penetration*ip/total;body.position[k]-=n[k]*penetration*ib/total/scale;walker.velocity[k]+=n[k]*impulse*ip;body.velocity[k]-=n[k]*impulse*ib/scale;}
  return true;
@@ -48,10 +48,10 @@ export function resolveSandContacts(parcels,bodies,dt,grid=null){
     if(p.anchored){
      // Bonded sand is terrain: move the free body out of the deposit instead
      // of reviving/moving the clay's individual SDF support primitives.
-     if(b.held)break;const inward=b.velocity.reduce((sum,v,k)=>sum+v*n[k],0);
+     if(b.held||b.fixed)break;const inward=b.velocity.reduce((sum,v,k)=>sum+v*n[k],0);
      for(let k=0;k<3;k++){b.position[k]-=n[k]*(r-d+.0001);if(inward>0)b.velocity[k]-=inward*n[k];}
     }else{const vn=p.velocity.reduce((sum,v,k)=>sum+(v-b.velocity[k])*n[k],0);
-     for(let k=0;k<3;k++){p.position[k]+=n[k]*(r-d+.0001);if(vn<0){const impulse=-vn*n[k];p.velocity[k]+=impulse;if(!b.held)b.velocity[k]-=impulse*Math.min(.25,p.mass/(bodyVolume(b)*b.ratio));}}
+     for(let k=0;k<3;k++){p.position[k]+=n[k]*(r-d+.0001);if(vn<0){const impulse=-vn*n[k];p.velocity[k]+=impulse;if(!b.held&&!b.fixed)b.velocity[k]-=impulse*Math.min(.25,p.mass/(bodyVolume(b)*b.ratio));}}
     }
    }
    if(grid){grid.insert(index,b.position,b.radius*1.5);candidates=grid.query(p.position,bound);}

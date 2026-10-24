@@ -1,0 +1,13 @@
+{
+  "backend": "CPU reference; no WebGL",
+  "boulders": 3,
+  "visiblePixels": [
+    503,
+    3264,
+    411
+  ],
+  "fixed": true,
+  "embedded": true,
+  "waterSamples": 12820,
+  "pass": true
+}
