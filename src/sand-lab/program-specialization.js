@@ -21,7 +21,7 @@ export function specializeSource(source,constants){
  });
  return source;
 }
-export function installProgramSpecialization(renderer,enabled){
+export function installProgramSpecialization(renderer,enabled,{warmObjects=true}={}){
  const render=renderer.render.bind(renderer),states=new WeakMap();
  const prepare=(scene,objectCapable=false)=>{
   scene.traverse(object=>{for(const material of (Array.isArray(object.material)?object.material:[object.material])){
@@ -36,6 +36,9 @@ export function installProgramSpecialization(renderer,enabled){
  };
  const warmed=new WeakMap(),pending=new Set();let warmFailure=null;
  const warm=(scene,camera)=>{
+  // The live beach opts out: speculative compilation still submits driver
+  // work, even when the corresponding render pass will never be used.
+  if(!warmObjects)return;
   if(warmFailure)throw warmFailure;if(!renderer.compileAsync)return;let needed=false;const replacements=new Map();
   scene.traverse(object=>{for(const material of (Array.isArray(object.material)?object.material:[object.material])){
    if(!material?.isShaderMaterial||material.userData?.skipObjectWarmup||material.uniforms.uBodyCount?.value!==0)return;

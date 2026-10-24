@@ -1565,3 +1565,32 @@ angles, mist covariance, and bubble size in a small, static rendering fixture
 with CPU-only attachment and no fluid constraint shaders. Browser checks had
 no graphics errors or lost contexts. Evidence and timing samples are in
 `tests/results/sand-condensation-2026-10-24/`.
+
+
+### Sand startup pressure rollback (2026-10-24)
+
+After the bounded GPU pressure integration (`6b12127`), the live sand lab was
+reported to lose its graphics context shortly after opening at every resolution.
+That integration automatically validated a fixed 175-sample GPU fixture at
+startup, then could probe the full scene after timing a few CPU steps. A
+post-submission time limit cannot protect the driver from the submission itself.
+The exact driver failure has not been reproduced again.
+
+The live entry point no longer imports, constructs, validates or enables bounded
+GPU pressure. Water constraints are forced onto the existing compiled CPU path
+(with the JavaScript reference available), including scenes without objects.
+The restriction survives beach/resolution resets and all optimization checkbox
+combinations. CPU results still feed GPU transport, air, fine particles and
+rendering. The live scene also opts out of speculative object-program warmup;
+only programs needed by actual draws are compiled. Earlier snapshot defaults
+and isolated pressure experiments are unchanged.
+
+Validation uses CPU-only tests with renderer submission methods that throw.
+The new tests check the entry-point dependency graph, native/reference agreement,
+transport texture handoff, empty/object scenes, resolution and optimization
+resets, and the warmup opt-out. The targeted suite passed 80 of 81 checks; the
+remaining legacy assertion expects the label `CPU object contacts` instead of
+`JavaScript CPU`. It fails identically against the pre-change `6b12127` solver
+and was left unchanged. The production build passed. No browser GPU workload
+was relaunched for this rollback, so full-scene runtime recovery is not claimed
+as verified.
