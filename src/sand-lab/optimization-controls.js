@@ -1,6 +1,6 @@
 // These dependencies describe execution paths, not mutually exclusive quality levels.
 export const OPTIMIZATION_DEPENDENCIES={windBatch:['windGeometry'],nativeNeighbors:['packedNeighbors','neighborBounds'],emitterProbes:['gpuBatch'],neighborBounds:['packedNeighbors']};
-const labels={interiorCompression:'Compress quiet water interiors',distanceDetail:'Gradual distant drawing detail',surfaceLightReuse:'Reuse surface illumination',packedGpuNeighbors:'Packed GPU neighbor reads',windBatch:'Batch moving-sand wind queries',nativeNeighbors:'Compiled CPU neighbor search',
+const labels={nativeContacts:'Compiled CPU water contacts',interiorCompression:'Compress quiet water interiors',distanceDetail:'Gradual distant drawing detail',surfaceLightReuse:'Reuse surface illumination',packedGpuNeighbors:'Packed GPU neighbor reads',windBatch:'Batch moving-sand wind queries',nativeNeighbors:'Compiled CPU neighbor search',
  mergeWindDeposits:'Merge small wind deposits',settlingIndex:'Local settling queries',patchFloor:'Limit sub-resolution subdivision',
  predictBudget:'Predict physics step cost',fastHeight:'Fast terrain height sampling',windGeometry:'Reuse wind geometry queries',
  fastEmission:'Fast spray emission',terrainCache:'Cache terrain heights',sandPrograms:'Specialize shaders',stressPruning:'Skip redundant stress queries',

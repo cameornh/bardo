@@ -1,0 +1,56 @@
+{
+  "resolution": {
+    "units": "metres relative to a fixed 1.65 m eye height / 0.28 m player radius",
+    "waterSpacingAtQuality2_2": 1.909090909090909,
+    "widthRangeMetres": [
+      44,
+      220
+    ],
+    "sandGridAtQuality2_2": [
+      {
+        "width": 110,
+        "cells": 66
+      },
+      {
+        "width": 220,
+        "cells": 130
+      }
+    ],
+    "sandSpacingNote": "Whole grid counts cause small rounding differences; width does not coarsen the requested resolution.",
+    "boulders": "Fixed radii and horizontal metre coordinates; same physical shoreline profile."
+  },
+  "validation": {
+    "fullSuitePassed": 529,
+    "additionalBackendSwitchTest": "passed",
+    "localSandBinAndFinalPhysicalScaleChecks": "7 passed, including finite-difference samples across bin edges",
+    "finalTargetedChecks": "passed",
+    "build": "passed",
+    "browserErrorsDuringPausedScaleCheck": [],
+    "visualWidths": [
+      110,
+      220
+    ],
+    "visualQuality": 1
+  },
+  "liveRun": {
+    "description": "One 45-frame current full-scene run, with default wind and boulders. Includes first-use work; no matched earlier-version FPS baseline. Returned to pause without graphics context loss.",
+    "medianFrameMs": 216.7,
+    "p95FrameMs": 3800.1,
+    "simulatedSeconds": 3,
+    "wallSeconds": 138.0384,
+    "bulk": 13299,
+    "fine": 32768,
+    "constraintTransportReadbackMsLastStep": 147.6,
+    "lastNeighborMs": 20.1,
+    "lastSurfaceGpuMs": 65.91,
+    "limitation": "Long frame stalls remain in this run. Do not interpret the separate matched CPU solve speedup as an overall FPS speedup."
+  },
+  "cpuBenchmark": {
+    "reference": "JavaScript safe object contacts",
+    "optimized": "WebAssembly CPU contacts, reciprocal pair kernels and compiled geometry in locally empty sand bins",
+    "speedupRange": [1.5084506984064474, 2.7118651545296273],
+    "maximumPositionError": 0,
+    "details": "cpu-performance.json; three identical-input workloads with alternating order, 3 warm-up pairs and 8 measured pairs. This is not a full-frame benchmark."
+  },
+  "followUp": "Profile first-use shader work and dense spray rendering separately; preserve the CPU object-contact safety guard. The live frame run predates the final local-bin geometry refinement."
+}
