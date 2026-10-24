@@ -28,28 +28,46 @@ export function installProgramSpecialization(renderer,enabled){
    if(!material?.isShaderMaterial)continue;
    const constants=programConstants(material.uniforms,enabled(),objectCapable),key=JSON.stringify(constants);
    let state=states.get(material);
-   if(!state){const original=material.onBeforeCompile,cacheKey=material.customProgramCacheKey();state={key,constants};states.set(material,state);
+   if(!state){const original=material.onBeforeCompile,cacheKey=material.customProgramCacheKey();state={key,constants,original,cacheKey};states.set(material,state);
     material.onBeforeCompile=(shader,r)=>{original.call(material,shader,r);shader.vertexShader=specializeSource(shader.vertexShader,state.constants);shader.fragmentShader=specializeSource(shader.fragmentShader,state.constants);};
     material.customProgramCacheKey=()=>cacheKey+state.key;material.needsUpdate=true;
    }else if(key!==state.key){state.key=key;state.constants=constants;material.needsUpdate=true;}
   }});
  };
- const warmed=new WeakMap(),pending=new Set();
+ const warmed=new WeakMap(),pending=new Set();let warmFailure=null;
  const warm=(scene,camera)=>{
-  if(!renderer.compileAsync)return;let needed=false;
+  if(warmFailure)throw warmFailure;if(!renderer.compileAsync)return;let needed=false;const replacements=new Map();
   scene.traverse(object=>{for(const material of (Array.isArray(object.material)?object.material:[object.material])){
-   if(!material?.isShaderMaterial||material.uniforms.uBodyCount?.value!==0)return;
-   const key=JSON.stringify(programConstants(material.uniforms,enabled(),true));let keys=warmed.get(material);
-   if(!keys)warmed.set(material,keys=new Set());if(!keys.has(key)){keys.add(key);needed=true;}
+   if(!material?.isShaderMaterial||material.userData?.skipObjectWarmup||material.uniforms.uBodyCount?.value!==0)return;
+   const constants=programConstants(material.uniforms,enabled(),true),key=JSON.stringify(constants);let keys=warmed.get(material);
+   if(!keys)warmed.set(material,keys=new Map());
+   if(!keys.has(key)){
+    let copy=material;
+    if(scene.clone&&material.clone){
+     const state=states.get(material),original=state?.original??material.onBeforeCompile,cacheKey=state?.cacheKey??material.customProgramCacheKey();
+     copy=material.clone();copy.uniforms=material.uniforms;
+     copy.onBeforeCompile=(shader,r)=>{original.call(copy,shader,r);shader.vertexShader=specializeSource(shader.vertexShader,constants);shader.fragmentShader=specializeSource(shader.fragmentShader,constants);};
+     copy.customProgramCacheKey=()=>cacheKey+key;
+    }
+    keys.set(key,copy);needed=true;
+   }
+   replacements.set(material,keys.get(key));
   }});
-  if(!needed)return;prepare(scene,true);
-  const work=renderer.compileAsync(scene,camera).finally(()=>{pending.delete(work);prepare(scene);});pending.add(work);
+  if(!needed)return;
+  // compileAsync polls a material's currentProgram. Sharing live materials
+  // lets the next empty-scene frame replace that with the already-ready lean
+  // program, falsely completing warmup. Keep immutable compilation materials
+  // alive so the actual object programs are ready before their first use.
+  const compilation=scene.clone?scene.clone(true):scene;
+  if(compilation!==scene)compilation.traverse(object=>{if(Array.isArray(object.material))object.material=object.material.map(m=>replacements.get(m)||m);else if(replacements.has(object.material))object.material=replacements.get(object.material);});
+  else prepare(scene,true);
+  const work=renderer.compileAsync(compilation,camera).catch(error=>{warmFailure??=error;}).finally(()=>{pending.delete(work);if(compilation===scene)prepare(scene);});pending.add(work);
  };
  renderer.render=(scene,camera)=>{prepare(scene);const result=render(scene,camera);warm(scene,camera);return result;};
  // Include compute passes as they first execute: their specialization depends
  // on the solver/boundary settings selected at that time. No fake body and no
  // changed simulation uniforms. Empty scenes retain their lean programs.
  renderer.warmObjectPrograms=async(scenes,camera)=>{
-  for(const scene of scenes)warm(scene,camera);await Promise.all([...pending]);
+  for(const scene of scenes)warm(scene,camera);await Promise.all([...pending]);if(warmFailure)throw warmFailure;
  };
 }

@@ -6,6 +6,7 @@ import {LabWaterField} from './water-lab-field.js';
 
 const error=(a,b)=>{let e=0;for(let i=0;i<a.length;i++)e=Math.max(e,Math.abs(a[i]-b[i]));return e;};
 export function verifyPerformancePaths(renderer,lab){
+ if(lab.gpu.cpuContacts)return {pass:false,skipped:true,backend:lab.gpu.constraintBackend,reason:'GPU contact probes are disabled for sand scenes containing objects. Run the CPU contact checks instead.'};
  const fluid=new LabFluidGPU(renderer,lab.u),transport=new LabTransportGPU(renderer),probe=new EmitterProbes(renderer,lab.u),field=new LabWaterField(renderer,{ratio:.6});
  const old=new Float32Array(280*4),chem=old.slice();for(let i=0;i<280;i++){old.set([(i%7)*.2-1,.08+(Math.floor(i/7)%5)*.19,Math.floor(i/35)*.2, i%19===0?1:0],i*4);}
  const prior=renderer.getRenderTarget(),readField=()=>{const data=new Float32Array(field.target.width*field.target.height*4);renderer.readRenderTargetPixels(field.target,0,0,field.target.width,field.target.height,data);return data;};

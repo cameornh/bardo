@@ -22,15 +22,15 @@ export function playerBodyContact(walker,body,probe,scale=1){
 }
 export function cupCapacity(b){return Math.PI*b.radius**3*1.84*.68**2;}
 export function cupContains(p,b){const q=bodyLocal(p,b),r=b.radius;return Math.hypot(q[0],q[2])<.68*r&&q[1]>-.84*r&&q[1]<r;}
-const CUP_COLUMNS=Array.from({length:32},(_,i)=>{const r=Math.sqrt((i+.5)/32),a=i*2.399963229728653;return [r*Math.cos(a),r*Math.sin(a)];});
+const CUP_COLUMNS=Array.from({length:16},(_,i)=>{const r=Math.sqrt((i+.5)/16),a=i*2.399963229728653;return [[r*Math.cos(a),r*Math.sin(a)],[-r*Math.cos(a),-r*Math.sin(a)]];}).flat();
 // Archimedes on the closed outer envelope, with the actual carried water
 // added to the mass. Flooded cups therefore lose their air contribution;
 // no special upward force, air refill timer or deleted water is involved.
 export function cupHydrostatics(b,surface,containedWater=0){
- const r=b.radius,axis=rotate([0,1,0],b.tilt||0,b.spin||0,false,b.pitch||0),volume=2.16*Math.PI*r**3,water=clamp(containedWater,0,cupCapacity(b));let fraction=0;
- for(const [x,z] of CUP_COLUMNS){const center=rotate([x*r,-.08*r,z*r],b.tilt||0,b.spin||0,false,b.pitch||0),dy=surface-b.position[1]-center[1],span=Math.abs(axis[1])*2.16*r;fraction+=span>1e-7?clamp(.5+dy/span,0,1):Number(dy>=0);}
- fraction/=CUP_COLUMNS.length;const displaced=volume*fraction,mass=bodyVolume(b)*b.ratio+water;
- return {submerged:fraction,displaced,waterVolume:water,airVolume:cupCapacity(b)-water,mass,buoyancy:displaced/mass};
+ const r=b.radius,axis=rotate([0,1,0],b.tilt||0,b.spin||0,false,b.pitch||0),volume=2.16*Math.PI*r**3,water=clamp(containedWater,0,cupCapacity(b));let fraction=0,centroid=[0,0,0];
+ for(const [x,z] of CUP_COLUMNS){const center=rotate([x*r,-.08*r,z*r],b.tilt||0,b.spin||0,false,b.pitch||0),dy=surface-b.position[1]-center[1],span=Math.abs(axis[1])*2.16*r;const f=span>1e-7?clamp(.5+dy/span,0,1):Number(dy>=0);fraction+=f;for(let k=0;k<3;k++)centroid[k]+=(center[k]-axis[k]*Math.sign(axis[1]||1)*1.08*r*(1-f))*f;}
+ centroid=centroid.map((v,k)=>b.position[k]+v/Math.max(1e-12,fraction));fraction/=CUP_COLUMNS.length;const displaced=volume*fraction,mass=bodyVolume(b)*b.ratio+water;
+ return {center:centroid,submerged:fraction,displaced,waterVolume:water,airVolume:cupCapacity(b)-water,mass,buoyancy:displaced/mass};
 }
 
 // Support of the hollow cup's outside wall and bottom, including orientation.

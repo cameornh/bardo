@@ -1492,3 +1492,45 @@ units³. The 32 GPU/reference grain checks (including partial immersion) agree
 within 3.7e-7 lab units. Fifty-three relevant numerical tests and the build
 pass. `tests/sand-grain-appearance-gpu.html` and
 `tests/results/sand-wind-response/` retain the inspected color/transport check.
+
+### Sand object contacts: graphics safety recovery (2026-10-24)
+
+The full sand beach could terminate the browser graphics process at its first
+water-constraint solve after spawning an object. Small isolated contact checks
+had passed, but were insufficient to establish full-scene safety. Splitting the
+large contact shader into additional GPU probe passes did not resolve this;
+those experimental splits have been removed. The precise driver/compiler
+failure remains unidentified.
+
+Sand scenes containing any spawned object now run their density constraints and
+solid-contact projection on the CPU, using the same equations, geometry,
+neighbor lists and iteration count. Scalar loops avoid the reference solver's
+per-neighbor temporary vectors. The result is uploaded for the existing GPU
+transport and batched readback; rendering, air and fine-particle work remain on
+their existing GPU paths. This fallback is mandatory regardless of optimization
+checkbox combinations. GPU emitter contact probes also fall back to CPU queries.
+Neither constraint nor emitter materials compile unused object variants in the
+background. Diagnostics identify the CPU water constraints explicitly.
+
+Shader warmup uses separate immutable material clones so an intervening empty
+scene draw cannot falsely complete an unfinished object program. A graphics
+failure stops subsequent draw/compile submissions and the animation loop instead
+of retrying the same failing workload. This guard does not restore a graphics
+context that the browser has already disabled.
+
+Validation: **492 numerical tests** and the production build pass. The CPU-only
+`tests/sand-solver-stages.html` check exercises 12,852 water samples, cut sand
+parcels, and glass/mirror/rock/light spheres and cups. All eight cases made zero
+graphics calls, remained finite, and matched the small contact reference with
+zero measured error. The browser measured **242–351 ms** per full-beach contact
+solve including neighbor construction. This is a deliberate speed tradeoff for
+stability, not an FPS improvement. Full GPU rendering was not rerun after this
+change, to avoid another graphics-process failure. CPU results and a screenshot
+are in `tests/results/sand-contact-safety/`.
+
+The associated sand-lab changes add mass-conservative rain beads on hard object
+and wet-sand surfaces, analytic sphere/cup rain intersections, transparent-body
+shadow transmission, and rigid terrain/body contacts with angular impulses.
+Cups can tip on uneven support and collide with one another. Resetting the sand
+scene now clears its shape stamp so repeating an identical scoop cannot retain
+an empty collision/render cache. Historical scene modules remain unchanged.

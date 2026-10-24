@@ -1,0 +1,86 @@
+import {bodyDistance,bodyLocal,bodyNormal} from './objects.js';
+import {pointVelocity} from './rigid-contacts.js';
+import {shapeDistance,sandIsTracer} from './sand-shape.js';
+import {rotate,normalAt,hash,clamp} from './water-lab-model.js';
+const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+export const DROP_BEADS=16;
+export const DROP_MERGE_SECONDS=1.2;
+export function beadRadius(volume){return Math.cbrt(Math.max(0,volume)/DROP_BEADS*3/(4*Math.PI));}
+// Rain-only capillary water, distinct from airborne spray and bulk solver water.
+// The CPU owns conservative volumes/attachment; the GPU draws the small beads.
+export class SurfaceDrops {
+ constructor(rain){this.rain=rain;this.lab=rain.lab;this.patches=new Map();this.births=[];this.absorbed=0;this.sequence=0;this.revision=0;}
+ get volume(){let v=this.absorbed;for(const p of this.patches.values())v+=p.volume;for(const p of this.births)v+=p.volume;return v;}
+ receiver(hit){if(hit.particle>=0)return null;return this.lab.balls.find(b=>Math.abs(bodyDistance(hit.point,b))<.008)||null;}
+ frame(p){return p.body?{point:rotate(p.local,p.body.tilt,p.body.spin,false,p.body.pitch).map((v,k)=>v+p.body.position[k]),normal:rotate(p.localNormal,p.body.tilt,p.body.spin,false,p.body.pitch)}:{point:p.point.slice(),normal:p.normal.slice()};}
+ absorb(point,volume){
+  const sand=this.lab.sand;if(!sand.weights)return volume*(1-clamp(sand.materialAt(point),0,1));
+  let receiver=null,closest=.015;for(const p of sand.parcels||[]){if(sandIsTracer(p))continue;const d=Math.abs(shapeDistance(p,point));if(d<closest){closest=d;receiver=p;}}
+  if(receiver){const capacity=Math.max(1e-9,receiver.mass/receiver.packing*(1-receiver.packing)),amount=Math.min(volume,(1-receiver.wet)*capacity);receiver.wet+=amount/capacity;this.sandWetDirty=true;return amount;}
+  let left=volume;
+  // Water fills the pore space locally instead of creating a hidden bulk blob.
+  for(const [k,w] of sand.weights(point[0],point[2])){const capacity=Math.max(1e-9,sand.area*.08*(1-sand.packing[k])),amount=Math.min(left,volume*w,(1-sand.wet[k])*capacity);sand.wet[k]+=amount/capacity;left-=amount;}
+  if(left<volume)this.sandWetDirty=true;return volume-left;
+ }
+ impact(drop,hit){
+  if(hit.particle>=0)return false;
+  const body=this.receiver(hit);let volume=drop.volume;
+  if(!body){const absorbed=this.absorb(hit.point,volume);this.absorbed+=absorbed;volume-=absorbed;}
+  if(volume<=1e-14)return true;
+  const local=body?bodyLocal(hit.point,body):hit.point.slice(),size=this.lab.spacing*.9;
+  const localNormal=body?rotate(hit.normal,body.tilt,body.spin,true,body.pitch):hit.normal,axis=localNormal.reduce((best,v,k)=>Math.abs(v)>Math.abs(localNormal[best])?k:best,0),face=axis*2+Number(localNormal[axis]>0);
+  const receiverId=`${body?this.lab.balls.indexOf(body)+1:0}/${face}`,cell=local.map(v=>Math.floor(v/size)),key=`${receiverId}:`+cell.join(',');
+  let p=this.patches.get(key),nearest=size;
+  // Coalesce across cell borders too, but never collect distant droplets or
+  // mix opposite faces / separate objects into an unexplained large blob.
+  if(!p)for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++){
+   const q=this.patches.get(`${receiverId}:`+[cell[0]+x,cell[1]+y,cell[2]+z].join(','));if(!q)continue;
+   const distance=Math.hypot(...local.map((v,k)=>v-q.local[k]));if(distance<nearest&&this.frame(q).normal.reduce((n,v,k)=>n+v*hit.normal[k],0)>.8){p=q;nearest=distance;}
+  }
+  if(!p){p={id:++this.sequence,body,local,localNormal:body?rotate(hit.normal,body.tilt,body.spin,true,body.pitch):hit.normal.slice(),point:hit.point.slice(),normal:hit.normal.slice(),volume:0,shown:0,age:0};this.patches.set(key,p);}
+  p.volume+=volume;this.revision++;return true;
+ }
+ step(dt){
+  const lab=this.lab,s=lab.spacing,pv=s**3;
+  if(this.sandWetDirty){lab.sand.dirty=true;lab.sand.revision++;this.sandWetDirty=false;}
+  for(const [key,p] of this.patches){
+   p.age+=dt;p.waterClock=(p.waterClock??.25)+dt;p.shown+=(p.volume-p.shown)*(1-Math.exp(-dt/.22));
+   if(p.body&&!lab.balls.includes(p.body)){p.point=this.frame(p).point;p.normal=this.frame(p).normal;p.body=null;}
+   const {point,normal}=this.frame(p);
+   if(p.waterClock>=.25&&lab.waterAt&&lab.waterAt(point.map((v,k)=>v+normal[k]*.02)).density>.08){
+    // Submerged beads join water mass; never decorate the free surface.
+    this.rain.addWaterDeposit(point,p.volume);this.patches.delete(key);continue;
+   }
+   if(p.waterClock>=.25)p.waterClock=0;
+   if(p.volume+1e-12>=pv&&!this.births.some(b=>b.patch===p)&&lab.count+this.births.length<lab.particleBudget){
+    let position=point.map((v,k)=>v+normal[k]*s*.45);
+    for(let j=0;j<8;j++){const d=lab.solid(position,false,false);if(d>=s*.4)break;const n=normalAt(position,q=>lab.solid(q,false,false));position=position.map((v,k)=>v+n[k]*(s*.4-d));}
+    this.births.push({position,local:p.body?bodyLocal(position,p.body):null,body:p.body,volume:pv,age:0,patch:p,normal:normal.slice(),velocity:p.body?pointVelocity(p.body,position):[0,0,0]});p.volume=Math.max(0,p.volume-pv);p.shown=Math.min(p.shown,p.volume);
+   }
+   if(p.volume<1e-14&&!this.births.some(b=>b.patch===p))this.patches.delete(key);
+  }
+  const done=[];for(const b of this.births){
+   if(b.body){b.position=rotate(b.local,b.body.tilt,b.body.spin,false,b.body.pitch).map((v,k)=>v+b.body.position[k]);b.velocity=pointVelocity(b.body,b.position);}
+   b.age+=dt;if(b.age>=DROP_MERGE_SECONDS)done.push(b);}
+  if(done.length){this.rain.appendParcels(done);this.births=this.births.filter(b=>!done.includes(b));}
+  if(this.patches.size||this.births.length)this.revision++;
+ }
+ fieldItems(){return this.births.map(p=>({kind:'water',position:p.position,radius:Math.cbrt(p.volume*smooth(p.age/DROP_MERGE_SECONDS))*.65,volume:p.volume*smooth(p.age/DROP_MERGE_SECONDS),wet:0,dye:0,tannin:0,sediment:0}));}
+ beads(){
+  const lab=this.lab,s=lab.spacing,out=[];
+  for(const p of this.patches.values()){
+   const birth=this.births.find(b=>b.patch===p),volume=Math.min(s**3,p.shown+(birth?birth.volume*(1-smooth(birth.age/DROP_MERGE_SECONDS)):0));if(volume<1e-14)continue;
+   const {point,normal}=this.frame(p),radius=beadRadius(volume),n=normal,t=Math.abs(n[1])<.9?[n[2],0,-n[0]]:[1,0,0],len=Math.hypot(...t);for(let k=0;k<3;k++)t[k]/=len;
+   const v=[n[1]*t[2]-n[2]*t[1],n[2]*t[0]-n[0]*t[2],n[0]*t[1]-n[1]*t[0]],field=p.body?q=>bodyDistance(q,p.body):q=>lab.sand.distance?lab.sand.distance(q):lab.solid(q,false,false);
+   if(!p.body&&p.beads&&Math.abs(field(p.beads[0].point))>s*.03)p.beads=null;
+   if(!p.beads){p.beads=[];for(let i=0;i<DROP_BEADS;i++){
+    const a=hash(p.id*59+i*11)*Math.PI*2,r=Math.sqrt((i+.5)/DROP_BEADS)*s*.42;
+    let q=point.map((x,k)=>x+(t[k]*Math.cos(a)+v[k]*Math.sin(a))*r),normal=p.body?bodyNormal(q,p.body):normalAt(q,field);
+    for(let j=0;j<3;j++){const d=field(q);q=q.map((x,k)=>x-normal[k]*d);normal=p.body?bodyNormal(q,p.body):normalAt(q,field);}
+    p.beads.push({point:p.body?bodyLocal(q,p.body):q,normal:p.body?rotate(normal,p.body.tilt,p.body.spin,true,p.body.pitch):normal});
+   }}
+   for(const bead of p.beads){const point=p.body?rotate(bead.point,p.body.tilt,p.body.spin,false,p.body.pitch).map((v,k)=>v+p.body.position[k]):bead.point,normal=p.body?rotate(bead.normal,p.body.tilt,p.body.spin,false,p.body.pitch):bead.normal;out.push({position:point.map((v,k)=>v+normal[k]*radius*.5),normal,radius});}
+  }
+  return out;
+ }
+}

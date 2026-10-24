@@ -16,7 +16,7 @@ uniform vec3 uSH[16];uniform int uSHDegree;
 out vec2 vQ;out float vDepth,vAlpha,vBlob,vContact;flat out vec3 vLight;
 ${RAIN_SAMPLE_GLSL}
 ${RAIN_CONTACT_GLSL}
-uniform highp sampler2D uRainSurface;
+uniform highp sampler2D uRainSurface,uRainObjects;
 ${GAUSSIAN_BOUNDS_GLSL}
 ${SH_GLSL}
 ${WATER_MATERIAL_GLSL}
@@ -37,6 +37,16 @@ void main(){
  }
  float contactAge=(waterHeight-center.y)/max(.01,-uRainVelocity.y);vContact=0.;float contactFade=1.;
  if(waterHeight>-90.&&contactAge>=0.){vec2 contact=rainContact(contactAge,uScale);center.y=waterHeight+contact.x;contactFade=contact.y;vContact=1.;}
+ // Visual rain shares a GPU first-hit map with the physical surface probes.
+ // Small objects receive many visual splashes even between mass-flux packets.
+ vec2 hard=texture(uRainObjects,center.xz/vec2(11.,9.8)+.5).rg;
+ if(hard.y>=0.&&hard.x>waterHeight){
+  int body=int(hard.y+.5);vec3 hit=vec3(center.x,hard.x+uSpacing*.8,center.z);
+  for(int j=0;j<16;j++){float d=bodyDistance(hit,body);if(d<.0002)break;hit.y-=max(.0001,d*.8);}
+  if(abs(bodyDistance(hit,body))<.003){float age=(hit.y-rainVisualPoint(id,uRainTime,uRainVelocity,uRainHalf,uRainTop,-.8).y)/max(.01,-uRainVelocity.y);
+   if(age>=0.){vec3 n=bodyNormal(hit,body);float t=clamp(age/.32,0.,1.);center=hit+n*(.003+sin(t*3.14159265)*.12/uScale);contactFade=1.-smoothstep(.25,1.,t);vContact=1.;}
+  }
+ }
  vec4 p=viewMatrix*vec4(center,1);float z=max(.05,-p.z),s=(.00065+.00008*rainHash(id+23u))/uScale;
  vec3 fall=mat3(viewMatrix)*uRainVelocity,direction=normalize(fall+vec3(0,1e-8,0));
  vec3 jx=vec3(projectionMatrix[0][0]/z,0,projectionMatrix[0][0]*p.x/(z*z))*uResolution.x*.5;

@@ -1,3 +1,4 @@
+import {SurfaceDrops} from './surface-drops.js';
 import {rainSegments} from './rain-appearance.js';
 import {labAirVelocity} from './water-lab-air.js';
 import {hash, clamp, rotate, vesselLocal, vesselDistance, normalAt} from './water-lab-model.js';
@@ -17,7 +18,7 @@ export class LabRain {
   reset(kind) {
     this.kind=kind;
     this.drops=[];
-    this.deposits=new Map();
+    this.deposits=new Map();this.surfaceDrops=new SurfaceDrops(this);
     this.emitted=0;
     this.transferred=0;
     this.hits=0;
@@ -36,7 +37,7 @@ export class LabRain {
   get rate(){return this.options.rate;}
   set rate(value){this.options.rate=clamp(Number(value)||0,0,12000);}
   get airborneVolume(){return this.drops.reduce((sum,p)=>sum+p.volume,0);}
-  get depositVolume(){let sum=0;for(const p of this.deposits.values())sum+=p.volume;return sum;}
+  get depositVolume(){let sum=this.surfaceDrops.volume;for(const p of this.deposits.values())sum+=p.volume;return sum;}
   get unresolvedVolume(){return this.airborneVolume+this.depositVolume;}
 
   // All stations receive the same physical rainfall depth. mm/min intentionally
@@ -118,6 +119,7 @@ export class LabRain {
         for(const {o,w,crown} of targets)for(let k=0;k<3;k++)lab.velocities[o+k]+=(drop.velocity[k]+kick*(crown[k]-mean[k]))*impulse*w/sum;
       }
     }
+    if(!lab.sand||!this.surfaceDrops.impact(drop,hit)){
     const onVessel=hit.particle<0&&vesselDistance(hit.point,lab.kind,lab.motion)<.015;
     const q=onVessel?vesselLocal(hit.point,lab.motion):hit.point;
     const cell=onVessel?Math.max(.025,.018/lab.spec.scale):s*1.5,key=`${onVessel?'v':hit.particle>=0?'w':'g'}:${(hit.particle>=0?[q[0],q[2]]:q).map(v=>Math.floor(v/cell)).join(',')}`;
@@ -130,11 +132,16 @@ export class LabRain {
     }
     p.volume+=drop.volume;
     if(hit.particle>=0){p.point=hit.point.slice();p.particle=hit.particle;}
+    }
     if(this.impactAllowance<=0)return;this.impactAllowance--;
     const wet=lab.sand?lab.sand.materialAt(hit.point):0;
     const onBody=lab.balls?.some(b=>Math.hypot(...hit.point.map((v,k)=>v-b.position[k]))<b.radius*1.6);
     const hardness=hit.particle>=0?0:onBody||!lab.sand?1:Math.min(1,wet);
     lab.detail?.impact(hit.point,hit.normal,drop.velocity,drop.volume,lab,hardness);
+  }
+  addWaterDeposit(point,volume){
+    const s=this.lab.spacing,key='w:'+point.map(v=>Math.floor(v/s)).join(',');let p=this.deposits.get(key);
+    if(!p){p={age:0,slide:[0,0,0],volume:0,point:point.slice(),normal:[0,1,0],particle:0};this.deposits.set(key,p);}p.volume+=volume;
   }
   appendParcels(items) {
     if(!items.length)return;
@@ -150,7 +157,8 @@ export class LabRain {
   releaseDeposits() {
     const lab=this.lab,s=lab.spacing,pv=s**3;
     this.work.releaseCandidates=0;
-    if(this.depositVolume+1e-12<pv||lab.count>=lab.particleBudget)return;
+    let readyVolume=0;for(const p of this.deposits.values())readyVolume+=p.volume;
+    if(readyVolume+1e-12<pv||lab.count>=lab.particleBudget)return;
     const items=[],bins=new Map(),columns=new Map(),reservoirs=new Map(),points=new Map();
     for(const p of this.deposits.values()){const point=this.depositPoint(p);points.set(p,point);const id=point.map(v=>Math.floor(v/(s*6))).join(',');if(!reservoirs.has(id))reservoirs.set(id,[]);reservoirs.get(id).push(p);}
     const nearby=point=>{const c=point.map(v=>Math.floor(v/(s*6))),out=[];for(let z=-1;z<=1;z++)for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)out.push(...(reservoirs.get([c[0]+x,c[1]+y,c[2]+z].join(','))||[]));return out;};
@@ -231,7 +239,7 @@ export class LabRain {
     for(let i=0;i<count;i++){const q=[(hash(i+this.sequence)-.5)*3,1.2+hash(i+6)*.4,(hash(i+13)-.5)*2],point=rotate(q,lab.motion.tilt,lab.motion.spin,false,lab.motion.pitch).map((v,k)=>v+lab.motion.position[k]),velocity=rotate([0,-2/lab.spec.scale,0],lab.motion.tilt,lab.motion.spin,false,lab.motion.pitch);this.drops.push({id:++this.sequence,position:point,velocity,volume:volume/count});}this.emitted+=volume;
   }
   fieldItems() {
-    const items=[];
+    const items=this.surfaceDrops.fieldItems();
     for(const p of this.deposits.values()) {
       // Sub-grid water already belongs to the moving fluid surface. A static
       // Gaussian here made permanent bumps/dents at old impact locations.
@@ -249,7 +257,7 @@ export class LabRain {
     this.columns=null;
     if(this.enabled&&this.rate>0) {
       this.budget+=dt*rainPacketRate(this.rate);
-      const available=Math.max(0,(lab.particleBudget-lab.count)*lab.spacing**3-this.unresolvedVolume-this.sourceVolume);
+      const available=Math.max(0,(lab.particleBudget-lab.count)*lab.spacing**3-(this.unresolvedVolume-this.surfaceDrops.absorbed)-this.sourceVolume);
       this.capacityLimited=available<this.flux*dt;
       this.sourceVolume+=Math.min(available,this.flux*dt);
       const count=Math.min(Math.floor(this.budget),Math.max(0,RAIN_PACKET_LIMIT-this.drops.length));
@@ -296,7 +304,7 @@ export class LabRain {
       }
       this.drops=alive;
     }
-    const impactsDone=performance.now();this.slideDeposits(dt);this.releaseClock+=dt;
+    const impactsDone=performance.now();if(lab.sand)this.surfaceDrops.step(dt);this.slideDeposits(dt);this.releaseClock+=dt;
     // Reservoir conversion is independent of frame rate and visual LOD. Keep
     // fractional mass between batches, rather than doing a full insertion
     // search for every droplet on every fluid step.

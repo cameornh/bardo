@@ -31,6 +31,8 @@ export class LabWetting{
   this.traceCounts[kind]++;this.traceWeight=stride;return true;
  }
  collectSurface(hit,kind,weight=1){
+  // Sand-lab surface beads carry rain mass; airborne optical tracers do not create them.
+  if(this.lab.sand)return;
   this.surfaceRevision++;
   const lab=this.lab,scale=lab.spec.scale,onGlass=vesselDistance(hit.point,lab.kind,lab.motion)<.02;
   const local=onGlass?rotate(hit.point.map((v,k)=>v-lab.motion.position[k]),lab.motion.tilt,lab.motion.spin,true,lab.motion.pitch):hit.point.slice();

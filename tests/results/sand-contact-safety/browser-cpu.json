@@ -1,0 +1,71 @@
+{
+  "pass": true,
+  "backend": "CPU object constraints",
+  "graphicsCalls": 0,
+  "rows": [
+    {
+      "kind": "glass",
+      "shape": "sphere",
+      "samples": 12852,
+      "sand": 12,
+      "ms": 351,
+      "maxError": 0
+    },
+    {
+      "kind": "glass",
+      "shape": "cup",
+      "samples": 12852,
+      "sand": 12,
+      "ms": 246,
+      "maxError": 0
+    },
+    {
+      "kind": "mirror",
+      "shape": "sphere",
+      "samples": 12852,
+      "sand": 12,
+      "ms": 259,
+      "maxError": 0
+    },
+    {
+      "kind": "mirror",
+      "shape": "cup",
+      "samples": 12852,
+      "sand": 12,
+      "ms": 266,
+      "maxError": 0
+    },
+    {
+      "kind": "rock",
+      "shape": "sphere",
+      "samples": 12852,
+      "sand": 12,
+      "ms": 249,
+      "maxError": 0
+    },
+    {
+      "kind": "rock",
+      "shape": "cup",
+      "samples": 12852,
+      "sand": 12,
+      "ms": 244,
+      "maxError": 0
+    },
+    {
+      "kind": "light",
+      "shape": "sphere",
+      "samples": 12852,
+      "sand": 12,
+      "ms": 245,
+      "maxError": 0
+    },
+    {
+      "kind": "light",
+      "shape": "cup",
+      "samples": 12852,
+      "sand": 12,
+      "ms": 242,
+      "maxError": 0
+    }
+  ]
+}

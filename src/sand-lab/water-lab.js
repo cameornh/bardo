@@ -62,7 +62,7 @@ export class WaterLab {
   if(this.optimizations?.gpuBatch&&!this.gpu.cpu&&this.count){
    this.gpu.solve(context.predicted,context.s,p=>this.collide(p),3,p=>this.solid(p),false,true);
    this.transportGPU.solve(context.old,context.old,this.velocities,this.chem,this.gpu.neighbors,context.s,context.scale,dt,context.predicted,this.gpu,true);
-   const dispatched=performance.now();const probes=this.optimizations?.emitterProbes&&this.detail.enabled?(this.emitterProbes??=new EmitterProbes(this.renderer,this.u)).update(this.gpu,this.transportGPU,this.count,this.spacing):null;
+   const dispatched=performance.now();const probes=this.optimizations?.emitterProbes&&this.detail.enabled&&!this.gpu.cpuContacts?(this.emitterProbes??=new EmitterProbes(this.renderer,this.u)).update(this.gpu,this.transportGPU,this.count,this.spacing):null;
    const result=(this.stepReadback??=new StepReadback(this.renderer)).read(this.gpu,this.transportGPU,this.count,probes);
    this.prepareTimes.dispatch=dispatched-context.predictDone;this.prepareTimes.batch=performance.now()-dispatched;this.emitterSamples=result.emitterSamples;
    context.transport=result.transport;this.finishStep(context,result.positions,deferDetail);
