@@ -1,0 +1,84 @@
+Command: node --test tests/beach-throughput.test.js tests/sand-native-density.test.js tests/sand-adaptive-detail.test.js tests/sand-performance-pass.test.js tests/sand-graphics-health.test.js
+
+coupled pressure reference [{"count":3024,"volume":81.64800000000004,"mean":0.270376723458323,"upper":0.7547328472137451,"peakSpeed":2.1520030533435754},{"count":3024,"volume":81.64800000000004,"mean":0.27064111295736176,"upper":0.7538310885429382,"peakSpeed":2.1439272688351534}]
+✔ batch contacts match original results with cups, player, edited sand and held samples (215.886817ms)
+✔ adaptive pressure is bounded against the original solver and ignores camera state (202.151803ms)
+✔ coupled pressure/transport remains stable over four seconds with exact parcel mass (4221.089048ms)
+✔ distant optical budget is continuous, monotone and retains near fidelity (6.642383ms)
+✔ underwater pass bound includes tilted covariance and interpolation halo (0.685731ms)
+✔ compiled edited-sand contacts match flattened, overlapping and carved geometry after edits (116.904828ms)
+✔ new optimization dependencies disable transitively without losing selections (0.653667ms)
+✔ quiet surrounded water conserves volume, centroid and solutes throughout its continuous blend (91.426989ms)
+✔ surface crossings stay fixed after interior compression (270.058694ms)
+✔ fast water, sheets and strong chemical boundaries retain fine kernels (80.366772ms)
+✔ compression wakes smoothly without losing mass, with no camera input (44.434347ms)
+✔ distance reduction is continuous, monotone and does not resize the pixel grid (23.194705ms)
+✔ saturated sand and player never accumulate visible water or exhaust the rainfall capacity (3.568188ms)
+✔ objects still form condensation and water impacts still have a bulk-water reservoir (0.94368ms)
+✔ camera sweeps retain accurate surface positions and thickness with larger distant steps (17.146246ms)
+✔ unavailable graphics preserves the browser reason without initializing or retrying the renderer (2.555515ms)
+✔ the renderer reuses the successfully requested context (0.360391ms)
+✔ lost contexts halt future draws and report once (1.080004ms)
+✔ shader failures stop draws and preserve the first diagnostic (0.65498ms)
+✔ async warmup failures latch before another draw can run (1.664549ms)
+✔ native safe contacts match JS density, held parcels, cups, terrain and repeated allocation (488.722549ms)
+✔ scattered sand only uses reference geometry in occupied bins, including normal probes across a bin edge (96.643752ms)
+✔ compiled beach geometry agrees with ground, boulders, rotated cups, walls and player; carved sand uses reference (87.856972ms)
+✔ large neighbor uploads select a texture layout that fits the device (232.732883ms)
+✔ live contact backend can switch to its JS reference without graphics work or changed positions (115.957046ms)
+✔ compact water queries preserve poly6 density and momentum, including boundaries (19.806561ms)
+✔ sand broadphase preserves the full smooth CSG field, including flattened and cut stock (38.790188ms)
+✔ program specialization preserves empty scenes and can prepare object-capable variants (1.48436ms)
+✔ neighbor cell rejection and ordered ranges preserve reciprocal lists and overflow exactly (105.821308ms)
+✔ pruning stress queries preserves dry load on wet supports and bonded fracture (102.317268ms)
+✔ lean beach predictor preserves gravity, wind, holding, player impulses and travel limits (16.605987ms)
+✔ read-only terrain snapshot preserves cubic heights including clamped borders and edits (5.588205ms)
+✔ specialization handles grouped declarations without changing unselected uniforms (0.419387ms)
+✔ cached emission preserves marker positions, velocities, lifetimes, histories and supply (171.228498ms)
+✔ live scalar terrain sampling and refreshed wind geometry preserve changing CSG (171.351786ms)
+✔ predictive scheduling avoids an over-budget second solve while preserving fixed time and dropping overload (251.041992ms)
+✔ changing compact sand mode rebuilds geometry without requiring an edit (319.817446ms)
+✔ incremental settling indices preserve ordered contact and column queries after moves (492.342866ms)
+✔ world-resolution settling floor preserves tiny deposit mass, wetness and occupied volume (1.447361ms)
+✔ forty seconds of wind deposition does not recursively multiply sub-resolution stock (3752.183499ms)
+✔ coalescing overlapping wind deposits conserves grain/pore volume, wetness, history and centre of mass (1.104846ms)
+✔ mixed optimization selections retain independent choices and gate only required paths (80.423376ms)
+✔ switching optimization combinations invalidates live water queries without resetting stock (95.201902ms)
+✔ object warmup prepares render and compute variants without changing simulation uniforms (1.660176ms)
+ℹ tests 44
+ℹ suites 0
+ℹ pass 44
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5924.625427
+
+Command: npm run build
+
+
+> bardo-material-field@0.1.0 build
+> vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 224 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/subsurface-worker-BUJojcpn.js    3.95 kB
+dist/assets/terrain-worker-C3g2Wj9t.js       8.73 kB
+dist/assets/photon-worker-CUH7naAK.js       11.75 kB
+dist/assets/density-BM9g0XNV.wasm           12.95 kB │ gzip:   8.04 kB
+dist/index.html                             35.63 kB │ gzip:   8.09 kB
+dist/assets/main-Qh2TCdY9.css                1.84 kB │ gzip:   0.85 kB
+dist/assets/main-Dd7oI3dg.css                2.96 kB │ gzip:   1.17 kB
+dist/assets/index-i1Pn6zf-.js                2.38 kB │ gzip:   1.20 kB
+dist/assets/gpu-timing-TXxUCSU2.js         527.65 kB │ gzip: 136.55 kB
+dist/assets/main-B6SXRAdm.js               581.43 kB │ gzip: 190.70 kB
+dist/assets/main-DMOXn4KP.js               745.76 kB │ gzip: 263.84 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.04s

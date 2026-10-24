@@ -74,12 +74,18 @@ export class InteriorWaterCompression {
 // Continuous distance/motion control, without reallocating the screen grid or
 // switching between discrete distance bands. Derivatives stay zero at the ends.
 export const DISTANCE_DETAIL_GLSL=`
-uniform float uDetailMotion;uniform bool uDistanceDetail;
+uniform float uDetailMotion;uniform bool uDistanceDetail,uDistantOptics;
+float distantWaterWeight(float distance){
+ if(!uDistantOptics||!uDistanceDetail)return 0.;
+ float focal=uResolution.y*uProjection[1][1]*.5;
+ return 1.-smoothstep(2.,48.,uSpacing*focal/max(uSpacing,distance));
+}
 float waterDetailScale(float distance){
  if(!uDistanceDetail)return 1.;
  float focal=uResolution.y*uProjection[1][1]*.5;
  float footprint=uSpacing*focal/max(uSpacing,distance),far=1.-smoothstep(4.,36.,footprint);
- return 1.+far*3.+min(1.,max(0.,uDetailMotion-1.)*.12)*(.15+.85*far);
+ if(uDistantOptics)far=distantWaterWeight(distance);
+ return 1.+far*(uDistantOptics?7.:3.)+min(1.,max(0.,uDetailMotion-1.)*.12)*(.15+.85*far);
 }
 float waterTraceStep(float distance){return uSpacing*.28*waterDetailScale(distance);}
 `;

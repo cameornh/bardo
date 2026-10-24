@@ -11,6 +11,18 @@ function height(x:f64,z:f64,g:usize):f64{
 }
 function solid(x:f64,y:f64,z:f64,g:usize):f64{
  let d=(y-height(x,z,g))*.65;
+ // Optional exact edited-sand CSG, packed from the same ordered CPU bins.
+ // Original snapshot paths leave these offsets zero and retain JS fallback.
+ if(value(g,19)>0 && x>=value(g,12) && y>=value(g,13) && z>=value(g,14) && x<=value(g,15) && y<=value(g,16) && z<=value(g,17)){
+  const cx=i32(limit(Math.floor((x+5.5)/11*32),0,31)),cz=i32(limit(Math.floor((z+4.9)/9.8*32),0,31)),bins=i32(value(g,20)),cell=bins+(cx+cz*32)*4,start=i32(value(g,cell)),count=i32(value(g,cell+1)),shapes=i32(value(g,19));
+  for(let j=0;j<count;j++){
+   const o=shapes+i32(value(g,bins+4096+start+j))*8,px=x-value(g,o),py=y-value(g,o+1),pz=z-value(g,o+2),aspect=value(g,o+4),sy=py/aspect;
+   let q=(Math.sqrt(px*px+sy*sy+pz*pz)-value(g,o+3))*Math.min(1,aspect);
+   const cutStart=i32(value(g,o+6)),cuts=i32(value(g,o+7));
+   for(let k=0;k<cuts;k++){const c=cutStart+k*5,cx=px-value(g,c),cy=(py-value(g,c+1))/value(g,c+4),cz=pz-value(g,c+2),r=value(g,c+3),v=(Math.sqrt(cx*cx+cy*cy+cz*cz)-Math.abs(r))*Math.min(1,value(g,c+4));q=Math.max(q,r>0?-v:v);}
+   const blend=value(g,o+5),h=Math.max(blend-Math.abs(d-q),0)/Math.max(blend,.00001);d=Math.min(d,q)-h*h*blend*.25;
+  }
+ }
  const count=i32(value(g,3)),offset=i32(value(g,10));
  for(let i=0;i<count;i++){
   const o=offset+i*16,px=x-value(g,o),py=y-value(g,o+1),pz=z-value(g,o+2),r=value(g,o+3),bound=d+r*1.5;
@@ -31,7 +43,7 @@ function sandAt(x:f64,y:f64,z:f64,g:usize):bool{
  return value(g,i32(value(g,18))+i+j*32)>0;
 }
 function needsReference(x:f64,y:f64,z:f64,g:usize):bool{
- if(value(g,11)<=0)return false;
+ if(value(g,11)<=0||value(g,19)>0)return false;
  // Exactly the same local bins as SandLab.solid, including every sample
  // of its finite-difference normal. Distant parcels must not turn the
  // empty space between them into a slow JavaScript geometry query.

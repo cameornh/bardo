@@ -1,0 +1,7 @@
+<!doctype html><meta charset="utf-8"><title>Beach throughput check</title>
+<style>body{background:#222a30;color:#eee;font:14px system-ui}button,select,label{margin:5px}canvas{max-width:100%;height:auto!important}pre{white-space:pre-wrap}</style>
+<button id="run">Compare beach throughput</button><button id="preview">Preview selected path</button>
+<label><input id="fast" type="checkbox" checked>New shortcuts</label>
+<select id="work"><option value="standard">Beach and boulders</option><option value="busy">Objects, sand, foam and rain</option><option value="large">Larger beach</option></select>
+<pre id="status">On-demand, bounded checks; no graphics context until a button is pressed.</pre><pre id="saved"></pre><pre id="result"></pre>
+<script type="module" src="./beach-throughput-gpu.js"></script>

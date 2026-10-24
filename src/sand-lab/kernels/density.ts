@@ -1,7 +1,10 @@
+export {boundaryBatch,contactBatch} from './batched-contact';
 export {metric,contact} from './contact-geometry';
 // Reciprocal particle pairs: evaluate a kernel once, reuse for both endpoints
 // and both PBF passes. f64 accumulation; f32 lambda/iteration boundaries.
-export function pairs(n:i32,pos:usize,neighbors:usize,cache:usize,accum:usize,s:f64):i32 {
+export function pairs(n:i32,pos:usize,neighbors:usize,cache:usize,accum:usize,s:f64):i32 {return pairKernel(n,pos,neighbors,cache,accum,s,0);}
+export function activePairs(n:i32,pos:usize,neighbors:usize,cache:usize,accum:usize,s:f64,active:usize):i32 {return pairKernel(n,pos,neighbors,cache,accum,s,active);}
+function pairKernel(n:i32,pos:usize,neighbors:usize,cache:usize,accum:usize,s:f64,active:usize):i32 {
  const h=s*2,h2=h*h,volume=s*s*s,w=315/(64*Math.PI*h*h*h),g=-45/(Math.PI*Math.pow(h,6)),ref=w*Math.pow(1-.3*.3,3);
  memory.fill(accum,0,usize(n)*40);
  for(let i=0;i<n;i++)store<f64>(accum+usize(i)*40,volume*w);
@@ -9,7 +12,7 @@ export function pairs(n:i32,pos:usize,neighbors:usize,cache:usize,accum:usize,s:
  for(let i=0;i<n;i++){
   const o=pos+usize(i)*16,px=f64(load<f32>(o)),py=f64(load<f32>(o+4)),pz=f64(load<f32>(o+8)),ai=accum+usize(i)*40;
   for(let a=0;a<128;a++){
-   const j=i32(load<f32>(neighbors+usize(i*128+a)*4));if(j<0)break;if(j<=i)continue;
+   const j=i32(load<f32>(neighbors+usize(i*128+a)*4));if(j<0)break;if(j<=i)continue;if(active && !load<u8>(active+usize(i)) && !load<u8>(active+usize(j)))continue;
    const k=pos+usize(j)*16,x=px-f64(load<f32>(k)),y=py-f64(load<f32>(k+4)),z=pz-f64(load<f32>(k+8)),r2=x*x+y*y+z*z;
    if(r2>=h2)continue;const r=Math.sqrt(r2),q=Math.max(0,1-r*r/h2),weight=w*q*q*q,aj=accum+usize(j)*40;
    store<f64>(ai,load<f64>(ai)+volume*weight);store<f64>(aj,load<f64>(aj)+volume*weight);
@@ -51,4 +54,22 @@ export function correction(n:i32,count:i32,pos:usize,cache:usize,wall:usize,lamb
   const limit=Math.min(1,s*.2/Math.max(1e-300,Math.sqrt(dx*dx+dy*dy+dz*dz)));
   store<f64>(d,f64(load<f32>(o))+dx*limit);store<f64>(d+8,f64(load<f32>(o+4))+dy*limit);store<f64>(d+16,f64(load<f32>(o+8))+dz*limit);
  }
+}
+
+// Wake the residual's complete support, independent of camera and distance.
+// Inactive endpoints still receive reciprocal forces, preserving pair momentum.
+export function activeSet(n:i32,accum:usize,wall:usize,neighbors:usize,active:usize,tolerance:f64):i32 {
+ memory.fill(active,0,usize(n));let count=0;
+ for(let i=0;i<n;i++)if(load<f64>(accum+usize(i)*40)+load<f64>(wall+usize(i)*32+24)>1+tolerance){
+  if(!load<u8>(active+usize(i))){store<u8>(active+usize(i),1);count++;}
+  for(let a=0;a<128;a++){const j=i32(load<f32>(neighbors+usize(i*128+a)*4));if(j<0)break;if(!load<u8>(active+usize(j))){store<u8>(active+usize(j),1);count++;}}
+  // The caller uses the full solve above this threshold. Avoid finishing a
+  // mask that cannot save work in a heavily disturbed or crowded scene.
+  if(count>=f64(n)*.7)return n;
+ }
+ return count;
+}
+export function activeDensity(n:i32,accum:usize,wall:usize,lambda:usize,s:f64,active:usize):void {
+ density(n,accum,wall,lambda,s);
+ for(let i=0;i<n;i++)if(!load<u8>(active+usize(i)))store<f32>(lambda+usize(i)*4,0);
 }
