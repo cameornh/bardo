@@ -58,12 +58,12 @@ test('existing water gets no stationary rain kernels and inserted volume stays b
  assert.equal(rain.fieldItems().length,0);const initial=lab.count;rain.releaseDeposits();assert.ok(lab.count>initial);
  for(let i=initial;i<lab.count;i++)assert.ok(lab.positions[i*4+1]<.8);close(rain.transferred+rain.depositVolume,.04);
 });
-test('rain impacts use quarter opacity, spread into broad thin mist, and expire instead of persistent foam',()=>{
+test('rain impacts gain 50% opacity while broader mist lingers and expires',()=>{
  const lab=fixture(),d=new LabDetail({extensions:{has:()=>false}},256);lab.time=0;lab.wind=0;lab.turbulence=0;
  d.impact([0,.5,0],[0,1,0],[0,-.9,0],.001,lab,1);assert.equal(d.pending,5);
- const info=d.spawn[2].image.data;close(detailOpacity(0,.1,.65,info[2])/detailOpacity(0,.1,.65,.65),.25);
- assert.ok(info[16]*10>=2&&info[16]*10<=3.5);assert.ok(Math.abs(info[18])<.03);
- for(let i=0;i<65;i++){lab.time+=.1;d.advance(.1,lab);}assert.equal(d.count,0);d.dispose();
+ const info=d.spawn[2].image.data;close(detailOpacity(0,.1,.65,info[2])/detailOpacity(0,.1,.65,.65),.375);
+ assert.ok(info[16]*10>=3.2&&info[16]*10<=4.8);assert.ok(Math.abs(info[18])<.03);
+ for(let i=0;i<130;i++){lab.time+=.1;d.advance(.1,lab);}assert.equal(d.count,0);d.dispose();
 });
 test('caustic flux stays on its receiving surface and filters continuously between photon footprints',()=>{
  const flux=[2,.7,.2],at=[...flux,causticMoment(flux,.4)];assert.deepEqual(causticReceiver(at,.4),flux);
@@ -92,4 +92,32 @@ test('terrain slopes match the cubic surface and stay exactly flat beyond its cl
  const flat=new Float32Array(65*65).fill(1.234567);
  for(const [x,z] of [[0,0],[4.123,3.243],[50,20],[-90,-20]])assert.deepEqual(terrainGradient(flat,65,x,z),[0,0]);
  assert.equal(terrainGradient(bed.data,65,50,20,4)[1],0);assert.equal(terrainGradient(bed.data,65,50,20,4)[0],0);
+});
+
+import {rainContact,rainSurfaceHeights,RAIN_CONTACT_SECONDS} from '../src/sand-lab/rain-surface.js';
+import {detailStep} from '../src/sand-lab/water-lab-detail.js';
+import {makeBody,bodyDistance} from '../src/sand-lab/objects.js';
+test('rain contact dips, rebounds and fades in a short bounded interval at every scale',()=>{
+ for(const scale of [.02,1,10,100]){
+  close(rainContact(0,scale).offset,0);assert.ok(rainContact(.16,scale).offset<0);assert.ok(rainContact(.48,scale).offset>0);
+  assert.equal(rainContact(RAIN_CONTACT_SECONDS,scale).opacity,0);assert.equal(rainContact(5,scale).opacity,0);
+  for(let i=0;i<=100;i++){const c=rainContact(i/100*RAIN_CONTACT_SECONDS,scale);assert.ok(Math.abs(c.offset)*scale<=.12);assert.ok(c.opacity>=0&&c.opacity<=1);}
+ }
+});
+test('rain surface map follows moved water and excludes held water without camera inputs',()=>{
+ const lab=fixture();lab.positions=new Float32Array([0,.8,0,0,1,2,1,1]);const data=new Float32Array(128*128);rainSurfaceHeights(lab,data);
+ assert.ok(data.some(v=>v>.8&&v<.9));assert.ok(!data.some(v=>v>1));lab.positions[1]=1.2;rainSurfaceHeights(lab,data);assert.ok(data.some(v=>v>1.2));
+ lab.positions[3]=1;rainSurfaceHeights(lab,data);assert.ok(data.every(v=>v===-100));
+});
+test('rain traces real sphere and cup surfaces before emitting mist',()=>{
+ const lab=fixture(),rain=new LabRain(lab);
+ for(const shape of ['sphere','cup']){
+  const body=makeBody('rock',shape,.4,[0,1,0]),field=p=>Math.min(p[1],bodyDistance(p,body));
+  const x=shape==='cup'?.35:0,hit=rain.solidHit([x,4,0],[x,0,0],field);
+  assert.ok(hit&&hit.point[1]>1);assert.ok(Math.abs(bodyDistance(hit.point,body)-.003)<.0001);assert.ok(hit.normal[1]>.8);
+ }
+});
+test('rain mist drifts more slowly than free spray and stays close to its receiving surface',()=>{
+ let p=[0,1,0],v=[0,0,0];for(let i=0;i<100;i++){const next=detailStep(p,v,3,10,.01,i*.01,20,0,null,1,0,null,true);p=next.position;v=next.velocity;}
+ assert.ok(Math.hypot(p[0],p[2])>.02&&Math.hypot(p[0],p[2])<.3);assert.ok(Math.abs(p[1]-1)<.01);
 });

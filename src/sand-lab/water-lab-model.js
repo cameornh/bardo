@@ -98,11 +98,13 @@ uniform highp sampler2D uSand,uBodyExtra,uSandParcels,uSandBins;
 uniform int uSandCount;uniform vec3 uSandMin,uSandMax;
 // Cubic B-spline reconstruction with four hardware-linear texture reads.
 // This is the same positive, partition-of-unity kernel as SandBed.height.
+// SDF and material queries run in divergent object/ray branches. Explicit LOD
+// keeps their texture samples independent of undefined screen derivatives.
 float sandHeight(vec2 p){
  float size=float(textureSize(uSand,0).x),last=size-1.;vec2 q=clamp((p+vec2(5.5,4.9))/vec2(11.,9.8)*last,0.,last),base=floor(q),f=fract(q),a=1.-f;
  vec2 w0=a*a*a/6.,w1=(3.*f*f*f-6.*f*f+4.)/6.,w2=(-3.*f*f*f+3.*f*f+3.*f+1.)/6.,w3=f*f*f/6.;
  vec2 g0=w0+w1,g1=w2+w3,h0=(base-1.+w1/g0+.5)/size,h1=(base+1.+w3/g1+.5)/size;
- return g0.y*(g0.x*texture(uSand,h0).r+g1.x*texture(uSand,vec2(h1.x,h0.y)).r)+g1.y*(g0.x*texture(uSand,vec2(h0.x,h1.y)).r+g1.x*texture(uSand,h1).r);
+ return g0.y*(g0.x*textureLod(uSand,h0,0.).r+g1.x*textureLod(uSand,vec2(h1.x,h0.y),0.).r)+g1.y*(g0.x*textureLod(uSand,vec2(h0.x,h1.y),0.).r+g1.x*textureLod(uSand,h1,0.).r);
 }
 float labFloor(vec3 p){if(uStation==4)return riverBase(p)+texture(uLabBed,p.xz/vec2(12,120)+.5).r;if(uStation==6)return sandHeight(p.xz);return 0.;}
 
@@ -117,7 +119,7 @@ float sandDistance(vec3 p){float d=(p.y-labFloor(p))*.65;if(uSandCount==0||any(l
 // Geometry joins settled portions broadly; material mixing uses the narrower
 // grain kernel so smoothing does not make a dry layer inherit its wet support.
 float sandWetness(vec3 p){
- float size=float(textureSize(uSand,0).x);float wet=texture(uSand,clamp((p.xz+vec2(5.5,4.9))/vec2(11.,9.8),0.,1.)*((size-1.)/size)+vec2(.5/size)).g;
+ float size=float(textureSize(uSand,0).x);float wet=textureLod(uSand,clamp((p.xz+vec2(5.5,4.9))/vec2(11.,9.8),0.,1.)*((size-1.)/size)+vec2(.5/size),0.).g;
  if(uSandCount==0||any(lessThan(p,uSandMin))||any(greaterThan(p,uSandMax)))return wet;
  float d=(p.y-labFloor(p))*.65;ivec2 c=ivec2(clamp((p.xz+vec2(5.5,4.9))/vec2(11.,9.8)*32.,0.,31.));
  vec2 range=texelFetch(uSandBins,ivec2((c.y*32+c.x)%256,(c.y*32+c.x)/256),0).rg;int count=int(range.y);

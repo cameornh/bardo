@@ -29,6 +29,7 @@ import {buildNeighbors,normalAt,clamp,length} from '../src/sand-lab/water-lab-mo
 import {SandStress} from '../src/sand-lab/sand-stress.js';
 import {stressFixture} from '../src/sand-lab/stress-qa.js';
 import {predictBeach} from '../src/sand-lab/beach-predict.js';
+import {WATER_WIND_PRESSURE_GAIN} from '../src/sand-lab/wind-response.js';
 import {windPressure} from '../src/beach-wind.js';
 import {labAirVelocity} from '../src/sand-lab/water-lab-air.js';
 
@@ -51,7 +52,7 @@ test('lean beach predictor preserves gravity, wind, holding, player impulses and
   const lab={spacing:.2,spec:{scale:10},velocities:vel,chem,time:2,wind,windTurbulence:1,radius:.4,windStrength:60,jet:{origin:[-2,1,0],direction:[1,0,0]},kind:'ocean',balls:[],motion:{position:[0,0,0],tilt:0,spin:0,pitch:0},sampleFastSurface:i=>i%2===0,air:{grid,sampleGrid:p=>[p[1],.2,1]},player:{velocity:[1,.3,0]},playerDistance:p=>Math.hypot(p[0],p[1]-1,p[2])-.4};
   const fast=a.slice(),expected=a.slice(),dt=1/15,s=lab.spacing,scale=lab.spec.scale;predictBeach(lab,a,fast,dt);
   for(let i=0;i<a.length/4;i++){const o=i*4;if(a[o+3])continue;const p=Array.from(a.subarray(o,o+3)),v=Array.from(vel.subarray(o,o+3));v[1]-=9.81/scale*dt;
-   if((chem[o+3]>.01||lab.sampleFastSurface(i))&&(wind||lab.jet)){const air=grid?lab.air.sampleGrid(p):labAirVelocity(p,lab);for(let k=0;k<3;k++){const relative=air[k]-v[k];v[k]+=dt*.025*relative*Math.abs(relative);}v[1]-=dt*windPressure(p[0]*scale,p[2]*scale,lab.time,wind,0,1)*Math.min(1,(length(air)*scale/Math.max(wind,1e-6))**2)/(scale*Math.max(.2,s*scale));}
+   if((chem[o+3]>.01||lab.sampleFastSurface(i))&&(wind||lab.jet)){const air=grid?lab.air.sampleGrid(p):labAirVelocity(p,lab);for(let k=0;k<3;k++){const relative=air[k]-v[k];v[k]+=dt*.025*relative*Math.abs(relative);}v[1]-=dt*WATER_WIND_PRESSURE_GAIN*windPressure(p[0]*scale,p[2]*scale,lab.time,wind,0,1)*Math.min(1,(length(air)*scale/Math.max(wind,1e-6))**2)/(scale*Math.max(.2,s*scale));}
    if(lab.playerDistance(p)<s){const n=normalAt(p,q=>lab.playerDistance(q)),relative=lab.player.velocity.reduce((sum,x,k)=>sum+(x-v[k])*n[k],0),w=clamp(1-lab.playerDistance(p)/s,0,1);if(relative>0)for(let k=0;k<3;k++)v[k]+=n[k]*relative*w*.22;}
    const speed=length(v),limit=s*.45/dt;if(speed>limit)for(let k=0;k<3;k++)v[k]*=limit/speed;expected.set(p.map((x,k)=>x+v[k]*dt),o);
   }assert.deepEqual(fast,expected);

@@ -1,3 +1,4 @@
+import {installHorizonAudit} from './horizon-audit.js';
 import {lunarDirection} from './night-sky-model.js';
 import {lunarState,moonPhaseState,tidalElevation,LUNAR_MONTH} from './tides.js';
 import {installOrbitPivot} from '../lab-orbit-pivot.js';
@@ -126,3 +127,5 @@ installWetnessQA({lab,camera,controls,panel:$('panel'),results:$('qa-results')})
 // their newly installed UI, so visibility never resets or runs a test.
 for(const node of [...$('panel').children])if(!qaExisting.has(node))$('qa-panel').append(node);
 $('qa-panel').append($('verify'),$('verification'),$('qa-results'));
+
+installHorizonAudit({lab,draw,renderer,camera,panel:$('qa-panel'),output:$('qa-results')});

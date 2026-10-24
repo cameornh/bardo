@@ -18,8 +18,8 @@ vec2 sandHeightGradient(vec2 p){
  // interpolation combines each pair, giving the exact cubic slope in 8 reads.
  vec2 g=.5+f-f*f,d0=(base-1.+(2.*f-1.5*f*f)/g+.5)/size,d1=(base+1.+.5*f*f/g+.5)/size;
  vec2 gradient=g*vec2(
-  g0.y*(texture(uSand,vec2(d1.x,h0.y)).r-texture(uSand,vec2(d0.x,h0.y)).r)+g1.y*(texture(uSand,vec2(d1.x,h1.y)).r-texture(uSand,vec2(d0.x,h1.y)).r),
-  g0.x*(texture(uSand,vec2(h0.x,d1.y)).r-texture(uSand,vec2(h0.x,d0.y)).r)+g1.x*(texture(uSand,vec2(h1.x,d1.y)).r-texture(uSand,vec2(h1.x,d0.y)).r));
+  g0.y*(textureLod(uSand,vec2(d1.x,h0.y),0.).r-textureLod(uSand,vec2(d0.x,h0.y),0.).r)+g1.y*(textureLod(uSand,vec2(d1.x,h1.y),0.).r-textureLod(uSand,vec2(d0.x,h1.y),0.).r),
+  g0.x*(textureLod(uSand,vec2(h0.x,d1.y),0.).r-textureLod(uSand,vec2(h0.x,d0.y),0.).r)+g1.x*(textureLod(uSand,vec2(h1.x,d1.y),0.).r-textureLod(uSand,vec2(h1.x,d0.y),0.).r));
  gradient*=last/vec2(11.,9.8);if(q.x<0.||q.x>last)gradient.x=0.;if(q.y<0.||q.y>last)gradient.y=0.;return gradient;
 }
 `;

@@ -1,0 +1,29 @@
+{
+  "resolution": [
+    480,
+    270
+  ],
+  "records": {
+    "glass": {
+      "max": 1.7881393432617188e-7,
+      "changed": 0,
+      "pixels": 26688
+    },
+    "mirror": {
+      "max": 1.7881393432617188e-7,
+      "changed": 0,
+      "pixels": 4025
+    },
+    "rock": {
+      "max": 1.7881393432617188e-7,
+      "changed": 0,
+      "pixels": 4025
+    },
+    "light": {
+      "max": 0.0002608299255371094,
+      "changed": 0,
+      "pixels": 4025
+    }
+  },
+  "pass": true
+}

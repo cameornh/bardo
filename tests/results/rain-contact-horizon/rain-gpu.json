@@ -1,0 +1,12 @@
+{
+  "detailParity": {
+    "error": 0.00007772445678710938,
+    "pass": true
+  },
+  "contactGpuError": 7.119806666542466e-7,
+  "objectHits": 15,
+  "maxObjectSurfaceError": 0.0029997506305258215,
+  "mistEmitted": 1149,
+  "liveMarkers": 1485,
+  "pass": true
+}
