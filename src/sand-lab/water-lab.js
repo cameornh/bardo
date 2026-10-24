@@ -1,4 +1,4 @@
-import {WATER_WIND_DRAG,WATER_WIND_PRESSURE_GAIN} from './wind-response.js';
+import {waterWindDrag,waterWindPressure} from './wind-response.js';
 import {simulationAllowance} from './simulation-clock.js';
 import {EmitterProbes} from './emitter-probes.js';
 import {predictBeach} from './beach-predict.js';
@@ -16,7 +16,6 @@ import {LabDetail} from './water-lab-detail.js';
 import {LabTransportGPU} from './transport-gpu.js';
 import {transportFluid} from './water-lab-transport.js';
 import {LabRain} from './water-lab-rain.js';
-import {windPressure} from '../beach-wind.js';
 import * as THREE from 'three';
 import {LabFluidGPU} from './water-lab-gpu.js';
 import {LAB_PRESETS,LAB_IDS,seedWater,createMotion,stepMotion,fixtureDistance,vesselDistance,wallVelocity,normalAt,clamp,length,hash,densityAt,buoyancyAcceleration,floorHeight,collideBoundary,WATER_CONTACT_SKIN} from './water-lab-model.js';
@@ -49,7 +48,7 @@ export class WaterLab {
  this.inletSequence++;this.positions.set(point,o);this.velocities.set(velocity,o);this.pumped+=this.spacing**3*this.spec.scale**3;}this.pumpBudget=Math.min(this.pumpBudget,200*this.resolution**3);}
  prepareStep(dt){const start=performance.now();this.time+=dt;stepMotion(this.motion,dt);this.pump(dt);const pumpDone=performance.now();this.rain.step(dt);const rainDone=performance.now();this.wetting.step(dt,!this.frameDrivenLens);const wetDone=performance.now();this.stepBodies(dt);this.syncUniforms();this.air.update(this);const old=this.positions.slice(),predicted=this.positions.slice(),s=this.spacing,scale=this.spec.scale;
  if(this.optimizations?.fastPredict&&this.kind==='ocean')predictBeach(this,old,predicted,dt);else for(let i=0;i<this.count;i++){const o=i*4;if(old[o+3])continue;const p=Array.from(old.subarray(o,o+3)),v=Array.from(this.velocities.subarray(o,o+3));v[1]-=9.81/scale*dt;
- const surface=this.chem[o+3]>.01||this.sampleFastSurface(i);if(surface&&(this.wind||this.jet)){const air=this.air.grid?this.air.sampleGrid(p):labAirVelocity(p,this);for(let k=0;k<3;k++){const relative=air[k]-v[k];v[k]+=dt*(this.jet?.025:WATER_WIND_DRAG)*relative*Math.abs(relative);}v[1]-=dt*WATER_WIND_PRESSURE_GAIN*windPressure(p[0]*scale,p[2]*scale,this.time,this.wind,0,this.windTurbulence)*Math.min(1,(length(air)*scale/Math.max(this.wind,1e-6))**2)/(scale*Math.max(.2,s*scale));}
+ const surface=this.chem[o+3]>.01||this.sampleFastSurface(i);if(surface&&(this.wind||this.jet)){const air=this.air.grid?this.air.sampleGrid(p):labAirVelocity(p,this);for(let k=0;k<3;k++){const relative=air[k]-v[k];v[k]+=dt*(this.jet?.025:waterWindDrag(this.wind,this.reactiveWaves))*relative*Math.abs(relative);}v[1]-=dt*waterWindPressure(p[0]*scale,p[2]*scale,this.time,this.wind,this.windTurbulence,this.reactiveWaves)*Math.min(1,(length(air)*scale/Math.max(this.wind,1e-6))**2)/(scale*Math.max(.2,s*scale));}
  if(this.kind==='pool'&&this.jets){for(const side of [-1,1]){const d=length([p[0]-side*3.3,p[1]-.7,p[2]+.8]),w=Math.exp(-d*d/.7)*this.jets;v[0]+=-side*w*dt*12/scale;v[2]+=w*dt*2/scale;}}
  // Contact projection carries normal wall motion; only physical viscosity
  // transfers tangential motion. A fixed drag created sticky, raised edges.

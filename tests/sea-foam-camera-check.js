@@ -1,0 +1,17 @@
+import * as THREE from 'three';
+import {SeaFoam} from '../src/sand-lab/sea-foam.js';
+import {SeaFoamRenderer} from '../src/sand-lab/sea-foam-renderer.js';
+// Reproduce the failed perspective approximation with only foam, a black
+// background and a camera just above a flat surface. Upward sky rays must
+// never see the surface, however large the projected bounding quads become.
+export function verifyFoamCamera(renderer){
+ const w=160,h=100,foam=new SeaFoam(renderer),empty=new THREE.DataTexture(new Float32Array([0,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType),depth=new THREE.DataTexture(new Float32Array([0,0,0,1000]),1,1,THREE.RGBAFormat,THREE.FloatType);empty.needsUpdate=depth.needsUpdate=true;
+ for(let o=0;o<foam.reference.length;o+=4){foam.reference[o]=.6;foam.surface.surface[o]=foam.surface.surface[o+1]=0;}foam.zero.needsUpdate=foam.surfaceTexture.needsUpdate=true;
+ const camera=new THREE.PerspectiveCamera(65,w/h,.001,100);camera.position.set(0,.006,-.1);camera.lookAt(0,.006,-2);camera.updateMatrixWorld();
+ const u={uScale:{value:10},uSpacing:{value:.19},uAmbient:{value:1},uSunlight:{value:0},uTannins:{value:0},uTurbidity:{value:0},uResolution:{value:new THREE.Vector2(w,h)},uEye:{value:camera.position},uSH:{value:Array.from({length:16},(_,i)=>new THREE.Vector3(...(i===0?[2,2,2]:[0,0,0])))},uSHDegree:{value:0},uDaySun:{value:new THREE.Vector3(0,1,0)},uDayTint:{value:new THREE.Vector3(1,1,1)},uFieldLinear:{value:false},uLabField:{value:empty},uFieldSize:{value:new THREE.Vector3(1,1,1)},uFieldOrigin:{value:new THREE.Vector3(100,100,100)},uFieldAtlas:{value:new THREE.Vector2(1,1)},uFieldDx:{value:1},uFieldColumns:{value:1},uFieldSkipping:{value:false},uOpaqueRead:{value:depth},uInverseProjection:{value:camera.projectionMatrixInverse},uCameraMatrix:{value:camera.matrixWorld}};
+ const draw=new SeaFoamRenderer(foam,u),target=new THREE.WebGLRenderTarget(w,h,{type:THREE.FloatType,depthBuffer:false}),oldTarget=renderer.getRenderTarget(),oldColor=renderer.getClearColor(new THREE.Color()),oldAlpha=renderer.getClearAlpha(),fixed=draw.material.fragmentShader;
+ const sample=()=>{renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.clear();renderer.render(draw.scene,camera);const data=new Float32Array(w*h*4);renderer.readRenderTargetPixels(target,0,0,w,h,data);let above=0,below=0,nonFinite=0;for(let y=0;y<h;y++)for(let x=0;x<w;x++){const v=data[(y*w+x)*4];if(!Number.isFinite(v))nonFinite++;if(v>.015){if(y>=Math.ceil(h*.5))above++;if(y<h*.45)below++;}}return {aboveHorizonPixels:above,belowHorizonPixels:below,nonFinite};};
+ try{
+  const actual=sample();draw.material.fragmentShader=fixed.slice(0,fixed.indexOf('void main()'))+`void main(){float g=exp(-.5*dot(vQ,vQ)),alpha=1.-exp(-vAmount*g*2.5);if(alpha<.003)discard;vec2 uv=gl_FragCoord.xy/uResolution;vec4 q=uInverseProjection*vec4(uv*2.-1.,1,1);vec3 ray=normalize(mat3(uCameraMatrix)*q.xyz),delta=vWorld-uEye;float denominator=dot(ray,vNormal),d=abs(denominator)>.02?dot(delta,vNormal)/denominator:length(delta);if(d<0.||d>texture(uOpaqueRead,uv).a+.012)discard;outColor=vec4(vLight*alpha,alpha);}`;draw.material.needsUpdate=true;const prior=sample();return {fixture:'Camera 6 cm above a flat foam field; horizontal view',previousProjection:prior,physicalRayCheck:actual,pass:prior.aboveHorizonPixels>0&&actual.aboveHorizonPixels===0&&actual.belowHorizonPixels>0&&actual.nonFinite===0};
+ }finally{renderer.setRenderTarget(oldTarget);renderer.setClearColor(oldColor,oldAlpha);draw.dispose();foam.dispose();empty.dispose();depth.dispose();target.dispose();}
+}

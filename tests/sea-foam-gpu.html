@@ -1,0 +1,4 @@
+<!doctype html><meta charset="utf-8"><title>Sea foam transport and shoreline check</title>
+<style>body{background:#20272c;color:#eee;font:14px system-ui;margin:12px}button{padding:8px;margin:4px}canvas{display:block;max-width:100%;height:auto!important}pre{white-space:pre-wrap}</style>
+<button id="numerical">Small GPU / CPU check</button><button id="near">Near-camera artifact check</button><button id="surface">Foam on waves</button><button id="retreat">Retreating shoreline</button><button id="rewet">Returning water</button><button id="off">Zero organic load</button><button id="live">Live wind check (5 seconds)</button>
+<label>Organic load <input id="organic" type="range" min="0" max="5" step=".05" value=".65"><output id="organic-value">0.65</output></label><pre id="result">Ready. Checks run on demand; object contacts remain on the CPU.</pre><script type="module" src="./sea-foam-gpu.js"></script>

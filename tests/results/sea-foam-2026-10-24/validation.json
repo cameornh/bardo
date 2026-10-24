@@ -1,0 +1,29 @@
+{
+  "scope": "Live sand beach: persistent organic foam, focused shoreline generation, stronger low-speed water wind response, near-camera projection fix",
+  "numerical": {"nodeTestsPassed": 55, "gpuReferenceCells": 256, "gpuReferenceSteps": 24, "maximumGpuCpuError": 3.725290298461914e-7},
+  "bounds": {"surfaceCells": 9216, "maxCoveragePerCell": 0.85, "surfaceInputHz": 8, "waterDecaySeconds": 95, "strandedDecaySeconds": 210, "addedBulkWaterSamples": 0},
+  "projectionRegression": {
+    "description": "Horizontal view, camera 6 cm above a flat foam field; 160 x 100 target",
+    "previousAboveHorizonPixels": 320,
+    "fixedAboveHorizonPixels": 0,
+    "fixedBelowHorizonPixels": 622,
+    "nonFinitePixels": 0
+  },
+  "liveCheck": {
+    "description": "5 simulation seconds, wind 8 m/s, organic load 0.65, 13360 bulk samples, 900 x 540 preview; timings are a bounded feature check, not a full-scene FPS claim",
+    "physicsSteps": 75,
+    "wallSeconds": 11.7143,
+    "meanCpuSurfaceInputMsPerStep": 4.650666666328907,
+    "gpuFoamDrawingMs": 1.1765917480406065,
+    "waterCoverageSum": 222.99895210773684,
+    "sandCoverageSum": 13.487111516565989,
+    "maximumCoverage": 0.5135026691205589
+  },
+  "windPressureRmsGain": [{"speed":4,"gain":3.4516315309759253},{"speed":8,"gain":4.342106616051035},{"speed":12,"gain":3.573829663095825},{"speed":30,"gain":2.2740950009300684},{"speed":70,"gain":1.7696867036853925}],
+  "research": {
+    "video": "https://www.youtube.com/watch?v=kOkfC5fLfgE",
+    "reviewedSource": "https://github.com/SebLague/Fluid-Sim/blob/main/Assets/Scripts/Simulation/Compute/FluidSim.compute",
+    "usedIdeas": ["Separate bounded foam from the expensive bulk fluid", "Generate from turbulent / converging motion", "Transport using local liquid velocity", "Keep state on the GPU without per-frame readback"],
+    "adaptation": "Conservative fixed surface coverage field with a CPU reference, shoreline stranding and rewetting; covariance Gaussian drawing with spherical-harmonic environment lighting. The video itself was not available to the browsing tool."
+  }
+}
