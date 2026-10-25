@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: sand/object constraints cannot submit GPU work, including deferred and packed modes
+not ok 1 - sand/object constraints cannot submit GPU work, including deferred and packed modes
+  ---
+  duration_ms: 16.189803
+  type: 'test'
+  location: '/private/tmp/bardo-baseline-FUclbR/tests/sand-drops-rigid.test.js:115:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /CPU object contacts/. Input:
+
+    'JavaScript CPU'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: 'JavaScript CPU'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/bardo-baseline-FUclbR/tests/sand-drops-rigid.test.js:125:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 256.25223

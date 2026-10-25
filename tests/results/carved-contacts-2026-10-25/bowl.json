@@ -1,0 +1,17 @@
+{
+  "pass": true,
+  "backend": "CPU rigid contacts",
+  "previousCenter": [
+    0,
+    2.1801,
+    0
+  ],
+  "carvedBowlCenter": [
+    -0.000045164852100199526,
+    1.079989950068958,
+    0.000013924805816475505
+  ],
+  "expectedRestHeight": 1.08,
+  "minimumSurfaceDistance": 0.0028906701388550227,
+  "steps": 480
+}

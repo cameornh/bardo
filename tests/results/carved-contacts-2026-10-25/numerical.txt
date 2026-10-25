@@ -1,0 +1,502 @@
+TAP version 13
+# Subtest: a ball placed inside a carved bowl is not ejected by the original sand sphere
+ok 1 - a ball placed inside a carved bowl is not ejected by the original sand sphere
+  ---
+  duration_ms: 20.157592
+  type: 'test'
+  ...
+# Subtest: glass, mirror, rock and light balls fall to the carved floor, not the old top
+ok 2 - glass, mirror, rock and light balls fall to the carved floor, not the old top
+  ---
+  duration_ms: 1208.884471
+  type: 'test'
+  ...
+# Subtest: carved walls push objects into the cavity, and tilted cups use their actual surfaces
+ok 3 - carved walls push objects into the cavity, and tilted cups use their actual surfaces
+  ---
+  duration_ms: 122.278507
+  type: 'test'
+  ...
+# Subtest: enclosed spherical cavities and intersection-cut portions do not acquire false walls
+ok 4 - enclosed spherical cavities and intersection-cut portions do not acquire false walls
+  ---
+  duration_ms: 3.098794
+  type: 'test'
+  ...
+# Subtest: surface caches refresh after another cut or motion, with identical broadphase results
+ok 5 - surface caches refresh after another cut or motion, with identical broadphase results
+  ---
+  duration_ms: 11.955033
+  type: 'test'
+  ...
+# Subtest: mobile carved sand and a body exchange equal and opposite linear momentum
+ok 6 - mobile carved sand and a body exchange equal and opposite linear momentum
+  ---
+  duration_ms: 2.732521
+  type: 'test'
+  ...
+# Subtest: a small carved piece inside a larger held object is expelled without phantom cavity contacts
+ok 7 - a small carved piece inside a larger held object is expelled without phantom cavity contacts
+  ---
+  duration_ms: 8.087992
+  type: 'test'
+  ...
+# Subtest: the shared live scene selects carved contacts and retains the historical ordinary-grain path
+ok 8 - the shared live scene selects carved contacts and retains the historical ordinary-grain path
+  ---
+  duration_ms: 271.107542
+  type: 'test'
+  ...
+# Subtest: the actual live prepare-step path keeps an object in the carved cavity
+ok 9 - the actual live prepare-step path keeps an object in the carved cavity
+  ---
+  duration_ms: 148.967951
+  type: 'test'
+  ...
+# Subtest: live wind brush gives four times the surface velocity and five times the previous maximum
+ok 10 - live wind brush gives four times the surface velocity and five times the previous maximum
+  ---
+  duration_ms: 309.932688
+  type: 'test'
+  ...
+# Subtest: one packed asynchronous step runs in order and never queues a second GPU job
+ok 11 - one packed asynchronous step runs in order and never queues a second GPU job
+  ---
+  duration_ms: 4.920465
+  type: 'test'
+  ...
+# Subtest: reset discards pending results, and a failed transfer disables further asynchronous work
+ok 12 - reset discards pending results, and a failed transfer disables further asynchronous work
+  ---
+  duration_ms: 1.073455
+  type: 'test'
+  ...
+# Subtest: fixed-step simulation earns the same time at 30, 60 and 144 display refresh rates
+ok 13 - fixed-step simulation earns the same time at 30, 60 and 144 display refresh rates
+  ---
+  duration_ms: 32.277588
+  type: 'test'
+  ...
+# Subtest: hardware policy reserves headroom for physics and hard frames with a shared 60 FPS presentation budget
+ok 14 - hardware policy reserves headroom for physics and hard frames with a shared 60 FPS presentation budget
+  ---
+  duration_ms: 0.551792
+  type: 'test'
+  ...
+# Subtest: stars follow actual exposure, with faint stars emerging gradually during dark adaptation
+ok 15 - stars follow actual exposure, with faint stars emerging gradually during dark adaptation
+  ---
+  duration_ms: 0.616746
+  type: 'test'
+  ...
+# Subtest: live moonlight lights surfaces more strongly while producing less sky wash; snapshots retain their defaults
+ok 16 - live moonlight lights surfaces more strongly while producing less sky wash; snapshots retain their defaults
+  ---
+  duration_ms: 312.154246
+  type: 'test'
+  ...
+# Subtest: all catalogue stars are Gaussian instances, and only the live look adds the galactic layer
+ok 17 - all catalogue stars are Gaussian instances, and only the live look adds the galactic layer
+  ---
+  duration_ms: 40.248762
+  type: 'test'
+  ...
+# Subtest: scene metering stays stable while all sky radiance receives the final scene exposure
+ok 18 - scene metering stays stable while all sky radiance receives the final scene exposure
+  ---
+  duration_ms: 1.415168
+  type: 'test'
+  ...
+# Subtest: 400 partial grab/drop edits have bounded cut history and preserve all material ledgers
+ok 19 - 400 partial grab/drop edits have bounded cut history and preserve all material ledgers
+  ---
+  duration_ms: 3186.940479
+  type: 'test'
+  ...
+# Subtest: old cut detail is resampled only inside occupied source stock; held stock is unchanged
+ok 20 - old cut detail is resampled only inside occupied source stock; held stock is unchanged
+  ---
+  duration_ms: 13.291716
+  type: 'test'
+  ...
+# Subtest: continuous carving preserves removed-stock accounting without a growing operation log
+ok 21 - continuous carving preserves removed-stock accounting without a growing operation log
+  ---
+  duration_ms: 602.283045
+  type: 'test'
+  ...
+# Subtest: a partial cut exhausting the remaining stock still drops inherited history
+ok 22 - a partial cut exhausting the remaining stock still drops inherited history
+  ---
+  duration_ms: 2.84873
+  type: 'test'
+  ...
+# Subtest: tiny settled deposits merge conservatively but unlike layers and raised sand remain explicit
+ok 23 - tiny settled deposits merge conservatively but unlike layers and raised sand remain explicit
+  ---
+  duration_ms: 3.14916
+  type: 'test'
+  ...
+# Subtest: live editing retains dry settling and wet support during a repeated pickup soak
+ok 24 - live editing retains dry settling and wet support during a repeated pickup soak
+  ---
+  duration_ms: 1202.583275
+  type: 'test'
+  ...
+# Subtest: a stationary held handful does not invalidate terrain; moving it still does
+ok 25 - a stationary held handful does not invalidate terrain; moving it still does
+  ---
+  duration_ms: 0.878382
+  type: 'test'
+  ...
+# Subtest: wet landing bonds the original SDF shape and moisture instead of diluting into a dry bed
+ok 26 - wet landing bonds the original SDF shape and moisture instead of diluting into a dry bed
+  ---
+  duration_ms: 451.162396
+  type: 'test'
+  ...
+# Subtest: a second wet chunk sticks onto the first and can be grabbed again with its moisture intact
+ok 27 - a second wet chunk sticks onto the first and can be grabbed again with its moisture intact
+  ---
+  duration_ms: 227.575598
+  type: 'test'
+  ...
+# Subtest: held dry sand wets through exterior water contact without moving or losing stock
+ok 28 - held dry sand wets through exterior water contact without moving or losing stock
+  ---
+  duration_ms: 5775.367235
+  type: 'test'
+  ...
+# Subtest: a wet selection lands as one cohesive shape instead of settling each support sphere independently
+ok 29 - a wet selection lands as one cohesive shape instead of settling each support sphere independently
+  ---
+  duration_ms: 23.579949
+  type: 'test'
+  ...
+# Subtest: disconnected pieces in one grab do not become suspended when another piece lands
+ok 30 - disconnected pieces in one grab do not become suspended when another piece lands
+  ---
+  duration_ms: 30.809653
+  type: 'test'
+  ...
+# Subtest: wet terrain holds steep shapes; dried sand retains a smaller finite adhesion
+ok 31 - wet terrain holds steep shapes; dried sand retains a smaller finite adhesion
+  ---
+  duration_ms: 119.197961
+  type: 'test'
+  ...
+# Subtest: dry deposits settle through the continuous bed while conserving grains
+ok 32 - dry deposits settle through the continuous bed while conserving grains
+  ---
+  duration_ms: 48.404921
+  type: 'test'
+  ...
+# Subtest: bonded SDF deposits resist body contacts but can still be pushed deliberately
+ok 33 - bonded SDF deposits resist body contacts but can still be pushed deliberately
+  ---
+  duration_ms: 2.744834
+  type: 'test'
+  ...
+# Subtest: swept landing catches fast wet chunks without burying them in the terrain
+ok 34 - swept landing catches fast wet chunks without burying them in the terrain
+  ---
+  duration_ms: 1.660082
+  type: 'test'
+  ...
+# Subtest: small sand brush cuts only its intersection from a large placed clump
+ok 35 - small sand brush cuts only its intersection from a large placed clump
+  ---
+  duration_ms: 15.432982
+  type: 'test'
+  ...
+# Subtest: moving the supporting clump releases attached sand instead of suspending it
+ok 36 - moving the supporting clump releases attached sand instead of suspending it
+  ---
+  duration_ms: 33.277028
+  type: 'test'
+  ...
+# Subtest: player-body contacts transfer equal and opposite momentum, with mass-dependent response
+ok 37 - player-body contacts transfer equal and opposite momentum, with mass-dependent response
+  ---
+  duration_ms: 0.972566
+  type: 'test'
+  ...
+# Subtest: walking into an object pushes it rather than treating it as immovable scenery
+ok 38 - walking into an object pushes it rather than treating it as immovable scenery
+  ---
+  duration_ms: 11.358964
+  type: 'test'
+  ...
+# Subtest: shore reconstruction keeps a level free surface level across the sloping contact line
+ok 39 - shore reconstruction keeps a level free surface level across the sloping contact line
+  ---
+  duration_ms: 46.131441
+  type: 'test'
+  ...
+# Subtest: surface beads stay on rigid receivers while all sand absorbs or sheds rain
+ok 40 - surface beads stay on rigid receivers while all sand absorbs or sheds rain
+  ---
+  duration_ms: 5.080775
+  type: 'test'
+  ...
+# Subtest: nearby accumulation transitions continuously into one parcel without summoning distant rain
+ok 41 - nearby accumulation transitions continuously into one parcel without summoning distant rain
+  ---
+  duration_ms: 3.525207
+  type: 'test'
+  ...
+# Subtest: rain beads stay attached to moving and rotating glass and do not decorate water
+ok 42 - rain beads stay attached to moving and rotating glass and do not decorate water
+  ---
+  duration_ms: 1.109467
+  type: 'test'
+  ...
+# Subtest: a cup striking a slope rotates from contact forces and its rim stays above the sand
+ok 43 - a cup striking a slope rotates from contact forces and its rim stays above the sand
+  ---
+  duration_ms: 148.940575
+  type: 'test'
+  ...
+# Subtest: sphere contacts resolve a sloping bed at the actual surface, not its centre height
+ok 44 - sphere contacts resolve a sloping bed at the actual surface, not its centre height
+  ---
+  duration_ms: 27.697604
+  type: 'test'
+  ...
+# Subtest: sideways cups collide at their actual walls and exchange angular momentum
+ok 45 - sideways cups collide at their actual walls and exchange angular momentum
+  ---
+  duration_ms: 31.519734
+  type: 'test'
+  ...
+# Subtest: off-centre water impulse tips cups and full-immersion buoyancy has no spurious torque
+ok 46 - off-centre water impulse tips cups and full-immersion buoyancy has no spurious torque
+  ---
+  duration_ms: 0.658323
+  type: 'test'
+  ...
+# Subtest: a growing rain parcel follows a moved receiver and only one forms per patch at once
+ok 47 - a growing rain parcel follows a moved receiver and only one forms per patch at once
+  ---
+  duration_ms: 0.367075
+  type: 'test'
+  ...
+# Subtest: transparent sphere shadows do not produce an opaque grazing ring
+ok 48 - transparent sphere shadows do not produce an opaque grazing ring
+  ---
+  duration_ms: 3.26161
+  type: 'test'
+  ...
+# Subtest: cups spawned at identical poses separate instead of keeping coincident walls
+ok 49 - cups spawned at identical poses separate instead of keeping coincident walls
+  ---
+  duration_ms: 35.696658
+  type: 'test'
+  ...
+# Subtest: deeply interlocked equal cups recover while a small sphere can occupy the cavity
+ok 50 - deeply interlocked equal cups recover while a small sphere can occupy the cavity
+  ---
+  duration_ms: 5.254786
+  type: 'test'
+  ...
+# Subtest: adjacent rain beads coalesce across spatial cell borders
+ok 51 - adjacent rain beads coalesce across spatial cell borders
+  ---
+  duration_ms: 0.564636
+  type: 'test'
+  ...
+# Subtest: the sand-lab body step produces rotation from asymmetric water flow
+ok 52 - the sand-lab body step produces rotation from asymmetric water flow
+  ---
+  duration_ms: 270.015767
+  type: 'test'
+  ...
+# Subtest: analytic hollow-body rays agree with independent SDF crossings including rotated rims
+ok 53 - analytic hollow-body rays agree with independent SDF crossings including rotated rims
+  ---
+  duration_ms: 828.659699
+  type: 'test'
+  ...
+# Subtest: spawning a cup invalidates the sphere-only fluid lookup before rigid integration
+ok 54 - spawning a cup invalidates the sphere-only fluid lookup before rigid integration
+  ---
+  duration_ms: 287.312489
+  type: 'test'
+  ...
+# Subtest: background object warmup cannot be completed by a subsequent empty-scene draw
+ok 55 - background object warmup cannot be completed by a subsequent empty-scene draw
+  ---
+  duration_ms: 3.253464
+  type: 'test'
+  ...
+# Subtest: compact water queries preserve poly6 density and momentum, including boundaries
+ok 56 - compact water queries preserve poly6 density and momentum, including boundaries
+  ---
+  duration_ms: 32.723684
+  type: 'test'
+  ...
+# Subtest: sand broadphase preserves the full smooth CSG field, including flattened and cut stock
+ok 57 - sand broadphase preserves the full smooth CSG field, including flattened and cut stock
+  ---
+  duration_ms: 36.582019
+  type: 'test'
+  ...
+# Subtest: program specialization preserves empty scenes and can prepare object-capable variants
+ok 58 - program specialization preserves empty scenes and can prepare object-capable variants
+  ---
+  duration_ms: 1.072645
+  type: 'test'
+  ...
+# Subtest: neighbor cell rejection and ordered ranges preserve reciprocal lists and overflow exactly
+ok 59 - neighbor cell rejection and ordered ranges preserve reciprocal lists and overflow exactly
+  ---
+  duration_ms: 106.46911
+  type: 'test'
+  ...
+# Subtest: pruning stress queries preserves dry load on wet supports and bonded fracture
+ok 60 - pruning stress queries preserves dry load on wet supports and bonded fracture
+  ---
+  duration_ms: 122.607498
+  type: 'test'
+  ...
+# Subtest: lean beach predictor preserves gravity, wind, holding, player impulses and travel limits
+ok 61 - lean beach predictor preserves gravity, wind, holding, player impulses and travel limits
+  ---
+  duration_ms: 20.031259
+  type: 'test'
+  ...
+# Subtest: read-only terrain snapshot preserves cubic heights including clamped borders and edits
+ok 62 - read-only terrain snapshot preserves cubic heights including clamped borders and edits
+  ---
+  duration_ms: 5.474656
+  type: 'test'
+  ...
+# Subtest: specialization handles grouped declarations without changing unselected uniforms
+ok 63 - specialization handles grouped declarations without changing unselected uniforms
+  ---
+  duration_ms: 0.291342
+  type: 'test'
+  ...
+# Subtest: cached emission preserves marker positions, velocities, lifetimes, histories and supply
+ok 64 - cached emission preserves marker positions, velocities, lifetimes, histories and supply
+  ---
+  duration_ms: 257.141951
+  type: 'test'
+  ...
+# Subtest: live scalar terrain sampling and refreshed wind geometry preserve changing CSG
+ok 65 - live scalar terrain sampling and refreshed wind geometry preserve changing CSG
+  ---
+  duration_ms: 151.466147
+  type: 'test'
+  ...
+# Subtest: predictive scheduling avoids an over-budget second solve while preserving fixed time and dropping overload
+ok 66 - predictive scheduling avoids an over-budget second solve while preserving fixed time and dropping overload
+  ---
+  duration_ms: 266.727135
+  type: 'test'
+  ...
+# Subtest: changing compact sand mode rebuilds geometry without requiring an edit
+ok 67 - changing compact sand mode rebuilds geometry without requiring an edit
+  ---
+  duration_ms: 304.605317
+  type: 'test'
+  ...
+# Subtest: incremental settling indices preserve ordered contact and column queries after moves
+ok 68 - incremental settling indices preserve ordered contact and column queries after moves
+  ---
+  duration_ms: 425.797527
+  type: 'test'
+  ...
+# Subtest: world-resolution settling floor preserves tiny deposit mass, wetness and occupied volume
+ok 69 - world-resolution settling floor preserves tiny deposit mass, wetness and occupied volume
+  ---
+  duration_ms: 1.228048
+  type: 'test'
+  ...
+# Subtest: forty seconds of wind deposition does not recursively multiply sub-resolution stock
+ok 70 - forty seconds of wind deposition does not recursively multiply sub-resolution stock
+  ---
+  duration_ms: 4522.822329
+  type: 'test'
+  ...
+# Subtest: coalescing overlapping wind deposits conserves grain/pore volume, wetness, history and centre of mass
+ok 71 - coalescing overlapping wind deposits conserves grain/pore volume, wetness, history and centre of mass
+  ---
+  duration_ms: 2.027381
+  type: 'test'
+  ...
+# Subtest: mixed optimization selections retain independent choices and gate only required paths
+ok 72 - mixed optimization selections retain independent choices and gate only required paths
+  ---
+  duration_ms: 99.244853
+  type: 'test'
+  ...
+# Subtest: switching optimization combinations invalidates live water queries without resetting stock
+ok 73 - switching optimization combinations invalidates live water queries without resetting stock
+  ---
+  duration_ms: 148.775459
+  type: 'test'
+  ...
+# Subtest: object warmup prepares render and compute variants without changing simulation uniforms
+ok 74 - object warmup prepares render and compute variants without changing simulation uniforms
+  ---
+  duration_ms: 4.104664
+  type: 'test'
+  ...
+# Subtest: dry overhangs fall around a wet mound while its adhered shape stays put
+ok 75 - dry overhangs fall around a wet mound while its adhered shape stays put
+  ---
+  duration_ms: 856.046693
+  type: 'test'
+  ...
+# Subtest: a dry support cannot hang from a wet chunk or transmit a tensile side bond
+ok 76 - a dry support cannot hang from a wet chunk or transmit a tensile side bond
+  ---
+  duration_ms: 1.712538
+  type: 'test'
+  ...
+# Subtest: a mixed handful lands without leaving its wet top in the air after dry stock enters the bed
+ok 77 - a mixed handful lands without leaving its wet top in the air after dry stock enters the bed
+  ---
+  duration_ms: 178.24272
+  type: 'test'
+  ...
+# Subtest: wet support is rechecked after its loose supporting layer moves, without another user edit
+ok 78 - wet support is rechecked after its loose supporting layer moves, without another user edit
+  ---
+  duration_ms: 308.449996
+  type: 'test'
+  ...
+# Subtest: cut-away portions of a scoop never support a suspended wet cap
+ok 79 - cut-away portions of a scoop never support a suspended wet cap
+  ---
+  duration_ms: 97.462396
+  type: 'test'
+  ...
+# Subtest: a removed CSG region does not weld disconnected wet pieces into the same falling group
+ok 80 - a removed CSG region does not weld disconnected wet pieces into the same falling group
+  ---
+  duration_ms: 3.234833
+  type: 'test'
+  ...
+# Subtest: cached support loses a drying bond continuously and rechecks when bond strength crosses its limit
+ok 81 - cached support loses a drying bond continuously and rechecks when bond strength crosses its limit
+  ---
+  duration_ms: 1.308106
+  type: 'test'
+  ...
+# Subtest: cached and uncached settling match through motion, wetting and support removal
+ok 82 - cached and uncached settling match through motion, wetting and support removal
+  ---
+  duration_ms: 1613.76199
+  type: 'test'
+  ...
+1..82
+# tests 82
+# suites 0
+# pass 82
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6852.833311

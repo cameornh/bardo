@@ -2,11 +2,17 @@ import {SandLab} from '../sand-lab/lab.js';
 import {StepReadback} from '../sand-lab/gpu-step-readback.js';
 import {EmitterProbes} from '../sand-lab/emitter-probes.js';
 import {SandEditPolicy} from './sand-edit-policy.js';
+import {resolveCarvedSandContacts} from './carved-sand-contacts.js';
+import {BoundsGrid} from '../sand-lab/spatial-bounds.js';
+
+export const LIVE_WIND_BRUSH={initial:240,max:900,step:5};
 
 // Shared live experience. Historical fixtures still instantiate SandLab.
 // Only one physics step may be in flight; fixed dt, mass and forces are unchanged.
 export class LiveSandLab extends SandLab{
+ constructor(...args){super(...args);this.windStrength=LIVE_WIND_BRUSH.initial;}
  configure(...args){super.configure(...args);if(this.sand)this.sand.editPolicy=new SandEditPolicy();}
+ resolveSandObjectContacts(dt){this.sandContactStats=resolveCarvedSandContacts(this.sand.parcels,this.balls,dt,this.optimizations?.broadphase?(this.sandContactGrid??=new BoundsGrid()):null);}
  moveHeld(origin,direction){
   // A stationary held handful used to invalidate the entire terrain and
   // lighting reconstruction on every display frame, even while paused.
