@@ -246,8 +246,8 @@ u.uEye.value.copy(c.position);u.uInverseProjection.value.copy(c.projectionMatrix
  // Reuse opaque/water depths; no atmosphere ray march or star image texture.
  r.setRenderTarget(u.uLensCount.value?this.starTarget:f.target);r.render(this.copyScene,this.quadCamera);this.stars.render(r,f.camera,this.exposure,this.presentationDt??1/60);u.uImage.value=this.starTarget.texture;
  if(u.uLensCount.value){r.setRenderTarget(this.lensField);r.render(this.lensFieldScene,this.quadCamera);r.setRenderTarget(f.target);r.render(this.lensScene,this.quadCamera);}
- // Meter physical scene light before the independent stellar response. Feeding
- // exposure-compensated stars back into adaptation would dim moonlit objects.
+ // Meter the physical scene before adding sparse stellar highlights. Their
+ // HDR radiance still receives the same final scene exposure as every object.
  this.exposure.present(f.target,this.presentationDt??1/60,{dirty:true,cpu:this.lab.gpu.cpu,meterImage:this.lab.enhancedNightSky?(this.finalImage||this.shellTarget):f.target});}
 
 }

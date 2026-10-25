@@ -1,0 +1,160 @@
+TAP version 13
+# Subtest: galactic band and dark lane stay centered on one great circle at every longitude
+ok 1 - galactic band and dark lane stay centered on one great circle at every longitude
+  ---
+  duration_ms: 6.190306
+  type: 'test'
+  ...
+# Subtest: the galactic centre line projects to a straight image line without sinusoidal displacement
+ok 2 - the galactic centre line projects to a straight image line without sinusoidal displacement
+  ---
+  duration_ms: 2.459414
+  type: 'test'
+  ...
+# Subtest: one packed asynchronous step runs in order and never queues a second GPU job
+ok 3 - one packed asynchronous step runs in order and never queues a second GPU job
+  ---
+  duration_ms: 6.379071
+  type: 'test'
+  ...
+# Subtest: reset discards pending results, and a failed transfer disables further asynchronous work
+ok 4 - reset discards pending results, and a failed transfer disables further asynchronous work
+  ---
+  duration_ms: 0.858183
+  type: 'test'
+  ...
+# Subtest: fixed-step simulation earns the same time at 30, 60 and 144 display refresh rates
+ok 5 - fixed-step simulation earns the same time at 30, 60 and 144 display refresh rates
+  ---
+  duration_ms: 23.612528
+  type: 'test'
+  ...
+# Subtest: hardware policy reserves headroom for physics and hard frames with a shared 60 FPS presentation budget
+ok 6 - hardware policy reserves headroom for physics and hard frames with a shared 60 FPS presentation budget
+  ---
+  duration_ms: 0.537089
+  type: 'test'
+  ...
+# Subtest: stars follow actual exposure, with faint stars emerging gradually during dark adaptation
+ok 7 - stars follow actual exposure, with faint stars emerging gradually during dark adaptation
+  ---
+  duration_ms: 0.585053
+  type: 'test'
+  ...
+# Subtest: live moonlight lights surfaces more strongly while producing less sky wash; snapshots retain their defaults
+ok 8 - live moonlight lights surfaces more strongly while producing less sky wash; snapshots retain their defaults
+  ---
+  duration_ms: 220.524171
+  type: 'test'
+  ...
+# Subtest: all catalogue stars are Gaussian instances, and only the live look adds the galactic layer
+ok 9 - all catalogue stars are Gaussian instances, and only the live look adds the galactic layer
+  ---
+  duration_ms: 33.162236
+  type: 'test'
+  ...
+# Subtest: scene metering stays stable while all sky radiance receives the final scene exposure
+ok 10 - scene metering stays stable while all sky radiance receives the final scene exposure
+  ---
+  duration_ms: 1.874347
+  type: 'test'
+  ...
+# Subtest: molecular scattering makes the daytime zenith blue and reddens low sunlight
+ok 11 - molecular scattering makes the daytime zenith blue and reddens low sunlight
+  ---
+  duration_ms: 4.927481
+  type: 'test'
+  ...
+# Subtest: planet occludes direct sunlight below the horizon while lunar sky remains dim and finite
+ok 12 - planet occludes direct sunlight below the horizon while lunar sky remains dim and finite
+  ---
+  duration_ms: 2.633514
+  type: 'test'
+  ...
+# Subtest: atmospheric radiance remains finite at grazing angles, poles and twilight
+ok 13 - atmospheric radiance remains finite at grazing angles, poles and twilight
+  ---
+  duration_ms: 17.591235
+  type: 'test'
+  ...
+# Subtest: scattering follows solar azimuth rather than an artist-painted horizon gradient
+ok 14 - scattering follows solar azimuth rather than an artist-painted horizon gradient
+  ---
+  duration_ms: 0.627289
+  type: 'test'
+  ...
+# Subtest: sky spherical harmonics update with time of day and contain no solar disc
+ok 15 - sky spherical harmonics update with time of day and contain no solar disc
+  ---
+  duration_ms: 21.734434
+  type: 'test'
+  ...
+# Subtest: lunar irradiance follows a continuous phase curve and is much fainter than sunlight
+ok 16 - lunar irradiance follows a continuous phase curve and is much fainter than sunlight
+  ---
+  duration_ms: 2.745485
+  type: 'test'
+  ...
+# Subtest: moon orbit, visible phase and lunar clock agree; daily and monthly clocks are independent
+ok 17 - moon orbit, visible phase and lunar clock agree; daily and monthly clocks are independent
+  ---
+  duration_ms: 0.754215
+  type: 'test'
+  ...
+# Subtest: star photometry preserves magnitude ratios, warm/cool colors and flux through spherical projection
+ok 18 - star photometry preserves magnitude ratios, warm/cool colors and flux through spherical projection
+  ---
+  duration_ms: 16.182048
+  type: 'test'
+  ...
+# Subtest: clear moonless sky remains faint, moonlight scatters, and horizon extinction reddens stars
+ok 19 - clear moonless sky remains faint, moonlight scatters, and horizon extinction reddens stars
+  ---
+  duration_ms: 2.231272
+  type: 'test'
+  ...
+# Subtest: stellar seeing changes Gaussian edges while preserving centroid, flux and a bounded footprint
+ok 20 - stellar seeing changes Gaussian edges while preserving centroid, flux and a bounded footprint
+  ---
+  duration_ms: 34.685692
+  type: 'test'
+  ...
+# Subtest: faint compact stars twinkle more strongly, with subtle size and brightness changes
+ok 21 - faint compact stars twinkle more strongly, with subtle size and brightness changes
+  ---
+  duration_ms: 1.245592
+  type: 'test'
+  ...
+# Subtest: tide envelope has spring/neap modulation and two highs per solar day at frozen lunar phase
+ok 22 - tide envelope has spring/neap modulation and two highs per solar day at frozen lunar phase
+  ---
+  duration_ms: 6.51011
+  type: 'test'
+  ...
+# Subtest: offshore tide exchanges conserve parcel volume, preserve held water, and respect capacity
+ok 23 - offshore tide exchanges conserve parcel volume, preserve held water, and respect capacity
+  ---
+  duration_ms: 138.506302
+  type: 'test'
+  ...
+# Subtest: moon intensity does not invalidate extinction history; material changes do
+ok 24 - moon intensity does not invalidate extinction history; material changes do
+  ---
+  duration_ms: 0.78124
+  type: 'test'
+  ...
+# Subtest: ambient transmission is invariant to daylight versus tiny night radiance
+ok 25 - ambient transmission is invariant to daylight versus tiny night radiance
+  ---
+  duration_ms: 2.841015
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1381.484489

@@ -54,9 +54,8 @@ void main(){float r2=dot(vQ,vQ);if(r2>16.)discard;vec2 uv=gl_FragCoord.xy/uResol
  float el=asin(clamp(vWorld.y,0.,1.))/1.570796327;vec3 transmission=textureLod(uAtmosphere,vec2((.5+sqrt(el)*127.)/256.,112.5/128.),0.).rgb*smoothstep(-.003,.001,vWorld.y);
  // Faint points emerge as the eye adapts, and wash out in bright surroundings.
  // This is a perceptual stellar response, not an added night light source.
- vec4 exposure=texelFetch(uExposure,ivec2(0),0);float skyExposure=uEnhancedNightSky?nightSkyExposure(exposure.r,exposure.b,uSolarDirection.y):exposure.r;
- float adapted=smoothstep(2.,6.,log(max(1.,skyExposure))/log(10.)),visibility=mix(1.,adapted,smoothstep(1.,5.,vMagnitude));
- float gain=uEnhancedNightSky?${NIGHT_LOOK.starGain.toFixed(1)}*skyExposure/max(.001,exposure.r):1.;
+ vec4 exposure=texelFetch(uExposure,ivec2(0),0);float visibility=starVisibility(exposure.r,vMagnitude);
+ float gain=uEnhancedNightSky?${NIGHT_LOOK.starGain.toFixed(1)}:1.;
  outColor=vec4(vRadiance*transmission*exp(-.5*r2)*visibility*.035*gain,0);
 }`;
 export const GALAXY_FRAGMENT=`precision highp float;in vec2 vUv;out vec4 outColor;
@@ -71,8 +70,7 @@ void main(){
  if(d.y<0.||visible<.0001||dot(d,uMoonDirection)>cos(.00452*uMoonSize*1.2))discard;
  float el=asin(clamp(d.y,0.,1.))/1.570796327;
  vec3 trans=textureLod(uAtmosphere,vec2((.5+sqrt(el)*127.)/256.,112.5/128.),0.).rgb;
- float gain=${NIGHT_LOOK.galaxyGain.toFixed(1)}*nightSkyExposure(exposure.r,exposure.b,uSolarDirection.y)/max(.001,exposure.r);
- outColor=vec4(nightBackground(d,uSolarDirection,uCelestialRotation)*trans*gain*visible,0);
+ outColor=vec4(straightNightBackground(d,uSolarDirection,uCelestialRotation)*trans*${NIGHT_LOOK.galaxyGain.toFixed(1)}*visible,0);
 }`;
 export class StarGaussians{
  constructor(uniforms,{enhanced=false}={}){

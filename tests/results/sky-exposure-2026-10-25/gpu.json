@@ -1,0 +1,58 @@
+{
+  "pass": true,
+  "maxVisibilityError": 7.115361688736499e-8,
+  "maxBackgroundError": 1.0492552079451429e-15,
+  "maxBandError": 7.305963534154358e-7,
+  "bandMirrorError": 0,
+  "exposureResponse": 10,
+  "moonScatterError": 8.16931612065678e-12,
+  "moonScatterRelativeError": 0.0002629053108903572,
+  "moonless": {
+    "mode": "moonless",
+    "catalogueStars": 8404,
+    "imageType": "32-bit float (preserves sub-half-float night radiance)",
+    "actualExposure": 2000000,
+    "faintStarVisibility": 1,
+    "brightPixels": 190,
+    "meanRadiance": 0.007261901043345741,
+    "minimumRadiance": 0.0011040444299522296,
+    "maximumRadiance": 3.733246330739348,
+    "nonFinite": 0
+  },
+  "partial": {
+    "mode": "partial",
+    "catalogueStars": 8404,
+    "imageType": "32-bit float (preserves sub-half-float night radiance)",
+    "actualExposure": 200000,
+    "faintStarVisibility": 0.9190666791057348,
+    "brightPixels": 16,
+    "meanRadiance": 0.0007244852061037755,
+    "minimumRadiance": 0.00011040444299522297,
+    "maximumRadiance": 0.3733246330739348,
+    "nonFinite": 0
+  },
+  "moonlit": {
+    "mode": "moonlit",
+    "catalogueStars": 8404,
+    "imageType": "32-bit float (preserves sub-half-float night radiance)",
+    "actualExposure": 12,
+    "faintStarVisibility": 0,
+    "brightPixels": 0,
+    "meanRadiance": 4.230747920366475e-8,
+    "minimumRadiance": 6.624266579713378e-9,
+    "maximumRadiance": 0.00002239947798443609,
+    "nonFinite": 0
+  },
+  "polluted": {
+    "mode": "polluted",
+    "catalogueStars": 8404,
+    "imageType": "32-bit float (preserves sub-half-float night radiance)",
+    "actualExposure": 10,
+    "faintStarVisibility": 0,
+    "brightPixels": 0,
+    "meanRadiance": 8.229543392407063e-9,
+    "minimumRadiance": 3.215727684136027e-9,
+    "maximumRadiance": 0.000018615489807416452,
+    "nonFinite": 0
+  }
+}

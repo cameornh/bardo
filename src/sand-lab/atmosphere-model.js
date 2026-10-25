@@ -27,7 +27,7 @@ export function atmosphereScatter(ray,light){
  return sum;
 }
 export function atmosphereSky(direction,sun=DEFAULT_SUN,{moonPhase=1,day=0,elongation=null,moonPosition=null,enhancedNightSky=false}={}){
- const d=normalize(direction),ground=Math.max(0,-d[1]),ray=normalize([d[0],Math.max(.001,d[1]),d[2]]),solar=atmosphereScatter(ray,sun),lunar=atmosphereScatter(ray,moonPosition??moonDirection(sun,moonPhase,elongation)),trans=atmosphereTransmission([0,.02,0],ray),background=nightBackground(ray,sun,day);
+ const d=normalize(direction),ground=Math.max(0,-d[1]),ray=normalize([d[0],Math.max(.001,d[1]),d[2]]),solar=atmosphereScatter(ray,sun),lunar=atmosphereScatter(ray,moonPosition??moonDirection(sun,moonPhase,elongation)),trans=atmosphereTransmission([0,.02,0],ray),background=nightBackground(ray,sun,day,{straightBand:enhancedNightSky});
  const moon=moonIrradiance(moonPhase)*(enhancedNightSky?NIGHT_LOOK.moonScatter:1);
  return solar.map((v,k)=>(v+lunar[k]*moon*MOON_COLOR[k]+background[k]*trans[k])*(1-.85*Math.sqrt(ground)));
 }
@@ -40,5 +40,5 @@ vec2 atmoBoundary(vec3 p,vec3 d,float h){float b=dot(p,d)+ATMO_R*d.y,c=dot(p,p)+
 vec2 atmoDensity(vec3 p){float h=max(0.,atmoHeight(p));return exp(-h/vec2(8.,1.2));}
 vec3 atmosphereTransmission(vec3 p,vec3 light){if(atmoBoundary(p,light,0.).x>0.)return vec3(0);float end=atmoBoundary(p,light,100.).y;vec2 depth=vec2(0);for(int i=0;i<8;i++){float a=end*pow(float(i)/8.,2.),b=end*pow(float(i+1)/8.,2.);depth+=atmoDensity(p+light*(a+b)*.5)*(b-a);}return exp(-ATMO_BETA*depth.x-.003*depth.y);}
 vec3 atmosphereScatter(vec3 ray,vec3 light){vec3 origin=vec3(0,.02,0);float end=atmoBoundary(origin,ray,100.).y,mu=dot(ray,light),g=.76,phaseR=3./(16.*3.14159265)*(1.+mu*mu),phaseM=3./(8.*3.14159265)*(1.-g*g)*(1.+mu*mu)/((2.+g*g)*pow(1.+g*g-2.*g*mu,1.5));vec2 depth=vec2(0);vec3 sum=vec3(0);for(int i=0;i<16;i++){float a=end*pow(float(i)/16.,2.),b=end*pow(float(i+1)/16.,2.),ds=b-a;vec3 p=origin+ray*(a+b)*.5;vec2 rho=atmoDensity(p),mid=depth+rho*ds*.5;sum+=atmosphereTransmission(p,light)*exp(-ATMO_BETA*mid.x-.003*mid.y)*(rho.x*ATMO_BETA*phaseR+rho.y*.003*phaseM)*ds*22.;depth+=rho*ds;}return sum;}
-vec3 atmosphereSky(vec3 d,vec3 sun){d=normalize(d);float ground=max(0.,-d.y);vec3 ray=normalize(vec3(d.x,max(.001,d.y),d.z));return (atmosphereScatter(ray,sun)+atmosphereScatter(ray,uAtmosphereMoonDirection)*moonIrradiance(uAtmosphereMoon)*(uEnhancedNightSky?${NIGHT_LOOK.moonScatter}:1.)*vec3(1.12,1,.86)+nightBackground(ray,sun,uAtmosphereRotation)*atmosphereTransmission(vec3(0,.02,0),ray))*(1.-.85*sqrt(ground));}
+vec3 atmosphereSky(vec3 d,vec3 sun){d=normalize(d);float ground=max(0.,-d.y);vec3 ray=normalize(vec3(d.x,max(.001,d.y),d.z));return (atmosphereScatter(ray,sun)+atmosphereScatter(ray,uAtmosphereMoonDirection)*moonIrradiance(uAtmosphereMoon)*(uEnhancedNightSky?${NIGHT_LOOK.moonScatter}:1.)*vec3(1.12,1,.86)+(uEnhancedNightSky?straightNightBackground(ray,sun,uAtmosphereRotation):nightBackground(ray,sun,uAtmosphereRotation))*atmosphereTransmission(vec3(0,.02,0),ray))*(1.-.85*sqrt(ground));}
 `;

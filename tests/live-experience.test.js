@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {LiveSandLab} from '../src/rtx-sand-lab/live-lab.js';
 import {hardwarePolicy} from '../src/rtx-sand-lab/profile.js';
-import {nightSkyExposure,nightSkyVisibility,NIGHT_LOOK} from '../src/sand-lab/night-look.js';
+import {starVisibility,nightSkyVisibility,NIGHT_LOOK} from '../src/sand-lab/night-look.js';
 import {atmosphereSky} from '../src/sand-lab/atmosphere-model.js';
 import {SandLab} from '../src/sand-lab/lab.js';
 import {lunarDirection} from '../src/sand-lab/night-sky-model.js';
@@ -62,12 +62,15 @@ test('hardware policy reserves headroom for physics and hard frames with a share
  for(const key of ['maxWidth','maxHeight','drawingScale'])assert.equal(rtx[key],mac[key]);
  assert.equal(rtx.maxWidth,960);assert.equal(rtx.drawingScale,.5);
 });
-test('stars survive moonlit exposure while daylight and nearby artificial lights still mask faint sky',()=>{
- const dark=nightSkyExposure(10,1e-7,-1),moonlit=nightSkyExposure(10,1e-6,-1);
- assert.equal(dark,NIGHT_LOOK.skyExposure);assert.equal(moonlit,dark);
+test('stars follow actual exposure, with faint stars emerging gradually during dark adaptation',()=>{
+ assert.equal(starVisibility(10,6),0);assert.equal(starVisibility(1e6,6),1);
+ assert.equal(starVisibility(10,0),1);
+ let previous=0;for(let i=0;i<=100;i++){
+  const exposure=10**(i*.07),visible=starVisibility(exposure,6),displayed=exposure*visible;
+  assert.ok(displayed>=previous);assert.ok(visible>=0&&visible<=1);previous=displayed;
+ }
+ assert.ok(1e6*starVisibility(1e6,6)>1e4*starVisibility(1e4,6)*100);
  assert.equal(nightSkyVisibility(1,1e-9),0);assert.equal(nightSkyVisibility(-1,.02),0);
- assert.equal(nightSkyExposure(10,.02,-1),10);
- for(let i=0;i<=100;i++)assert.ok(Number.isFinite(nightSkyExposure(10,i*.0001,-.1)));
 });
 test('live moonlight lights surfaces more strongly while producing less sky wash; snapshots retain their defaults',()=>{
  const lab=new SandLab({extensions:{has:()=>false}});lab.day=0;lab.lunarDay=14.765295;lab.syncUniforms();
@@ -81,9 +84,9 @@ test('all catalogue stars are Gaussian instances, and only the live look adds th
  assert.equal(old.geometry.instanceCount,live.geometry.instanceCount);assert.ok(live.geometry.instanceCount>8000);
  assert.equal(old.scene.children.length,1);assert.equal(live.scene.children.length,2);old.dispose();live.dispose();
 });
-test('independent sky response cannot feed back into world exposure or erase moonlit surfaces',()=>{
+test('scene metering stays stable while all sky radiance receives the final scene exposure',()=>{
  const r={setRenderTarget(){},render(){}},exposure=new LabExposure(r,{nightBrightness:2});
- const world={texture:{name:'physical scene'}},image={texture:{name:'scene plus compensated sky'}},metered=[];
+ const world={texture:{name:'physical scene'}},image={texture:{name:'scene plus fixed HDR stars'}},metered=[];
  exposure.meter=input=>{metered.push(input);return {};};
  for(let frame=0;frame<120;frame++)exposure.update(image,1/60,{meterImage:world});
  assert.equal(metered.length,120);assert.ok(metered.every(input=>input===world));

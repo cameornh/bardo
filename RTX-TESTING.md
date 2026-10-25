@@ -159,10 +159,13 @@ up to 16 rigid bodies; other geometry uses CPU contacts.
 - Live intermediate images retain 32-bit floating-point night radiance. The
   previous half-float images could erase the Milky Way and faint stars before
   exposure. All 8,404 catalogue stars remain covariance-projected Gaussians,
-  with the existing centered twinkle. A procedural unresolved galactic band
-  reappears in dark conditions; bright artificial illumination still masks it.
-- Stellar visibility is separated from world exposure. The compensating sky
-  layer is excluded from the scene meter, preventing exposure feedback. Moon
+  with the existing centered twinkle. The unresolved galactic band and dark
+  lane follow one fixed great circle; texture varies along the band without
+  displacing its centre line. Historical sky snapshots retain their prior look.
+- Stars and the Milky Way receive the same final scene autoexposure as objects.
+  Fixed HDR gains replace the earlier exposure floor / inverse compensation;
+  faint stars emerge gradually as exposure rises. Sparse stellar highlights
+  remain excluded from the scene meter to keep adaptation stable. Moon
   scattering across the sky is 8% of the snapshot look, moonlit surface
   irradiance is 6×, and dark-scene adaptation targets 2× the previous brightness.
   Moon orbit, phase, tide behavior and the slow exposure timing are unchanged.
@@ -176,6 +179,13 @@ and sand/water coupling. Neither was silently added here.
 
 ## Validation
 
+- Exposure / galactic-band correction: 25 relevant numerical tests and the
+  production build passed. In the isolated production-shader preview, a 10×
+  change of exposure changed peak stellar radiance by exactly 10×. The GPU band
+  matched its CPU reference within 0.00000074 and had zero mirrored-latitude
+  error; CPU projection checks confirmed a straight centre line at multiple
+  camera orientations. Raw results and preview:
+  `tests/results/sky-exposure-2026-10-25/`. These checks load no full beach scene.
 - 60 FPS follow-up: 20 pacing, simulation, transfer and profile checks passed,
   along with the production build. Pacing stays at 60 on displays from 60 to
   240 Hz, does not further throttle slow rendering, and cannot burst through
