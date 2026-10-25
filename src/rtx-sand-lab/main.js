@@ -31,6 +31,7 @@ import {Walker,cycleInteraction} from '../sand-lab/walker.js';
 import {normalAt} from '../sand-lab/water-lab-model.js';
 import {QUAD_VERTEX,TONEMAP_FRAGMENT} from '../shaders.js';
 import '../sand-lab/style.css';
+export async function startRTXApp(boot){
 const $=id=>document.getElementById(id);
 const range=(id,label,min,max,step,value)=>`<label>${label}<output id="${id}-value">${value}</output><input aria-label="${label}" id="${id}" type="range" min="${min}" max="${max}" step="${step}" value="${value}"></label>`;
 document.body.innerHTML=`<canvas id="view" tabindex="0" aria-label="Sand beach viewport"></canvas><details id="panel" open><summary>Test controls</summary>
@@ -48,17 +49,21 @@ ${range('tilt','Held / latest object tilt (°)',-180,180,1,0)}${range('pitch','H
 <fieldset><legend>Sky / rain</legend>${range('day','Time of day',0,23.95,.05,14)}<label><input id="cycle" type="checkbox"> Day / night cycle</label>${range('sun','Direct sunlight',0,3,.05,1)}${range('sky','Sky ambient',0,2,.05,1)}${range('day-seconds','Day duration (seconds)',30,1200,10,180)}${range('lunar-day','Lunar day',0,29.53,.01,14.765)}${range('moon-phase','Moon phase (new → full → new)',0,1,.005,.5)}<label><input id="lunar-cycle" type="checkbox" checked> Lunar cycle</label>${range('lunar-minutes','Lunar cycle duration (minutes)',1,120,.1,88.59177)}${range('moon-size','Moon apparent size',1,3,.1,1.7)}<button id="find-moon">Look at moon</button><small id="moon-info"></small><label><input id="tides" type="checkbox" checked> Ocean tides</label>${range('tide-amplitude','Spring tide amplitude (m)',0,4,.1,1.5)}<small id="tide-info"></small>${range('lights','Object light intensity',0,5,.05,1)}<label><input id="rain" type="checkbox"> Rain</label>${range('rain-rate','Rain rate (mm/min)',0,12000,5,100)}<small>Rain adds water; the bounded volume reports its capacity limit.</small></fieldset>
 <fieldset><legend>Diagnostics</legend><label>Backend<select id="backend"><option value="gpu">GPU pressure / split contacts</option><option value="safe">CPU pressure / GPU transport</option><option value="cpu">CPU reference (slow)</option></select></label><button id="verify">Verify GPU numerically</button><pre id="verification">Not run</pre><label><input id="adaptive" type="checkbox" checked> Adapt drawing detail</label><pre id="gpu-device"></pre><pre id="diagnostics"></pre></fieldset><button id="qa-toggle" aria-expanded="false" aria-controls="qa-panel">Show QA controls</button><fieldset id="qa-panel" hidden><legend>QA controls / tests</legend><button id="wetness-toggle" aria-pressed="false">Show sand wetness</button><small>Shows current water content, not retained adhesion.</small></fieldset></details><div id="crosshair" hidden>+</div><div id="hint"><div id="wetness-readout" hidden><div id="wetness-legend">Wetness: 0 (dry) <span></span> 1 (saturated)</div><div id="wetness-value">Hover over sand</div></div><div id="live-rate">— fps · —× realtime</div><div id="interaction-hint">WASD: move · Q/E: down/up · Shift: faster · drag to orbit</div></div><pre id="errors" hidden></pre>`;
 $('scene-select').onchange=e=>location.assign(`?scene=${e.target.value}`);
-const showGraphicsError=error=>{$('errors').hidden=false;$('errors').textContent=error.message;};
+$('panel').inert=true;
+const showGraphicsError=error=>{$('errors').hidden=false;$('errors').textContent=error.message;boot.fail(error);};
 window.addEventListener('error',e=>showGraphicsError(e.error||new Error(e.message)));
+await boot.step('Creating WebGL 2 context');
 const canvas=$('view'),renderer=createLabRenderer(THREE.WebGLRenderer,{canvas,antialias:false,powerPreference:'high-performance'},showGraphicsError);
-const graphics=installRTXGraphicsGuard(renderer,showGraphicsError);renderer.setPixelRatio(1);renderer.autoClear=false;
+const graphics=installRTXGraphicsGuard(renderer,showGraphicsError,boot.pass);renderer.setPixelRatio(1);renderer.autoClear=false;
 installRTXShaderCompatibility(renderer);
 $('gpu-device').textContent=JSON.stringify(rendererInfo(renderer),null,2);
+await boot.step('Building sand and water state',rendererInfo(renderer));
 const camera=new THREE.PerspectiveCamera(55,1,.025,150),controls=new OrbitControls(camera,canvas);controls.enableDamping=true;controls.maxDistance=65;controls.minDistance=.15;
 const target=new THREE.WebGLRenderTarget(1,1,{type:THREE.FloatType,depthBuffer:false}),output=new THREE.Scene(),quadCamera=new THREE.Camera();output.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:TONEMAP_FRAGMENT,uniforms:{uImage:{value:target.texture}},depthTest:false,depthWrite:false})));
 const field={renderer,camera,target,output,quadCamera,resolution:new THREE.Vector2(),motion:new MotionDetail(),minPixelSigma:2,uniforms:{uView:{value:0},uSHDegree:{value:3}},water:{count:0,uniforms:{uWaterRoughness:{value:.14},uTurbidity:{value:0}}}};for(const name of ['beach','grass','grains','soft','optics','lightTest'])field[name]={count:0};
 const lab=new SandLab(renderer,{boulders:true,physicalResolution:true});Object.assign(lab.optimizations,{batchedContacts:true,nativeSandContacts:true,adaptivePressure:true,distantOptics:true,viewPassCulling:true});
 configureRTXLab(lab);
+await boot.step('Preparing scene renderer');
 lab.reactiveWaves=true;lab.seaFoam=new SeaFoam(renderer);const draw=new WaterLabRenderer(field,lab);draw.mediumShadows.u.uMediumSize.value.set(16,12,16);lab.rain.rate=100;lab.radius=.75;installProgramSpecialization(renderer,()=>lab.optimizations.sandPrograms!==false,{warmObjects:false});
 graphics.label(lab,'simulation');graphics.label(draw,'render');graphics.label({output},'display');
 const resize=()=>{if(graphics.failed)return;renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();const reduction=Math.min(1,960/innerWidth,640/innerHeight);field.resolution.set(Math.round(innerWidth*reduction),Math.round(innerHeight*reduction));};window.addEventListener('resize',resize);resize();
@@ -121,6 +126,7 @@ async function setRTXBackend(requested){
  backendBusy=true;lab.qaRunning=true;$('backend').disabled=true;
  $('verification').textContent='Checking '+requested+' backend…';
  graphics.stage('GPU acceleration checks');
+ boot.mark(requested==='gpu'?'Validating GPU pressure':'Selecting '+requested+' pressure backend');
  try{
   let report=null;
   applyRTXBackend(lab,'safe',draw);
@@ -140,12 +146,11 @@ async function setRTXBackend(requested){
 async function startRTX(){
  const requestedPause=lab.paused;lab.paused=true;$('pause').disabled=true;
  graphics.stage('first scene frame');
- await new Promise(requestAnimationFrame);tick(performance.now());
+ await boot.step('Drawing first scene frame');tick(performance.now());
  await new Promise(requestAnimationFrame);
  if(!graphics.failed)await setRTXBackend(params.get('backend')||'gpu');
- if(!graphics.failed){lab.paused=requestedPause;$('pause').disabled=false;}
+ if(!graphics.failed){lab.paused=requestedPause;$('pause').disabled=false;$('panel').inert=false;boot.finish();}
 }
-startRTX().catch(graphics.stop);
 {
  const button=document.createElement('button');button.textContent='Inspect render buffers';$('panel').append(button);const results=document.createElement('pre');results.id='qa-results';$('panel').append(results);button.onclick=()=>{const rows={};for(const name of ['background','water','resolvedWater','composite','shellTarget']){const t=draw[name],p=new Float32Array(4);renderer.readRenderTargetPixels(t,Math.floor(t.width*.4),Math.floor(t.height*.5),1,1,p);rows[name]=Array.from(p);}rows.uniforms={day:lab.day,ambient:lab.ambient,sunlight:lab.sunlight,drawAmbient:draw.u.uAmbient.value,drawSun:draw.u.uSunlight.value,daySun:lab.u.uDaySun.value.toArray(),renderer:renderer.getContext().getParameter(renderer.getContext().RENDERER)};rows.timing=lab.timings;rows.prepare=lab.prepareTimes;results.textContent=JSON.stringify(rows,null,2);};
 }
@@ -184,3 +189,5 @@ for(const node of [...$('panel').children])if(!qaExisting.has(node))$('qa-panel'
 $('qa-panel').append($('verify'),$('qa-results'));
 
 installHorizonAudit({lab,draw,renderer,camera,panel:$('qa-panel'),output:$('qa-results')});
+await startRTX().catch(graphics.stop);
+}

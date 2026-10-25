@@ -263,6 +263,7 @@
     <div id="optics-labels" hidden></div>
     <div id="stats"><span id="fps">—</span> fps · <span id="frame-ms">—</span> ms · <span id="splat-count">—</span> splats · <span id="detail">2 px</span> target σ</div>
   </main>
+  <script src="/startup-monitor.js" onerror="document.getElementById('loading').textContent='Startup diagnostics failed to load. Check that this server is running the updated RTX branch.'"></script>
   <script type="module" src="/src/entry.js"></script>
 </body>
 </html>

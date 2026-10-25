@@ -1,6 +1,6 @@
 // RTX-only diagnostics. A rejected optional pressure program falls back without
 // poisoning healthy rendering; a lost context always stops all submissions.
-export function installRTXGraphicsGuard(renderer,report){
+export function installRTXGraphicsGuard(renderer,report,progress=()=>{}){
  let failure=null,active=[],stage='startup';const rejected=new WeakMap();
  const lost=()=>renderer.getContext().isContextLost();
  const stop=error=>{if(!failure){failure=error instanceof Error?error:new Error(String(error));report(failure);}return failure;};
@@ -19,6 +19,7 @@ export function installRTXGraphicsGuard(renderer,report){
  const draw=renderer.render.bind(renderer);
  renderer.render=(scene,...args)=>{
   assertHealthy();const previous=active;active=materials(scene);active.forEach(name);
+  progress({stage,programs:active.map(name)});
   try{for(const m of active)if(rejected.has(m))throw rejected.get(m);return draw(scene,...args);}
   catch(error){throw handle(error);}finally{active=previous;}
  };

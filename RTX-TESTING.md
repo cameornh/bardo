@@ -11,11 +11,22 @@ From the repository folder on the test computer:
 git switch codex/rtx-5070-ti-gpu
 git pull --ff-only
 npm ci
-npm run dev
+npm run start:windows
 ```
 
-Open `http://127.0.0.1:5173/?scene=sand-lab&paused=1` and hard-refresh after
-updating. This branch also opens the GPU sand lab at its root URL. **On `main`,
+Open `http://127.0.0.1:5178/?scene=sand-lab&backend=safe&paused=1` and keep the terminal open.
+Alternatively double-click `Start-Windows.cmd` after dependencies are installed.
+The launcher checks the Node version, builds the production bundles, and serves
+only that build on port 5178. A port conflict is an error rather than silently
+choosing another address. Build errors stay visible in the terminal. It reports
+the source revision and writes `/build-info.json` with the build identity.
+The suggested URL starts with CPU pressure and GPU rendering/transport, matching
+the Mac's pressure baseline. GPU pressure remains available in Diagnostics after
+the scene is working. The normal root URL still selects the GPU experiment.
+
+`npm run dev` remains available on port 5173. Production startup removes the
+development module graph from the investigation; it does not change rendering
+or simulation settings. This branch also opens the GPU sand lab at its root URL. **On `main`,
 the root URL opens the older “10 · Open beach” snapshot instead**; comparisons
 must use the explicit sand-lab URL.
 
@@ -26,6 +37,25 @@ Diagnostics show the actual adapter, backend, and comparison results. Confirm
 that Chrome reports the NVIDIA card. Rendering uses WebGL 2 and parallel compute
 uses fragment shaders; this is not CUDA or WebGPU. Floating-point targets require
 [`EXT_color_buffer_float`](https://registry.khronos.org/webgl/extensions/EXT_color_buffer_float/).
+
+## If startup stalls
+
+The page now displays **Startup diagnostics · startup-v3** before importing any
+scene modules. It captures module download/parse failures and rejected startup
+promises as well as graphics errors. Initialization yields between major stages
+so the browser can display progress. Controls stay inactive until startup ends.
+
+The last stage, including the last first-frame drawing pass, is written before
+the operation begins. Open `http://127.0.0.1:5178/?startup=report` and click
+**Copy startup report** if a page stalls without producing an error. This report
+route never imports a scene or requests a graphics context, and reading it does
+not erase the saved attempt. Reports use browser local storage, with session
+storage as a fallback, under a separate diagnostic key.
+
+`/graphics-health.html` is included in both production and development builds.
+It uses one pixel to check WebGL 2 and reports the actual adapter when available.
+It loads no scene shaders or simulation. A pass establishes basic graphics
+availability; it does not validate compilation of the larger scene programs.
 
 ## Startup compatibility changes
 
@@ -82,6 +112,10 @@ up to 16 rigid bodies; other geometry uses CPU contacts.
 
 ## Validation
 
+- Windows-startup follow-up: 44 targeted startup, graphics-safety and CPU-reference
+  tests passed, along with the production build. The production launcher, saved
+  report page and packaged graphics check were checked locally. Windows execution
+  still requires verification on that machine; no Windows result is claimed here.
 - 77 targeted CPU numerical, routing, startup, and fallback regression checks
   passed. `npm run build` passed.
 - All eight GPU pressure/contact fixtures passed locally on AMD Radeon Pro 560X

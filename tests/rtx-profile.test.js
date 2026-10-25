@@ -80,7 +80,7 @@ test('failed target validation is cached and cannot resubmit graphics work',asyn
 
 test('branch routing defaults to the isolated RTX entry and preserves the original safe entry',async()=>{
  const entry=await readFile(new URL('../src/entry.js',import.meta.url),'utf8');
- assert.match(entry,/profile.*safe/);assert.match(entry,/else import\('\.\/rtx-sand-lab\/main\.js'\)/);
+ assert.match(entry,/loadScene/);assert.match(entry,/return import\('\.\/rtx-sand-lab\/main\.js'\)/);assert.match(entry,/return import\('\.\/sand-lab\/main\.js'\)/);
  const safe=await readFile(new URL('../src/sand-lab/main.js',import.meta.url),'utf8');
  assert.match(safe,/forceCPUConstraints=true/);assert.doesNotMatch(safe,/rtx-sand-lab/);
  const rtx=await readFile(new URL('../src/rtx-sand-lab/main.js',import.meta.url),'utf8');

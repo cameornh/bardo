@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Graphics-only check</title>
+<style>body{font:15px system-ui;background:#242b30;color:#eee;margin:20px}pre{white-space:pre-wrap}canvas{width:64px;height:64px}</style>
+<p>Graphics-only check. No scene modules, scene shaders, or simulation are loaded.</p>
+<canvas id="view" width="1" height="1"></canvas><pre id="result">Checking WebGL 2…</pre>
+<script>
+(function(){
+ var canvas=document.getElementById('view'),result=document.getElementById('result'),reason='',gl;
+ canvas.addEventListener('webglcontextcreationerror',function(event){reason=event.statusMessage||reason;});
+ try{
+  gl=canvas.getContext('webgl2',{antialias:false,powerPreference:'high-performance'});
+  if(!gl)throw Error('WebGL 2 context creation failed. '+reason);
+  gl.clearColor(.25,.5,.75,1);gl.clear(gl.COLOR_BUFFER_BIT);
+  var pixel=new Uint8Array(4);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);
+  var error=gl.getError(),debug=gl.getExtension('WEBGL_debug_renderer_info');
+  result.textContent=JSON.stringify({check:'WebGL 2 context and pixel readback only',pass:error===gl.NO_ERROR&&[64,128,191,255].every(function(v,i){return Math.abs(v-pixel[i])<=1;}),pixel:Array.from(pixel),error:error,floatRenderTargets:!!gl.getExtension('EXT_color_buffer_float'),version:gl.getParameter(gl.VERSION),renderer:gl.getParameter(debug?debug.UNMASKED_RENDERER_WEBGL:gl.RENDERER),parallelShaderCompile:!!gl.getExtension('KHR_parallel_shader_compile')},null,2);
+ }catch(error){result.textContent=error.stack||String(error);}
+ finally{if(gl){var lose=gl.getExtension('WEBGL_lose_context');if(lose)lose.loseContext();}}
+}());
+</script></html>
