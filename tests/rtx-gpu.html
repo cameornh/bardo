@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RTX GPU numerical checks</title>
+<style>body{font:16px system-ui;max-width:64rem;margin:2rem auto;padding:0 1rem;background:#182127;color:#e5edf0}button,a{margin:0 .8rem 1rem 0}button{padding:.6rem}a{color:#b9deef}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#10181d;padding:1rem}canvas{display:none}</style>
+<h1>GPU numerical checks</h1>
+<p>For the separate RTX test computer. This page does not create a graphics context until you run the checks.</p>
+<p>Compares GPU water pressure and object/edited-sand contacts with the CPU reference, using 175 water samples per fixture.</p>
+<button id="run">Run GPU checks</button>
+<a href="/?scene=sand-lab&amp;paused=1">Open GPU sand lab, paused</a>
+<a href="/?scene=sand-lab&amp;profile=safe&amp;paused=1">Open original CPU-pressure snapshot</a>
+<pre id="result">Not run. No graphics work submitted.</pre><canvas id="view" width="8" height="8"></canvas>
+<script type="module">
+const button=document.querySelector('#run'),output=document.querySelector('#result');
+button.onclick=async()=>{
+ button.disabled=true;output.textContent='Checking the adapter and GPU arithmetic…';let renderer;
+ try{
+  const [THREE,{createLabRenderer,installGraphicsGuard},{verifyRTXPressure}]=await Promise.all([import('three'),import('../src/sand-lab/graphics-health.js'),import('../src/rtx-sand-lab/verify.js')]);
+  renderer=createLabRenderer(THREE.WebGLRenderer,{canvas:document.querySelector('#view'),antialias:false,powerPreference:'high-performance'},e=>{output.textContent=e.message;});
+  renderer.autoClear=false;
+  installGraphicsGuard(renderer,e=>{output.textContent=e.message;});
+  output.textContent=JSON.stringify(await verifyRTXPressure(renderer),null,2);
+ }catch(error){output.textContent=error.stack||String(error);}
+ finally{renderer?.dispose();}
+};
+</script></html>

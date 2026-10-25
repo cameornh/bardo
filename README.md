@@ -1,5 +1,10 @@
 # Bardo engine experiments
 
+This branch (`codex/rtx-5070-ti-gpu`) opens the GPU-enabled sand experiment by
+default. See [RTX-TESTING.md](RTX-TESTING.md) for setup, enabled workloads,
+numerical checks and CPU fallback options. The original CPU-pressure snapshot
+remains available with `?scene=sand-lab&profile=safe`.
+
 Local SDF/Gaussian sandbox experiments. The interface is a viewport and collapsible functional controls. Test 01 contains material objects and clay carving; test 02 adds streamed, editable terrain and a physics probe; test 03 fills that terrain with interactive Gaussian grass; test 04 adds a bounded water solver in a carved basin; test 05 compares gravel, sand, and a cohesive mud proxy; test 06 compares fur and hair; test 07 compares deformable fabrics; test 08 compares subsurface transport and transparent materials; test 09 traces refraction, reflection, and photon caustics through nested glass/water/air volumes; test 10 combines a traversable beach, shared water/sand materials, wind, wet sand, Gaussian grass, and floating glass shells. The browser is a development harness, not a commitment to a browser-based final engine.
 
 ## Run
