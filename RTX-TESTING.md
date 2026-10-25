@@ -168,6 +168,7 @@ up to 16 rigid bodies; other geometry uses CPU contacts.
   remain excluded from the scene meter to keep adaptation stable. Moon
   scattering across the sky is 8% of the snapshot look, moonlit surface
   irradiance is 6×, and dark-scene adaptation targets 2× the previous brightness.
+  The live moon disc emits half its previous radiance at every phase.
   Moon orbit, phase, tide behavior and the slow exposure timing are unchanged.
 
 Remaining CPU work still includes sand, bonds, rigid bodies, player forces and
@@ -179,6 +180,10 @@ and sand/water coupling. Neither was silently added here.
 
 ## Validation
 
+- Moon-disc brightness follow-up: 23 sky checks and the production build passed.
+  The isolated production celestial shader produced exactly 0.5× radiance,
+  with zero half-radiance error. Preview/check: `/tests/moon-brightness-gpu.html`;
+  raw results: `tests/results/moon-brightness-2026-10-25/`.
 - Exposure / galactic-band correction: 25 relevant numerical tests and the
   production build passed. In the isolated production-shader preview, a 10×
   change of exposure changed peak stellar radiance by exactly 10×. The GPU band

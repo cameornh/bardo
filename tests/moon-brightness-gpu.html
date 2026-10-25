@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Moon brightness check</title>
+<style>body{background:#182127;color:#e8edf0;font:14px system-ui;margin:18px}button{padding:8px}canvas{display:block;margin-top:12px}pre{white-space:pre-wrap}</style>
+<p>Fixed exposure: previous moon on the left, half-radiance moon on the right. Uses the production celestial shader at 256 × 128, with no scene simulation.</p>
+<button id="run">Check moon brightness</button><canvas id="view" width="256" height="128"></canvas><pre id="result">Not run. No graphics context created.</pre>
+<script type="module">
+import * as THREE from 'three';
+import {CELESTIAL_GLSL} from '../src/sand-lab/celestial-sky.js';
+import {QUAD_VERTEX} from '../src/shaders.js';
+const button=document.querySelector('#run'),result=document.querySelector('#result');
+button.onclick=()=>{button.disabled=true;try{
+ const r=new THREE.WebGLRenderer({canvas:document.querySelector('#view'),antialias:false,preserveDrawingBuffer:true});r.autoClear=false;r.setSize(256,128);
+ r.debug.onShaderError=(gl,p,v,f)=>{throw Error([gl.getShaderInfoLog(f),gl.getShaderInfoLog(v),gl.getProgramInfoLog(p)].filter(Boolean).join('\n'));};
+ const data=new Float32Array(256*128*4).fill(1),atlas=new THREE.DataTexture(data,256,128,THREE.RGBAFormat,THREE.FloatType);atlas.needsUpdate=true;
+ const target=new THREE.WebGLRenderTarget(256,128,{type:THREE.FloatType,depthBuffer:false}),geometry=new THREE.PlaneGeometry(2,2),camera=new THREE.Camera();
+ const uniforms={uAtmosphere:{value:atlas},uMoonPhase:{value:1},uMoonSize:{value:1.7},uMoonElongation:{value:Math.PI},uMoonDirection:{value:new THREE.Vector3(0,1,0)},uSolarDirection:{value:new THREE.Vector3(0,-1,0)},uSolarRadiance:{value:new THREE.Vector3()},uCelestialRotation:{value:new THREE.Matrix3()}};
+ const materials=[];r.setRenderTarget(target);
+ for(let half=0;half<2;half++){
+  const material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:`precision highp float;in vec2 vUv;out vec4 outColor;uniform vec3 uSolarDirection;uniform sampler2D uAtmosphere;${CELESTIAL_GLSL}void main(){vec2 q=(vUv-.5)*2.6;vec3 d=normalize(vec3(q.y*.00452*uMoonSize,1,q.x*.00452*uMoonSize));outColor=vec4(celestialSky(d),1);}`,uniforms:{...uniforms,uDimMoon:{value:!!half}},depthTest:false,depthWrite:false});
+  materials.push(material);const scene=new THREE.Scene();scene.add(new THREE.Mesh(geometry,material));r.setViewport(half*128,0,128,128);r.render(scene,camera);
+ }
+ const pixels=new Float32Array(256*128*4);r.readRenderTargetPixels(target,0,0,256,128,pixels);let error=0,peakBefore=0,peakAfter=0;
+ for(let y=0;y<128;y++)for(let x=0;x<128;x++)for(let k=0;k<3;k++){const a=pixels[(y*256+x)*4+k],b=pixels[(y*256+x+128)*4+k];error=Math.max(error,Math.abs(b-a*.5));peakBefore=Math.max(peakBefore,a);peakAfter=Math.max(peakAfter,b);}
+ const displayMaterial=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:'precision highp float;in vec2 vUv;out vec4 outColor;uniform sampler2D uImage;void main(){vec3 c=texture(uImage,vUv).rgb*4.;outColor=vec4(pow(c/(c+vec3(.7)),vec3(1./2.2)),1);}',uniforms:{uImage:{value:target.texture}},depthTest:false,depthWrite:false}),display=new THREE.Scene();display.add(new THREE.Mesh(geometry,displayMaterial));r.setRenderTarget(null);r.setViewport(0,0,256,128);r.render(display,camera);
+ result.textContent=JSON.stringify({pass:error<1e-7,moonRadianceRatio:peakAfter/peakBefore,maximumHalfRadianceError:error},null,2);
+ target.dispose();atlas.dispose();geometry.dispose();materials.forEach(m=>m.dispose());displayMaterial.dispose();r.dispose();
+ }catch(e){result.textContent=e.stack;}};
+</script></html>
