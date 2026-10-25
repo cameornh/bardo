@@ -1,0 +1,46 @@
+{
+  "pass": true,
+  "discGain": 0.000019999997951133496,
+  "snapshotHalf": 0.5,
+  "offPeak": 0,
+  "tripleGain": 3.0000000749556133,
+  "crescentPeakRatio": 0.01313169639393792,
+  "skyRelativeError": 0.000001380063034959813,
+  "phaseMetering": [
+    {
+      "phase": 0.005,
+      "away": 15050182.111752037,
+      "looking": 15046648.448146028,
+      "ratio": 0.9997652079171022,
+      "gpuTargetRelativeError": 0.000003950922774152344
+    },
+    {
+      "phase": 0.02,
+      "away": 8118994.95977328,
+      "looking": 8117891.770454401,
+      "ratio": 0.9998641224284108,
+      "gpuTargetRelativeError": 3.9783058091557675e-7
+    },
+    {
+      "phase": 0.1,
+      "away": 2316033.591863061,
+      "looking": 2315948.4359670775,
+      "ratio": 0.9999632320117107,
+      "gpuTargetRelativeError": 0.000001915399759601633
+    },
+    {
+      "phase": 0.5,
+      "away": 459873.61292495957,
+      "looking": 459440.4344989274,
+      "ratio": 0.999058048964199,
+      "gpuTargetRelativeError": 0.0000040195658325822786
+    },
+    {
+      "phase": 1,
+      "away": 175654.6685423975,
+      "looking": 175285.53489514935,
+      "ratio": 0.9978985264080297,
+      "gpuTargetRelativeError": 0.00000247513208040177
+    }
+  ]
+}

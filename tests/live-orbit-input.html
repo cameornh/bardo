@@ -1,0 +1,14 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Orbit tool input check</title>
+<style>body{background:#182127;color:#e8edf0;font:14px system-ui;margin:18px}button,select{padding:8px}canvas{display:block;margin-top:12px;touch-action:none}pre{white-space:pre-wrap}</style>
+<p>Actual OrbitControls and live input routing. Uses a 2D diagnostic drawing; no WebGL context.</p>
+<select id="tool" aria-label="Interaction"><option value="grab-sand">Grab / drop sand</option><option value="carve-sand">Carve sand</option><option value="wind">Wind brush</option></select>
+<canvas id="view" width="520" height="300" tabindex="0"></canvas><pre id="result"></pre>
+<script type="module">
+import * as THREE from 'three';import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {installOrbitToolInput} from '../src/rtx-sand-lab/orbit-tool-input.js';
+const canvas=document.getElementById('view'),ctx=canvas.getContext('2d'),camera=new THREE.PerspectiveCamera(55,520/300,.01,50);camera.position.set(3,2,3);camera.lookAt(0,0,0);
+const controls=new OrbitControls(camera,canvas);let actions=0,wind=false,changes=0;
+function draw(){camera.updateMatrixWorld();ctx.fillStyle='#0f181e';ctx.fillRect(0,0,520,300);for(let z=-2;z<=2;z++)for(let x=-2;x<=2;x++){const p=new THREE.Vector3(x,0,z).project(camera);ctx.fillStyle=x===0&&z===0?'#ebcb88':'#648da4';ctx.beginPath();ctx.arc((p.x+1)*260,(1-p.y)*150,6,0,Math.PI*2);ctx.fill();}document.getElementById('result').textContent=JSON.stringify({camera:camera.position.toArray(),changes,actions,wind},null,2);}
+installOrbitToolInput({canvas,controls,firstPerson:()=>false,locked:()=>false,tool:()=>document.getElementById('tool').value,ray:e=>e,action:()=>{actions++;draw();},wind:v=>{wind=v;draw();},requestLock(){}});
+controls.addEventListener('change',()=>{changes++;draw();});controls.update();draw();
+</script></html>

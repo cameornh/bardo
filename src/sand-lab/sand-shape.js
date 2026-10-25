@@ -22,12 +22,12 @@ const radical=(i,base)=>{let x=0,f=1/base;while(i){x+=(i%base)*f;i=Math.floor(i/
 // Intersect the brush with the existing CSG, not merely its bounding sphere.
 // The first cut has an exact spherical-lens volume; subsequent overlapping
 // cuts use bounded deterministic quadrature. The stock ledger stays exact.
-export function cutShape(p,point,radius){
+export function cutShape(p,point,radius,samples=2048){
  const r=shapeRadius(p),d=Math.hypot(...point.map((v,k)=>v-p.position[k]));
  if(d>=r+radius||p.mass<=0)return null;
  if(d+r<=radius){const q={...p,position:p.position.slice(),cuts:p.cuts?.map(c=>({...c,offset:c.offset.slice()}))};p.mass=0;return q;}
  let volume=sphereIntersection(r,radius,d);
- if(p.cuts?.length||(p.aspect||1)!==1){const small=radius<r,center=small?point:p.position,extent=Math.min(radius,r),n=2048;let hits=0;
+ if(p.cuts?.length||(p.aspect||1)!==1){const small=radius<r,center=small?point:p.position,extent=Math.min(radius,r),n=samples;let hits=0;
   for(let i=1;i<=n;i++){const rr=extent*Math.cbrt(radical(i,2)),y=radical(i,3)*2-1,a=radical(i,5)*Math.PI*2,s=Math.sqrt(1-y*y),q=[rr*s*Math.cos(a),rr*y,rr*s*Math.sin(a)].map((v,k)=>v+center[k]);if(Math.hypot(...q.map((v,k)=>v-point[k]))<=radius&&shapeDistance(p,q)<=0)hits++;}
   volume=sphereVolume(extent)*hits/n;
  }

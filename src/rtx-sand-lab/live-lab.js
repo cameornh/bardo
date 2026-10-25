@@ -1,10 +1,21 @@
 import {SandLab} from '../sand-lab/lab.js';
 import {StepReadback} from '../sand-lab/gpu-step-readback.js';
 import {EmitterProbes} from '../sand-lab/emitter-probes.js';
+import {SandEditPolicy} from './sand-edit-policy.js';
 
 // Shared live experience. Historical fixtures still instantiate SandLab.
 // Only one physics step may be in flight; fixed dt, mass and forces are unchanged.
 export class LiveSandLab extends SandLab{
+ configure(...args){super.configure(...args);if(this.sand)this.sand.editPolicy=new SandEditPolicy();}
+ moveHeld(origin,direction){
+  // A stationary held handful used to invalidate the entire terrain and
+  // lighting reconstruction on every display frame, even while paused.
+  if(this.sandHeld&&!this.held&&!this.heldBody){
+   const distance=this.sandHoldDistance;
+   if(distance!==undefined&&this.sandHeld.every(p=>p.position.every((v,k)=>Math.abs(v-(origin[k]+direction[k]*distance+p.offset[k]))<1e-10)))return;
+  }
+  super.moveHeld(origin,direction);
+ }
  startAsyncStep(){
   const dt=this.timestep,generation=this.generation;
   if(!this.asyncSimulation||!this.enabled||this.paused||this.qaRunning||this.gpu.cpu||this.asyncPending||this.accumulator+1e-12<dt)return;

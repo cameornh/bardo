@@ -91,19 +91,19 @@ export class SandBed{
  const existing=[];
  for(const p of (includeParcels?this.parcels.slice():[]))if(!p.held&&p.mass>0&&(held||p.anchored)){
   if(held&&fraction===1&&Math.hypot(...p.position.map((v,k)=>v-point[k]))+aggregateRadius(p)<=radius){p.held=true;p.userEdited=true;p.anchored=false;p.velocity.fill(0);existing.push(p);continue;}
-  const q=cutShape(p,point,radius*Math.cbrt(clamp(fraction)));if(!q)continue;
+  const q=this.editPolicy?this.editPolicy.cut(p,point,radius*Math.cbrt(clamp(fraction))):cutShape(p,point,radius*Math.cbrt(clamp(fraction)));if(!q)continue;
   q.id=this.nextId++;q.userEdited=true;q.held=held;q.anchored=false;q.velocity=velocity.slice();q.departingFrom=held?null:p.id;this.parcels.push(q);existing.push(q);
  }
  const batch=this.nextBatch++;for(const p of [...created,...existing])p.batch=batch;
  // These portions already resolve the scoop footprint. Subdividing each again
  // into 25 landing patches turned one handful into hundreds of active clumps.
  if(created.length>1)for(const p of created){p.looseResolved=true;p.layerGroup=`scoop-${batch}`;}
- this.parcels.push(...created);this.parcels=this.parcels.filter(p=>p.mass>0);this.releaseUnsupported();this.update();return [...created,...existing];}
+ this.parcels.push(...created);this.editPolicy?.maintain(this);this.parcels=this.parcels.filter(p=>p.mass>0);this.releaseUnsupported();this.update();return [...created,...existing];}
  carve(point,radius){
   // Subtract the sphere's intersection with the exposed column stock. This
   // is a surface crater in the current sand model, not an underground tunnel.
   const small=radius<Math.min(this.dx,this.dz)*.7;let removed=small?(this.takeSmallSphere(point,radius)?.mass||0):0;if(!small)for(const [k] of this.footprint(point[0],point[2],radius)){const x=k%this.n*this.dx-5.5,z=Math.floor(k/this.n)*this.dz-4.9,rr=radius*radius-(x-point[0])**2-(z-point[2])**2;if(rr<=0)continue;const top=this.heightAt(k),half=Math.sqrt(rr),low=Math.max(this.base[k],point[1]-half),high=Math.min(top,point[1]+half),amount=Math.max(0,high-low)*this.packing[k]*this.area;this.mass[k]-=amount;removed+=amount;}
-  for(const p of this.parcels){if(p.held)continue;const q=cutShape(p,point,radius);if(q)removed+=q.mass;}this.parcels=this.parcels.filter(p=>p.mass>0);
+  for(const p of this.parcels){if(p.held)continue;const q=this.editPolicy?this.editPolicy.cut(p,point,radius):cutShape(p,point,radius);if(q)removed+=q.mass;}this.editPolicy?.maintain(this);this.parcels=this.parcels.filter(p=>p.mass>0);
   this.removedMass+=removed;this.releaseUnsupported();this.update();return removed;
  }
  deposit(parcel,amount){amount=Math.min(parcel.mass,amount);if(amount<=0)return;
@@ -193,6 +193,7 @@ export class SandBed{
   const exchanged=performance.now();erodeSand(this,dt,wind,scale,sampleWater);const eroded=performance.now();
   this.stepParcels(dt,sampleWater,wind,scale,rain,waterSpacing);
   if(this.optimizations?.mergeWindDeposits){returnWindDeposits(this);mergeWindDeposits(this);}
+  this.editPolicy?.maintain(this);
   const stepped=performance.now();this.parcels=this.parcels.filter(p=>p.mass>0);this.update();this.stepTimes={bedExchange:exchanged-started,erosion:eroded-exchanged,parcels:stepped-eroded,sandUpdate:performance.now()-stepped};
  }
  releaseUnsupported(){

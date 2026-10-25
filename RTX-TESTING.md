@@ -8,6 +8,11 @@ retain their previous implementations.
 
 ## Update and run
 
+The latest live editing and moon checks are documented in
+[`tests/results/live-edits-2026-10-25/report.md`](tests/results/live-edits-2026-10-25/report.md).
+They cover bounded repeated terrain edits, much dimmer lunar discs, the shared
+direct sunlight / moonlight control, and click-versus-drag tool routing.
+
 From the repository folder on the test computer:
 
 ```sh

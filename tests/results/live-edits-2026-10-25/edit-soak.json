@@ -1,0 +1,396 @@
+{
+  "scope": "CPU sand edit + terrain-query benchmark; not whole-scene FPS or GPU throughput",
+  "reference": {
+    "mode": "previous reference",
+    "edits": 400,
+    "meanEditMs": 20.306942040000017,
+    "p95EditMs": 29.89639199999874,
+    "lateMeanEditMs": 28.313439860000063,
+    "meanQuery200Ms": 5.43513889999997,
+    "shapeUploadBytes": 868528,
+    "rows": [
+      {
+        "edits": 20,
+        "parcels": 21,
+        "cuts": 230,
+        "maxCuts": 20,
+        "last20EditMs": 4.108348649999994,
+        "query200Ms": 2.4851360000002387,
+        "massError": 0
+      },
+      {
+        "edits": 40,
+        "parcels": 41,
+        "cuts": 860,
+        "maxCuts": 40,
+        "last20EditMs": 5.459214900000006,
+        "query200Ms": 1.6247599999996964,
+        "massError": 0
+      },
+      {
+        "edits": 60,
+        "parcels": 61,
+        "cuts": 1890,
+        "maxCuts": 60,
+        "last20EditMs": 8.010890249999965,
+        "query200Ms": 1.85540200000014,
+        "massError": 0
+      },
+      {
+        "edits": 80,
+        "parcels": 80,
+        "cuts": 3239,
+        "maxCuts": 79,
+        "last20EditMs": 10.323779049999962,
+        "query200Ms": 2.5533510000000206,
+        "massError": 0
+      },
+      {
+        "edits": 100,
+        "parcels": 98,
+        "cuts": 4850,
+        "maxCuts": 97,
+        "last20EditMs": 13.02858619999995,
+        "query200Ms": 4.0269559999997,
+        "massError": 0
+      },
+      {
+        "edits": 120,
+        "parcels": 116,
+        "cuts": 6785,
+        "maxCuts": 115,
+        "last20EditMs": 16.316289999999935,
+        "query200Ms": 4.668290999999954,
+        "massError": 0
+      },
+      {
+        "edits": 140,
+        "parcels": 134,
+        "cuts": 9044,
+        "maxCuts": 133,
+        "last20EditMs": 18.590217249999956,
+        "query200Ms": 5.068784000000051,
+        "massError": 0
+      },
+      {
+        "edits": 160,
+        "parcels": 144,
+        "cuts": 10439,
+        "maxCuts": 143,
+        "last20EditMs": 19.42479585000001,
+        "query200Ms": 10.222678000000087,
+        "massError": 0
+      },
+      {
+        "edits": 180,
+        "parcels": 154,
+        "cuts": 11934,
+        "maxCuts": 153,
+        "last20EditMs": 21.158383300000015,
+        "query200Ms": 5.461108999999851,
+        "massError": 0
+      },
+      {
+        "edits": 200,
+        "parcels": 164,
+        "cuts": 13529,
+        "maxCuts": 163,
+        "last20EditMs": 24.12282084999997,
+        "query200Ms": 5.81613600000037,
+        "massError": 0
+      },
+      {
+        "edits": 220,
+        "parcels": 172,
+        "cuts": 14877,
+        "maxCuts": 171,
+        "last20EditMs": 26.42590910000008,
+        "query200Ms": 6.430818000000727,
+        "massError": 0
+      },
+      {
+        "edits": 240,
+        "parcels": 181,
+        "cuts": 16470,
+        "maxCuts": 180,
+        "last20EditMs": 23.6343124,
+        "query200Ms": 5.923131999999896,
+        "massError": 0
+      },
+      {
+        "edits": 260,
+        "parcels": 185,
+        "cuts": 17204,
+        "maxCuts": 184,
+        "last20EditMs": 23.521411099999977,
+        "query200Ms": 5.495766999999432,
+        "massError": 0
+      },
+      {
+        "edits": 280,
+        "parcels": 191,
+        "cuts": 18335,
+        "maxCuts": 190,
+        "last20EditMs": 24.801819150000075,
+        "query200Ms": 6.958975000000464,
+        "massError": 0
+      },
+      {
+        "edits": 300,
+        "parcels": 199,
+        "cuts": 19899,
+        "maxCuts": 198,
+        "last20EditMs": 25.644863450000138,
+        "query200Ms": 6.145544999999402,
+        "massError": 0
+      },
+      {
+        "edits": 320,
+        "parcels": 208,
+        "cuts": 21735,
+        "maxCuts": 207,
+        "last20EditMs": 25.81223415000013,
+        "query200Ms": 5.866774000000078,
+        "massError": 0
+      },
+      {
+        "edits": 340,
+        "parcels": 215,
+        "cuts": 23219,
+        "maxCuts": 214,
+        "last20EditMs": 28.42086860000004,
+        "query200Ms": 7.8670340000007855,
+        "massError": 0
+      },
+      {
+        "edits": 360,
+        "parcels": 223,
+        "cuts": 24975,
+        "maxCuts": 222,
+        "last20EditMs": 29.204377300000033,
+        "query200Ms": 6.864764999998442,
+        "massError": 0
+      },
+      {
+        "edits": 380,
+        "parcels": 229,
+        "cuts": 26334,
+        "maxCuts": 228,
+        "last20EditMs": 29.33845330000013,
+        "query200Ms": 6.686736000001474,
+        "massError": 0
+      },
+      {
+        "edits": 400,
+        "parcels": 231,
+        "cuts": 26795,
+        "maxCuts": 230,
+        "last20EditMs": 28.79126594999998,
+        "query200Ms": 6.680628999998589,
+        "massError": 0
+      }
+    ]
+  },
+  "live": {
+    "mode": "bounded live editing",
+    "edits": 400,
+    "meanEditMs": 5.165292087500015,
+    "p95EditMs": 6.81893399999899,
+    "lateMeanEditMs": 4.523373939999983,
+    "meanQuery200Ms": 2.9936588999998093,
+    "shapeUploadBytes": 17072,
+    "policy": {
+      "rebuilt": 12,
+      "merged": 37,
+      "returned": 509
+    },
+    "rows": [
+      {
+        "edits": 20,
+        "parcels": 104,
+        "cuts": 40,
+        "maxCuts": 2,
+        "last20EditMs": 3.070842750000338,
+        "query200Ms": 2.7624510000005102,
+        "massError": 1.4210854715202004e-14
+      },
+      {
+        "edits": 40,
+        "parcels": 105,
+        "cuts": 124,
+        "maxCuts": 6,
+        "last20EditMs": 5.822329749999881,
+        "query200Ms": 2.853103999999803,
+        "massError": 4.973799150320701e-14
+      },
+      {
+        "edits": 60,
+        "parcels": 104,
+        "cuts": 188,
+        "maxCuts": 10,
+        "last20EditMs": 5.843394750000153,
+        "query200Ms": 3.0917460000000574,
+        "massError": 4.263256414560601e-14
+      },
+      {
+        "edits": 80,
+        "parcels": 103,
+        "cuts": 221,
+        "maxCuts": 12,
+        "last20EditMs": 5.715285850000055,
+        "query200Ms": 2.6756210000003193,
+        "massError": 4.973799150320701e-14
+      },
+      {
+        "edits": 100,
+        "parcels": 108,
+        "cuts": 244,
+        "maxCuts": 12,
+        "last20EditMs": 5.8584106500000415,
+        "query200Ms": 3.0721229999999196,
+        "massError": 4.263256414560601e-14
+      },
+      {
+        "edits": 120,
+        "parcels": 107,
+        "cuts": 264,
+        "maxCuts": 11,
+        "last20EditMs": 5.899448050000228,
+        "query200Ms": 2.9089159999984986,
+        "massError": 4.973799150320701e-14
+      },
+      {
+        "edits": 140,
+        "parcels": 105,
+        "cuts": 292,
+        "maxCuts": 12,
+        "last20EditMs": 5.446600050000143,
+        "query200Ms": 3.0227210000011837,
+        "massError": 4.973799150320701e-14
+      },
+      {
+        "edits": 160,
+        "parcels": 107,
+        "cuts": 298,
+        "maxCuts": 12,
+        "last20EditMs": 5.772479899999962,
+        "query200Ms": 3.0696869999992487,
+        "massError": 4.973799150320701e-14
+      },
+      {
+        "edits": 180,
+        "parcels": 106,
+        "cuts": 312,
+        "maxCuts": 12,
+        "last20EditMs": 5.803666099999918,
+        "query200Ms": 3.0237139999990177,
+        "massError": 4.973799150320701e-14
+      },
+      {
+        "edits": 200,
+        "parcels": 107,
+        "cuts": 306,
+        "maxCuts": 11,
+        "last20EditMs": 5.620728899999994,
+        "query200Ms": 3.186924999999974,
+        "massError": 4.973799150320701e-14
+      },
+      {
+        "edits": 220,
+        "parcels": 109,
+        "cuts": 327,
+        "maxCuts": 12,
+        "last20EditMs": 5.6062554999997705,
+        "query200Ms": 2.8985240000001795,
+        "massError": 4.973799150320701e-14
+      },
+      {
+        "edits": 240,
+        "parcels": 106,
+        "cuts": 343,
+        "maxCuts": 12,
+        "last20EditMs": 5.4457165999997414,
+        "query200Ms": 2.757077999998728,
+        "massError": 5.684341886080802e-14
+      },
+      {
+        "edits": 260,
+        "parcels": 106,
+        "cuts": 356,
+        "maxCuts": 12,
+        "last20EditMs": 5.638276799999948,
+        "query200Ms": 2.9780140000002575,
+        "massError": 4.973799150320701e-14
+      },
+      {
+        "edits": 280,
+        "parcels": 108,
+        "cuts": 341,
+        "maxCuts": 12,
+        "last20EditMs": 4.748875600000065,
+        "query200Ms": 2.8709799999996903,
+        "massError": 4.973799150320701e-14
+      },
+      {
+        "edits": 300,
+        "parcels": 107,
+        "cuts": 352,
+        "maxCuts": 12,
+        "last20EditMs": 4.396660800000154,
+        "query200Ms": 2.7975180000012188,
+        "massError": 4.973799150320701e-14
+      },
+      {
+        "edits": 320,
+        "parcels": 107,
+        "cuts": 351,
+        "maxCuts": 12,
+        "last20EditMs": 4.527602199999819,
+        "query200Ms": 3.4749339999998483,
+        "massError": 5.684341886080802e-14
+      },
+      {
+        "edits": 340,
+        "parcels": 108,
+        "cuts": 360,
+        "maxCuts": 12,
+        "last20EditMs": 4.123058150000088,
+        "query200Ms": 3.3544939999992494,
+        "massError": 5.684341886080802e-14
+      },
+      {
+        "edits": 360,
+        "parcels": 107,
+        "cuts": 372,
+        "maxCuts": 12,
+        "last20EditMs": 4.638358950000111,
+        "query200Ms": 3.120256000000154,
+        "massError": 4.973799150320701e-14
+      },
+      {
+        "edits": 380,
+        "parcels": 108,
+        "cuts": 372,
+        "maxCuts": 12,
+        "last20EditMs": 4.9609660499998425,
+        "query200Ms": 2.846496999998635,
+        "massError": 4.973799150320701e-14
+      },
+      {
+        "edits": 400,
+        "parcels": 111,
+        "cuts": 367,
+        "maxCuts": 12,
+        "last20EditMs": 4.3668843500000545,
+        "query200Ms": 3.1078749999996944,
+        "massError": 4.973799150320701e-14
+      }
+    ]
+  },
+  "speedup": {
+    "meanEdits": 3.931421823974433,
+    "lateEdits": 6.259363085069232,
+    "queries": 1.815550495749638
+  },
+  "shapeStorageReduction": 0.9803437540298068
+}

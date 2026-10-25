@@ -1,0 +1,454 @@
+TAP version 13
+# Subtest: one packed asynchronous step runs in order and never queues a second GPU job
+ok 1 - one packed asynchronous step runs in order and never queues a second GPU job
+  ---
+  duration_ms: 5.01154
+  type: 'test'
+  ...
+# Subtest: reset discards pending results, and a failed transfer disables further asynchronous work
+ok 2 - reset discards pending results, and a failed transfer disables further asynchronous work
+  ---
+  duration_ms: 1.059049
+  type: 'test'
+  ...
+# Subtest: fixed-step simulation earns the same time at 30, 60 and 144 display refresh rates
+ok 3 - fixed-step simulation earns the same time at 30, 60 and 144 display refresh rates
+  ---
+  duration_ms: 54.312164
+  type: 'test'
+  ...
+# Subtest: hardware policy reserves headroom for physics and hard frames with a shared 60 FPS presentation budget
+ok 4 - hardware policy reserves headroom for physics and hard frames with a shared 60 FPS presentation budget
+  ---
+  duration_ms: 0.603851
+  type: 'test'
+  ...
+# Subtest: stars follow actual exposure, with faint stars emerging gradually during dark adaptation
+ok 5 - stars follow actual exposure, with faint stars emerging gradually during dark adaptation
+  ---
+  duration_ms: 0.619155
+  type: 'test'
+  ...
+# Subtest: live moonlight lights surfaces more strongly while producing less sky wash; snapshots retain their defaults
+ok 6 - live moonlight lights surfaces more strongly while producing less sky wash; snapshots retain their defaults
+  ---
+  duration_ms: 376.560607
+  type: 'test'
+  ...
+# Subtest: all catalogue stars are Gaussian instances, and only the live look adds the galactic layer
+ok 7 - all catalogue stars are Gaussian instances, and only the live look adds the galactic layer
+  ---
+  duration_ms: 40.115194
+  type: 'test'
+  ...
+# Subtest: scene metering stays stable while all sky radiance receives the final scene exposure
+ok 8 - scene metering stays stable while all sky radiance receives the final scene exposure
+  ---
+  duration_ms: 1.327123
+  type: 'test'
+  ...
+# Subtest: direct-light slider scales lunar sky illumination while preserving the star background
+ok 9 - direct-light slider scales lunar sky illumination while preserving the star background
+  ---
+  duration_ms: 13.632639
+  type: 'test'
+  ...
+# Subtest: live scene resets install bounded editing and direct illumination still scales moonlit surfaces
+ok 10 - live scene resets install bounded editing and direct illumination still scales moonlit surfaces
+  ---
+  duration_ms: 557.93968
+  type: 'test'
+  ...
+# Subtest: orbit dragging is available with a selected tool, while a click uses that tool once
+ok 11 - orbit dragging is available with a selected tool, while a click uses that tool once
+  ---
+  duration_ms: 2.852634
+  type: 'test'
+  ...
+# Subtest: wind paints on left hold, right drag stays free, and lost focus clears input
+ok 12 - wind paints on left hold, right drag stays free, and lost focus clears input
+  ---
+  duration_ms: 1.074439
+  type: 'test'
+  ...
+# Subtest: first-person keeps pointer lock and immediate clicks; cancelled drags do not grab
+ok 13 - first-person keeps pointer lock and immediate clicks; cancelled drags do not grab
+  ---
+  duration_ms: 0.495426
+  type: 'test'
+  ...
+# Subtest: 400 partial grab/drop edits have bounded cut history and preserve all material ledgers
+ok 14 - 400 partial grab/drop edits have bounded cut history and preserve all material ledgers
+  ---
+  duration_ms: 2645.001914
+  type: 'test'
+  ...
+# Subtest: old cut detail is resampled only inside occupied source stock; held stock is unchanged
+ok 15 - old cut detail is resampled only inside occupied source stock; held stock is unchanged
+  ---
+  duration_ms: 16.330787
+  type: 'test'
+  ...
+# Subtest: continuous carving preserves removed-stock accounting without a growing operation log
+ok 16 - continuous carving preserves removed-stock accounting without a growing operation log
+  ---
+  duration_ms: 671.544288
+  type: 'test'
+  ...
+# Subtest: a partial cut exhausting the remaining stock still drops inherited history
+ok 17 - a partial cut exhausting the remaining stock still drops inherited history
+  ---
+  duration_ms: 2.862179
+  type: 'test'
+  ...
+# Subtest: tiny settled deposits merge conservatively but unlike layers and raised sand remain explicit
+ok 18 - tiny settled deposits merge conservatively but unlike layers and raised sand remain explicit
+  ---
+  duration_ms: 3.253556
+  type: 'test'
+  ...
+# Subtest: live editing retains dry settling and wet support during a repeated pickup soak
+ok 19 - live editing retains dry settling and wet support during a repeated pickup soak
+  ---
+  duration_ms: 1331.69013
+  type: 'test'
+  ...
+# Subtest: a stationary held handful does not invalidate terrain; moving it still does
+ok 20 - a stationary held handful does not invalidate terrain; moving it still does
+  ---
+  duration_ms: 0.868145
+  type: 'test'
+  ...
+# Subtest: packed transfer never waits synchronously and retains the exact five-layer layout
+ok 21 - packed transfer never waits synchronously and retains the exact five-layer layout
+  ---
+  duration_ms: 15.119261
+  type: 'test'
+  ...
+# Subtest: frame polling completes a ready fence and a failed fence releases its resources
+ok 22 - frame polling completes a ready fence and a failed fence releases its resources
+  ---
+  duration_ms: 1.715384
+  type: 'test'
+  ...
+# Subtest: molecular scattering makes the daytime zenith blue and reddens low sunlight
+ok 23 - molecular scattering makes the daytime zenith blue and reddens low sunlight
+  ---
+  duration_ms: 10.30952
+  type: 'test'
+  ...
+# Subtest: planet occludes direct sunlight below the horizon while lunar sky remains dim and finite
+ok 24 - planet occludes direct sunlight below the horizon while lunar sky remains dim and finite
+  ---
+  duration_ms: 2.639739
+  type: 'test'
+  ...
+# Subtest: atmospheric radiance remains finite at grazing angles, poles and twilight
+ok 25 - atmospheric radiance remains finite at grazing angles, poles and twilight
+  ---
+  duration_ms: 33.05478
+  type: 'test'
+  ...
+# Subtest: scattering follows solar azimuth rather than an artist-painted horizon gradient
+ok 26 - scattering follows solar azimuth rather than an artist-painted horizon gradient
+  ---
+  duration_ms: 1.016138
+  type: 'test'
+  ...
+# Subtest: sky spherical harmonics update with time of day and contain no solar disc
+ok 27 - sky spherical harmonics update with time of day and contain no solar disc
+  ---
+  duration_ms: 43.725287
+  type: 'test'
+  ...
+# Subtest: flattened smooth sand stays continuous across bin and global-bound edges
+ok 28 - flattened smooth sand stays continuous across bin and global-bound edges
+  ---
+  duration_ms: 379.869895
+  type: 'test'
+  ...
+# Subtest: crowded sand bins keep local indices without a whole-scene fallback
+ok 29 - crowded sand bins keep local indices without a whole-scene fallback
+  ---
+  duration_ms: 9.206534
+  type: 'test'
+  ...
+# Subtest: a large high-resolution scoop does not multiply into hundreds of landing patches
+ok 30 - a large high-resolution scoop does not multiply into hundreds of landing patches
+  ---
+  duration_ms: 2691.960574
+  type: 'test'
+  ...
+# Subtest: released carved dry shells break into loose stock, while wet CSG keeps its shape
+ok 31 - released carved dry shells break into loose stock, while wet CSG keeps its shape
+  ---
+  duration_ms: 257.035415
+  type: 'test'
+  ...
+# Subtest: regrabbing and dropping resolved dry layers stays bounded and conserves material
+ok 32 - regrabbing and dropping resolved dry layers stays bounded and conserves material
+  ---
+  duration_ms: 1130.24866
+  type: 'test'
+  ...
+# Subtest: clumps get stable irregular sizes and positions while conserving stock, moisture and volume
+ok 33 - clumps get stable irregular sizes and positions while conserving stock, moisture and volume
+  ---
+  duration_ms: 52.168679
+  type: 'test'
+  ...
+# Subtest: wet sand retains moisture through carrying, dropping, regrabbing and depositing over dry ground
+ok 34 - wet sand retains moisture through carrying, dropping, regrabbing and depositing over dry ground
+  ---
+  duration_ms: 21.813069
+  type: 'test'
+  ...
+# Subtest: rays hit near solids before hidden objects and water, without phantom sky hits
+ok 35 - rays hit near solids before hidden objects and water, without phantom sky hits
+  ---
+  duration_ms: 15.051241
+  type: 'test'
+  ...
+# Subtest: carry clearance is one physical metre for small objects and scales with large selections
+ok 36 - carry clearance is one physical metre for small objects and scales with large selections
+  ---
+  duration_ms: 0.266727
+  type: 'test'
+  ...
+# Subtest: loose aggregates can be picked at their visible surface above the bed
+ok 37 - loose aggregates can be picked at their visible surface above the bed
+  ---
+  duration_ms: 3.05235
+  type: 'test'
+  ...
+# Subtest: wheel distance moves all held materials along the view ray without changing the tool
+ok 38 - wheel distance moves all held materials along the view ray without changing the tool
+  ---
+  duration_ms: 5.174036
+  type: 'test'
+  ...
+# Subtest: empty hands leave wheel navigation alone and trackpad/line wheel deltas agree
+ok 39 - empty hands leave wheel navigation alone and trackpad/line wheel deltas agree
+  ---
+  duration_ms: 0.36428
+  type: 'test'
+  ...
+# Subtest: dry sand remains a loose visible layer above wet SDF stock, without inheriting its moisture
+ok 40 - dry sand remains a loose visible layer above wet SDF stock, without inheriting its moisture
+  ---
+  duration_ms: 1238.651179
+  type: 'test'
+  ...
+# Subtest: dry deposits over wet ground retain their own surface moisture and mass
+ok 41 - dry deposits over wet ground retain their own surface moisture and mass
+  ---
+  duration_ms: 119.525401
+  type: 'test'
+  ...
+# Subtest: loose dry sand slides off a steep wet support while wet sand adheres there
+ok 42 - loose dry sand slides off a steep wet support while wet sand adheres there
+  ---
+  duration_ms: 291.795347
+  type: 'test'
+  ...
+# Subtest: wetting a loose layer bonds its current shape; slow drying has no last-frame collapse
+ok 43 - wetting a loose layer bonds its current shape; slow drying has no last-frame collapse
+  ---
+  duration_ms: 981.00427
+  type: 'test'
+  ...
+# Subtest: drying the support does not wet, absorb, or switch the loose layer above it
+ok 44 - drying the support does not wet, absorb, or switch the loose layer above it
+  ---
+  duration_ms: 647.13751
+  type: 'test'
+  ...
+# Subtest: removing wet support drops the loose cap instead of suspending or deleting it
+ok 45 - removing wet support drops the loose cap instead of suspending or deleting it
+  ---
+  duration_ms: 580.547882
+  type: 'test'
+  ...
+# Subtest: a small grab intersects a flattened loose deposit and preserves both shapes and stock
+ok 46 - a small grab intersects a flattened loose deposit and preserves both shapes and stock
+  ---
+  duration_ms: 499.306537
+  type: 'test'
+  ...
+# Subtest: long wet compaction strokes stay bounded, preserve mass and keep the packing limit
+ok 47 - long wet compaction strokes stay bounded, preserve mass and keep the packing limit
+  ---
+  duration_ms: 69.448721
+  type: 'test'
+  ...
+# Subtest: repeated pushing of deposited wet sand deforms existing stock without CSG multiplication
+ok 48 - repeated pushing of deposited wet sand deforms existing stock without CSG multiplication
+  ---
+  duration_ms: 47.152384
+  type: 'test'
+  ...
+# Subtest: adhesion is continuous through the dry limit and a previously wet shape has only a fraction left
+ok 49 - adhesion is continuous through the dry limit and a previously wet shape has only a fraction left
+  ---
+  duration_ms: 1.080936
+  type: 'test'
+  ...
+# Subtest: lunar irradiance follows a continuous phase curve and is much fainter than sunlight
+ok 50 - lunar irradiance follows a continuous phase curve and is much fainter than sunlight
+  ---
+  duration_ms: 3.28946
+  type: 'test'
+  ...
+# Subtest: moon orbit, visible phase and lunar clock agree; daily and monthly clocks are independent
+ok 51 - moon orbit, visible phase and lunar clock agree; daily and monthly clocks are independent
+  ---
+  duration_ms: 1.165057
+  type: 'test'
+  ...
+# Subtest: star photometry preserves magnitude ratios, warm/cool colors and flux through spherical projection
+ok 52 - star photometry preserves magnitude ratios, warm/cool colors and flux through spherical projection
+  ---
+  duration_ms: 21.591325
+  type: 'test'
+  ...
+# Subtest: clear moonless sky remains faint, moonlight scatters, and horizon extinction reddens stars
+ok 53 - clear moonless sky remains faint, moonlight scatters, and horizon extinction reddens stars
+  ---
+  duration_ms: 2.699267
+  type: 'test'
+  ...
+# Subtest: stellar seeing changes Gaussian edges while preserving centroid, flux and a bounded footprint
+ok 54 - stellar seeing changes Gaussian edges while preserving centroid, flux and a bounded footprint
+  ---
+  duration_ms: 47.760745
+  type: 'test'
+  ...
+# Subtest: faint compact stars twinkle more strongly, with subtle size and brightness changes
+ok 55 - faint compact stars twinkle more strongly, with subtle size and brightness changes
+  ---
+  duration_ms: 1.656931
+  type: 'test'
+  ...
+# Subtest: tide envelope has spring/neap modulation and two highs per solar day at frozen lunar phase
+ok 56 - tide envelope has spring/neap modulation and two highs per solar day at frozen lunar phase
+  ---
+  duration_ms: 43.516997
+  type: 'test'
+  ...
+# Subtest: offshore tide exchanges conserve parcel volume, preserve held water, and respect capacity
+ok 57 - offshore tide exchanges conserve parcel volume, preserve held water, and respect capacity
+  ---
+  duration_ms: 177.249952
+  type: 'test'
+  ...
+# Subtest: moon intensity does not invalidate extinction history; material changes do
+ok 58 - moon intensity does not invalidate extinction history; material changes do
+  ---
+  duration_ms: 0.78292
+  type: 'test'
+  ...
+# Subtest: ambient transmission is invariant to daylight versus tiny night radiance
+ok 59 - ambient transmission is invariant to daylight versus tiny night radiance
+  ---
+  duration_ms: 2.758197
+  type: 'test'
+  ...
+# Subtest: dry overhangs fall around a wet mound while its adhered shape stays put
+ok 60 - dry overhangs fall around a wet mound while its adhered shape stays put
+  ---
+  duration_ms: 1009.07967
+  type: 'test'
+  ...
+# Subtest: a dry support cannot hang from a wet chunk or transmit a tensile side bond
+ok 61 - a dry support cannot hang from a wet chunk or transmit a tensile side bond
+  ---
+  duration_ms: 2.795296
+  type: 'test'
+  ...
+# Subtest: a mixed handful lands without leaving its wet top in the air after dry stock enters the bed
+ok 62 - a mixed handful lands without leaving its wet top in the air after dry stock enters the bed
+  ---
+  duration_ms: 173.266814
+  type: 'test'
+  ...
+# Subtest: wet support is rechecked after its loose supporting layer moves, without another user edit
+ok 63 - wet support is rechecked after its loose supporting layer moves, without another user edit
+  ---
+  duration_ms: 174.329936
+  type: 'test'
+  ...
+# Subtest: cut-away portions of a scoop never support a suspended wet cap
+ok 64 - cut-away portions of a scoop never support a suspended wet cap
+  ---
+  duration_ms: 60.588479
+  type: 'test'
+  ...
+# Subtest: a removed CSG region does not weld disconnected wet pieces into the same falling group
+ok 65 - a removed CSG region does not weld disconnected wet pieces into the same falling group
+  ---
+  duration_ms: 2.661858
+  type: 'test'
+  ...
+# Subtest: cached support loses a drying bond continuously and rechecks when bond strength crosses its limit
+ok 66 - cached support loses a drying bond continuously and rechecks when bond strength crosses its limit
+  ---
+  duration_ms: 1.499718
+  type: 'test'
+  ...
+# Subtest: cached and uncached settling match through motion, wetting and support removal
+ok 67 - cached and uncached settling match through motion, wetting and support removal
+  ---
+  duration_ms: 1076.842618
+  type: 'test'
+  ...
+# Subtest: all moisture-dependent coefficients vary continuously across the full saturation range
+ok 68 - all moisture-dependent coefficients vary continuously across the full saturation range
+  ---
+  duration_ms: 285.212827
+  type: 'test'
+  ...
+# Subtest: damp mobile grains exchange progressively more momentum with exact conservation
+ok 69 - damp mobile grains exchange progressively more momentum with exact conservation
+  ---
+  duration_ms: 0.690634
+  type: 'test'
+  ...
+# Subtest: dry-to-damp drops transfer a continuously decreasing fraction to the loose bed
+ok 70 - dry-to-damp drops transfer a continuously decreasing fraction to the loose bed
+  ---
+  duration_ms: 16.067475
+  type: 'test'
+  ...
+# Subtest: grabbed damp sand retains its own wetness and relaxes between the dry and saturated limits
+ok 71 - grabbed damp sand retains its own wetness and relaxes between the dry and saturated limits
+  ---
+  duration_ms: 687.297549
+  type: 'test'
+  ...
+# Subtest: material merging averages retained history instead of assigning a whole grab the wettest grain
+ok 72 - material merging averages retained history instead of assigning a whole grab the wettest grain
+  ---
+  duration_ms: 1.408663
+  type: 'test'
+  ...
+# Subtest: hover reads exact parcel moisture, including held sand, respecting object occlusion and CSG cuts
+ok 73 - hover reads exact parcel moisture, including held sand, respecting object occlusion and CSG cuts
+  ---
+  duration_ms: 10.888738
+  type: 'test'
+  ...
+# Subtest: heavier player reduces outside impulses without changing gravity or Space buoyancy
+ok 74 - heavier player reduces outside impulses without changing gravity or Space buoyancy
+  ---
+  duration_ms: 2.403199
+  type: 'test'
+  ...
+1..74
+# tests 74
+# suites 0
+# pass 74
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5033.261528
