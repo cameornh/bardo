@@ -1,0 +1,15 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>RTX controls and HUD check</title>
+<body><canvas id="view" style="background:#30434f" aria-label="UI fixture background; no graphics context"></canvas>
+<button id="test-controls-toggle" aria-controls="panel">Show test controls</button>
+<aside id="panel" aria-label="Test controls" hidden><header class="panel-title">Test controls</header>
+<label>Scene<select><option>12 · Sand / water beach</option></select></label>
+<fieldset><legend>Overlay check</legend><p>This fixture uses the actual overlay module with no external stylesheet and no graphics context.</p>
+<button id="running">Show running rates</button><button id="paused">Show paused rates</button></fieldset></aside>
+<div id="hint"><div id="live-rate"></div><div>UI check · no simulation or graphics context</div></div>
+<script type="module">
+import {installLabUI} from '../src/rtx-sand-lab/ui.js';
+const ui=installLabUI();
+document.querySelector('#running').onclick=()=>ui.updateRates({fps:59.7,simRate:.92});
+document.querySelector('#paused').onclick=()=>ui.updateRates({fps:60,simRate:.92,paused:true});
+ui.updateRates({fps:59.7,simRate:.92});
+</script></body></html>

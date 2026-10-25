@@ -137,6 +137,13 @@ up to 16 rigid bodies; other geometry uses CPU contacts.
 
 ## Validation
 
+- Controls follow-up: panel styling is embedded with the UI module, and the
+  Show/Hide button controls an explicit overlay. FPS and simulation rate stay
+  in the bottom-left corner when the panel is hidden. The isolated no-graphics
+  fixture (`/tests/rtx-ui.html`) checks running and paused readouts without an
+  external stylesheet. Hide/show and overlay placement were also checked in
+  the production sand lab with `startup=prepare`; 19 startup checks and the
+  production build passed. No full-scene GPU work was run for this UI change.
 - OpenGL recovery follow-up: 54 targeted startup, graphics-safety and CPU-reference
   tests passed, along with the production build. The separate Chrome launcher is
   tested with a mocked Windows process launch. The user verified the underlying
