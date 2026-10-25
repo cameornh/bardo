@@ -111,9 +111,9 @@ availability; it does not validate compilation of the larger scene programs.
 - Existing GPU air field, fine spray/bubble/mist motion, airborne sand grains,
   sea-foam transport, rain object-contact map, water reconstruction, medium
   lighting, atmosphere and exposure, plus drawing.
-- Existing compatible optimization checkboxes start enabled. Display follows
-  the monitor's animation-frame cadence with no additional application FPS cap.
-  Live physics uses the one-step asynchronous pipeline described below.
+- Existing compatible optimization checkboxes start enabled. Presentation is
+  capped at 60 FPS with fractional-deadline pacing, including on 144 Hz displays.
+  Live physics uses the independent one-step asynchronous pipeline below.
 
 Sand stock/adhesion, rigid bodies, player, rain mass, condensation bookkeeping,
 tides, and neighbor construction still run on the CPU with existing compiled
@@ -153,9 +153,9 @@ up to 16 rigid bodies; other geometry uses CPU contacts.
   CPU fallbacks remain. The same fixed timestep and realtime-speed ceiling
   apply at 30, 60 and 144 display refresh rates; camera motion cannot change
   physical resolution or earned simulation time.
-- RTX presentation can use 1440 × 960 base pixels at 75% drawing scale; the
-  compatible profile retains 960 × 640 at 50%. This is a hardware image budget,
-  with the same materials, atmosphere, objects, interactions and controls.
+- Both profiles retain 960 × 640 base pixels at 50% drawing scale. Spare
+  throughput is reserved for maintaining physics speed and handling harder
+  frames, rather than automatically increasing image resolution or FPS.
 - Live intermediate images retain 32-bit floating-point night radiance. The
   previous half-float images could erase the Milky Way and faint stars before
   exposure. All 8,404 catalogue stars remain covariance-projected Gaussians,
@@ -176,6 +176,10 @@ and sand/water coupling. Neither was silently added here.
 
 ## Validation
 
+- 60 FPS follow-up: 20 pacing, simulation, transfer and profile checks passed,
+  along with the production build. Pacing stays at 60 on displays from 60 to
+  240 Hz, does not further throttle slow rendering, and cannot burst through
+  missed frames after a stall. The asynchronous physics path is unchanged.
 - Shared live follow-up: 80 relevant numerical, scheduling, safety and routing
   checks passed with the production build. Small GPU fixtures (175 samples)
   produced identical packed results to the synchronous route; maximum CPU

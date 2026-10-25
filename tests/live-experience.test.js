@@ -55,10 +55,12 @@ test('fixed-step simulation earns the same time at 30, 60 and 144 display refres
   assert.ok(integrated<=3+1e-9);assert.ok(integrated>=3-1/15-1e-9);assert.ok(lab.simRate<=1);
  }
 });
-test('hardware policy changes only execution and display budgets, with no app FPS cap',()=>{
+test('hardware policy reserves headroom for physics and hard frames with a shared 60 FPS presentation budget',()=>{
  const rtx=hardwarePolicy({adapter:'ANGLE NVIDIA GeForce RTX 5070 Ti OpenGL'}),mac=hardwarePolicy({adapter:'AMD Radeon Pro 560X Metal'});
  assert.equal(rtx.defaultBackend,'gpu');assert.equal(mac.defaultBackend,'safe');
- assert.equal(rtx.frameHz,0);assert.equal(mac.frameHz,0);assert.ok(rtx.maxWidth>mac.maxWidth);
+ assert.equal(rtx.frameHz,60);assert.equal(mac.frameHz,60);
+ for(const key of ['maxWidth','maxHeight','drawingScale'])assert.equal(rtx[key],mac[key]);
+ assert.equal(rtx.maxWidth,960);assert.equal(rtx.drawingScale,.5);
 });
 test('stars survive moonlit exposure while daylight and nearby artificial lights still mask faint sky',()=>{
  const dark=nightSkyExposure(10,1e-7,-1),moonlit=nightSkyExposure(10,1e-6,-1);

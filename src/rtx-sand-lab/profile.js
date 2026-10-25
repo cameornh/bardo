@@ -1,13 +1,13 @@
 // Hardware execution policy for the shared live scene. Snapshot constructors
 // never set allowGPUObjectContacts; their CPU restriction stays intact.
-// Zero means follow requestAnimationFrame / the display, with no extra cap.
-export const RTX_FRAME_HZ=0;
+// Presentation stays capped; spare throughput belongs to physics and harder frames.
+export const RTX_FRAME_HZ=60;
 export const RTX_BACKENDS=['gpu','bounded','safe','cpu'];
 export const requiresOpenGLWindow=device=>/Direct3D11|D3D11/.test(device.adapter||'');
 export function hardwarePolicy(device={}){
  const discreteRTX=/NVIDIA.*RTX|RTX.*NVIDIA|GeForce RTX/i.test(device.adapter||'');
- return {name:discreteRTX?'discrete GPU':'compatible GPU',defaultBackend:discreteRTX?'gpu':'safe',frameHz:0,
-  maxWidth:discreteRTX?1440:960,maxHeight:discreteRTX?960:640,drawingScale:discreteRTX?.75:.5};
+ return {name:discreteRTX?'discrete GPU':'compatible GPU',defaultBackend:discreteRTX?'gpu':'safe',frameHz:RTX_FRAME_HZ,
+  maxWidth:960,maxHeight:640,drawingScale:.5};
 }
 
 export function applyRTXBackend(lab,requested,draw=null,bounded=null){

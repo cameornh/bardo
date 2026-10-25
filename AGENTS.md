@@ -13,3 +13,5 @@ Run the relevant numerical tests and `npm run build`, and visually inspect new r
 The user has authorized pushing completed, verified changes to `https://github.com/cameornh/bardo`. Commit and push future changes there as part of completing the work. Preserve remote history; do not force-push.
 
 Keep `main` and `codex/rtx-5070-ti-gpu` in feature parity. Live scene features and controls share one implementation; machine-specific differences belong in hardware/execution policy. Deliver feature changes to both branches. Historical snapshot URLs remain isolated.
+
+Keep presentation capped at 60 FPS. Use spare capacity to maintain physics speed and handle harder rendering workloads, rather than raising presentation FPS or automatically increasing image resolution.
