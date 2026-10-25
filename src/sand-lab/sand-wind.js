@@ -31,7 +31,7 @@ function erodeSandBatch(bed,dt,wind,scale,water){
   bed.parcels.push(p);bed.windEvents.push({position:point.map((v,k)=>v+n[k]*.008),velocity:velocity.slice(),normal:n,spread,amount:mass,seed:p.id,material,speed,duration:elapsed,submerged});if(bed.windEvents.length>128)bed.windEvents.shift();
   bed.windMoved=(bed.windMoved||0)+mass;bed.dirty=true;available--;return true;
  };
- const rate=excess=>.00035*Math.min(170,excess)**1.5/scale;
+ const erosion=force=>wind.brush&&!force.submerged&&bed.windBrushErosion?bed.windBrushErosion(force.excess,scale):{rate:.00035*Math.min(170,force.excess)**1.5/scale,bedFraction:.02,parcelFraction:.08};
  // Deposits must be considered before the huge bed consumes the work budget.
  let deposits=0;
  for(const p of bed.parcels.slice()){
@@ -41,7 +41,7 @@ function erodeSandBatch(bed,dt,wind,scale,water){
   if(!top)continue;
   const point=p.position.map((v,k)=>v+top[k]+(k===1?.01:0)),force=forcing(point,p.wet,p.memory||0),excess=force.excess;
   if(excess<=0)continue;
-  const amount=Math.min(p.mass*.08,Math.PI*r*r*p.packing*rate(excess)*elapsed);
+  const response=erosion(force),amount=Math.min(p.mass*response.parcelFraction,Math.PI*r*r*p.packing*response.rate*elapsed);
   if(emit(point,force,amount,p.wet,p.memory||0,p.packing,r*.4)){const before=p.mass;p.mass-=amount;const shrink=Math.cbrt(p.mass/before);if(p.shapeRadius)p.shapeRadius*=shrink;if(p.cuts)p.cuts=p.cuts.map(c=>({...c,offset:c.offset.map(v=>v*shrink),radius:c.radius*shrink}));deposits++;if(bed.optimizations?.windBatch)wind.beginBatch?.(true);}
  }
  const count=Math.min(192,bed.mass.length),start=bed.windCursor||0;
@@ -66,7 +66,7 @@ function erodeSandBatch(bed,dt,wind,scale,water){
   const y=bed.height(x,z),p=[x,y+.01,z],force=forcing(p,bed.wet[k],bed.memory[k]),excess=force.excess;
   if(excess<=0)continue;
   if(bed.parcels.some(q=>q.anchored&&Math.hypot(x-q.position[0],z-q.position[2])<shapeRadius(q)&&q.position[1]>y))continue;
-  const mass=Math.min(bed.mass[k]*.02,bed.area*bed.packing[k]*rate(excess)*elapsed*weight);
+  const response=erosion(force),mass=Math.min(bed.mass[k]*response.bedFraction,bed.area*bed.packing[k]*response.rate*elapsed*weight);
   if(emit([x,y,z],force,mass,bed.wet[k],bed.memory[k],bed.packing[k],spread))bed.mass[k]-=mass;
  }
  bed.windCursor=(start+count*bed.windStride)%bed.mass.length;

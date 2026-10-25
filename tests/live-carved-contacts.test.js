@@ -79,13 +79,13 @@ test('the actual live prepare-step path keeps an object in the carved cavity',()
  const b=makeBody('rock','sphere',.18,[0,1.4,0]);lab.balls=[b];const context=lab.prepareStep(1/60);
  assert.equal(context.predicted.length,0);assert.equal(lab.sandContactStats.carvedPairs,1);assert.ok(b.position[1]>1.39&&b.position[1]<1.4,`${b.position}`);
 });
-test('live wind brush gives four times the surface velocity and five times the previous maximum',()=>{
- assert.equal(LIVE_WIND_BRUSH.initial/60,4);assert.equal(LIVE_WIND_BRUSH.max/180,5);
- const live=new LiveSandLab({extensions:{has:()=>false}});assert.equal(live.windStrength,240);live.configure('ocean');assert.equal(live.windStrength,240);
+test('live wind brush gives ten times the previous live surface velocity and maximum',()=>{
+ assert.equal(LIVE_WIND_BRUSH.initial/240,10);assert.equal(LIVE_WIND_BRUSH.max/900,10);
+ const live=new LiveSandLab({extensions:{has:()=>false}});assert.equal(live.windStrength,2400);live.configure('ocean');assert.equal(live.windStrength,2400);
  const make=strength=>{const {bed}=bowlFixture();bed.parcels=[];bed.update();return {sand:bed,balls:[],spec:{scale:10},time:0,wind:0,windTurbulence:1,windStrength:strength,radius:.5,jet:{origin:[0,2,0],direction:[0,-1,0]},optimizations:{windGeometry:true}};};
- const old=createSandWind(make(60)),strong=createSandWind(make(LIVE_WIND_BRUSH.initial));
+ const old=createSandWind(make(240)),strong=createSandWind(make(LIVE_WIND_BRUSH.initial));
  for(const point of [[.2,.03,0],[.35,.06,.1],[-.2,.1,.1]]){
-  const a=old(point),b=strong(point);assert.ok(Math.hypot(...b)>0);for(let k=0;k<3;k++)near(b[k],a[k]*4);
+  const a=old(point),b=strong(point);assert.ok(Math.hypot(...b)>0);for(let k=0;k<3;k++)near(b[k],a[k]*10);
  }
  for(const strength of [LIVE_WIND_BRUSH.initial,LIVE_WIND_BRUSH.max]){
   const lab=make(strength);lab.solid=p=>p[1];const v=labAirVelocity([.1,1,0],lab);assert.ok(v.every(Number.isFinite));assert.ok(Math.hypot(...v)>strength/100);

@@ -1,0 +1,250 @@
+TAP version 13
+# Subtest: a ball placed inside a carved bowl is not ejected by the original sand sphere
+ok 1 - a ball placed inside a carved bowl is not ejected by the original sand sphere
+  ---
+  duration_ms: 11.092621
+  type: 'test'
+  ...
+# Subtest: glass, mirror, rock and light balls fall to the carved floor, not the old top
+ok 2 - glass, mirror, rock and light balls fall to the carved floor, not the old top
+  ---
+  duration_ms: 656.566185
+  type: 'test'
+  ...
+# Subtest: carved walls push objects into the cavity, and tilted cups use their actual surfaces
+ok 3 - carved walls push objects into the cavity, and tilted cups use their actual surfaces
+  ---
+  duration_ms: 65.412591
+  type: 'test'
+  ...
+# Subtest: enclosed spherical cavities and intersection-cut portions do not acquire false walls
+ok 4 - enclosed spherical cavities and intersection-cut portions do not acquire false walls
+  ---
+  duration_ms: 2.612519
+  type: 'test'
+  ...
+# Subtest: surface caches refresh after another cut or motion, with identical broadphase results
+ok 5 - surface caches refresh after another cut or motion, with identical broadphase results
+  ---
+  duration_ms: 7.014712
+  type: 'test'
+  ...
+# Subtest: mobile carved sand and a body exchange equal and opposite linear momentum
+ok 6 - mobile carved sand and a body exchange equal and opposite linear momentum
+  ---
+  duration_ms: 1.742966
+  type: 'test'
+  ...
+# Subtest: a small carved piece inside a larger held object is expelled without phantom cavity contacts
+ok 7 - a small carved piece inside a larger held object is expelled without phantom cavity contacts
+  ---
+  duration_ms: 2.57915
+  type: 'test'
+  ...
+# Subtest: the shared live scene selects carved contacts and retains the historical ordinary-grain path
+ok 8 - the shared live scene selects carved contacts and retains the historical ordinary-grain path
+  ---
+  duration_ms: 138.660093
+  type: 'test'
+  ...
+# Subtest: the actual live prepare-step path keeps an object in the carved cavity
+ok 9 - the actual live prepare-step path keeps an object in the carved cavity
+  ---
+  duration_ms: 109.214213
+  type: 'test'
+  ...
+# Subtest: live wind brush gives ten times the previous live surface velocity and maximum
+ok 10 - live wind brush gives ten times the previous live surface velocity and maximum
+  ---
+  duration_ms: 117.771755
+  type: 'test'
+  ...
+# Subtest: one packed asynchronous step runs in order and never queues a second GPU job
+ok 11 - one packed asynchronous step runs in order and never queues a second GPU job
+  ---
+  duration_ms: 4.314075
+  type: 'test'
+  ...
+# Subtest: reset discards pending results, and a failed transfer disables further asynchronous work
+ok 12 - reset discards pending results, and a failed transfer disables further asynchronous work
+  ---
+  duration_ms: 0.585007
+  type: 'test'
+  ...
+# Subtest: fixed-step simulation earns the same time at 30, 60 and 144 display refresh rates
+ok 13 - fixed-step simulation earns the same time at 30, 60 and 144 display refresh rates
+  ---
+  duration_ms: 17.502792
+  type: 'test'
+  ...
+# Subtest: hardware policy reserves headroom for physics and hard frames with a shared 60 FPS presentation budget
+ok 14 - hardware policy reserves headroom for physics and hard frames with a shared 60 FPS presentation budget
+  ---
+  duration_ms: 0.326943
+  type: 'test'
+  ...
+# Subtest: stars follow actual exposure, with faint stars emerging gradually during dark adaptation
+ok 15 - stars follow actual exposure, with faint stars emerging gradually during dark adaptation
+  ---
+  duration_ms: 0.380753
+  type: 'test'
+  ...
+# Subtest: live moonlight lights surfaces more strongly while producing less sky wash; snapshots retain their defaults
+ok 16 - live moonlight lights surfaces more strongly while producing less sky wash; snapshots retain their defaults
+  ---
+  duration_ms: 166.716068
+  type: 'test'
+  ...
+# Subtest: all catalogue stars are Gaussian instances, and only the live look adds the galactic layer
+ok 17 - all catalogue stars are Gaussian instances, and only the live look adds the galactic layer
+  ---
+  duration_ms: 23.44455
+  type: 'test'
+  ...
+# Subtest: scene metering stays stable while all sky radiance receives the final scene exposure
+ok 18 - scene metering stays stable while all sky radiance receives the final scene exposure
+  ---
+  duration_ms: 1.192304
+  type: 'test'
+  ...
+# Subtest: binding properties raise particle release threshold continuously, not a wet-sand exclusion
+ok 19 - binding properties raise particle release threshold continuously, not a wet-sand exclusion
+  ---
+  duration_ms: 1.718045
+  type: 'test'
+  ...
+# Subtest: wet beds and wet deposits shed conservative fine stock under extreme air or water forcing
+ok 20 - wet beds and wet deposits shed conservative fine stock under extreme air or water forcing
+  ---
+  duration_ms: 9.030586
+  type: 'test'
+  ...
+# Subtest: dry births spread trajectories and time; cohesion narrows spread without enlarging grains
+ok 21 - dry births spread trajectories and time; cohesion narrows spread without enlarging grains
+  ---
+  duration_ms: 8.370397
+  type: 'test'
+  ...
+# Subtest: heavy sand accelerates more slowly in air while retaining current response under water
+ok 22 - heavy sand accelerates more slowly in air while retaining current response under water
+  ---
+  duration_ms: 0.262988
+  type: 'test'
+  ...
+# Subtest: shared water release threshold preserves its previously tuned Weber response
+ok 23 - shared water release threshold preserves its previously tuned Weber response
+  ---
+  duration_ms: 0.610711
+  type: 'test'
+  ...
+# Subtest: gravity/drag reference remains independent of substeps for diverse grain sizes and submerged density
+ok 24 - gravity/drag reference remains independent of substeps for diverse grain sizes and submerged density
+  ---
+  duration_ms: 0.643241
+  type: 'test'
+  ...
+# Subtest: a stationary player resists mild wind but is pushed by strong wind without WASD
+ok 25 - a stationary player resists mild wind but is pushed by strong wind without WASD
+  ---
+  duration_ms: 4.425691
+  type: 'test'
+  ...
+# Subtest: currents and rising waves carry a player; Space floats, releasing Space sinks
+ok 26 - currents and rising waves carry a player; Space floats, releasing Space sinks
+  ---
+  duration_ms: 4.190914
+  type: 'test'
+  ...
+# Subtest: moving bodies impart persistent player momentum and equal opposing impulse
+ok 27 - moving bodies impart persistent player momentum and equal opposing impulse
+  ---
+  duration_ms: 0.779784
+  type: 'test'
+  ...
+# Subtest: idle slope contact stays stable, jumping and diagonal input still work
+ok 28 - idle slope contact stays stable, jumping and diagonal input still work
+  ---
+  duration_ms: 13.840915
+  type: 'test'
+  ...
+# Subtest: carved cohesive deposits can erode, preserving the scaled CSG void instead of filling it
+ok 29 - carved cohesive deposits can erode, preserving the scaled CSG void instead of filling it
+  ---
+  duration_ms: 0.916581
+  type: 'test'
+  ...
+# Subtest: settled wind stock rejoins matching bed conserving grains, pore volume, wetness and history
+ok 30 - settled wind stock rejoins matching bed conserving grains, pore volume, wetness and history
+  ---
+  duration_ms: 3.698259
+  type: 'test'
+  ...
+# Subtest: wind deposit compaction preserves separate wet/dry layers and edited shapes
+ok 31 - wind deposit compaction preserves separate wet/dry layers and edited shapes
+  ---
+  duration_ms: 3.101536
+  type: 'test'
+  ...
+# Subtest: fixed-step allowance drops overload without repaying it faster than the requested speed
+ok 32 - fixed-step allowance drops overload without repaying it faster than the requested speed
+  ---
+  duration_ms: 2.595492
+  type: 'test'
+  ...
+# Subtest: changing the solar clock leaves lunar direction and phase untouched
+ok 33 - changing the solar clock leaves lunar direction and phase untouched
+  ---
+  duration_ms: 161.939439
+  type: 'test'
+  ...
+# Subtest: night foam radiance encoding retains tiny lighting without changing extinction or creating light
+ok 34 - night foam radiance encoding retains tiny lighting without changing extinction or creating light
+  ---
+  duration_ms: 0.225702
+  type: 'test'
+  ...
+# Subtest: tide import/export stays submerged despite airborne water above the boundary
+ok 35 - tide import/export stays submerged despite airborne water above the boundary
+  ---
+  duration_ms: 165.894575
+  type: 'test'
+  ...
+# Subtest: batched erosion air queries preserve reference stock and velocities as sources shrink
+ok 36 - batched erosion air queries preserve reference stock and velocities as sources shrink
+  ---
+  duration_ms: 181.258321
+  type: 'test'
+  ...
+# Subtest: stronger brush has ten times the previous speed and a hundred times the same-sample aerodynamic force
+ok 37 - stronger brush has ten times the previous speed and a hundred times the same-sample aerodynamic force
+  ---
+  duration_ms: 1.489694
+  type: 'test'
+  ...
+# Subtest: erosion responds smoothly above the old plateau and stays bounded at extreme brush speeds
+ok 38 - erosion responds smoothly above the old plateau and stays bounded at extreme brush speeds
+  ---
+  duration_ms: 5.430115
+  type: 'test'
+  ...
+# Subtest: the live brush actually removes more sand, without increasing the 32-packet budget or losing stock
+ok 39 - the live brush actually removes more sand, without increasing the 32-packet budget or losing stock
+  ---
+  duration_ms: 10.184147
+  type: 'test'
+  ...
+# Subtest: ambient air and underwater-current erosion remain identical to the reference
+ok 40 - ambient air and underwater-current erosion remain identical to the reference
+  ---
+  duration_ms: 6.849978
+  type: 'test'
+  ...
+1..40
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1336.485518

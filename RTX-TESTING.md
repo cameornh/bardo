@@ -13,8 +13,10 @@ The latest live editing and moon checks are documented in
 They cover bounded repeated terrain edits, much dimmer lunar discs, the shared
 direct sunlight / moonlight control, and click-versus-drag tool routing.
 
-The wind brush now defaults to 240 m/s and reaches 900 m/s. The live sand/object
-pass also respects carved cavities. See
+The wind brush now defaults to 2,400 m/s and reaches 9,000 m/s, with stronger
+high-speed sand erosion and the same packet budgets. See
+[`tests/results/strong-brush-2026-10-25/report.md`](tests/results/strong-brush-2026-10-25/report.md).
+The live sand/object pass also respects carved cavities. Its original checks are in
 [`tests/results/carved-contacts-2026-10-25/report.md`](tests/results/carved-contacts-2026-10-25/report.md)
 for the isolated bowl preview and collision checks.
 
