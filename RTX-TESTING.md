@@ -14,15 +14,25 @@ npm ci
 npm run start:windows
 ```
 
-Open `http://127.0.0.1:5178/?scene=sand-lab&backend=safe&paused=1` and keep the terminal open.
-Alternatively double-click `Start-Windows.cmd` after dependencies are installed.
+On Windows the launcher opens a separate Chrome profile through NVIDIA OpenGL,
+at `http://127.0.0.1:5178/?scene=sand-lab`. Keep the terminal open. Both
+`Start-Windows.cmd` and `Start-Windows-OpenGL.cmd` can be double-clicked after
+dependencies are installed. `npm run start:windows:opengl` explicitly requests
+the same OpenGL launcher. Existing Chrome windows and profiles stay available.
 The launcher checks the Node version, builds the production bundles, and serves
 only that build on port 5178. A port conflict is an error rather than silently
 choosing another address. Build errors stay visible in the terminal. It reports
 the source revision and writes `/build-info.json` with the build identity.
-The suggested URL starts with CPU pressure and GPU rendering/transport, matching
-the Mac's pressure baseline. GPU pressure remains available in Diagnostics after
-the scene is working. The normal root URL still selects the GPU experiment.
+The normal URL selects GPU pressure after validation. To compare the Mac's
+CPU-pressure baseline, use `?scene=sand-lab&backend=safe&paused=1` in the OpenGL
+window. `--manual-browser` starts only the server when explicitly needed.
+
+The user confirmed that the RTX 5070 Ti freezes through Chrome's Direct3D 11
+backend and runs the full scene through **NVIDIA OpenGL 4.5.0**, including the
+running, unpaused scene. The isolated entry therefore stops D3D11 startup before
+submitting scene shaders and directs users to the OpenGL launcher. It does not
+disable browser security, GPU watchdogs, or driver workarounds. Backend selection
+uses [ANGLE's documented Chrome options](https://github.com/google/angle/blob/main/doc/DebuggingTips.md#usage).
 
 `npm run dev` remains available on port 5173. Production startup removes the
 development module graph from the investigation; it does not change rendering
@@ -32,7 +42,9 @@ must use the explicit sand-lab URL.
 
 The experiment shows a paused scene frame before its optional GPU pressure
 checks. Eight fixtures of at most 175 samples compare GPU arithmetic and
-contacts against the CPU reference. Resume after the checks finish.
+contacts against the CPU reference. A plain URL starts running afterward; add
+`paused=1` to keep it paused. The test-control panel starts visible, and a fixed
+**Show/Hide test controls** button remains available even while startup waits.
 Diagnostics show the actual adapter, backend, and comparison results. Confirm
 that Chrome reports the NVIDIA card. Rendering uses WebGL 2 and parallel compute
 uses fragment shaders; this is not CUDA or WebGPU. Floating-point targets require
@@ -40,17 +52,21 @@ uses fragment shaders; this is not CUDA or WebGPU. Floating-point targets requir
 
 ## If startup stalls
 
-The page now displays **Startup diagnostics · startup-v3** before importing any
+The page now displays **Startup diagnostics · startup-v4** before importing any
 scene modules. It captures module download/parse failures and rejected startup
 promises as well as graphics errors. Initialization yields between major stages
-so the browser can display progress. Controls stay inactive until startup ends.
+so the browser can display progress. Simulation controls become available after
+the first frame. The show/hide button remains active throughout.
 
 The last stage, including the last first-frame drawing pass, is written before
 the operation begins. Open `http://127.0.0.1:5178/?startup=report` and click
 **Copy startup report** if a page stalls without producing an error. This report
 route never imports a scene or requests a graphics context, and reading it does
-not erase the saved attempt. Reports use browser local storage, with session
-storage as a fallback, under a separate diagnostic key.
+not erase the saved attempt. The production server also saves checkpoints in
+`.startup/windows-startup.json` and prints the stage in the terminal. Major
+startup/compile checkpoints are acknowledged by the server before the operation
+begins, so closing an incognito window no longer discards the only copy. Browser
+storage is retained as a fallback; runtime report files are ignored by Git.
 
 `/graphics-health.html` is included in both production and development builds.
 It uses one pixel to check WebGL 2 and reports the actual adapter when available.
@@ -59,6 +75,15 @@ availability; it does not validate compilation of the larger scene programs.
 
 ## Startup compatibility changes
 
+- First-frame programs compile one at a time with nonblocking completion polls,
+  named progress, and a 60-second per-program limit. Link/uniform queries happen
+  only after completion, avoiding a synchronous first-use wait. This follows
+  [Three.js's parallel preparation mechanism](https://threejs.org/docs/pages/WebGLRenderer#compileAsync).
+  A slow compile can still take time; no claim is made that every driver call
+  can be interrupted or that all first-use pauses have been eliminated.
+- The RTX field-maximum shader uses one runtime-bounded loop instead of three
+  nested fixed loops. It visits the same 729 samples in exactly the same order,
+  avoiding unnecessary static expansion without changing the occupancy result.
 - Density, correction, and geometry run as separate small GPU programs. The
   original large shader nesting sand geometry inside pressure is not compiled.
 - Speculative object-program compilation is disabled. Only requested variants
@@ -112,10 +137,15 @@ up to 16 rigid bodies; other geometry uses CPU contacts.
 
 ## Validation
 
-- Windows-startup follow-up: 44 targeted startup, graphics-safety and CPU-reference
-  tests passed, along with the production build. The production launcher, saved
-  report page and packaged graphics check were checked locally. Windows execution
-  still requires verification on that machine; no Windows result is claimed here.
+- OpenGL recovery follow-up: 54 targeted startup, graphics-safety and CPU-reference
+  tests passed, along with the production build. The separate Chrome launcher is
+  tested with a mocked Windows process launch. The user verified the underlying
+  OpenGL launch command and full scene on the actual RTX machine; the latest
+  shader-preparation changes still require a full-scene check there.
+- The new 12-cell GPU maximum-reduction check retained all 729 samples per cell
+  and matched the CPU reference exactly (maximum error zero). Its prepared
+  program was reused by the first draw after the initially null sampler was
+  populated. Raw result: `tests/results/rtx-startup-2026-10-24/macro.json`.
 - 77 targeted CPU numerical, routing, startup, and fallback regression checks
   passed. `npm run build` passed.
 - All eight GPU pressure/contact fixtures passed locally on AMD Radeon Pro 560X
@@ -127,8 +157,9 @@ up to 16 rigid bodies; other geometry uses CPU contacts.
 - Raw local results: `tests/results/rtx-startup-2026-10-24/pressure.json` and
   `sampling.json`. These are local arithmetic checks, not RTX throughput results.
 
-Manual checks are at `/tests/rtx-gpu.html` and `/tests/rtx-sampling-gpu.html`.
-Neither creates a graphics context until its button is clicked. The full scene
-has not been stress-tested on the Mac during this change, and the RTX startup
-fix remains unconfirmed until tested on that computer. A blank screen on the
-older root scene does not establish the cause of the sand-lab shader failure.
+Manual checks are at `/tests/rtx-gpu.html`, `/tests/rtx-sampling-gpu.html`, and
+`/tests/rtx-macro-gpu.html`; they create no graphics context until clicked. The
+control panel and 19-program startup plan were inspected with `startup=prepare`,
+which constructs scene state but compiles/draws no scene shaders. The full scene
+was not stress-tested again on the Mac. No new Windows throughput measurements
+or quantitative startup-time improvements are claimed.

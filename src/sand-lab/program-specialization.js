@@ -21,7 +21,7 @@ export function specializeSource(source,constants){
  });
  return source;
 }
-export function installProgramSpecialization(renderer,enabled,{warmObjects=true}={}){
+export function installProgramSpecialization(renderer,enabled,{warmObjects=true,prepareCompile=false}={}){
  const render=renderer.render.bind(renderer),states=new WeakMap();
  const prepare=(scene,objectCapable=false)=>{
   scene.traverse(object=>{for(const material of (Array.isArray(object.material)?object.material:[object.material])){
@@ -67,6 +67,9 @@ export function installProgramSpecialization(renderer,enabled,{warmObjects=true}
   const work=renderer.compileAsync(compilation,camera).catch(error=>{warmFailure??=error;}).finally(()=>{pending.delete(work);if(compilation===scene)prepare(scene);});pending.add(work);
  };
  renderer.render=(scene,camera)=>{prepare(scene);const result=render(scene,camera);warm(scene,camera);return result;};
+ // Explicit opt-in for the isolated Windows startup. Snapshots retain their
+ // existing render-only preparation and speculative-compilation behavior.
+ if(prepareCompile&&renderer.compile){const compile=renderer.compile.bind(renderer);renderer.compile=(scene,...args)=>{prepare(scene);return compile(scene,...args);};}
  // Include compute passes as they first execute: their specialization depends
  // on the solver/boundary settings selected at that time. No fake body and no
  // changed simulation uniforms. Empty scenes retain their lean programs.

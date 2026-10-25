@@ -1,12 +1,18 @@
 /* Runs before the module graph. Module download/parse failures must be visible. */
 (function () {
  'use strict';
- var key='bardo-startup-v3',revision='startup-v3',started=Date.now(),previous=null,storage=null,reportMode=/[?&]startup=report(?:&|$)/.test(location.search);
+ var key='bardo-startup-v3',revision='startup-v4',started=Date.now(),previous=null,storage=null,reportMode=/[?&]startup=report(?:&|$)/.test(location.search);
  try {storage=localStorage;} catch (_) {try {storage=sessionStorage;} catch (_) {}}
  try {previous=JSON.parse(storage.getItem(key)||'null');} catch (_) {}
- var state={revision:revision,url:location.href,browser:navigator.userAgent,started:new Date(started).toISOString(),status:'starting',stage:'Loading scene dispatcher',history:[]};
+ var state={revision:revision,url:location.href,browser:navigator.userAgent,started:new Date(started).toISOString(),sequence:0,status:'starting',stage:'Loading scene dispatcher',history:[]};
  var panel,timer,last=started;
  function save(){if(reportMode)return;try {storage.setItem(key,JSON.stringify(state));} catch (_) {}}
+ function checkpoint(wait){
+  if(reportMode||typeof fetch!=='function')return Promise.resolve();
+  var text=JSON.stringify(state);
+  if(!wait&&navigator.sendBeacon){navigator.sendBeacon('/__bardo/startup',new Blob([text],{type:'application/json'}));return Promise.resolve();}
+  return fetch('/__bardo/startup',{method:'POST',headers:{'Content-Type':'application/json'},body:text}).catch(function(){});
+ }
  function ensurePanel(){
   if(panel&&panel.isConnected)return panel;
   panel=document.createElement('section');panel.id='startup-diagnostics';panel.setAttribute('role','status');
@@ -23,19 +29,23 @@
  function display(text){ensurePanel().querySelector('#startup-stage').textContent=text;var old=document.getElementById('loading');if(old)old.textContent=state.stage;}
  function mark(label,detail){
   if(state.status==='failed'||state.status==='ready'||state.status==='report')return;
-  last=Date.now();state.stage=label;state.history.push({ms:last-started,stage:label,detail:detail});if(state.history.length>80)state.history.shift();
-  save();display(label+(detail?'\n'+JSON.stringify(detail,null,2):''));
+  last=Date.now();state.sequence++;state.stage=label;state.history.push({ms:last-started,stage:label,detail:detail});if(state.history.length>80)state.history.shift();
+  save();display(label+(detail?'\n'+JSON.stringify(detail,null,2):''));checkpoint(false);
  }
  function fail(error){
   if(state.status==='failed')return;
-  state.status='failed';state.error=String(error&&error.stack||error&&error.message||error);save();clearInterval(timer);
+  state.status='failed';state.sequence++;state.error=String(error&&error.stack||error&&error.message||error);save();checkpoint(false);clearInterval(timer);
   display('Stopped during: '+state.stage+'\n\n'+state.error);
  }
- function finish(){if(state.status==='failed')return;state.status='ready';state.stage='Scene ready';save();clearInterval(timer);if(panel)panel.remove();}
+ function finish(){if(state.status==='failed')return;state.status='ready';state.sequence++;state.stage='Scene ready';save();checkpoint(false);clearInterval(timer);if(panel)panel.remove();}
  window.__bardoStartup={revision:revision,mark:mark,fail:fail,finish:finish,
-  step:function(label,detail){mark(label,detail);return new Promise(function(resolve){requestAnimationFrame(function(){requestAnimationFrame(resolve);});});},
+  step:function(label,detail){mark(label,detail);return checkpoint(true).then(function(){return new Promise(function(resolve){requestAnimationFrame(function(){requestAnimationFrame(resolve);});});});},
+  hold:function(label){mark(label);state.status='inspection';state.sequence++;save();checkpoint(false);clearInterval(timer);},
   pass:function(info){if(state.status==='starting')mark('First frame · '+info.programs.join(', '),{stage:info.stage});},
-  report:function(){state.status='report';clearInterval(timer);var view=document.getElementById('viewport');if(view)view.hidden=true;display('Saved previous attempt (no scene or graphics context started):\n\n'+JSON.stringify(previous,null,2));},
+  report:function(){state.status='report';clearInterval(timer);var view=document.getElementById('viewport');if(view)view.hidden=true;
+   function show(){display('Saved previous attempt (no scene or graphics context started):\n\n'+JSON.stringify(previous,null,2));}show();
+   if(typeof fetch==='function')fetch('/__bardo/startup',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(record){if(record&&(!previous||record.started>=previous.started)){previous=record;show();}}).catch(function(){});
+  },
   watchLegacy:function(){
    var loading=document.getElementById('loading');
    function check(){if(loading&&loading.style.display==='none'){observer.disconnect();finish();}}

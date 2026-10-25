@@ -1,0 +1,10 @@
+{
+  "pass": true,
+  "prepared": {
+    "prepared": 1
+  },
+  "macroCells": 12,
+  "samplesPerCell": 729,
+  "maxError": 0,
+  "reusedPreparedProgram": true
+}

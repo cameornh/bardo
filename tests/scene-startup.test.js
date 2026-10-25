@@ -40,7 +40,7 @@ test('classic bootstrap preserves the last operation across a page reload before
  const first=monitor();first.boot.mark('First frame · render-backgroundScene-0');
  const saved=[...first.storage.values()][0],second=monitor(first.storage,'?startup=report');second.boot.report();
  const text=second.document.getElementById('startup-stage').textContent;
- assert.match(text,/render-backgroundScene-0/);assert.match(text,/startup-v3/);assert.equal(second.timers,0);
+ assert.match(text,/render-backgroundScene-0/);assert.match(text,/startup-v4/);assert.equal(second.timers,0);
  assert.equal([...first.storage.values()][0],saved);
 });
 test('unhandled early promise rejection is shown and preserved even when the scene replaces the body',()=>{

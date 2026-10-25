@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "start:windows": "node tools/start-windows.mjs",
+    "start:windows:opengl": "node tools/start-windows.mjs --opengl",
     "test": "node --test tests/*.test.js"
   },
   "dependencies": { "three": "^0.180.0" },

@@ -2,6 +2,7 @@
 // set allowGPUObjectContacts; their existing CPU restriction stays intact.
 export const RTX_FRAME_HZ=60;
 export const RTX_BACKENDS=['gpu','bounded','safe','cpu'];
+export const requiresOpenGLWindow=device=>/Direct3D11|D3D11/.test(device.adapter||'');
 
 export function applyRTXBackend(lab,requested,draw=null,bounded=null){
  if(!RTX_BACKENDS.includes(requested))throw new Error('Unknown RTX backend: '+requested);

@@ -2,6 +2,7 @@
 // derivatives for them inside divergent ray/geometry loops asks ANGLE's D3D
 // compiler to unroll loops on some backends, despite no mip level to pick.
 // Explicit level zero preserves filtering and samples, without derivatives.
+import {compactMacroReduction,MACRO_REDUCTION_SAMPLES} from './macro-reduction.js';
 export function explicitTextureLevel(source,names){
  const eligible=new Set(names),edits=[];
  // Match comments as well so text inside them can never be rewritten.
@@ -21,10 +22,15 @@ export function explicitTextureLevel(source,names){
 
 export function installRTXShaderCompatibility(renderer){
  const draw=renderer.render.bind(renderer),states=new WeakMap();
- renderer.render=(scene,...args)=>{
+ const prepare=scene=>{
   scene.traverse?.(o=>{for(const m of Array.isArray(o.material)?o.material:[o.material]){
    if(!m?.isShaderMaterial)continue;
-   const names=Object.entries(m.uniforms).filter(([,u])=>u.value?.isTexture&&u.value.generateMipmaps===false&&!u.value.mipmaps?.length).map(([name])=>name).sort(),key=names.join(',');
+   const reduced=compactMacroReduction(m.fragmentShader);
+   if(reduced!==m.fragmentShader){m.fragmentShader=reduced;m.uniforms.uReductionSamples={value:MACRO_REDUCTION_SAMPLES};m.needsUpdate=true;}
+   // Null data samplers are populated after field allocation. Treat them as
+   // level-zero samplers now, so compilation matches the first real draw.
+   const samplers=new Set();for(const match of (m.vertexShader+'\n'+m.fragmentShader).matchAll(/uniform\s+(?:(?:highp|mediump|lowp)\s+)?sampler2D\s+([^;]+);/g))for(const n of match[1].split(','))samplers.add(n.trim());
+   const names=Object.entries(m.uniforms).filter(([n,u])=>(u.value==null&&samplers.has(n))||(u.value?.isTexture&&u.value.generateMipmaps===false&&!u.value.mipmaps?.length)).map(([name])=>name).sort(),key=names.join(',');
    let state=states.get(m);
    if(!state){
     state={key,names};states.set(m,state);const original=m.onBeforeCompile,cache=m.customProgramCacheKey;
@@ -32,6 +38,7 @@ export function installRTXShaderCompatibility(renderer){
     m.customProgramCacheKey=function(){return cache.call(this)+'|rtx-level-zero:'+state.key;};m.needsUpdate=true;
    }else if(key!==state.key){state.key=key;state.names=names;m.needsUpdate=true;}
   }});
-  return draw(scene,...args);
  };
+ renderer.render=(scene,...args)=>{prepare(scene);return draw(scene,...args);};
+ if(renderer.compile){const compile=renderer.compile.bind(renderer);renderer.compile=(scene,...args)=>{prepare(scene);return compile(scene,...args);};}
 }
