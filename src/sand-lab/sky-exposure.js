@@ -9,9 +9,9 @@ export function exposureStatistics(pixels){
  const s=[0,0,0,0];
  for(let i=0;i<pixels.length;i+=4){const y=Math.max(0,pixels[i]*.2126+pixels[i+1]*.7152+pixels[i+2]*.0722);if(!Number.isFinite(y))continue;s[0]+=Math.log(Math.max(1e-12,y));s[1]+=Math.max(0,y-32);s[2]=Math.max(s[2],y);s[3]++;}return s;
 }
-export function exposureTarget(s){
+export function exposureTarget(s,{nightBrightness=1}={}){
  const average=Math.exp(s[0]/Math.max(1,s[3])),excess=s[1]/Math.max(1,s[3]);
- let night=1+(clamp((.003+.022*smooth(1e-5,.001,average))/Math.max(average,1e-12),1,4e7)-1)*(1-smooth(.012,.04,average));
+ let night=1+(clamp((.003*nightBrightness+.022*smooth(1e-5,.001,average))/Math.max(average,1e-12),1,4e7)-1)*(1-smooth(.012,.04,average));
  // A thin lit horizon must not be blown out because black sky dominates
  // the logarithmic average. This only limits the dark-adaptation boost.
  night=Math.min(night,Math.max(1,.8/Math.max(1e-12,s[2])));
@@ -29,9 +29,9 @@ void main(){ivec2 base=ivec2(gl_FragCoord.xy)*4,size=textureSize(uInput,0);vec4 
  if(uFirst){float l=max(0.,dot(v.rgb,vec3(.2126,.7152,.0722)));if(isnan(l)||isinf(l))continue;v=vec4(log(max(1e-12,l)),max(0.,l-32.),l,1.);}
  s.xy+=v.xy;s.z=max(s.z,v.z);s.w+=v.w;}outColor=s;}`;
 export const EXPOSURE_ADAPT_GLSL=`precision highp float;
-uniform sampler2D uStats,uPrevious;uniform float uDt;out vec4 outColor;
+uniform sampler2D uStats,uPrevious;uniform float uDt,uNightBrightness;out vec4 outColor;
 void main(){vec4 s=texelFetch(uStats,ivec2(0),0);float average=exp(s.x/max(1.,s.w)),excess=s.y/max(1.,s.w);
- float night=mix(1.,clamp((.003+.022*smoothstep(1e-5,.001,average))/max(average,1e-12),1.,4e7),1.-smoothstep(.012,.04,average));
+ float night=mix(1.,clamp((.003*max(1.,uNightBrightness)+.022*smoothstep(1e-5,.001,average))/max(average,1e-12),1.,4e7),1.-smoothstep(.012,.04,average));
  night=min(night,max(1.,.8/max(1e-12,s.z)));
  float glare=smoothstep(.002,.06,excess)*smoothstep(32.,100.,s.z);
  float target=mix(night,clamp(sqrt(20./max(20.,s.z)),.08,1.),glare);
@@ -44,13 +44,14 @@ void main(){vec4 state=texelFetch(uExposure,ivec2(0),0);vec3 c=texture(uImage,vU
 // structure when nearby lights keep the exposure low (perceptual skyglow).
 float scotopic=(1.-smoothstep(1e-8,1e-5,state.b))*smoothstep(1e3,1e6,state.r);float y=dot(c,vec3(.2126,.7152,.0722));c=mix(c,y*vec3(.82,.96,1.12),scotopic*.72);c=c/(c+vec3(.7));outColor=vec4(pow(max(c,vec3(0)),vec3(1./2.2)),1.);}`;
 export class LabExposure{
- constructor(renderer){
+ constructor(renderer,{nightBrightness=1}={}){
+  this.nightOptions={nightBrightness};
   this.renderer=renderer;this.camera=new THREE.Camera();this.geometry=new THREE.PlaneGeometry(2,2);this.levels=[];this.cpu=false;this.value=1;this.stats=[0,0,0,1];this.age=Infinity;
   this.seed=new THREE.DataTexture(new Float32Array([1,1,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);this.seed.needsUpdate=true;
   this.states=[this.target(1,1),this.target(1,1)];this.state=-1;
   const pass=(shader,uniforms)=>{const material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:shader,uniforms,depthTest:false,depthWrite:false});const scene=new THREE.Scene();scene.add(new THREE.Mesh(this.geometry,material));return {scene,material,uniforms};};
   this.reduce=pass(EXPOSURE_REDUCE_GLSL,{uInput:{value:null},uFirst:{value:true}});
-  this.adapt=pass(EXPOSURE_ADAPT_GLSL,{uStats:{value:null},uPrevious:{value:this.seed},uDt:{value:0}});
+  this.adapt=pass(EXPOSURE_ADAPT_GLSL,{uStats:{value:null},uPrevious:{value:this.seed},uDt:{value:0},uNightBrightness:{value:nightBrightness}});
   this.output=pass(output,{uImage:{value:null},uExposure:{value:this.seed}});
  }
  target(w,h){return new THREE.WebGLRenderTarget(w,h,{type:THREE.FloatType,minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,depthBuffer:false});}
@@ -63,16 +64,16 @@ export class LabExposure{
   while(this.levels.length>i)this.levels.pop().dispose();
   return texture;
  }
- update(image,dt,{dirty=true,cpu=false}={}){
+ update(image,dt,{dirty=true,cpu=false,meterImage=image}={}){
   const r=this.renderer;this.age+=dt;const switched=cpu!==this.cpu;this.cpu=cpu;
   if(cpu){
    if(switched&&this.state>=0){const v=new Float32Array(4);r.readRenderTargetPixels(this.states[this.state],0,0,1,1,v);this.value=v[0];}
    // This intentionally slow, explicit reference avoids GPU reduction. Readback
    // is throttled; the ordinary GPU path never waits for a readback.
-   if((dirty&&this.age>=.2)||switched||!this.cpuPixels){this.cpuPixels=new Float32Array(image.width*image.height*4);r.readRenderTargetPixels(image,0,0,image.width,image.height,this.cpuPixels);this.stats=exposureStatistics(this.cpuPixels);this.age=0;}
-   this.value=adaptExposure(this.value,exposureTarget(this.stats),dt);this.seed.image.data.set([this.value,exposureTarget(this.stats),Math.exp(this.stats[0]/this.stats[3]),this.stats[1]/this.stats[3]]);this.seed.needsUpdate=true;this.output.uniforms.uExposure.value=this.seed;this.state=-1;
+   if((dirty&&this.age>=.2)||switched||!this.cpuPixels){this.cpuPixels=new Float32Array(meterImage.width*meterImage.height*4);r.readRenderTargetPixels(meterImage,0,0,meterImage.width,meterImage.height,this.cpuPixels);this.stats=exposureStatistics(this.cpuPixels);this.age=0;}
+   this.value=adaptExposure(this.value,exposureTarget(this.stats,this.nightOptions),dt);this.seed.image.data.set([this.value,exposureTarget(this.stats,this.nightOptions),Math.exp(this.stats[0]/this.stats[3]),this.stats[1]/this.stats[3]]);this.seed.needsUpdate=true;this.output.uniforms.uExposure.value=this.seed;this.state=-1;
   }else{
-   if(dirty||switched||!this.levels.length)this.adapt.uniforms.uStats.value=this.meter(image);
+   if(dirty||switched||!this.levels.length)this.adapt.uniforms.uStats.value=this.meter(meterImage);
    this.adapt.uniforms.uPrevious.value=this.state<0?this.seed:this.states[this.state].texture;this.adapt.uniforms.uDt.value=dt;this.state=(this.state+1)%2;r.setRenderTarget(this.states[this.state]);r.render(this.adapt.scene,this.camera);this.output.uniforms.uExposure.value=this.states[this.state].texture;
   }
   this.output.uniforms.uImage.value=image.texture;

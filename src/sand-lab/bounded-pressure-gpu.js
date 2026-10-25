@@ -102,25 +102,34 @@ export class BoundedPressureGPU {
   }catch(error){this.stop(error.message);return this.cpuSolve(positions,neighbors,spacing,iterations,collide,boundary,lab);}
  }
 
- run(positions,neighbors,spacing,iterations,collide=p=>p,boundary=null,lab=null,validation=false,checkGeometry=false){
+ run(positions,neighbors,spacing,iterations,collide=p=>p,boundary=null,lab=null,validation=false,checkGeometry=false,deferRead=false,inputs=null){
   const r=this.renderer,n=positions.length/4,start=performance.now();
   if(this.stopped)throw Error(this.stopped);
   if(r.getContext().isContextLost())throw Error('Graphics context unavailable.');
   const gpuGeometry=(this.geometryValidated||checkGeometry)&&canUsePressureGeometry(lab);
+  if(deferRead&&!gpuGeometry)throw Error('Deferred pressure requires validated GPU geometry.');
   this.allocate(n);if(gpuGeometry){this.geo??=new PressureGeometryGPU();this.geo.prepare(lab,n,spacing);}else this.contacts.begin(positions,spacing,collide,boundary,lab);
-  packNeighborTexture(neighbors,this.neighborData,n);this.neighborTexture.needsUpdate=true;
+  if(inputs?.neighbors)this.u.uNeighbors.value=inputs.neighbors;
+  else{packNeighborTexture(neighbors,this.neighborData,n);this.neighborTexture.needsUpdate=true;this.u.uNeighbors.value=this.neighborTexture;}
   this.u.uCount.value=n;this.u.uSpacing.value=spacing;
   const previous=r.getRenderTarget(),autoClear=r.autoClear,viewport=r.getViewport(new THREE.Vector4()),scissor=r.getScissor(new THREE.Vector4()),scissorTest=r.getScissorTest();
   const ranges=pressureDrawRanges(n);let current=positions,contactMs=0,pressureMs=0;
   try{
    r.autoClear=false;
    if(gpuGeometry){
-    this.positionData.fill(0);this.positionData.set(positions);this.positionTexture.needsUpdate=true;this.u.uPositions.value=this.positionTexture;this.u.uWall.value=this.boundaryTarget.texture;
+    if(inputs?.positions)this.u.uPositions.value=inputs.positions;
+    else{this.positionData.fill(0);this.positionData.set(positions);this.positionTexture.needsUpdate=true;this.u.uPositions.value=this.positionTexture;}
+    this.u.uWall.value=this.boundaryTarget.texture;
     const draw=(material,target)=>{this.mesh.material=material;r.setRenderTarget(target);r.setScissorTest(true);for(const range of ranges){r.setScissor(0,range.y,64,range.height);r.render(this.scene,this.camera);}};
     const pressureStart=performance.now();
     for(let iteration=0;iteration<iterations;iteration++){
      this.geo.u.uPositions.value=this.u.uPositions.value;draw(this.geo.boundary,this.boundaryTarget);draw(this.densityMaterial,this.lambda);draw(this.correctionMaterial,this.corrected);
      this.geo.u.uPositions.value=this.corrected.texture;draw(this.geo.project,this.projected[iteration%2]);this.u.uPositions.value=this.projected[iteration%2].texture;
+    }
+    if(deferRead){
+     this.backend='GPU pressure and simple beach contacts (pipelined)';
+     this.last={totalMs:performance.now()-start,particles:n,draws:iterations*4*ranges.length,readbacks:0,contactMemoryBytes:0};
+     return this.projected[(iterations-1)%2];
     }
     r.readRenderTargetPixels(this.projected[(iterations-1)%2],0,0,64,this.height,this.readback);pressureMs=performance.now()-pressureStart;
     current=this.readback.subarray(0,n*4);for(let o=0;o<current.length;o++)if(!Number.isFinite(current[o])||((o%4===3||positions[o-o%4+3]>.5)&&current[o]!==positions[o]))throw Error('Invalid GPU contact result.');

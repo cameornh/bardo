@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import catalogue from './bright-stars.json' with {type:'json'};
-import {starIrradiance,starColor} from './night-sky-model.js';
+import {starIrradiance,starColor,NIGHT_MODEL_GLSL} from './night-sky-model.js';
+import {NIGHT_LOOK,NIGHT_LOOK_GLSL} from './night-look.js';
+import {QUAD_VERTEX} from '../shaders.js';
 export const STAR_SIGMA=.00016;
 export const STAR_TWINKLE_GAIN=3;
 export function starDirection(ra,dec){const a=ra*Math.PI/180,d=dec*Math.PI/180;return [Math.sin(a-Math.PI)*Math.cos(d),Math.sin(d),Math.cos(a-Math.PI)*Math.cos(d)];}
@@ -44,22 +46,43 @@ void main(){vec3 world=transpose(uCelestialRotation)*aDirection,d=mat3(uViewMatr
 }`;
 export const STAR_FRAGMENT=`precision highp float;in vec2 vQ;in vec3 vRadiance,vWorld;in float vMagnitude;out vec4 outColor;
 uniform sampler2D uOpaqueRead,uWaterSurface,uAtmosphere,uExposure;uniform vec2 uResolution;uniform vec3 uMoonDirection;uniform float uMoonSize;
+uniform vec3 uSolarDirection;uniform bool uEnhancedNightSky;
+${NIGHT_LOOK_GLSL}
 void main(){float r2=dot(vQ,vQ);if(r2>16.)discard;vec2 uv=gl_FragCoord.xy/uResolution;
  if(texture(uOpaqueRead,uv).a<9999.||texture(uWaterSurface,uv).a<9999.)discard;
  if(dot(vWorld,uMoonDirection)>cos(.00452*uMoonSize))discard;
  float el=asin(clamp(vWorld.y,0.,1.))/1.570796327;vec3 transmission=textureLod(uAtmosphere,vec2((.5+sqrt(el)*127.)/256.,112.5/128.),0.).rgb*smoothstep(-.003,.001,vWorld.y);
  // Faint points emerge as the eye adapts, and wash out in bright surroundings.
  // This is a perceptual stellar response, not an added night light source.
- vec4 exposure=texelFetch(uExposure,ivec2(0),0);float adapted=smoothstep(2.,6.,log(max(1.,exposure.r))/log(10.));float visibility=mix(1.,adapted,smoothstep(1.,5.,vMagnitude));
- outColor=vec4(vRadiance*transmission*exp(-.5*r2)*visibility*.035,0);
+ vec4 exposure=texelFetch(uExposure,ivec2(0),0);float skyExposure=uEnhancedNightSky?nightSkyExposure(exposure.r,exposure.b,uSolarDirection.y):exposure.r;
+ float adapted=smoothstep(2.,6.,log(max(1.,skyExposure))/log(10.)),visibility=mix(1.,adapted,smoothstep(1.,5.,vMagnitude));
+ float gain=uEnhancedNightSky?${NIGHT_LOOK.starGain.toFixed(1)}*skyExposure/max(.001,exposure.r):1.;
+ outColor=vec4(vRadiance*transmission*exp(-.5*r2)*visibility*.035*gain,0);
+}`;
+export const GALAXY_FRAGMENT=`precision highp float;in vec2 vUv;out vec4 outColor;
+uniform sampler2D uOpaqueRead,uWaterSurface,uAtmosphere,uExposure;
+uniform mat4 uInverseProjection,uCameraMatrix;uniform mat3 uCelestialRotation;
+uniform vec3 uSolarDirection,uMoonDirection;uniform float uMoonSize;
+${NIGHT_MODEL_GLSL}${NIGHT_LOOK_GLSL}
+void main(){
+ if(texture(uOpaqueRead,vUv).a<9999.||texture(uWaterSurface,vUv).a<9999.)discard;
+ vec4 vp=uInverseProjection*vec4(vUv*2.-1.,1,1);vec3 d=normalize(mat3(uCameraMatrix)*vp.xyz/vp.w);
+ vec4 exposure=texelFetch(uExposure,ivec2(0),0);float visible=nightSkyVisibility(uSolarDirection.y,exposure.b);
+ if(d.y<0.||visible<.0001||dot(d,uMoonDirection)>cos(.00452*uMoonSize*1.2))discard;
+ float el=asin(clamp(d.y,0.,1.))/1.570796327;
+ vec3 trans=textureLod(uAtmosphere,vec2((.5+sqrt(el)*127.)/256.,112.5/128.),0.).rgb;
+ float gain=${NIGHT_LOOK.galaxyGain.toFixed(1)}*nightSkyExposure(exposure.r,exposure.b,uSolarDirection.y)/max(.001,exposure.r);
+ outColor=vec4(nightBackground(d,uSolarDirection,uCelestialRotation)*trans*gain*visible,0);
 }`;
 export class StarGaussians{
- constructor(uniforms){
+ constructor(uniforms,{enhanced=false}={}){
   const g=new THREE.InstancedBufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,-1,1,0,1,1,0],3));g.setIndex([0,1,2,2,1,3]);
   const directions=[],colors=[],photometry=[];for(const [ra,dec,mag,bv] of catalogue){directions.push(...starDirection(ra,dec));colors.push(...starColor(bv));photometry.push(starIrradiance(mag),mag);}
   g.setAttribute('aDirection',new THREE.InstancedBufferAttribute(new Float32Array(directions),3));g.setAttribute('aColor',new THREE.InstancedBufferAttribute(new Float32Array(colors),3));g.setAttribute('aPhotometry',new THREE.InstancedBufferAttribute(new Float32Array(photometry),2));g.instanceCount=catalogue.length;
-  this.uniforms={...uniforms,uStarTime:{value:0},uExposure:{value:null}};this.geometry=g;this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:STAR_VERTEX,fragmentShader:STAR_FRAGMENT,uniforms:this.uniforms,depthTest:false,depthWrite:false,transparent:true,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor});this.scene=new THREE.Scene();const mesh=new THREE.Mesh(g,this.material);mesh.frustumCulled=false;this.scene.add(mesh);this.time=0;
+  this.uniforms={...uniforms,uEnhancedNightSky:{value:enhanced},uStarTime:{value:0},uExposure:{value:null}};this.geometry=g;this.material=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:STAR_VERTEX,fragmentShader:STAR_FRAGMENT,uniforms:this.uniforms,depthTest:false,depthWrite:false,transparent:true,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor});this.scene=new THREE.Scene();const mesh=new THREE.Mesh(g,this.material);mesh.frustumCulled=false;
+  if(enhanced){this.galaxyGeometry=new THREE.PlaneGeometry(2,2);this.galaxyMaterial=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:GALAXY_FRAGMENT,uniforms:this.uniforms,depthTest:false,depthWrite:false,transparent:true,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor});const band=new THREE.Mesh(this.galaxyGeometry,this.galaxyMaterial);band.frustumCulled=false;band.renderOrder=-1;this.scene.add(band);}
+  this.scene.add(mesh);this.time=0;
  }
  render(renderer,camera,exposure,dt){this.time+=Math.max(0,dt);this.uniforms.uStarTime.value=this.time;this.uniforms.uExposure.value=exposure.output.uniforms.uExposure.value;renderer.render(this.scene,camera);}
- dispose(){this.geometry.dispose();this.material.dispose();}
+ dispose(){this.geometry.dispose();this.material.dispose();this.galaxyGeometry?.dispose();this.galaxyMaterial?.dispose();}
 }

@@ -1,0 +1,43 @@
+{
+  "pass": true,
+  "maxExposureError": 0,
+  "maxBackgroundError": 3.01531772688668e-16,
+  "moonScatterError": 2.7893925546192326e-12,
+  "moonScatterRelativeError": 0.00008976871677448158,
+  "moonless": {
+    "mode": "moonless",
+    "catalogueStars": 8404,
+    "imageType": "32-bit float (preserves sub-half-float night radiance)",
+    "actualExposure": 2000000,
+    "skyExposure": 3000000,
+    "brightPixels": 416,
+    "meanRadiance": 0.011971512838296594,
+    "minimumRadiance": 0.0011040444669596639,
+    "maximumRadiance": 5.603917391757325,
+    "nonFinite": 0
+  },
+  "moonlit": {
+    "mode": "moonlit",
+    "catalogueStars": 8404,
+    "imageType": "32-bit float (preserves sub-half-float night radiance)",
+    "actualExposure": 12,
+    "skyExposure": 3000000,
+    "brightPixels": 395,
+    "meanRadiance": 0.01023995181967394,
+    "minimumRadiance": 6.624266801757983e-9,
+    "maximumRadiance": 5.601292252540588,
+    "nonFinite": 0
+  },
+  "polluted": {
+    "mode": "polluted",
+    "catalogueStars": 8404,
+    "imageType": "32-bit float (preserves sub-half-float night radiance)",
+    "actualExposure": 10,
+    "skyExposure": 10,
+    "brightPixels": 0,
+    "meanRadiance": 9.332940515654184e-9,
+    "minimumRadiance": 3.215727684136027e-9,
+    "maximumRadiance": 0.00001861846840256476,
+    "nonFinite": 0
+  }
+}

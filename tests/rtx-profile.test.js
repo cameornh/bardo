@@ -17,7 +17,7 @@ function device(supported=true){
 
 test('RTX policy enables all existing optimizations without changing the physics timestep',()=>{
  const r=device(),lab=new SandLab(r,{boulders:true,physicalResolution:true}),dt=lab.timestep;
- configureRTXLab(lab);assert.equal(lab.timestep,dt);assert.equal(lab.frameHz,RTX_FRAME_HZ);assert.equal(lab.asyncSimulation,false);
+ configureRTXLab(lab);assert.equal(lab.timestep,dt);assert.equal(lab.frameHz,RTX_FRAME_HZ);assert.equal(lab.asyncSimulation,true);
  for(const [key,value] of Object.entries(lab.optimizations))if(key!=='gpuPressure')assert.equal(value,true,key);
  assert.equal(lab.gpu.cpuContacts,true); // before validation completes
  applyRTXBackend(lab,'gpu',null,{geometryValidated:true,dispose(){}});assert.equal(lab.gpu.cpu,false);assert.equal(lab.gpu.cpuContacts,false);assert.equal(lab.air.cpu,false);
@@ -86,5 +86,5 @@ test('branch routing defaults to the isolated RTX entry and preserves the origin
  const rtx=await readFile(new URL('../src/rtx-sand-lab/main.js',import.meta.url),'utf8');
  assert.match(rtx,/warmObjects:false/);
  assert.match(rtx,/tick\(performance.now\(\)\)/);
- assert.match(rtx,/setRTXBackend\(params\.get\('backend'\)\|\|'gpu'\)/);
+ assert.match(rtx,/setRTXBackend\(params\.get\('backend'\)\|\|lab\.hardwarePolicy\.defaultBackend\)/);
 });

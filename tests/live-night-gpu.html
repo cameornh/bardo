@@ -1,0 +1,6 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Live night sky check</title>
+<style>body{background:#182127;color:#e8edf0;font:14px system-ui;margin:18px}button{padding:8px;margin:4px}canvas{display:block;max-width:100%;margin-top:12px}pre{white-space:pre-wrap}p{max-width:850px}</style>
+<p>Isolated production stars and Milky Way. No beach simulation or scene ray marching. One 720 × 450 drawing context, created only when clicked.</p>
+<button id="moonless">Moonless sky</button><button id="moonlit">Moonlit sky</button><button id="polluted">Bright artificial light</button><button id="verify">Numerical sky checks</button>
+<pre id="result">Not run.</pre><canvas id="view" width="720" height="450"></canvas>
+<script type="module" src="./live-night-gpu.js"></script></html>

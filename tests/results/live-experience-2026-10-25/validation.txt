@@ -1,0 +1,491 @@
+TAP version 13
+# coupled pressure reference [{"count":3024,"volume":81.64800000000002,"mean":0.270376723458323,"upper":0.7547328472137451,"peakSpeed":2.1520030533435754},{"count":3024,"volume":81.64800000000002,"mean":0.27064111295736176,"upper":0.7538310885429382,"peakSpeed":2.1439272688351534}]
+# Subtest: batch contacts match original results with cups, player, edited sand and held samples
+ok 1 - batch contacts match original results with cups, player, edited sand and held samples
+  ---
+  duration_ms: 125.074497
+  type: 'test'
+  ...
+# Subtest: adaptive pressure is bounded against the original solver and ignores camera state
+ok 2 - adaptive pressure is bounded against the original solver and ignores camera state
+  ---
+  duration_ms: 120.412322
+  type: 'test'
+  ...
+# Subtest: coupled pressure/transport remains stable over four seconds with exact parcel mass
+ok 3 - coupled pressure/transport remains stable over four seconds with exact parcel mass
+  ---
+  duration_ms: 3684.835769
+  type: 'test'
+  ...
+# Subtest: distant optical budget is continuous, monotone and retains near fidelity
+ok 4 - distant optical budget is continuous, monotone and retains near fidelity
+  ---
+  duration_ms: 4.417435
+  type: 'test'
+  ...
+# Subtest: underwater pass bound includes tilted covariance and interpolation halo
+ok 5 - underwater pass bound includes tilted covariance and interpolation halo
+  ---
+  duration_ms: 0.347294
+  type: 'test'
+  ...
+# Subtest: compiled edited-sand contacts match flattened, overlapping and carved geometry after edits
+ok 6 - compiled edited-sand contacts match flattened, overlapping and carved geometry after edits
+  ---
+  duration_ms: 113.485997
+  type: 'test'
+  ...
+# Subtest: new optimization dependencies disable transitively without losing selections
+ok 7 - new optimization dependencies disable transitively without losing selections
+  ---
+  duration_ms: 0.440618
+  type: 'test'
+  ...
+# Subtest: one packed asynchronous step runs in order and never queues a second GPU job
+ok 8 - one packed asynchronous step runs in order and never queues a second GPU job
+  ---
+  duration_ms: 3.529083
+  type: 'test'
+  ...
+# Subtest: reset discards pending results, and a failed transfer disables further asynchronous work
+ok 9 - reset discards pending results, and a failed transfer disables further asynchronous work
+  ---
+  duration_ms: 2.209928
+  type: 'test'
+  ...
+# Subtest: fixed-step simulation earns the same time at 30, 60 and 144 display refresh rates
+ok 10 - fixed-step simulation earns the same time at 30, 60 and 144 display refresh rates
+  ---
+  duration_ms: 16.882822
+  type: 'test'
+  ...
+# Subtest: hardware policy changes only execution and display budgets, with no app FPS cap
+ok 11 - hardware policy changes only execution and display budgets, with no app FPS cap
+  ---
+  duration_ms: 0.412026
+  type: 'test'
+  ...
+# Subtest: stars survive moonlit exposure while daylight and nearby artificial lights still mask faint sky
+ok 12 - stars survive moonlit exposure while daylight and nearby artificial lights still mask faint sky
+  ---
+  duration_ms: 0.442837
+  type: 'test'
+  ...
+# Subtest: live moonlight lights surfaces more strongly while producing less sky wash; snapshots retain their defaults
+ok 13 - live moonlight lights surfaces more strongly while producing less sky wash; snapshots retain their defaults
+  ---
+  duration_ms: 173.758095
+  type: 'test'
+  ...
+# Subtest: all catalogue stars are Gaussian instances, and only the live look adds the galactic layer
+ok 14 - all catalogue stars are Gaussian instances, and only the live look adds the galactic layer
+  ---
+  duration_ms: 23.872477
+  type: 'test'
+  ...
+# Subtest: independent sky response cannot feed back into world exposure or erase moonlit surfaces
+ok 15 - independent sky response cannot feed back into world exposure or erase moonlit surfaces
+  ---
+  duration_ms: 1.309477
+  type: 'test'
+  ...
+# Subtest: packed transfer never waits synchronously and retains the exact five-layer layout
+ok 16 - packed transfer never waits synchronously and retains the exact five-layer layout
+  ---
+  duration_ms: 29.854911
+  type: 'test'
+  ...
+# Subtest: frame polling completes a ready fence and a failed fence releases its resources
+ok 17 - frame polling completes a ready fence and a failed fence releases its resources
+  ---
+  duration_ms: 0.962914
+  type: 'test'
+  ...
+# Subtest: RTX policy enables all existing optimizations without changing the physics timestep
+ok 18 - RTX policy enables all existing optimizations without changing the physics timestep
+  ---
+  duration_ms: 236.05083
+  type: 'test'
+  ...
+# Subtest: GPU profile cannot submit the monolithic pressure/contact shader
+ok 19 - GPU profile cannot submit the monolithic pressure/contact shader
+  ---
+  duration_ms: 185.358424
+  type: 'test'
+  ...
+# Subtest: snapshots retain the mandatory CPU path unless the experiment explicitly opts in
+ok 20 - snapshots retain the mandatory CPU path unless the experiment explicitly opts in
+  ---
+  duration_ms: 0.263009
+  type: 'test'
+  ...
+# Subtest: both GPU URL aliases require validation, and missing capability uses CPU reference
+ok 21 - both GPU URL aliases require validation, and missing capability uses CPU reference
+  ---
+  duration_ms: 110.739084
+  type: 'test'
+  ...
+# Subtest: target-machine validation fixtures cover contacts, held samples and actual edited sand
+ok 22 - target-machine validation fixtures cover contacts, held samples and actual edited sand
+  ---
+  duration_ms: 188.71585
+  type: 'test'
+  ...
+# Subtest: failed target validation is cached and cannot resubmit graphics work
+ok 23 - failed target validation is cached and cannot resubmit graphics work
+  ---
+  duration_ms: 0.433257
+  type: 'test'
+  ...
+# Subtest: branch routing defaults to the isolated RTX entry and preserves the original safe entry
+ok 24 - branch routing defaults to the isolated RTX entry and preserves the original safe entry
+  ---
+  duration_ms: 7.956844
+  type: 'test'
+  ...
+# Subtest: the reported RTX D3D11 path is guarded while the working NVIDIA OpenGL and Mac Metal paths are allowed
+ok 25 - the reported RTX D3D11 path is guarded while the working NVIDIA OpenGL and Mac Metal paths are allowed
+  ---
+  duration_ms: 1.082303
+  type: 'test'
+  ...
+# Subtest: shader preparation yields and polls completion before asking for uniforms or drawing
+ok 26 - shader preparation yields and polls completion before asking for uniforms or drawing
+  ---
+  duration_ms: 1.822543
+  type: 'test'
+  ...
+# Subtest: a timed-out shader stops the remaining compilation jobs without querying link status
+ok 27 - a timed-out shader stops the remaining compilation jobs without querying link status
+  ---
+  duration_ms: 0.644173
+  type: 'test'
+  ...
+# Subtest: lost context and unavailable parallel compilation submit no program
+ok 28 - lost context and unavailable parallel compilation submit no program
+  ---
+  duration_ms: 0.372461
+  type: 'test'
+  ...
+# Subtest: flat macro reduction visits every original sample in exactly the same order
+ok 29 - flat macro reduction visits every original sample in exactly the same order
+  ---
+  duration_ms: 2.474858
+  type: 'test'
+  ...
+# Subtest: parallel preparation applies the same specialization as drawing and stable null samplers
+ok 30 - parallel preparation applies the same specialization as drawing and stable null samplers
+  ---
+  duration_ms: 2.275666
+  type: 'test'
+  ...
+# Subtest: rejected optional compute program does not blank a healthy renderer or resubmit
+ok 31 - rejected optional compute program does not blank a healthy renderer or resubmit
+  ---
+  duration_ms: 2.076476
+  type: 'test'
+  ...
+# Subtest: loss of context stops optional compute and later scene draws
+ok 32 - loss of context stops optional compute and later scene draws
+  ---
+  duration_ms: 0.332798
+  type: 'test'
+  ...
+# Subtest: render errors identify the pass even when shader source and driver logs vanish
+ok 33 - render errors identify the pass even when shader source and driver logs vanish
+  ---
+  duration_ms: 1.364403
+  type: 'test'
+  ...
+# Subtest: explicit level zero preserves nested coordinates and ignores comments, bias and other textures
+ok 34 - explicit level zero preserves nested coordinates and ignores comments, bias and other textures
+  ---
+  duration_ms: 0.592321
+  type: 'test'
+  ...
+# Subtest: compatibility transform composes with specialization and keeps mipmapped textures unchanged
+ok 35 - compatibility transform composes with specialization and keeps mipmapped textures unchanged
+  ---
+  duration_ms: 1.849134
+  type: 'test'
+  ...
+# Subtest: RTX pressure is split into small geometry-free neighbor programs
+ok 36 - RTX pressure is split into small geometry-free neighbor programs
+  ---
+  duration_ms: 1.940618
+  type: 'test'
+  ...
+# Subtest: molecular scattering makes the daytime zenith blue and reddens low sunlight
+ok 37 - molecular scattering makes the daytime zenith blue and reddens low sunlight
+  ---
+  duration_ms: 3.413283
+  type: 'test'
+  ...
+# Subtest: planet occludes direct sunlight below the horizon while lunar sky remains dim and finite
+ok 38 - planet occludes direct sunlight below the horizon while lunar sky remains dim and finite
+  ---
+  duration_ms: 1.510381
+  type: 'test'
+  ...
+# Subtest: atmospheric radiance remains finite at grazing angles, poles and twilight
+ok 39 - atmospheric radiance remains finite at grazing angles, poles and twilight
+  ---
+  duration_ms: 12.896546
+  type: 'test'
+  ...
+# Subtest: scattering follows solar azimuth rather than an artist-painted horizon gradient
+ok 40 - scattering follows solar azimuth rather than an artist-painted horizon gradient
+  ---
+  duration_ms: 0.455849
+  type: 'test'
+  ...
+# Subtest: sky spherical harmonics update with time of day and contain no solar disc
+ok 41 - sky spherical harmonics update with time of day and contain no solar disc
+  ---
+  duration_ms: 14.908953
+  type: 'test'
+  ...
+# Subtest: lunar irradiance follows a continuous phase curve and is much fainter than sunlight
+ok 42 - lunar irradiance follows a continuous phase curve and is much fainter than sunlight
+  ---
+  duration_ms: 1.785489
+  type: 'test'
+  ...
+# Subtest: moon orbit, visible phase and lunar clock agree; daily and monthly clocks are independent
+ok 43 - moon orbit, visible phase and lunar clock agree; daily and monthly clocks are independent
+  ---
+  duration_ms: 0.483704
+  type: 'test'
+  ...
+# Subtest: star photometry preserves magnitude ratios, warm/cool colors and flux through spherical projection
+ok 44 - star photometry preserves magnitude ratios, warm/cool colors and flux through spherical projection
+  ---
+  duration_ms: 10.823092
+  type: 'test'
+  ...
+# Subtest: clear moonless sky remains faint, moonlight scatters, and horizon extinction reddens stars
+ok 45 - clear moonless sky remains faint, moonlight scatters, and horizon extinction reddens stars
+  ---
+  duration_ms: 1.500749
+  type: 'test'
+  ...
+# Subtest: stellar seeing changes Gaussian edges while preserving centroid, flux and a bounded footprint
+ok 46 - stellar seeing changes Gaussian edges while preserving centroid, flux and a bounded footprint
+  ---
+  duration_ms: 23.097218
+  type: 'test'
+  ...
+# Subtest: faint compact stars twinkle more strongly, with subtle size and brightness changes
+ok 47 - faint compact stars twinkle more strongly, with subtle size and brightness changes
+  ---
+  duration_ms: 0.98885
+  type: 'test'
+  ...
+# Subtest: tide envelope has spring/neap modulation and two highs per solar day at frozen lunar phase
+ok 48 - tide envelope has spring/neap modulation and two highs per solar day at frozen lunar phase
+  ---
+  duration_ms: 3.750912
+  type: 'test'
+  ...
+# Subtest: offshore tide exchanges conserve parcel volume, preserve held water, and respect capacity
+ok 49 - offshore tide exchanges conserve parcel volume, preserve held water, and respect capacity
+  ---
+  duration_ms: 79.515642
+  type: 'test'
+  ...
+# Subtest: moon intensity does not invalidate extinction history; material changes do
+ok 50 - moon intensity does not invalidate extinction history; material changes do
+  ---
+  duration_ms: 0.522352
+  type: 'test'
+  ...
+# Subtest: ambient transmission is invariant to daylight versus tiny night radiance
+ok 51 - ambient transmission is invariant to daylight versus tiny night radiance
+  ---
+  duration_ms: 1.966637
+  type: 'test'
+  ...
+# Subtest: compact water queries preserve poly6 density and momentum, including boundaries
+ok 52 - compact water queries preserve poly6 density and momentum, including boundaries
+  ---
+  duration_ms: 20.888285
+  type: 'test'
+  ...
+# Subtest: sand broadphase preserves the full smooth CSG field, including flattened and cut stock
+ok 53 - sand broadphase preserves the full smooth CSG field, including flattened and cut stock
+  ---
+  duration_ms: 19.117163
+  type: 'test'
+  ...
+# Subtest: program specialization preserves empty scenes and can prepare object-capable variants
+ok 54 - program specialization preserves empty scenes and can prepare object-capable variants
+  ---
+  duration_ms: 0.98365
+  type: 'test'
+  ...
+# Subtest: neighbor cell rejection and ordered ranges preserve reciprocal lists and overflow exactly
+ok 55 - neighbor cell rejection and ordered ranges preserve reciprocal lists and overflow exactly
+  ---
+  duration_ms: 58.029129
+  type: 'test'
+  ...
+# Subtest: pruning stress queries preserves dry load on wet supports and bonded fracture
+ok 56 - pruning stress queries preserves dry load on wet supports and bonded fracture
+  ---
+  duration_ms: 61.980191
+  type: 'test'
+  ...
+# Subtest: lean beach predictor preserves gravity, wind, holding, player impulses and travel limits
+ok 57 - lean beach predictor preserves gravity, wind, holding, player impulses and travel limits
+  ---
+  duration_ms: 10.916175
+  type: 'test'
+  ...
+# Subtest: read-only terrain snapshot preserves cubic heights including clamped borders and edits
+ok 58 - read-only terrain snapshot preserves cubic heights including clamped borders and edits
+  ---
+  duration_ms: 3.015038
+  type: 'test'
+  ...
+# Subtest: specialization handles grouped declarations without changing unselected uniforms
+ok 59 - specialization handles grouped declarations without changing unselected uniforms
+  ---
+  duration_ms: 0.198299
+  type: 'test'
+  ...
+# Subtest: cached emission preserves marker positions, velocities, lifetimes, histories and supply
+ok 60 - cached emission preserves marker positions, velocities, lifetimes, histories and supply
+  ---
+  duration_ms: 148.730655
+  type: 'test'
+  ...
+# Subtest: live scalar terrain sampling and refreshed wind geometry preserve changing CSG
+ok 61 - live scalar terrain sampling and refreshed wind geometry preserve changing CSG
+  ---
+  duration_ms: 101.78991
+  type: 'test'
+  ...
+# Subtest: predictive scheduling avoids an over-budget second solve while preserving fixed time and dropping overload
+ok 62 - predictive scheduling avoids an over-budget second solve while preserving fixed time and dropping overload
+  ---
+  duration_ms: 156.467005
+  type: 'test'
+  ...
+# Subtest: changing compact sand mode rebuilds geometry without requiring an edit
+ok 63 - changing compact sand mode rebuilds geometry without requiring an edit
+  ---
+  duration_ms: 113.291912
+  type: 'test'
+  ...
+# Subtest: incremental settling indices preserve ordered contact and column queries after moves
+ok 64 - incremental settling indices preserve ordered contact and column queries after moves
+  ---
+  duration_ms: 277.077477
+  type: 'test'
+  ...
+# Subtest: world-resolution settling floor preserves tiny deposit mass, wetness and occupied volume
+ok 65 - world-resolution settling floor preserves tiny deposit mass, wetness and occupied volume
+  ---
+  duration_ms: 0.932498
+  type: 'test'
+  ...
+# Subtest: forty seconds of wind deposition does not recursively multiply sub-resolution stock
+ok 66 - forty seconds of wind deposition does not recursively multiply sub-resolution stock
+  ---
+  duration_ms: 3905.605926
+  type: 'test'
+  ...
+# Subtest: coalescing overlapping wind deposits conserves grain/pore volume, wetness, history and centre of mass
+ok 67 - coalescing overlapping wind deposits conserves grain/pore volume, wetness, history and centre of mass
+  ---
+  duration_ms: 0.845334
+  type: 'test'
+  ...
+# Subtest: mixed optimization selections retain independent choices and gate only required paths
+ok 68 - mixed optimization selections retain independent choices and gate only required paths
+  ---
+  duration_ms: 66.535623
+  type: 'test'
+  ...
+# Subtest: switching optimization combinations invalidates live water queries without resetting stock
+ok 69 - switching optimization combinations invalidates live water queries without resetting stock
+  ---
+  duration_ms: 98.448651
+  type: 'test'
+  ...
+# Subtest: object warmup prepares render and compute variants without changing simulation uniforms
+ok 70 - object warmup prepares render and compute variants without changing simulation uniforms
+  ---
+  duration_ms: 1.582705
+  type: 'test'
+  ...
+# Subtest: the live entry point cannot import or auto-validate experimental pressure
+ok 71 - the live entry point cannot import or auto-validate experimental pressure
+  ---
+  duration_ms: 40.863797
+  type: 'test'
+  ...
+# Subtest: forced CPU pressure wins over an attached experiment, even with no objects
+ok 72 - forced CPU pressure wins over an attached experiment, even with no objects
+  ---
+  duration_ms: 244.925844
+  type: 'test'
+  ...
+# Subtest: live CPU restriction survives resolution, beach-size, object and optimization resets
+ok 73 - live CPU restriction survives resolution, beach-size, object and optimization resets
+  ---
+  duration_ms: 247.658023
+  type: 'test'
+  ...
+# Subtest: live specialization draws only requested programs and never warms unused variants
+ok 74 - live specialization draws only requested programs and never warms unused variants
+  ---
+  duration_ms: 1.3553
+  type: 'test'
+  ...
+# Subtest: module failures and async scene initialization failures reach visible startup diagnostics
+ok 75 - module failures and async scene initialization failures reach visible startup diagnostics
+  ---
+  duration_ms: 1.897128
+  type: 'test'
+  ...
+# Subtest: report mode never imports a scene or requests graphics
+ok 76 - report mode never imports a scene or requests graphics
+  ---
+  duration_ms: 0.267972
+  type: 'test'
+  ...
+# Subtest: root and explicit sand URLs start the RTX app, while safe and snapshot URLs retain their implementations
+ok 77 - root and explicit sand URLs start the RTX app, while safe and snapshot URLs retain their implementations
+  ---
+  duration_ms: 1.400352
+  type: 'test'
+  ...
+# Subtest: classic bootstrap preserves the last operation across a page reload before any module starts
+ok 78 - classic bootstrap preserves the last operation across a page reload before any module starts
+  ---
+  duration_ms: 5.608632
+  type: 'test'
+  ...
+# Subtest: unhandled early promise rejection is shown and preserved even when the scene replaces the body
+ok 79 - unhandled early promise rejection is shown and preserved even when the scene replaces the body
+  ---
+  duration_ms: 1.172763
+  type: 'test'
+  ...
+# Subtest: finished startup stops recording drawing passes and dismisses its panel
+ok 80 - finished startup stops recording drawing passes and dismisses its panel
+  ---
+  duration_ms: 1.212356
+  type: 'test'
+  ...
+1..80
+# tests 80
+# suites 0
+# pass 80
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12562.329438

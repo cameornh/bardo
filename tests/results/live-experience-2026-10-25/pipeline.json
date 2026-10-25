@@ -1,0 +1,38 @@
+{
+  "pass": true,
+  "rows": [
+    {
+      "fixture": "Free water and held samples",
+      "particles": 175,
+      "deferred": true,
+      "packedError": 0,
+      "pass": true,
+      "error": 0.000010728836059570312,
+      "heldError": 0,
+      "tolerance": 0.00028000000000000003,
+      "finite": true,
+      "syncMs": 22.199999999254942,
+      "submitMs": 1.6000000014901161,
+      "totalAsyncMs": 18.699999999254942,
+      "packedReadbacks": 1,
+      "pressureReadbacks": 0
+    },
+    {
+      "fixture": "Beach, boulders, tilted cup and player",
+      "particles": 175,
+      "deferred": true,
+      "packedError": 0,
+      "pass": true,
+      "error": 0.000010728836059570312,
+      "heldError": 0,
+      "tolerance": 0.00028000000000000003,
+      "finite": true,
+      "syncMs": 7.5,
+      "submitMs": 1,
+      "totalAsyncMs": 21.399999998509884,
+      "packedReadbacks": 1,
+      "pressureReadbacks": 0
+    }
+  ],
+  "note": "Small numerical fixtures; timings are not RTX full-scene throughput measurements."
+}

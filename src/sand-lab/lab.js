@@ -12,6 +12,7 @@ import {sandResolutionForWater} from './resolution.js';
 import {carryDistance,solidRayHit,waterRayHit,selectWaterParcels} from './interaction.js';
 import {cupWaterState} from './cup-water.js';
 import {lunarDirection,moonIrradiance,MOON_COLOR} from './night-sky-model.js';
+import {NIGHT_LOOK} from './night-look.js';
 import {atmosphereTransmission} from './atmosphere-model.js';
 import * as THREE from 'three';
 import {WaterLab} from './water-lab.js';
@@ -75,8 +76,8 @@ export class SandLab extends WaterLab{
  syncUniforms(){super.syncUniforms();if(!this.sand)return;this.syncSandUniforms();const n=Math.max(1,Math.ceil(this.balls.length*3/256)),u=this.u;if(u.uBodyExtra.value.image.height!==n){u.uBodyExtra.value.dispose();u.uBodyExtra.value=floatTexture(new Float32Array(n*256*4),256,n);}const a=u.uBodyExtra.value.image.data;this.balls.forEach((b,i)=>{a.set([...b.color,b.shape==='cup'?1:0],i*12);a.set([b.tilt||0,b.spin||0,b.pitch||0,0],i*12+4);});u.uBodyExtra.value.needsUpdate=true;
 
  const day=this.day??14,angle=(day-6)/24*Math.PI*2,alt=Math.sin(angle),daylight=clamp((alt+.08)/.3,0,1);u.uSolarDirection.value.set(Math.cos(angle)*.55,alt,.35).normalize();
- const lunar=lunarState(this.lunarDay??LUNAR_MONTH/2);this.moonPhase=moonPhaseState(this).illuminated;const key=`${day}:${lunar.age}:${this.moonPhaseOffset}`;
- if(this.lightDay!==key){this.lightDay=key;const sun=u.uSolarDirection.value.toArray(),moon=lunarDirection(lunar.elongation),solar=atmosphereTransmission([0,.02,0],sun),lunarTrans=atmosphereTransmission([0,.02,0],moon),ratio=moonIrradiance(this.moonPhase??1),useSun=Math.max(...solar)>Math.max(...lunarTrans)*ratio;
+ const lunar=lunarState(this.lunarDay??LUNAR_MONTH/2);this.moonPhase=moonPhaseState(this).illuminated;const key=`${day}:${lunar.age}:${this.moonPhaseOffset}:${!!this.enhancedNightSky}`;
+ if(this.lightDay!==key){this.lightDay=key;const sun=u.uSolarDirection.value.toArray(),moon=lunarDirection(lunar.elongation),solar=atmosphereTransmission([0,.02,0],sun),lunarTrans=atmosphereTransmission([0,.02,0],moon),ratio=moonIrradiance(this.moonPhase??1)*(this.enhancedNightSky?NIGHT_LOOK.moonSceneGain:1),useSun=Math.max(...solar)>Math.max(...lunarTrans)*ratio;
   this.dayTransmission=useSun?solar:lunarTrans.map((v,k)=>v*MOON_COLOR[k]);this.dayLightRatio=useSun?1:ratio;this.dayLightDirection=useSun?sun:moon;
  }
  u.uDaySun.value.fromArray(this.dayLightDirection);u.uDayTint.value.fromArray(this.dayTransmission);u.uDaySky.value=daylight;this.sunlight=(this.sunIntensity??1)*this.dayLightRatio;this.ambient=this.skyIntensity??1;}

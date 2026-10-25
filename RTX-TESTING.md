@@ -1,7 +1,10 @@
-# RTX GPU test branch
+# Shared live scene and machine profiles
 
-Branch: `codex/rtx-5070-ti-gpu`. Intended for the separate RTX 5070 Ti computer.
-The original `main` checkout and historical test implementations remain unchanged.
+Branches: `main` and `codex/rtx-5070-ti-gpu`. Both ship the same live scene,
+features and controls. Hardware policy selects execution and image budgets:
+the RTX machine defaults to validated GPU pressure, while the Mac defaults to
+compiled CPU pressure with GPU transport/rendering. Historical snapshot URLs
+retain their previous implementations.
 
 ## Update and run
 
@@ -36,9 +39,8 @@ uses [ANGLE's documented Chrome options](https://github.com/google/angle/blob/ma
 
 `npm run dev` remains available on port 5173. Production startup removes the
 development module graph from the investigation; it does not change rendering
-or simulation settings. This branch also opens the GPU sand lab at its root URL. **On `main`,
-the root URL opens the older “10 · Open beach” snapshot instead**; comparisons
-must use the explicit sand-lab URL.
+or simulation settings. Both branches open the shared live sand lab at the root
+URL and at `?scene=sand-lab`.
 
 The experiment shows a paused scene frame before its optional GPU pressure
 checks. Eight fixtures of at most 175 samples compare GPU arithmetic and
@@ -109,9 +111,9 @@ availability; it does not validate compilation of the larger scene programs.
 - Existing GPU air field, fine spray/bubble/mist motion, airborne sand grains,
   sea-foam transport, rain object-contact map, water reconstruction, medium
   lighting, atmosphere and exposure, plus drawing.
-- Existing compatible optimization checkboxes start enabled. Display is capped
-  at 60 FPS instead of 15. Physics uses a 12 ms inter-step budget, allowing at
-  least one due step. Requested realtime speed and timestep remain unchanged.
+- Existing compatible optimization checkboxes start enabled. Display follows
+  the monitor's animation-frame cadence with no additional application FPS cap.
+  Live physics uses the one-step asynchronous pipeline described below.
 
 Sand stock/adhesion, rigid bodies, player, rain mass, condensation bookkeeping,
 tides, and neighbor construction still run on the CPU with existing compiled
@@ -135,8 +137,56 @@ workloads use the CPU reference. This time budget prevents later submissions;
 it cannot interrupt a driver call already running. Simple GPU contacts support
 up to 16 rigid bodies; other geometry uses CPU contacts.
 
+## Live throughput and night sky
+
+- `LiveSandLab` runs one fixed physics step at a time. A pixel-pack buffer and
+  GPU fence transfer position/transport results together while the main thread
+  can present frames. Validated simple geometry keeps pressure output on the
+  GPU until that transfer, removing the earlier pressure readback and re-upload.
+  Predictions and packed neighbors are reused rather than copied/uploaded a
+  second time. Changed neighbor lists are validated; reused lists retain their
+  completed validation. This follows the
+  [WebGL guidance on asynchronous readbacks](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices#avoid_blocking_api_calls_in_production).
+- No additional GPU steps are queued. Polling uses at most 32 yielded tasks in
+  a 12 ms window before reverting to frame/timer polls. A transfer timeout stops
+  the asynchronous path. Context-loss protection, bounded dispatch sizes and
+  CPU fallbacks remain. The same fixed timestep and realtime-speed ceiling
+  apply at 30, 60 and 144 display refresh rates; camera motion cannot change
+  physical resolution or earned simulation time.
+- RTX presentation can use 1440 × 960 base pixels at 75% drawing scale; the
+  compatible profile retains 960 × 640 at 50%. This is a hardware image budget,
+  with the same materials, atmosphere, objects, interactions and controls.
+- Live intermediate images retain 32-bit floating-point night radiance. The
+  previous half-float images could erase the Milky Way and faint stars before
+  exposure. All 8,404 catalogue stars remain covariance-projected Gaussians,
+  with the existing centered twinkle. A procedural unresolved galactic band
+  reappears in dark conditions; bright artificial illumination still masks it.
+- Stellar visibility is separated from world exposure. The compensating sky
+  layer is excluded from the scene meter, preventing exposure feedback. Moon
+  scattering across the sky is 8% of the snapshot look, moonlit surface
+  irradiance is 6×, and dark-scene adaptation targets 2× the previous brightness.
+  Moon orbit, phase, tide behavior and the slow exposure timing are unchanged.
+
+Remaining CPU work still includes sand, bonds, rigid bodies, player forces and
+neighbor construction; this does not claim to use all CPU cores. If these
+dominate the new stage timings, a worker for compiled contacts/neighbors is the
+next useful parallelism target. Keeping more solver state resident on the GPU
+would remove additional transfers, but requires a broader change to interactions
+and sand/water coupling. Neither was silently added here.
+
 ## Validation
 
+- Shared live follow-up: 80 relevant numerical, scheduling, safety and routing
+  checks passed with the production build. Small GPU fixtures (175 samples)
+  produced identical packed results to the synchronous route; maximum CPU
+  pressure difference was 0.00001073 against a 0.00028 tolerance, with held
+  samples unchanged. Deferred pressure used zero readbacks plus one packed
+  transfer per step. Local timings demonstrate lower blocking submission cost,
+  not a measured full-scene RTX utilization or FPS improvement.
+- `/tests/live-night-gpu.html` checks the production Gaussian stars/galactic
+  shader without a beach simulation. `/tests/live-pipeline-gpu.html` checks the
+  bounded pipeline. Both create a context only when requested. Raw results and
+  the isolated sky preview are in `tests/results/live-experience-2026-10-25/`.
 - Controls follow-up: panel styling is embedded with the UI module, and the
   Show/Hide button controls an explicit overlay. FPS and simulation rate stay
   in the bottom-left corner when the panel is hidden. The isolated no-graphics

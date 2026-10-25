@@ -1,8 +1,14 @@
-// Opt-in experiment for the separate RTX branch. Snapshot constructors never
-// set allowGPUObjectContacts; their existing CPU restriction stays intact.
-export const RTX_FRAME_HZ=60;
+// Hardware execution policy for the shared live scene. Snapshot constructors
+// never set allowGPUObjectContacts; their CPU restriction stays intact.
+// Zero means follow requestAnimationFrame / the display, with no extra cap.
+export const RTX_FRAME_HZ=0;
 export const RTX_BACKENDS=['gpu','bounded','safe','cpu'];
 export const requiresOpenGLWindow=device=>/Direct3D11|D3D11/.test(device.adapter||'');
+export function hardwarePolicy(device={}){
+ const discreteRTX=/NVIDIA.*RTX|RTX.*NVIDIA|GeForce RTX/i.test(device.adapter||'');
+ return {name:discreteRTX?'discrete GPU':'compatible GPU',defaultBackend:discreteRTX?'gpu':'safe',frameHz:0,
+  maxWidth:discreteRTX?1440:960,maxHeight:discreteRTX?960:640,drawingScale:discreteRTX?.75:.5};
+}
 
 export function applyRTXBackend(lab,requested,draw=null,bounded=null){
  if(!RTX_BACKENDS.includes(requested))throw new Error('Unknown RTX backend: '+requested);
@@ -27,15 +33,17 @@ export function applyRTXBackend(lab,requested,draw=null,bounded=null){
  return mode;
 }
 
-export function configureRTXLab(lab){
+export function configureRTXLab(lab,device={}){
  // Enable every existing optimization, including the accelerated fallback
  // implementations. Alternative pressure solvers are selected separately.
  for(const key of Object.keys(lab.optimizations))lab.optimizations[key]=true;
  Object.assign(lab.optimizations,{batchedContacts:true,nativeSandContacts:true,adaptivePressure:true,distantOptics:true,viewPassCulling:true});
- lab.frameHz=RTX_FRAME_HZ;lab.physicsBudgetMs=12;
- // Batched transport/readback and asynchronous legacy steps are alternative
- // execution paths. Use the fused/batched route, not both simultaneously.
- lab.asyncSimulation=false;
+ lab.hardwarePolicy=hardwarePolicy(device);lab.enhancedNightSky=true;
+ lab.frameHz=RTX_FRAME_HZ;lab.physicsBudgetMs=14;
+ // LiveSandLab combines the batched route with a single asynchronous transfer.
+ // The older SandLab / water test retain their original execution paths.
+ lab.asyncSimulation=!!lab.renderer.extensions.has('EXT_color_buffer_float');
+ lab.gpu.deferBoundedRead=true;
  return applyRTXBackend(lab,'safe');
 }
 

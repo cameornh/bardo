@@ -29,6 +29,11 @@ export class LabFluidGPU {
  solve(predicted,spacing,collide,iterations=3,boundary=null,asyncRead=false,deferRead=false){if(!predicted.length){this.neighbors=new Float32Array(0);this.overflow=0;return predicted.slice();}const start=performance.now(),neighbors=this.neighborList(predicted,spacing);this.neighborMs=performance.now()-start;this.overflow=neighbors.overflow;this.neighbors=neighbors.data;if(this.cpu)return solveDensity(predicted,neighbors.data,spacing,iterations,collide,this.uniforms.uBoundaryDensity.value?boundary:null).positions;const n=predicted.length/4;this.allocate(n);this.data.fill(0,predicted.length);this.data.set(predicted);this.texture.needsUpdate=true;if(!this.neighborReused||this.uploadedNeighbors!==neighbors.data){if(this.packedTexture)packNeighborTexture(neighbors.data,this.neighborData,n);else{this.neighborData.fill(-1,neighbors.data.length);this.neighborData.set(neighbors.data);}this.neighborTexture.needsUpdate=true;this.uploadedNeighbors=neighbors.data;}if(this.cpuContacts||this.boundedPressure){
   this.contactArithmetic=this.nativeDensity&&nativeDensityAvailable()?'WebAssembly CPU':'JavaScript CPU';
   const bounded=!this.forceCPUConstraints&&this.boundedPressure&&this.contactGeometry?.optimizations?.gpuPressure;
+  this.finishDeferredPressure=null;
+  if(bounded&&deferRead&&this.deferBoundedRead){
+   const pending=this.boundedPressure.dispatch?.(predicted,neighbors.data,spacing,iterations,collide,boundary,this.contactGeometry,{positions:this.texture,neighbors:this.packedTexture?this.neighborTexture:null,neighborsUnchanged:this.neighborReused});
+   if(pending){this.resultTexture=pending.texture;this.finishDeferredPressure=pending.finish;this.contactArithmetic=this.boundedPressure.backend;return null;}
+  }
   const solver=bounded?this.boundedPressure.solve.bind(this.boundedPressure):this.contactArithmetic==='WebAssembly CPU'?(this.nativeDensitySolver??=new NativeDensity()).solve.bind(this.nativeDensitySolver):solveDensityCPU;
   const result=solver(predicted,neighbors.data,spacing,iterations,this.uniforms.uCollision.value?collide:undefined,this.uniforms.uCollision.value&&this.uniforms.uBoundaryDensity.value?boundary:null,this.uniforms.uCollision.value?this.contactGeometry:null);
   if(bounded)this.contactArithmetic=this.boundedPressure.backend;
