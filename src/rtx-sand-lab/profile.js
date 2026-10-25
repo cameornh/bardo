@@ -5,14 +5,15 @@ export const RTX_BACKENDS=['gpu','bounded','safe','cpu'];
 
 export function applyRTXBackend(lab,requested,draw=null,bounded=null){
  if(!RTX_BACKENDS.includes(requested))throw new Error('Unknown RTX backend: '+requested);
- if(requested==='bounded'&&!bounded?.geometryValidated)throw new Error('Validate split GPU pressure before enabling it.');
  const supported=!!lab.renderer.extensions.has('EXT_color_buffer_float');
  const mode=supported?requested:'cpu',gpu=lab.gpu;
+ if(['gpu','bounded'].includes(mode)&&!bounded?.geometryValidated)throw new Error('Validate split GPU pressure before enabling it.');
  gpu.cpu=mode==='cpu';
+ gpu.contactGeometry=lab;
  gpu.forceCPUConstraints=mode==='safe'||mode==='cpu';
  gpu.allowGPUObjectContacts=mode==='gpu'||mode==='bounded';
- gpu.boundedPressure=mode==='bounded'?bounded:null;
- lab.optimizations.gpuPressure=mode==='bounded';
+ gpu.boundedPressure=mode==='gpu'||mode==='bounded'?bounded:null;
+ lab.optimizations.gpuPressure=mode==='gpu'||mode==='bounded';
  gpu.contactArithmetic=null;
  gpu.neighborOrigin=null;lab.emitterSamples=null;
  if(lab.air){lab.air.cpu=gpu.cpu;lab.air.key=null;lab.air.grid=null;}
@@ -40,6 +41,8 @@ export function configureRTXLab(lab){
 export function rendererInfo(renderer){
  const gl=renderer.getContext(),debug=gl.getExtension('WEBGL_debug_renderer_info');
  return {adapter:gl.getParameter(debug?debug.UNMASKED_RENDERER_WEBGL:gl.RENDERER),
+  vendor:gl.getParameter(debug?debug.UNMASKED_VENDOR_WEBGL:gl.VENDOR),version:gl.getParameter(gl.VERSION),
+  fragmentTextureUnits:gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),vertexTextureUnits:gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS),
   floatTargets:renderer.extensions.has('EXT_color_buffer_float'),maxTextureSize:renderer.capabilities.maxTextureSize,
   api:'WebGL 2 fragment-shader compute (not CUDA or WebGPU)'};
 }

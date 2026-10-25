@@ -1,0 +1,19 @@
+{
+  "pass": true,
+  "rows": [
+    {
+      "filter": "nearest",
+      "pass": true,
+      "error": 0,
+      "finite": true,
+      "signal": 1
+    },
+    {
+      "filter": "linear",
+      "pass": true,
+      "error": 0,
+      "finite": true,
+      "signal": 0.9790441170334816
+    }
+  ]
+}

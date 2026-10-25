@@ -1,0 +1,107 @@
+{
+  "pass": true,
+  "device": {
+    "adapter": "ANGLE (AMD, ANGLE Metal Renderer: AMD Radeon Pro 560X, Unspecified Version)",
+    "vendor": "Google Inc. (AMD)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "fragmentTextureUnits": 16,
+    "vertexTextureUnits": 16,
+    "floatTargets": true,
+    "maxTextureSize": 16384,
+    "api": "WebGL 2 fragment-shader compute (not CUDA or WebGPU)"
+  },
+  "split": {
+    "pass": true,
+    "backend": "GPU pressure and simple beach contacts",
+    "validation": {
+      "pass": true,
+      "rows": [
+        {
+          "name": "Dense free water and held points",
+          "pass": true,
+          "error": 8.940696716308594e-8,
+          "heldError": 0,
+          "tolerance": 0.00028000000000000003,
+          "finite": true,
+          "ms": 224.19999999925494
+        },
+        {
+          "name": "Tilted cup and sloping ground",
+          "pass": true,
+          "error": 0.00004842877388000488,
+          "heldError": 0,
+          "tolerance": 0.00028000000000000003,
+          "finite": true,
+          "ms": 16.59999999962747
+        },
+        {
+          "name": "Sparse surface water",
+          "pass": true,
+          "error": 0,
+          "heldError": 0,
+          "tolerance": 0.00028000000000000003,
+          "finite": true,
+          "ms": 7
+        }
+      ]
+    },
+    "geometry": {
+      "pass": true,
+      "rows": [
+        {
+          "name": "GPU beach bounds and boulders",
+          "pass": true,
+          "error": 0.0000171661376953125,
+          "heldError": 0,
+          "tolerance": 0.00028000000000000003,
+          "finite": true,
+          "ms": 477.7000000011176
+        },
+        {
+          "name": "GPU cup, player and ground contacts",
+          "pass": true,
+          "error": 0.0000011920928955078125,
+          "heldError": 0,
+          "tolerance": 0.00028000000000000003,
+          "finite": true,
+          "ms": 8.199999999254942
+        }
+      ]
+    }
+  },
+  "rows": [
+    {
+      "name": "Free water and held samples",
+      "particles": 175,
+      "backend": "GPU pressure / JavaScript CPU contacts",
+      "pass": true,
+      "error": 2.384185791015625e-7,
+      "heldError": 0,
+      "tolerance": 0.00028000000000000003,
+      "finite": true,
+      "ms": 10.800000000745058
+    },
+    {
+      "name": "Beach, boulders, tilted cup and player",
+      "particles": 175,
+      "backend": "GPU pressure and simple beach contacts",
+      "pass": true,
+      "error": 0.000008821487426757812,
+      "heldError": 0,
+      "tolerance": 0.00028000000000000003,
+      "finite": true,
+      "ms": 16.90000000037253
+    },
+    {
+      "name": "Edited sand contacts",
+      "particles": 175,
+      "backend": "GPU pressure / WebAssembly CPU contacts",
+      "pass": true,
+      "error": 0.0000016167759895324707,
+      "heldError": 0,
+      "tolerance": 0.00028000000000000003,
+      "finite": true,
+      "ms": 26.90000000037253
+    }
+  ]
+}

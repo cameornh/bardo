@@ -1,10 +1,10 @@
 // Isolated RTX experiment. The original sand entry point remains the CPU-safe snapshot.
 import {configureRTXLab,applyRTXBackend,RTX_FRAME_HZ,rendererInfo} from './profile.js';
-import {verifyRTXPressure} from './verify.js';
-import {BoundedPressureGPU} from '../sand-lab/bounded-pressure-gpu.js';
-import {verifyBoundedPressure} from '../sand-lab/bounded-pressure-verify.js';
+import {verifyRTXPressure,getRTXPressure} from './verify.js';
+import {installRTXGraphicsGuard} from './graphics.js';
+import {installRTXShaderCompatibility} from './shader-compatibility.js';
 import {SeaFoam} from '../sand-lab/sea-foam.js';
-import {createLabRenderer,installGraphicsGuard} from '../sand-lab/graphics-health.js';
+import {createLabRenderer} from '../sand-lab/graphics-health.js';
 import {installHorizonAudit} from '../sand-lab/horizon-audit.js';
 import {lunarDirection} from '../sand-lab/night-sky-model.js';
 import {lunarState,moonPhaseState,tidalElevation,LUNAR_MONTH} from '../sand-lab/tides.js';
@@ -46,18 +46,21 @@ ${range('tilt','Held / latest object tilt (°)',-180,180,1,0)}${range('pitch','H
 <fieldset><legend>Water / wind</legend>${range('speed','Simulation speed',.05,1.5,.05,1)}${range('wind','Wind speed (m/s)',0,80,1,24)}${range('wind-turbulence','Wind turbulence',0,3,.05,1)}${range('brush','Wind brush speed (m/s)',0,180,1,60)}${range('roughness','Water highlight roughness',.04,.65,.01,.14)}<small>Roughness softens sun and lamp highlights; wind controls waves.</small>${range('tannins','Tannins / organic load',0,3,.02,0)}
 <label><input id="sea-foam" type="checkbox" checked> Persistent sea foam</label><small>Requires tannins / organic load. Drifts with waves and remains on retreating shorelines.</small><label><input id="fine" type="checkbox" checked> Foam / spray / bubbles</label>${range('density','Fine particle density',0,20,.1,.6)}<label><input id="mist" type="checkbox" checked> Mist</label><label><input id="lens" type="checkbox" checked> Camera droplets</label><button id="wipe">Wipe camera</button></fieldset>
 <fieldset><legend>Sky / rain</legend>${range('day','Time of day',0,23.95,.05,14)}<label><input id="cycle" type="checkbox"> Day / night cycle</label>${range('sun','Direct sunlight',0,3,.05,1)}${range('sky','Sky ambient',0,2,.05,1)}${range('day-seconds','Day duration (seconds)',30,1200,10,180)}${range('lunar-day','Lunar day',0,29.53,.01,14.765)}${range('moon-phase','Moon phase (new → full → new)',0,1,.005,.5)}<label><input id="lunar-cycle" type="checkbox" checked> Lunar cycle</label>${range('lunar-minutes','Lunar cycle duration (minutes)',1,120,.1,88.59177)}${range('moon-size','Moon apparent size',1,3,.1,1.7)}<button id="find-moon">Look at moon</button><small id="moon-info"></small><label><input id="tides" type="checkbox" checked> Ocean tides</label>${range('tide-amplitude','Spring tide amplitude (m)',0,4,.1,1.5)}<small id="tide-info"></small>${range('lights','Object light intensity',0,5,.05,1)}<label><input id="rain" type="checkbox"> Rain</label>${range('rain-rate','Rain rate (mm/min)',0,12000,5,100)}<small>Rain adds water; the bounded volume reports its capacity limit.</small></fieldset>
-<fieldset><legend>Diagnostics</legend><label>Backend<select id="backend"><option value="gpu">Full GPU pressure / contacts</option><option value="bounded">Split GPU pressure (experimental)</option><option value="safe">CPU pressure / GPU transport</option><option value="cpu">CPU reference (slow)</option></select></label><button id="verify">Verify GPU numerically</button><pre id="verification">Not run</pre><label><input id="adaptive" type="checkbox" checked> Adapt drawing detail</label><pre id="gpu-device"></pre><pre id="diagnostics"></pre></fieldset><button id="qa-toggle" aria-expanded="false" aria-controls="qa-panel">Show QA controls</button><fieldset id="qa-panel" hidden><legend>QA controls / tests</legend><button id="wetness-toggle" aria-pressed="false">Show sand wetness</button><small>Shows current water content, not retained adhesion.</small></fieldset></details><div id="crosshair" hidden>+</div><div id="hint"><div id="wetness-readout" hidden><div id="wetness-legend">Wetness: 0 (dry) <span></span> 1 (saturated)</div><div id="wetness-value">Hover over sand</div></div><div id="live-rate">— fps · —× realtime</div><div id="interaction-hint">WASD: move · Q/E: down/up · Shift: faster · drag to orbit</div></div><pre id="errors" hidden></pre>`;
+<fieldset><legend>Diagnostics</legend><label>Backend<select id="backend"><option value="gpu">GPU pressure / split contacts</option><option value="safe">CPU pressure / GPU transport</option><option value="cpu">CPU reference (slow)</option></select></label><button id="verify">Verify GPU numerically</button><pre id="verification">Not run</pre><label><input id="adaptive" type="checkbox" checked> Adapt drawing detail</label><pre id="gpu-device"></pre><pre id="diagnostics"></pre></fieldset><button id="qa-toggle" aria-expanded="false" aria-controls="qa-panel">Show QA controls</button><fieldset id="qa-panel" hidden><legend>QA controls / tests</legend><button id="wetness-toggle" aria-pressed="false">Show sand wetness</button><small>Shows current water content, not retained adhesion.</small></fieldset></details><div id="crosshair" hidden>+</div><div id="hint"><div id="wetness-readout" hidden><div id="wetness-legend">Wetness: 0 (dry) <span></span> 1 (saturated)</div><div id="wetness-value">Hover over sand</div></div><div id="live-rate">— fps · —× realtime</div><div id="interaction-hint">WASD: move · Q/E: down/up · Shift: faster · drag to orbit</div></div><pre id="errors" hidden></pre>`;
 $('scene-select').onchange=e=>location.assign(`?scene=${e.target.value}`);
 const showGraphicsError=error=>{$('errors').hidden=false;$('errors').textContent=error.message;};
 window.addEventListener('error',e=>showGraphicsError(e.error||new Error(e.message)));
 const canvas=$('view'),renderer=createLabRenderer(THREE.WebGLRenderer,{canvas,antialias:false,powerPreference:'high-performance'},showGraphicsError);
-const graphics=installGraphicsGuard(renderer,showGraphicsError);renderer.setPixelRatio(1);renderer.autoClear=false;
+const graphics=installRTXGraphicsGuard(renderer,showGraphicsError);renderer.setPixelRatio(1);renderer.autoClear=false;
+installRTXShaderCompatibility(renderer);
+$('gpu-device').textContent=JSON.stringify(rendererInfo(renderer),null,2);
 const camera=new THREE.PerspectiveCamera(55,1,.025,150),controls=new OrbitControls(camera,canvas);controls.enableDamping=true;controls.maxDistance=65;controls.minDistance=.15;
 const target=new THREE.WebGLRenderTarget(1,1,{type:THREE.FloatType,depthBuffer:false}),output=new THREE.Scene(),quadCamera=new THREE.Camera();output.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:TONEMAP_FRAGMENT,uniforms:{uImage:{value:target.texture}},depthTest:false,depthWrite:false})));
 const field={renderer,camera,target,output,quadCamera,resolution:new THREE.Vector2(),motion:new MotionDetail(),minPixelSigma:2,uniforms:{uView:{value:0},uSHDegree:{value:3}},water:{count:0,uniforms:{uWaterRoughness:{value:.14},uTurbidity:{value:0}}}};for(const name of ['beach','grass','grains','soft','optics','lightTest'])field[name]={count:0};
 const lab=new SandLab(renderer,{boulders:true,physicalResolution:true});Object.assign(lab.optimizations,{batchedContacts:true,nativeSandContacts:true,adaptivePressure:true,distantOptics:true,viewPassCulling:true});
 configureRTXLab(lab);
-lab.reactiveWaves=true;lab.seaFoam=new SeaFoam(renderer);const draw=new WaterLabRenderer(field,lab);draw.mediumShadows.u.uMediumSize.value.set(16,12,16);lab.rain.rate=100;lab.radius=.75;installProgramSpecialization(renderer,()=>lab.optimizations.sandPrograms!==false,{warmObjects:true});
+lab.reactiveWaves=true;lab.seaFoam=new SeaFoam(renderer);const draw=new WaterLabRenderer(field,lab);draw.mediumShadows.u.uMediumSize.value.set(16,12,16);lab.rain.rate=100;lab.radius=.75;installProgramSpecialization(renderer,()=>lab.optimizations.sandPrograms!==false,{warmObjects:false});
+graphics.label(lab,'simulation');graphics.label(draw,'render');graphics.label({output},'display');
 const resize=()=>{if(graphics.failed)return;renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();const reduction=Math.min(1,960/innerWidth,640/innerHeight);field.resolution.set(Math.round(innerWidth*reduction),Math.round(innerHeight*reduction));};window.addEventListener('resize',resize);resize();
 let pivotControl;function home(){camera.position.set(4.8,4,4.4);controls.target.set(0,.65,0);controls.update();pivotControl?.reset();}home();
 pivotControl=installOrbitPivot(camera,controls,$('orbit-pivot'),$('orbit-pivot-value'),{scale:()=>lab.spec.scale,enabled:()=>!$('pov').checked});pivotControl.reset();
@@ -111,31 +114,38 @@ canvas.addEventListener('pointerleave',()=>{pointerPosition=null;});
 function updateWetnessHover(time){if(!lab.u.uSandWetnessView.value||time-hoverTime<100)return;hoverTime=time;const ray=firstPerson?centerRay():pointerPosition?eventRay(pointerPosition):null;const hit=ray&&inspectSandRay(lab.sand,lab.balls,ray.origin,ray.direction);$('wetness-value').textContent=hit?`${hit.parcel?'Parcel '+hit.parcel.id:'Terrain'} wetness: ${hit.wetness.toFixed(4)} / 1`:'Hover over sand';}
 // Validate the selected compute path on this machine before a full-scene solve.
 // This entry point is not loaded by the CPU-safe snapshot or the current main branch.
-let backendBusy=false,splitPressure=null;
+let backendBusy=false;
 async function setRTXBackend(requested){
  if(backendBusy||graphics.failed)return;
+ if(requested==='bounded')requested='gpu';
  backendBusy=true;lab.qaRunning=true;$('backend').disabled=true;
  $('verification').textContent='Checking '+requested+' backend…';
+ graphics.stage('GPU acceleration checks');
  try{
   let report=null;
   applyRTXBackend(lab,'safe',draw);
   if(requested==='gpu')report=await verifyRTXPressure(renderer);
-  else if(requested==='bounded'){
-   splitPressure??=new BoundedPressureGPU(renderer);
-   splitPressure.autoSelect=false;
-   report=splitPressure.geometryValidated?{pass:true,backend:splitPressure.backend}:await verifyBoundedPressure(splitPressure);
-  }
   graphics.assertHealthy();
-  const actual=applyRTXBackend(lab,report&&!report.pass?'safe':requested,draw,splitPressure);
+  const actual=applyRTXBackend(lab,report&&!report.pass?'safe':requested,draw,getRTXPressure(renderer));
   $('backend').value=actual;
   $('gpu-device').textContent=JSON.stringify({...rendererInfo(renderer),selectedBackend:actual},null,2);
   $('verification').textContent=JSON.stringify({selectedBackend:actual,validation:report||'CPU fallback selected'},null,2);
  }catch(error){
   applyRTXBackend(lab,'safe',draw);$('backend').value=lab.gpu.cpu?'cpu':'safe';
   $('verification').textContent=error.stack||String(error);
- }finally{backendBusy=false;lab.qaRunning=false;$('backend').disabled=graphics.failed;}
+ }finally{backendBusy=false;lab.qaRunning=false;$('backend').disabled=graphics.failed;graphics.stage('scene');}
 }
-setRTXBackend(params.get('backend')||'gpu').then(()=>{if(!graphics.failed)requestAnimationFrame(tick);});
+// Present a paused frame before optional compute checks. A rejected pressure
+// program must not prevent a healthy renderer from showing the beach.
+async function startRTX(){
+ const requestedPause=lab.paused;lab.paused=true;$('pause').disabled=true;
+ graphics.stage('first scene frame');
+ await new Promise(requestAnimationFrame);tick(performance.now());
+ await new Promise(requestAnimationFrame);
+ if(!graphics.failed)await setRTXBackend(params.get('backend')||'gpu');
+ if(!graphics.failed){lab.paused=requestedPause;$('pause').disabled=false;}
+}
+startRTX().catch(graphics.stop);
 {
  const button=document.createElement('button');button.textContent='Inspect render buffers';$('panel').append(button);const results=document.createElement('pre');results.id='qa-results';$('panel').append(results);button.onclick=()=>{const rows={};for(const name of ['background','water','resolvedWater','composite','shellTarget']){const t=draw[name],p=new Float32Array(4);renderer.readRenderTargetPixels(t,Math.floor(t.width*.4),Math.floor(t.height*.5),1,1,p);rows[name]=Array.from(p);}rows.uniforms={day:lab.day,ambient:lab.ambient,sunlight:lab.sunlight,drawAmbient:draw.u.uAmbient.value,drawSun:draw.u.uSunlight.value,daySun:lab.u.uDaySun.value.toArray(),renderer:renderer.getContext().getParameter(renderer.getContext().RENDERER)};rows.timing=lab.timings;rows.prepare=lab.prepareTimes;results.textContent=JSON.stringify(rows,null,2);};
 }
@@ -171,6 +181,6 @@ installWetnessQA({lab,camera,controls,panel:$('panel'),results:$('qa-results')})
 // Keep the parent panel for existing fixtures' control lookups; group only
 // their newly installed UI, so visibility never resets or runs a test.
 for(const node of [...$('panel').children])if(!qaExisting.has(node))$('qa-panel').append(node);
-$('qa-panel').append($('verify'),$('verification'),$('qa-results'));
+$('qa-panel').append($('verify'),$('qa-results'));
 
 installHorizonAudit({lab,draw,renderer,camera,panel:$('qa-panel'),output:$('qa-results')});

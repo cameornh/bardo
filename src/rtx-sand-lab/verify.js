@@ -1,13 +1,16 @@
 import {SandLab} from '../sand-lab/lab.js';
-import {LabFluidGPU} from '../sand-lab/water-lab-gpu.js';
+import {RTXPressureGPU} from './pressure.js';
+import {verifyBoundedPressure} from '../sand-lab/bounded-pressure-verify.js';
+import {buildNeighbors} from '../sand-lab/water-lab-model.js';
 import {solveDensityCPU} from '../sand-lab/density-cpu.js';
 import {pressureComparison} from '../sand-lab/bounded-pressure-model.js';
 import {makeBody} from '../sand-lab/objects.js';
 import {rendererInfo} from './profile.js';
 
-// One check per graphics context, no retry after failure. Small fixtures check
-// the actual object shader, not just an empty tank or the separate split kernel.
-const checks=new WeakMap();
+// One check per graphics context, no retry after failure. Never compile the
+// historical monolithic pressure/CSG shader, even for a tiny validation fixture.
+const checks=new WeakMap(),solvers=new WeakMap();
+export const getRTXPressure=renderer=>solvers.get(renderer);
 export function verifyRTXPressure(renderer){
  if(!checks.has(renderer))checks.set(renderer,run(renderer));
  return checks.get(renderer);
@@ -32,26 +35,29 @@ export function rtxPressureFixtures(lab){
 }
 
 async function run(renderer){
- const rows=[];let lab,gpu;
+ const rows=[];let lab;
  try{
   const device=rendererInfo(renderer);
   if(!device.floatTargets)return {pass:false,device,reason:'Floating-point WebGL render targets unavailable.'};
+  const gpu=new RTXPressureGPU(renderer);solvers.set(renderer,gpu);
+  const split=await verifyBoundedPressure(gpu);
+  if(!split.pass)return {...split,device};
   // Construct CPU state without submitting the full beach to the renderer.
   lab=new SandLab({extensions:{has:()=>true}},{boulders:true,physicalResolution:true});
-  gpu=new LabFluidGPU(renderer,lab.u);gpu.allowGPUObjectContacts=true;
   const fixtures=rtxPressureFixtures(lab);
   for(const f of fixtures){
-   f.prepare?.();lab.syncUniforms();gpu.uniforms.uCollision.value=f.collision;
-   gpu.uniforms.uPackedGpuNeighbors.value=true;
-   const start=performance.now(),actual=gpu.solve(f.positions,f.spacing,f.collide,3,f.boundary);
-   const expected=solveDensityCPU(f.positions,gpu.neighbors,f.spacing,3,f.collision?f.collide:undefined,f.collision?f.boundary:null);
+   f.prepare?.();lab.syncUniforms();
+   const neighbors=buildNeighbors(f.positions,f.spacing).data;
+   const collide=f.collision?f.collide:undefined,boundary=f.collision?f.boundary:null;
+   const start=performance.now(),actual=gpu.run(f.positions,neighbors,f.spacing,3,collide,boundary,f.collision?lab:null,true);
+   const expected=solveDensityCPU(f.positions,neighbors,f.spacing,3,collide,boundary);
    const comparison=pressureComparison(actual,expected,f.positions,f.spacing);
-   rows.push({name:f.name,particles:175,backend:gpu.constraintBackend,...comparison,ms:performance.now()-start});
-   if(!comparison.pass)return {pass:false,device,rows,reason:'GPU/CPU pressure comparison failed.'};
+   rows.push({name:f.name,particles:175,backend:gpu.backend,...comparison,ms:performance.now()-start});
+   if(!comparison.pass){gpu.stop('GPU/CPU pressure comparison failed.');return {pass:false,device,rows,reason:gpu.stopped};}
    if(renderer.getContext().isContextLost())throw Error('Graphics context lost during validation.');
    await new Promise(resolve=>setTimeout(resolve,0));
   }
-  return {pass:true,device,rows};
- }catch(error){return {pass:false,rows,reason:error.message};}
- finally{gpu?.dispose();lab?.gpu.dispose();}
+  return {pass:true,device,split,rows};
+ }catch(error){solvers.get(renderer)?.stop(error.message);return {pass:false,rows,reason:error.message};}
+ finally{lab?.gpu.dispose();}
 }

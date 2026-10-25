@@ -20,7 +20,7 @@ test('RTX policy enables all existing optimizations without changing the physics
  configureRTXLab(lab);assert.equal(lab.timestep,dt);assert.equal(lab.frameHz,RTX_FRAME_HZ);assert.equal(lab.asyncSimulation,false);
  for(const [key,value] of Object.entries(lab.optimizations))if(key!=='gpuPressure')assert.equal(value,true,key);
  assert.equal(lab.gpu.cpuContacts,true); // before validation completes
- applyRTXBackend(lab,'gpu');assert.equal(lab.gpu.cpu,false);assert.equal(lab.gpu.cpuContacts,false);assert.equal(lab.air.cpu,false);
+ applyRTXBackend(lab,'gpu',null,{geometryValidated:true,dispose(){}});assert.equal(lab.gpu.cpu,false);assert.equal(lab.gpu.cpuContacts,false);assert.equal(lab.air.cpu,false);
  for(const [quality,width] of [[1,.4],[3,2]]){
   lab.resolutions.ocean=quality;lab.configure('ocean',width);
   assert.equal(lab.gpu.cpuContacts,false);assert.equal(lab.gpu.forceCPUConstraints,false);
@@ -28,16 +28,17 @@ test('RTX policy enables all existing optimizations without changing the physics
  lab.gpu.dispose();
 });
 
-test('full GPU profile dispatches pressure and object contacts rather than the CPU restriction',()=>{
- const r=device(),lab=new SandLab(r,{boulders:true}),p=new Float32Array([0,.4,0,0,.13,.4,0,1]);
- configureRTXLab(lab);applyRTXBackend(lab,'gpu');lab.gpu.uniforms.uPackedGpuNeighbors.value=true;
+test('GPU profile cannot submit the monolithic pressure/contact shader',()=>{
+ const r=device(),lab=new SandLab(r,{boulders:true}),p=new Float32Array([0,.4,0,0,.13,.4,0,1]);let calls=0;
+ const split={geometryValidated:true,backend:'GPU split pressure',dispose(){},solve(pos,neighbors,s,iterations,collide,boundary){calls++;return solveDensityCPU(pos,neighbors,s,iterations,collide,boundary);}};
+ configureRTXLab(lab);applyRTXBackend(lab,'gpu',null,split);lab.gpu.uniforms.uPackedGpuNeighbors.value=true;
  const result=lab.gpu.solve(p,.2,q=>q,3,q=>q[1],false,true);
- assert.equal(r.draws.length,6);assert.equal(lab.gpu.resultTexture,result.texture);assert.equal(lab.gpu.constraintBackend,'GPU');
- assert.equal(lab.gpu.uniforms.uBodyCount.value,lab.balls.length);assert.ok(lab.balls.length>0);
+ assert.equal(calls,1);assert.equal(r.draws.length,0);assert.deepEqual(lab.gpu.resultTexture.image.data.slice(0,p.length),result);
+ assert.equal(lab.gpu.constraintBackend,'GPU split pressure');assert.ok(lab.balls.length>0);
  const probes=new EmitterProbes(r,lab.u),transport={target:{textures:[null,null,{}]}};
- assert.ok(probes.update(lab.gpu,transport,2,.2));assert.equal(r.draws.length,7);
+ assert.ok(probes.update(lab.gpu,transport,2,.2));assert.equal(r.draws.length,1);
  applyRTXBackend(lab,'safe');r.draws.length=0;
- const cpu=lab.gpu.solve(p,.2,q=>q,3,null,false,true);assert.ok(cpu.every(Number.isFinite));assert.equal(r.draws.length,0);
+ const cpu=lab.gpu.solve(p,.2,q=>q,3,null,false,true);assert.ok(cpu.every(Number.isFinite));assert.equal(r.draws.length,0);assert.equal(calls,1);
  assert.equal(probes.update(lab.gpu,transport,2,.2),null);probes.dispose();lab.gpu.dispose();
 });
 
@@ -47,12 +48,12 @@ test('snapshots retain the mandatory CPU path unless the experiment explicitly o
  gpu.forceCPUConstraints=true;assert.equal(gpu.cpuContacts,true);gpu.dispose();
 });
 
-test('split GPU is mutually exclusive with full GPU, and missing capability uses CPU reference',()=>{
+test('both GPU URL aliases require validation, and missing capability uses CPU reference',()=>{
  const lab=new SandLab(device());configureRTXLab(lab);
  assert.throws(()=>applyRTXBackend(lab,'bounded'),/Validate/);
  const split={geometryValidated:true,dispose(){}};applyRTXBackend(lab,'bounded',null,split);
  assert.equal(lab.gpu.boundedPressure,split);assert.equal(lab.optimizations.gpuPressure,true);
- applyRTXBackend(lab,'gpu');assert.equal(lab.gpu.boundedPressure,null);assert.equal(lab.optimizations.gpuPressure,false);
+ applyRTXBackend(lab,'gpu',null,split);assert.equal(lab.gpu.boundedPressure,split);assert.equal(lab.optimizations.gpuPressure,true);
  applyRTXBackend(lab,'cpu');assert.equal(lab.gpu.cpu,true);assert.equal(lab.air.cpu,true);
  lab.renderer.extensions.has=()=>false;assert.equal(applyRTXBackend(lab,'gpu'),'cpu');assert.equal(lab.gpu.cpu,true);
  assert.throws(()=>applyRTXBackend(lab,'invalid'),/Unknown/);lab.gpu.dispose();
@@ -83,5 +84,7 @@ test('branch routing defaults to the isolated RTX entry and preserves the origin
  const safe=await readFile(new URL('../src/sand-lab/main.js',import.meta.url),'utf8');
  assert.match(safe,/forceCPUConstraints=true/);assert.doesNotMatch(safe,/rtx-sand-lab/);
  const rtx=await readFile(new URL('../src/rtx-sand-lab/main.js',import.meta.url),'utf8');
+ assert.match(rtx,/warmObjects:false/);
+ assert.match(rtx,/tick\(performance.now\(\)\)/);
  assert.match(rtx,/setRTXBackend\(params\.get\('backend'\)\|\|'gpu'\)/);
 });
