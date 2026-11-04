@@ -1,0 +1,65 @@
+{
+  "pass": true,
+  "backend": "Live WebGL 2 sphere tracer / CPU reference",
+  "size": [
+    192,
+    128
+  ],
+  "angle": 20,
+  "depthTolerance": 0.00006,
+  "hitThresholdTolerance": 0.000002,
+  "rows": [
+    {
+      "strength": 0,
+      "iterations": 256,
+      "hitDisagreements": 0,
+      "thresholdDisagreements": 0,
+      "depthError": 0.00003413065966029194,
+      "samples": 485978,
+      "exhausted": 0,
+      "cpuExhausted": 0,
+      "boundaries": []
+    },
+    {
+      "strength": 0.4,
+      "iterations": 147,
+      "hitDisagreements": 0,
+      "thresholdDisagreements": 0,
+      "depthError": 0.00003413065966029194,
+      "samples": 485825,
+      "exhausted": 4,
+      "cpuExhausted": 4,
+      "boundaries": []
+    },
+    {
+      "strength": 1,
+      "iterations": 64,
+      "hitDisagreements": 0,
+      "thresholdDisagreements": 0,
+      "depthError": 0.00003115093153382986,
+      "samples": 478081,
+      "exhausted": 294,
+      "cpuExhausted": 294,
+      "boundaries": []
+    },
+    {
+      "strength": 2,
+      "iterations": 16,
+      "hitDisagreements": 1,
+      "thresholdDisagreements": 1,
+      "depthError": 0.000021731488516696373,
+      "samples": 370412,
+      "exhausted": 12882,
+      "cpuExhausted": 12883,
+      "boundaries": [
+        {
+          "x": 44,
+          "y": 44,
+          "distanceAtHit": 0.000028722506734954467,
+          "thresholdTie": true
+        }
+      ]
+    }
+  ],
+  "contextLost": false
+}

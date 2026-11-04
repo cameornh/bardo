@@ -3,6 +3,8 @@ import {LAB_FIELD_GLSL} from '../sand-lab/water-lab-field.js';
 import {ClipmapWaterField,CLIPMAP_FIELD_GLSL} from './clipmap-water.js';
 import {SplitBlobPass} from './split-blobs.js';
 import {installLiveDetailLighting} from './detail-lighting.js';
+import {WaterSurfaceState,StableBlobFamilies} from './water-surface-state.js';
+import {installEdgeMirage} from './edge-mirage.js';
 
 export class LiveWaterRenderer extends WaterLabRenderer {
  constructor(field,lab){
@@ -27,9 +29,16 @@ export class LiveWaterRenderer extends WaterLabRenderer {
   const fieldSource=this.nestedWaterFields?CLIPMAP_FIELD_GLSL:LAB_FIELD_GLSL+'\nfloat fieldDetailDx(vec3 p){return uFieldDx;}\n';
   this.splitBlobs=new SplitBlobPass(this.blobRenderer,fieldSource);
   installLiveDetailLighting(this.detailRenderer,fieldSource);
+  this.surfaceState=new WaterSurfaceState();this.blobRenderer.families=new StableBlobFamilies();
+  this.edgeMirage=installEdgeMirage(this);
  }
  syncFieldConsumers(){if([this.density,this.density.coarse,this.density.reference].includes(this.mediumShadows.density))this.mediumShadows.density=this.density.lightingField;Object.assign(this.mediumShadows.uniforms,this.mediumShadows.density.u);for(const scene of [this.photonScene,this.photonGather])scene.traverse(o=>{if(o.material)Object.assign(o.material.uniforms,this.density.lightingField.u);});}
- updateParticles(){super.updateParticles();this.syncFieldConsumers();}
+ updateParticles(){
+  const lab=this.lab,counts=lab.neighborCounts;
+  try{lab.neighborCounts=this.surfaceState.update(lab);super.updateParticles();}
+  finally{lab.neighborCounts=counts;}
+  this.syncFieldConsumers();
+ }
  render(options){
   this.density.setView(this.field.camera.position.toArray(),this.nestedWaterFields&&options?.adaptive!==false&&this.lab.optimizations?.distanceDetail!==false,this.densityRevision!==this.lab.revision);this.syncFieldConsumers();
   // Intercept only this live pass, inside this render call. Historical render

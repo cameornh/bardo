@@ -1,0 +1,6 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Edge tracing check</title><style>body{background:#182229;color:#e4e9ed;font:15px system-ui;margin:24px}canvas{width:768px;max-width:100%;image-rendering:auto}label,small{display:block;margin:12px 0}button{padding:8px}pre{white-space:pre-wrap}</style>
+<h1>Edge tracing check</h1><p>Actual sphere tracing. Left: 256 steps. Right: adjustable ray budget. Gaps are real failed intersections.</p>
+<button id="run">Run GPU / CPU comparison</button><label>Edge mirage <output id="strength-value">1</output><input id="strength" type="range" min="0" max="2" step=".05" value="1"></label><small id="budget">64 actual steps per ray</small>
+<label>View angle <output id="angle-value">20°</output><input id="angle" type="range" min="-60" max="60" step="1" value="20"></label>
+<canvas id="view" width="384" height="128"></canvas><p id="status">Ready · small GPU check, no beach simulation.</p><details><summary>Numerical diagnostics</summary><pre id="result">Ready</pre></details><script type="module" src="./live-edge-mirage.js"></script></html>
