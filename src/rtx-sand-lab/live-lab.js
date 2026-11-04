@@ -5,12 +5,22 @@ import {SandEditPolicy} from './sand-edit-policy.js';
 import {resolveCarvedSandContacts} from './carved-sand-contacts.js';
 import {BoundsGrid} from '../sand-lab/spatial-bounds.js';
 import {LIVE_WIND_BRUSH,windBrushErosion} from './wind-brush.js';
+import {IncrementalSand} from './incremental-sand.js';
+import {SandDistanceCache} from './sand-distance-cache.js';
 export {LIVE_WIND_BRUSH} from './wind-brush.js';
 
 // Shared live experience. Historical fixtures still instantiate SandLab.
 // Only one physics step may be in flight; fixed dt, mass and forces are unchanged.
 export class LiveSandLab extends SandLab{
  constructor(...args){super(...args);this.windStrength=LIVE_WIND_BRUSH.initial;}
+ syncSandUniforms(){
+  if(!this.sand)return;
+  if(this.optimizations?.sandCache===false||this.optimizations?.compactSand===false){this.incrementalSand=null;this.distanceCache?.reset();return super.syncSandUniforms();}
+  if(this.sand.dirty)this.sand.update();if(this.sandRevision===this.sand.revision)return;
+  if(this.incrementalSand?.bed!==this.sand){this.distanceCache?.reset();this.incrementalSand=new IncrementalSand(this.sand);}
+  this.incrementalSand.update(this);
+  (this.distanceCache??=new SandDistanceCache()).refresh(this.sandRenderParcels);
+ }
  configure(...args){super.configure(...args);if(this.sand){this.sand.editPolicy=new SandEditPolicy();this.sand.windBrushErosion=windBrushErosion;}}
  resolveSandObjectContacts(dt){this.sandContactStats=resolveCarvedSandContacts(this.sand.parcels,this.balls,dt,this.optimizations?.broadphase?(this.sandContactGrid??=new BoundsGrid()):null);}
  moveHeld(origin,direction){

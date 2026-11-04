@@ -1,0 +1,479 @@
+TAP version 13
+# coupled pressure reference [{"count":3024,"volume":81.64800000000002,"mean":0.270376723458323,"upper":0.7547328472137451,"peakSpeed":2.1520030533435754},{"count":3024,"volume":81.64800000000002,"mean":0.27064111295736176,"upper":0.7538310885429382,"peakSpeed":2.1439272688351534}]
+# Subtest: batch contacts match original results with cups, player, edited sand and held samples
+ok 1 - batch contacts match original results with cups, player, edited sand and held samples
+  ---
+  duration_ms: 517.90083
+  type: 'test'
+  ...
+# Subtest: adaptive pressure is bounded against the original solver and ignores camera state
+ok 2 - adaptive pressure is bounded against the original solver and ignores camera state
+  ---
+  duration_ms: 275.548383
+  type: 'test'
+  ...
+# Subtest: coupled pressure/transport remains stable over four seconds with exact parcel mass
+ok 3 - coupled pressure/transport remains stable over four seconds with exact parcel mass
+  ---
+  duration_ms: 4107.436143
+  type: 'test'
+  ...
+# Subtest: distant optical budget is continuous, monotone and retains near fidelity
+ok 4 - distant optical budget is continuous, monotone and retains near fidelity
+  ---
+  duration_ms: 5.002312
+  type: 'test'
+  ...
+# Subtest: underwater pass bound includes tilted covariance and interpolation halo
+ok 5 - underwater pass bound includes tilted covariance and interpolation halo
+  ---
+  duration_ms: 0.422959
+  type: 'test'
+  ...
+# Subtest: compiled edited-sand contacts match flattened, overlapping and carved geometry after edits
+ok 6 - compiled edited-sand contacts match flattened, overlapping and carved geometry after edits
+  ---
+  duration_ms: 109.558787
+  type: 'test'
+  ...
+# Subtest: new optimization dependencies disable transitively without losing selections
+ok 7 - new optimization dependencies disable transitively without losing selections
+  ---
+  duration_ms: 0.429596
+  type: 'test'
+  ...
+# Subtest: a ball placed inside a carved bowl is not ejected by the original sand sphere
+ok 8 - a ball placed inside a carved bowl is not ejected by the original sand sphere
+  ---
+  duration_ms: 12.559998
+  type: 'test'
+  ...
+# Subtest: glass, mirror, rock and light balls fall to the carved floor, not the old top
+ok 9 - glass, mirror, rock and light balls fall to the carved floor, not the old top
+  ---
+  duration_ms: 1331.224272
+  type: 'test'
+  ...
+# Subtest: carved walls push objects into the cavity, and tilted cups use their actual surfaces
+ok 10 - carved walls push objects into the cavity, and tilted cups use their actual surfaces
+  ---
+  duration_ms: 61.23103
+  type: 'test'
+  ...
+# Subtest: enclosed spherical cavities and intersection-cut portions do not acquire false walls
+ok 11 - enclosed spherical cavities and intersection-cut portions do not acquire false walls
+  ---
+  duration_ms: 2.541407
+  type: 'test'
+  ...
+# Subtest: surface caches refresh after another cut or motion, with identical broadphase results
+ok 12 - surface caches refresh after another cut or motion, with identical broadphase results
+  ---
+  duration_ms: 7.590217
+  type: 'test'
+  ...
+# Subtest: mobile carved sand and a body exchange equal and opposite linear momentum
+ok 13 - mobile carved sand and a body exchange equal and opposite linear momentum
+  ---
+  duration_ms: 2.023412
+  type: 'test'
+  ...
+# Subtest: a small carved piece inside a larger held object is expelled without phantom cavity contacts
+ok 14 - a small carved piece inside a larger held object is expelled without phantom cavity contacts
+  ---
+  duration_ms: 2.335143
+  type: 'test'
+  ...
+# Subtest: the shared live scene selects carved contacts and retains the historical ordinary-grain path
+ok 15 - the shared live scene selects carved contacts and retains the historical ordinary-grain path
+  ---
+  duration_ms: 207.534939
+  type: 'test'
+  ...
+# Subtest: the actual live prepare-step path keeps an object in the carved cavity
+ok 16 - the actual live prepare-step path keeps an object in the carved cavity
+  ---
+  duration_ms: 136.844338
+  type: 'test'
+  ...
+# Subtest: live wind brush gives ten times the previous live surface velocity and maximum
+ok 17 - live wind brush gives ten times the previous live surface velocity and maximum
+  ---
+  duration_ms: 141.768649
+  type: 'test'
+  ...
+# Subtest: one packed asynchronous step runs in order and never queues a second GPU job
+ok 18 - one packed asynchronous step runs in order and never queues a second GPU job
+  ---
+  duration_ms: 7.261612
+  type: 'test'
+  ...
+# Subtest: reset discards pending results, and a failed transfer disables further asynchronous work
+ok 19 - reset discards pending results, and a failed transfer disables further asynchronous work
+  ---
+  duration_ms: 3.438215
+  type: 'test'
+  ...
+# Subtest: fixed-step simulation earns the same time at 30, 60 and 144 display refresh rates
+ok 20 - fixed-step simulation earns the same time at 30, 60 and 144 display refresh rates
+  ---
+  duration_ms: 21.633792
+  type: 'test'
+  ...
+# Subtest: hardware policy reserves headroom for physics and hard frames with a shared 60 FPS presentation budget
+ok 21 - hardware policy reserves headroom for physics and hard frames with a shared 60 FPS presentation budget
+  ---
+  duration_ms: 1.006335
+  type: 'test'
+  ...
+# Subtest: stars follow actual exposure, with faint stars emerging gradually during dark adaptation
+ok 22 - stars follow actual exposure, with faint stars emerging gradually during dark adaptation
+  ---
+  duration_ms: 0.420554
+  type: 'test'
+  ...
+# Subtest: live moonlight lights surfaces more strongly while producing less sky wash; snapshots retain their defaults
+ok 23 - live moonlight lights surfaces more strongly while producing less sky wash; snapshots retain their defaults
+  ---
+  duration_ms: 483.830004
+  type: 'test'
+  ...
+# Subtest: all catalogue stars are Gaussian instances, and only the live look adds the galactic layer
+ok 24 - all catalogue stars are Gaussian instances, and only the live look adds the galactic layer
+  ---
+  duration_ms: 41.135038
+  type: 'test'
+  ...
+# Subtest: scene metering stays stable while all sky radiance receives the final scene exposure
+ok 25 - scene metering stays stable while all sky radiance receives the final scene exposure
+  ---
+  duration_ms: 1.49974
+  type: 'test'
+  ...
+# Subtest: 400 partial grab/drop edits have bounded cut history and preserve all material ledgers
+ok 26 - 400 partial grab/drop edits have bounded cut history and preserve all material ledgers
+  ---
+  duration_ms: 2620.94884
+  type: 'test'
+  ...
+# Subtest: old cut detail is resampled only inside occupied source stock; held stock is unchanged
+ok 27 - old cut detail is resampled only inside occupied source stock; held stock is unchanged
+  ---
+  duration_ms: 12.443077
+  type: 'test'
+  ...
+# Subtest: continuous carving preserves removed-stock accounting without a growing operation log
+ok 28 - continuous carving preserves removed-stock accounting without a growing operation log
+  ---
+  duration_ms: 638.995365
+  type: 'test'
+  ...
+# Subtest: a partial cut exhausting the remaining stock still drops inherited history
+ok 29 - a partial cut exhausting the remaining stock still drops inherited history
+  ---
+  duration_ms: 2.670521
+  type: 'test'
+  ...
+# Subtest: tiny settled deposits merge conservatively but unlike layers and raised sand remain explicit
+ok 30 - tiny settled deposits merge conservatively but unlike layers and raised sand remain explicit
+  ---
+  duration_ms: 3.09867
+  type: 'test'
+  ...
+# Subtest: live editing retains dry settling and wet support during a repeated pickup soak
+ok 31 - live editing retains dry settling and wet support during a repeated pickup soak
+  ---
+  duration_ms: 1133.991445
+  type: 'test'
+  ...
+# Subtest: a stationary held handful does not invalidate terrain; moving it still does
+ok 32 - a stationary held handful does not invalidate terrain; moving it still does
+  ---
+  duration_ms: 1.241913
+  type: 'test'
+  ...
+# Subtest: incremental geometry matches full packing after motion, cuts, deletion, reorder and growth
+ok 33 - incremental geometry matches full packing after motion, cuts, deletion, reorder and growth
+  ---
+  duration_ms: 374.802209
+  type: 'test'
+  ...
+# Subtest: moving one handful leaves unrelated GPU rows and stable bins untouched
+ok 34 - moving one handful leaves unrelated GPU rows and stable bins untouched
+  ---
+  duration_ms: 11.045724
+  type: 'test'
+  ...
+# Subtest: terrain heights and wetness remain current without geometry repacking
+ok 35 - terrain heights and wetness remain current without geometry repacking
+  ---
+  duration_ms: 4.367874
+  type: 'test'
+  ...
+# Subtest: CSG bricks return exact distances for flattened, cut, intersected and translated parcels
+ok 36 - CSG bricks return exact distances for flattened, cut, intersected and translated parcels
+  ---
+  duration_ms: 393.552524
+  type: 'test'
+  ...
+# Subtest: worker replies cannot restore deleted or edited geometry; translations reuse exact caches
+ok 37 - worker replies cannot restore deleted or edited geometry; translations reuse exact caches
+  ---
+  duration_ms: 18.80862
+  type: 'test'
+  ...
+# Subtest: clipmap moves on a common lattice and fades fully before a window boundary
+ok 38 - clipmap moves on a common lattice and fades fully before a window boundary
+  ---
+  duration_ms: 1.160144
+  type: 'test'
+  ...
+# Subtest: compiled contacts consume incremental bins after insertions, motion and deletion
+ok 39 - compiled contacts consume incremental bins after insertions, motion and deletion
+  ---
+  duration_ms: 528.641241
+  type: 'test'
+  ...
+# Subtest: live optical passes use nested fields while lighting and snapshots stay camera independent
+ok 40 - live optical passes use nested fields while lighting and snapshots stay camera independent
+  ---
+  duration_ms: 393.178241
+  type: 'test'
+  ...
+# Subtest: switching live cache controls retains matching geometry and stock
+ok 41 - switching live cache controls retains matching geometry and stock
+  ---
+  duration_ms: 148.884491
+  type: 'test'
+  ...
+# Subtest: water level switches release inactive targets and tiny fields retain the reference
+ok 42 - water level switches release inactive targets and tiny fields retain the reference
+  ---
+  duration_ms: 5.499508
+  type: 'test'
+  ...
+# Subtest: packed transfer never waits synchronously and retains the exact five-layer layout
+ok 43 - packed transfer never waits synchronously and retains the exact five-layer layout
+  ---
+  duration_ms: 89.263344
+  type: 'test'
+  ...
+# Subtest: frame polling completes a ready fence and a failed fence releases its resources
+ok 44 - frame polling completes a ready fence and a failed fence releases its resources
+  ---
+  duration_ms: 0.927323
+  type: 'test'
+  ...
+# Subtest: nearby Gaussian volumes have one connected implicit surface with continuous normals
+ok 45 - nearby Gaussian volumes have one connected implicit surface with continuous normals
+  ---
+  duration_ms: 3.369209
+  type: 'test'
+  ...
+# Subtest: Gaussian density integrates to parcel volume at different scales
+ok 46 - Gaussian density integrates to parcel volume at different scales
+  ---
+  duration_ms: 0.339055
+  type: 'test'
+  ...
+# Subtest: sparse field retains every occupied brick across negative coordinates and hash collisions
+ok 47 - sparse field retains every occupied brick across negative coordinates and hash collisions
+  ---
+  duration_ms: 3.98293
+  type: 'test'
+  ...
+# Subtest: RTX policy enables all existing optimizations without changing the physics timestep
+ok 48 - RTX policy enables all existing optimizations without changing the physics timestep
+  ---
+  duration_ms: 625.064079
+  type: 'test'
+  ...
+# Subtest: GPU profile cannot submit the monolithic pressure/contact shader
+ok 49 - GPU profile cannot submit the monolithic pressure/contact shader
+  ---
+  duration_ms: 386.925391
+  type: 'test'
+  ...
+# Subtest: snapshots retain the mandatory CPU path unless the experiment explicitly opts in
+ok 50 - snapshots retain the mandatory CPU path unless the experiment explicitly opts in
+  ---
+  duration_ms: 3.756112
+  type: 'test'
+  ...
+# Subtest: both GPU URL aliases require validation, and missing capability uses CPU reference
+ok 51 - both GPU URL aliases require validation, and missing capability uses CPU reference
+  ---
+  duration_ms: 128.532828
+  type: 'test'
+  ...
+# Subtest: target-machine validation fixtures cover contacts, held samples and actual edited sand
+ok 52 - target-machine validation fixtures cover contacts, held samples and actual edited sand
+  ---
+  duration_ms: 268.182428
+  type: 'test'
+  ...
+# Subtest: failed target validation is cached and cannot resubmit graphics work
+ok 53 - failed target validation is cached and cannot resubmit graphics work
+  ---
+  duration_ms: 0.48136
+  type: 'test'
+  ...
+# Subtest: branch routing defaults to the isolated RTX entry and preserves the original safe entry
+ok 54 - branch routing defaults to the isolated RTX entry and preserves the original safe entry
+  ---
+  duration_ms: 16.91671
+  type: 'test'
+  ...
+# Subtest: the reported RTX D3D11 path is guarded while the working NVIDIA OpenGL and Mac Metal paths are allowed
+ok 55 - the reported RTX D3D11 path is guarded while the working NVIDIA OpenGL and Mac Metal paths are allowed
+  ---
+  duration_ms: 1.133234
+  type: 'test'
+  ...
+# Subtest: shader preparation yields and polls completion before asking for uniforms or drawing
+ok 56 - shader preparation yields and polls completion before asking for uniforms or drawing
+  ---
+  duration_ms: 2.758822
+  type: 'test'
+  ...
+# Subtest: a timed-out shader stops the remaining compilation jobs without querying link status
+ok 57 - a timed-out shader stops the remaining compilation jobs without querying link status
+  ---
+  duration_ms: 1.170543
+  type: 'test'
+  ...
+# Subtest: lost context and unavailable parallel compilation submit no program
+ok 58 - lost context and unavailable parallel compilation submit no program
+  ---
+  duration_ms: 0.288114
+  type: 'test'
+  ...
+# Subtest: flat macro reduction visits every original sample in exactly the same order
+ok 59 - flat macro reduction visits every original sample in exactly the same order
+  ---
+  duration_ms: 2.890824
+  type: 'test'
+  ...
+# Subtest: parallel preparation applies the same specialization as drawing and stable null samplers
+ok 60 - parallel preparation applies the same specialization as drawing and stable null samplers
+  ---
+  duration_ms: 2.582841
+  type: 'test'
+  ...
+# Subtest: rejected optional compute program does not blank a healthy renderer or resubmit
+ok 61 - rejected optional compute program does not blank a healthy renderer or resubmit
+  ---
+  duration_ms: 3.715797
+  type: 'test'
+  ...
+# Subtest: loss of context stops optional compute and later scene draws
+ok 62 - loss of context stops optional compute and later scene draws
+  ---
+  duration_ms: 1.995482
+  type: 'test'
+  ...
+# Subtest: render errors identify the pass even when shader source and driver logs vanish
+ok 63 - render errors identify the pass even when shader source and driver logs vanish
+  ---
+  duration_ms: 6.826003
+  type: 'test'
+  ...
+# Subtest: explicit level zero preserves nested coordinates and ignores comments, bias and other textures
+ok 64 - explicit level zero preserves nested coordinates and ignores comments, bias and other textures
+  ---
+  duration_ms: 0.859699
+  type: 'test'
+  ...
+# Subtest: compatibility transform composes with specialization and keeps mipmapped textures unchanged
+ok 65 - compatibility transform composes with specialization and keeps mipmapped textures unchanged
+  ---
+  duration_ms: 1.989621
+  type: 'test'
+  ...
+# Subtest: RTX pressure is split into small geometry-free neighbor programs
+ok 66 - RTX pressure is split into small geometry-free neighbor programs
+  ---
+  duration_ms: 2.113483
+  type: 'test'
+  ...
+# Subtest: quiet surrounded water conserves volume, centroid and solutes throughout its continuous blend
+ok 67 - quiet surrounded water conserves volume, centroid and solutes throughout its continuous blend
+  ---
+  duration_ms: 175.440888
+  type: 'test'
+  ...
+# Subtest: surface crossings stay fixed after interior compression
+ok 68 - surface crossings stay fixed after interior compression
+  ---
+  duration_ms: 490.316033
+  type: 'test'
+  ...
+# Subtest: fast water, sheets and strong chemical boundaries retain fine kernels
+ok 69 - fast water, sheets and strong chemical boundaries retain fine kernels
+  ---
+  duration_ms: 104.627759
+  type: 'test'
+  ...
+# Subtest: compression wakes smoothly without losing mass, with no camera input
+ok 70 - compression wakes smoothly without losing mass, with no camera input
+  ---
+  duration_ms: 55.45322
+  type: 'test'
+  ...
+# Subtest: distance reduction is continuous, monotone and does not resize the pixel grid
+ok 71 - distance reduction is continuous, monotone and does not resize the pixel grid
+  ---
+  duration_ms: 61.80887
+  type: 'test'
+  ...
+# Subtest: saturated sand and player never accumulate visible water or exhaust the rainfall capacity
+ok 72 - saturated sand and player never accumulate visible water or exhaust the rainfall capacity
+  ---
+  duration_ms: 3.745078
+  type: 'test'
+  ...
+# Subtest: objects still form condensation and water impacts still have a bulk-water reservoir
+ok 73 - objects still form condensation and water impacts still have a bulk-water reservoir
+  ---
+  duration_ms: 0.769745
+  type: 'test'
+  ...
+# Subtest: camera sweeps retain accurate surface positions and thickness with larger distant steps
+ok 74 - camera sweeps retain accurate surface positions and thickness with larger distant steps
+  ---
+  duration_ms: 9.222141
+  type: 'test'
+  ...
+# Subtest: stronger brush has ten times the previous speed and a hundred times the same-sample aerodynamic force
+ok 75 - stronger brush has ten times the previous speed and a hundred times the same-sample aerodynamic force
+  ---
+  duration_ms: 1.497107
+  type: 'test'
+  ...
+# Subtest: erosion responds smoothly above the old plateau and stays bounded at extreme brush speeds
+ok 76 - erosion responds smoothly above the old plateau and stays bounded at extreme brush speeds
+  ---
+  duration_ms: 5.203277
+  type: 'test'
+  ...
+# Subtest: the live brush actually removes more sand, without increasing the 32-packet budget or losing stock
+ok 77 - the live brush actually removes more sand, without increasing the 32-packet budget or losing stock
+  ---
+  duration_ms: 10.08416
+  type: 'test'
+  ...
+# Subtest: ambient air and underwater-current erosion remain identical to the reference
+ok 78 - ambient air and underwater-current erosion remain identical to the reference
+  ---
+  duration_ms: 6.155945
+  type: 'test'
+  ...
+1..78
+# tests 78
+# suites 0
+# pass 78
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5306.406121

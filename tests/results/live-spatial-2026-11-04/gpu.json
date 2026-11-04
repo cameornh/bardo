@@ -1,0 +1,11 @@
+{
+  "pass": true,
+  "maxDensityError": 0.0003596091025683257,
+  "maxDensityChangeAcrossWindowShift": 0.0006861090660095215,
+  "workerError": 0,
+  "partialTextureUploadError": 0,
+  "backend": "GPU nested water fields",
+  "referenceTexels": 46440,
+  "texels": 13755,
+  "allocatedTexels": 27720
+}

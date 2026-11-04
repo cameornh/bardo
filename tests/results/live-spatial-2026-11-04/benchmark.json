@@ -1,0 +1,28 @@
+{
+  "fixture": "1500 sand parcels, one moving handful; 150000 carved-shape queries",
+  "baseline": {
+    "medianMs": 4.785497999999961,
+    "p95Ms": 5.560021000000006,
+    "meanUploadedRows": 170
+  },
+  "incremental": {
+    "medianMs": 0.2724479999999403,
+    "p95Ms": 2.539936000000125,
+    "meanUploadedRows": 5
+  },
+  "packingSpeedup": 17.564812367868402,
+  "exact": {
+    "medianMs": 162.75998900000013,
+    "sum": 53430.323714659724
+  },
+  "bricks": {
+    "medianMs": 89.47846500000014,
+    "sum": 53430.323714659724
+  },
+  "querySpeedup": 1.8189850373494882,
+  "representativeWaterField": {
+    "referenceTexels": 1876160,
+    "nestedTexels": 517128
+  },
+  "scope": "CPU microbenchmarks and field storage; not whole-scene FPS or realtime speed"
+}

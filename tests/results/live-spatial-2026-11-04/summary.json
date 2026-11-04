@@ -1,0 +1,19 @@
+{
+  "changes": [
+    "Local sand packing and partial texture uploads",
+    "Exact carved-sand distance pruning with bounded worker preparation",
+    "Settled-geometry reuse",
+    "Smooth fine/coarse GPU water reconstruction with CPU reference fallback"
+  ],
+  "validation": {
+    "numericalTests": 78,
+    "productionBuild": "pass",
+    "boundedGpu": "pass",
+    "liveSceneInitialization": "startup=prepare passed; full beach was not drawn or benchmarked"
+  },
+  "scope": "Benchmarks measure individual costs, not whole-scene FPS or simulation speed. Physics remains camera-independent; water fields change visual fidelity only. The 60 FPS cap is unchanged.",
+  "nextDirections": [
+    "Extend bounded exact geometry caches to more repeatedly queried settled shapes if profiling warrants it",
+    "Profile pressure and neighbor-solving costs separately before offloading more physics"
+  ]
+}

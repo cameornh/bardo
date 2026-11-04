@@ -9,6 +9,7 @@ export const shapeHeight=p=>shapeRadius(p)*(p.aspect||1);
 // Flattened deposits conserve occupied volume. This conservative ellipsoid
 // distance is shared by the CPU collider and the GPU terrain query.
 export function shapeDistance(p,point){
+ const cached=p.distanceCache?.distance(p,point);if(cached!==undefined)return cached;
  const aspect=p.aspect||1,dx=point[0]-p.position[0],dy=(point[1]-p.position[1])/aspect,dz=point[2]-p.position[2];
  let d=(Math.hypot(dx,dy,dz)-shapeRadius(p))*Math.min(1,aspect);
  for(const op of p.cuts||[]){const a=op.aspect||1,q=(Math.hypot(point[0]-p.position[0]-op.offset[0],(point[1]-p.position[1]-op.offset[1])/a,point[2]-p.position[2]-op.offset[2])-Math.abs(op.radius))*Math.min(1,a);d=Math.max(d,op.radius>0?-q:q);}

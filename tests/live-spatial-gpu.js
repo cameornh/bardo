@@ -1,0 +1,34 @@
+import * as THREE from 'three';
+import {ClipmapWaterField,CLIPMAP_FIELD_GLSL,nearWeight} from '../src/rtx-sand-lab/clipmap-water.js';
+import {reconstructionSample} from '../src/sand-lab/reconstruction.js';
+import {QUAD_VERTEX} from '../src/shaders.js';
+import {SandDistanceCache} from '../src/rtx-sand-lab/sand-distance-cache.js';
+import {shapeDistance} from '../src/sand-lab/sand-shape.js';
+import {IncrementalSand} from '../src/rtx-sand-lab/incremental-sand.js';
+import {SandBed} from '../src/sand-lab/sand.js';
+import {createSandUniforms,floatTexture} from '../src/sand-lab/uniforms.js';
+const output=document.querySelector('#result'),r=new THREE.WebGLRenderer({canvas:document.querySelector('#view')}),camera=new THREE.Camera();r.setSize(640,360);r.autoClear=false;
+const field=new ClipmapWaterField(r,undefined,{nearCells:8}),bounds={min:[-3,-1,-3],max:[3,2,3]},spacing=.3,items=[];
+for(let z=-8;z<=8;z++)for(let x=-8;x<=8;x++)items.push({position:[x*.3,.07*Math.sin(x*.7)*Math.cos(z*.4),z*.3],radius:.22,volume:.027,flatten:.7,normal:[0,1,0],tannin:.2,dye:.1,sediment:0});
+const u={...field.u,uReference:{value:false}};
+const view=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:`precision highp float;precision highp int;${CLIPMAP_FIELD_GLSL}
+in vec2 vUv;out vec4 result;void main(){vec3 eye=vec3(0,3.5,5),f=normalize(vec3(0,0,0)-eye),right=vec3(1,0,0),up=cross(right,f),dir=normalize(f+(vUv.x-.5)*1.8*right+(vUv.y-.5)*up);vec3 color=mix(vec3(.12,.22,.30),vec3(.55,.69,.74),vUv.y);float t=1.;for(int i=0;i<110;i++){vec3 p=eye+dir*t;float d=parcelSample(p).r;if(d>.18){float lo=t-.065,hi=t;for(int refine=0;refine<7;refine++){float mid=(lo+hi)*.5;if(parcelSample(eye+dir*mid).r>.18)hi=mid;else lo=mid;}p=eye+dir*((lo+hi)*.5);vec2 e=vec2(fieldDetailDx(p)*.9,0);vec3 n=normalize(vec3(parcelSample(p-e.xyy).r-parcelSample(p+e.xyy).r,parcelSample(p-e.yxy).r-parcelSample(p+e.yxy).r,parcelSample(p-e.yyx).r-parcelSample(p+e.yyx).r));float light=.3+.7*max(0.,dot(n,normalize(vec3(-.5,1,.5))));color=vec3(.16,.48,.62)*light+pow(max(0.,dot(reflect(dir,n),normalize(vec3(-.5,1,.5)))),32.)*.7;break;}t+=.065;}result=vec4(color,1);}`,uniforms:u,depthTest:false,depthWrite:false});
+const scene=new THREE.Scene(),geometry=new THREE.PlaneGeometry(2,2);scene.add(new THREE.Mesh(geometry,view));
+function draw(){field.setView([Number(document.querySelector('#position').value),.1,0],!document.querySelector('#reference').checked);if(!field.items)field.update(items,spacing,bounds);r.setRenderTarget(null);r.render(scene,camera);}
+document.querySelector('#position').oninput=draw;document.querySelector('#reference').onchange=draw;
+function sampleCPU(p,l){const q=p.map((v,k)=>(v-l.min[k])/l.dx);if(q.some((v,k)=>v<0||v>l.dimensions[k]-1))return 0;const lo=q.map(Math.floor),f=q.map((v,k)=>v-lo[k]);let result=0;for(let z=0;z<2;z++)for(let y=0;y<2;y++)for(let x=0;x<2;x++){const offset=[x,y,z],pos=lo.map((v,k)=>l.min[k]+(v+offset[k])*l.dx),w=offset.reduce((v,c,k)=>v*(c?f[k]:1-f[k]),1);result+=w*items.reduce((s,item)=>s+reconstructionSample(item,pos),0);}return result;}
+document.querySelector('#check').onclick=async()=>{try{
+ output.textContent='Checking bounded GPU fields and worker…';draw();
+ const target=new THREE.WebGLRenderTarget(128,1,{type:THREE.FloatType,depthBuffer:false}),m=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:`precision highp float;precision highp int;${CLIPMAP_FIELD_GLSL}out vec4 result;void main(){float x=(gl_FragCoord.x/128.)*5.-2.5;vec3 p=vec3(x,.16,sin(x)*.4);result=vec4(parcelSample(p).r,fieldEmptyAdvance(p,vec3(1,0,0),.18),0,1);}`,uniforms:field.u,depthTest:false,depthWrite:false}),s=new THREE.Scene();s.add(new THREE.Mesh(geometry,m));let maxError=0,maxShift=0,last=null;
+ for(const eye of [[-.001,.1,0],[.001,.1,0],[.1499,.1,0],[.1501,.1,0]]){
+  field.setView(eye);field.update(items,spacing,bounds);r.setRenderTarget(target);r.render(s,camera);const pixels=await r.readRenderTargetPixelsAsync(target,0,0,128,1,new Float32Array(512));
+  for(let i=0;i<128;i++){const x=(i+.5)/128*5-2.5,p=[x,.16,Math.sin(x)*.4],w=nearWeight(p,eye,field.u.uNearHalf.value),expected=sampleCPU(p,field.coarse.layout)*(1-w)+sampleCPU(p,field.near.layout)*w;maxError=Math.max(maxError,Math.abs(pixels[i*4]-expected));if(last&&Math.abs(eye[0]-last.eye[0])<.003)maxShift=Math.max(maxShift,Math.abs(pixels[i*4]-last.pixels[i*4]));if(w>0&&pixels[i*4+1]>1e-5)throw Error('Empty-space skip crossed detailed water');}
+  last={eye,pixels};await new Promise(resolve=>setTimeout(resolve,16));
+ }
+ target.dispose();m.dispose();
+ const cache=new SandDistanceCache(),p={position:[0,0,0],shapeRadius:.8,mass:1,packing:.6,aspect:.7,cuts:[0,1,2,3].map(i=>({offset:[i*.15,0,0],radius:.3}))};cache.refresh([p]);const start=performance.now();while(!cache.completed&&performance.now()-start<5000)await new Promise(resolve=>setTimeout(resolve,20));if(!cache.completed)throw Error('Worker failed to prepare cache');const actual=shapeDistance(p,[.2,.1,0]);cache.dispose();const exact=shapeDistance(p,[.2,.1,0]);
+ const sand=new SandBed(9),lab={sand,u:createSandUniforms()};lab.u.uSand.value=floatTexture(sand.data,9,9);sand.parcels=Array.from({length:80},(_,i)=>({id:i,position:[Math.sin(i)*3,.4,Math.cos(i)*3],mass:.01,packing:.6,wet:.7,aspect:.8}));sand.update();const packed=new IncrementalSand(sand),copyU={uSource:{value:null}},copy=new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:'precision highp float;uniform sampler2D uSource;out vec4 result;void main(){result=texelFetch(uSource,ivec2(gl_FragCoord.xy),0);}',uniforms:copyU,depthTest:false,depthWrite:false}),copyScene=new THREE.Scene();copyScene.add(new THREE.Mesh(geometry,copy));let uploadError=0;
+ for(let step=0;step<3;step++){sand.parcels[17].position[0]+=.1;sand.parcels[7].wet+=.01;if(step===1)sand.parcels[17].cuts=[{offset:[0,.05,0],radius:.08}];packed.update(lab);for(const key of ['uSandParcels','uSandBins']){const texture=lab.u[key].value,{width,height,data}=texture.image,t=new THREE.WebGLRenderTarget(width,height,{type:THREE.FloatType,depthBuffer:false});copyU.uSource.value=texture;r.setRenderTarget(t);r.render(copyScene,camera);const a=await r.readRenderTargetPixelsAsync(t,0,0,width,height,new Float32Array(data.length));for(let i=0;i<a.length;i++)uploadError=Math.max(uploadError,Math.abs(data[i]-a[i]));t.dispose();}}
+ copy.dispose();for(const key of ['uSand','uSandParcels','uSandBins','uBodyExtra'])lab.u[key].value.dispose();
+ const result={pass:maxError<.0005&&maxShift<.004&&Math.abs(actual-exact)<1e-12&&uploadError===0,maxDensityError:maxError,maxDensityChangeAcrossWindowShift:maxShift,workerError:Math.abs(actual-exact),partialTextureUploadError:uploadError,...field.stats};output.textContent=JSON.stringify(result,null,2);draw();
+ }catch(e){output.textContent=e.stack;}};
