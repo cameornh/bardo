@@ -7,12 +7,13 @@ import {BoundsGrid} from '../sand-lab/spatial-bounds.js';
 import {LIVE_WIND_BRUSH,windBrushErosion} from './wind-brush.js';
 import {IncrementalSand} from './incremental-sand.js';
 import {SandDistanceCache} from './sand-distance-cache.js';
+import {LiveRigidPhysics} from './rigid-physics.js';
 export {LIVE_WIND_BRUSH} from './wind-brush.js';
 
 // Shared live experience. Historical fixtures still instantiate SandLab.
 // Only one physics step may be in flight; fixed dt, mass and forces are unchanged.
 export class LiveSandLab extends SandLab{
- constructor(...args){super(...args);this.windStrength=LIVE_WIND_BRUSH.initial;}
+ constructor(...args){super(...args);this.windStrength=LIVE_WIND_BRUSH.initial;this.rigidContacts=new LiveRigidPhysics();Object.assign(this.optimizations,{collisionMesh:true,rigidReuse:true,rigidSleep:true,rigidBroadphase:true});}
  syncSandUniforms(){
   if(!this.sand)return;
   if(this.optimizations?.sandCache===false||this.optimizations?.compactSand===false){this.incrementalSand=null;this.distanceCache?.reset();return super.syncSandUniforms();}

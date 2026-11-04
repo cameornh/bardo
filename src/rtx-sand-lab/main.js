@@ -7,6 +7,7 @@ import {installRTXGraphicsGuard} from './graphics.js';
 import {installRTXShaderCompatibility} from './shader-compatibility.js';
 import {prepareShaderJobs,firstFrameShaderJobs} from './shader-startup.js';
 import {installLabUI} from './ui.js';
+import {installCollisionDiagnostics} from './collision-diagnostics.js';
 import {SeaFoam} from '../sand-lab/sea-foam.js';
 import {createLabRenderer} from '../sand-lab/graphics-health.js';
 import {installHorizonAudit} from '../sand-lab/horizon-audit.js';
@@ -71,6 +72,7 @@ const target=new THREE.WebGLRenderTarget(1,1,{type:THREE.FloatType,depthBuffer:f
 const field={renderer,camera,target,output,quadCamera,resolution:new THREE.Vector2(),motion:new MotionDetail(),minPixelSigma:2,uniforms:{uView:{value:0},uSHDegree:{value:3}},water:{count:0,uniforms:{uWaterRoughness:{value:.14},uTurbidity:{value:0}}}};for(const name of ['beach','grass','grains','soft','optics','lightTest'])field[name]={count:0};
 const lab=new SandLab(renderer,{boulders:true,physicalResolution:true});Object.assign(lab.optimizations,{batchedContacts:true,nativeSandContacts:true,adaptivePressure:true,distantOptics:true,viewPassCulling:true});
 configureRTXLab(lab,rendererInfo(renderer));
+installCollisionDiagnostics(lab,$('diagnostics'));
 await boot.step('Preparing scene renderer');
 lab.reactiveWaves=true;lab.seaFoam=new SeaFoam(renderer);const draw=new WaterLabRenderer(field,lab);draw.fixedLoadScale=lab.hardwarePolicy.drawingScale;draw.mediumShadows.u.uMediumSize.value.set(16,12,16);lab.rain.rate=100;lab.radius=.75;installProgramSpecialization(renderer,()=>lab.optimizations.sandPrograms!==false,{warmObjects:false,prepareCompile:true,filterConstants:liveProgramConstants});
 graphics.label(lab,'simulation');graphics.label(draw,'render');graphics.label({output},'display');

@@ -1,0 +1,169 @@
+{
+  "scope": "CPU rigid solver only, same fixed timestep and stock; no renderer, GPU or water pressure solve",
+  "reports": [
+    {
+      "kind": "settled cups",
+      "baseline": {
+        "meanMs": 35.25418150666672,
+        "medianMs": 33.93869300000006,
+        "p95Ms": 43.49936799999978,
+        "minimumClearance": -0.000010001817855419259
+      },
+      "live": {
+        "meanMs": 0.45446813999982016,
+        "medianMs": 0.41685899999902176,
+        "p95Ms": 0.7297639999997045,
+        "minimumClearance": -0.000006500001021278457,
+        "stats": {
+          "testedPairs": 0,
+          "contacts": 0,
+          "terrainProbes": 0,
+          "reusedContacts": 0,
+          "sleeping": 24
+        }
+      },
+      "meanSpeedup": 77.57239375829661,
+      "maxCenterDifference": 0.00018025186868876015
+    },
+    {
+      "kind": "busy falling spheres",
+      "baseline": {
+        "meanMs": 10.26100107333333,
+        "medianMs": 4.745202000000063,
+        "p95Ms": 35.22300799999903,
+        "minimumClearance": 0.0013441524017877072
+      },
+      "live": {
+        "meanMs": 2.024884746666709,
+        "medianMs": 1.8949140000004263,
+        "p95Ms": 2.8162759999995615,
+        "minimumClearance": 0.0013476666664113284,
+        "stats": {
+          "testedPairs": 0,
+          "contacts": 0,
+          "terrainProbes": 1008,
+          "reusedContacts": 0,
+          "sleeping": 0
+        }
+      },
+      "meanSpeedup": 5.067449438899974,
+      "maxCenterDifference": 0.00000693496063285115
+    },
+    {
+      "kind": "touching spheres",
+      "baseline": {
+        "meanMs": 10.848269206666687,
+        "medianMs": 8.697100999999748,
+        "p95Ms": 17.367143999999826,
+        "minimumClearance": 0.0013535417161101252
+      },
+      "live": {
+        "meanMs": 1.8571199400000842,
+        "medianMs": 1.8308170000000246,
+        "p95Ms": 2.3413330000003043,
+        "minimumClearance": 0.0013617821652891042,
+        "stats": {
+          "testedPairs": 224,
+          "contacts": 88,
+          "terrainProbes": 240,
+          "reusedContacts": 0,
+          "sleeping": 0
+        }
+      },
+      "meanSpeedup": 5.84144781013239,
+      "maxCenterDifference": 0.00006975206021422748
+    },
+    {
+      "kind": "edited terrain",
+      "baseline": {
+        "meanMs": 1.2000581733333455,
+        "medianMs": 0.22632599999997183,
+        "p95Ms": 7.499095999999554,
+        "minimumClearance": 0.0013430384069233775
+      },
+      "live": {
+        "meanMs": 0.27561512666674387,
+        "medianMs": 0.25773800000024494,
+        "p95Ms": 0.3710319999991043,
+        "minimumClearance": 0.0013476666430468549,
+        "stats": {
+          "testedPairs": 0,
+          "contacts": 0,
+          "terrainProbes": 120,
+          "reusedContacts": 0,
+          "sleeping": 0
+        }
+      },
+      "meanSpeedup": 4.354108527520621,
+      "maxCenterDifference": 0.000007120363266888141
+    }
+  ],
+  "cachedBowlContacts": {
+    "exactBricks": {
+      "meanMs": 0.7805726747720187,
+      "p95Ms": 1.1380639999988489,
+      "position": [
+        -0.10395303888795539,
+        1.0887666846393858,
+        0
+      ],
+      "stats": {
+        "built": 0,
+        "meshNormals": 0,
+        "meshNormalReuses": 0,
+        "exactNormals": 6052,
+        "fieldRejects": 0,
+        "exactQueries": 39283
+      }
+    },
+    "mesh": {
+      "meanMs": 0.7346947294831794,
+      "p95Ms": 1.0736240000005637,
+      "position": [
+        -0.10665980097083344,
+        1.0891896297119261,
+        -0.0004130112828663889
+      ],
+      "stats": {
+        "built": 1,
+        "meshNormals": 122,
+        "meshNormalReuses": 5864,
+        "exactNormals": 66,
+        "fieldRejects": 0,
+        "exactQueries": 3367
+      }
+    }
+  },
+  "cachedContactNormals": {
+    "queries": 5120,
+    "exactNormalsMs": 56.95558600000004,
+    "meshNormalsMs": 33.36232200000086,
+    "maxNormalAngleDegrees": 0.0005575200745590624,
+    "stats": {
+      "built": 1,
+      "meshNormals": 64,
+      "meshNormalReuses": 5056,
+      "exactNormals": 0,
+      "fieldRejects": 0,
+      "exactQueries": 0
+    }
+  },
+  "cachedWaterBoundaryExperiment": {
+    "points": 40000,
+    "triangles": 25472,
+    "buildMs": 957.2089300000007,
+    "exactMs": 87.2849460000034,
+    "existingBrickMs": 53.78026200000022,
+    "cachedMs": 23.843482000000222,
+    "rejected": 32367,
+    "contactCountsEqual": true,
+    "enabledForWater": false
+  },
+  "machine": {
+    "cpu": "Intel(R) Core(TM) i9-8950HK CPU @ 2.90GHz",
+    "platform": "darwin",
+    "arch": "x64",
+    "node": "v22.22.2"
+  },
+  "baseRevision": "1d3ae7a"
+}

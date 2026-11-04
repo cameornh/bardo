@@ -10,6 +10,8 @@ const labels={nativeSandContacts:'Compiled carved-sand water contacts',viewPassC
  broadphase:'Local collision queries',sandCache:'Cache sand geometry',emptySpace:'Skip empty space',splatBounds:'Tight Gaussian bounds',lightingTiles:'Tiled lighting'
 };
 const previous=new Set(['gpuBatch','packedNeighbors','broadphase','sandCache','emptySpace','splatBounds','lightingTiles']);
+// These options are supplied only by the live lab, not historical snapshots.
+Object.assign(labels,{collisionMesh:'Cached collision meshes',rigidReuse:'Reuse object contacts',rigidSleep:'Sleep supported objects',rigidBroadphase:'Filter nearby object pairs'});
 export function optimizationPreset(defaults,mode){return Object.fromEntries(Object.keys(defaults).map(k=>[k,mode==='all'?defaults[k]:mode==='baseline'&&previous.has(k)]));}
 export function effectiveOptimizations(selected){
  const flags={...selected};let changed;

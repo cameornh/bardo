@@ -84,12 +84,14 @@ export class SandLab extends WaterLab{
 
  stepBodies(dt){
   if(!this.sand)return super.stepBodies(dt);
+  // Optional live collision policy. Snapshot scenes keep the original solver.
+  const contacts=this.rigidContacts;contacts?.begin(this,dt);
   const scale=this.spec.scale,gravity=9.81/scale;
   // Substep the rigid contacts only; no extra fluid solves or camera dependency.
   let substeps=1;for(const b of this.balls)if(!b.held&&!b.fixed)substeps=Math.max(substeps,Math.min(12,Math.ceil((Math.hypot(...b.velocity)+Math.hypot(...b.omega)*b.radius)*dt/Math.max(.001,b.radius*.2))));
   const h=dt/substeps;
   for(let step=0;step<substeps;step++){
-   for(const b of this.balls){if(b.held||b.fixed)continue;
+   for(const b of this.balls){if(b.held||b.fixed||contacts?.sleeping(b))continue;
     const samples=[];let wet=0;
     for(const axis of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]){
      const p=b.position.map((v,k)=>v+axis[k]*(bodySupport(b,axis)+this.spacing*.35)),sample=this.waterAt(p),w=clamp(sample.density*1.6,0,1);wet+=w/6;samples.push({p:b.position.map((v,k)=>v+axis[k]*bodySupport(b,axis)),sample,w});
@@ -106,14 +108,15 @@ export class SandLab extends WaterLab{
     const air=this.air.grid?this.air.sampleGrid(b.position):[this.wind/scale,0,0];
     for(let k=0;k<3;k++){b.velocity[k]+=(air[k]-b.velocity[k])*h*.008*(1-wet)/b.ratio;b.position[k]+=b.velocity[k]*h;b.omega[k]*=Math.exp(-h*(.12+wet));}
     integrateOrientation(b,h);
-    const terrain=p=>this.sand.distance(p),impact=Math.max(0,-b.velocity[1]),depth=resolveBodyTerrain(b,terrain,h);
+    const terrain=p=>this.sand.distance(p),impact=Math.max(0,-b.velocity[1]),depth=contacts?contacts.terrain(b,h):resolveBodyTerrain(b,terrain,h);
     if(depth>0)this.sand.compact(b.position[0],b.position[2],b.radius,bodyMass(b)*(impact+.1)*h*4);
     // The actual cup support, including tilt, also respects the world walls.
     for(const k of [0,2])for(const sign of [-1,1]){const axis=[0,0,0];axis[k]=sign;const edge=(k===0?5.5:4.9)-bodySupport(b,axis);if(b.position[k]*sign>edge){b.position[k]=sign*edge;if(b.velocity[k]*sign>0)b.velocity[k]*=-.15;}}
    }
-   this.bodyContactStats=resolveBodyPairs(this.balls,h);
-   for(const b of this.balls)if(!b.held&&!b.fixed)resolveBodyTerrain(b,p=>this.sand.distance(p),h);
+   this.bodyContactStats=contacts?contacts.pairs(this.balls,h):resolveBodyPairs(this.balls,h);
+   for(const b of this.balls)if(!b.held&&!b.fixed){if(contacts)contacts.terrain(b,h);else resolveBodyTerrain(b,p=>this.sand.distance(p),h);}
   }
+  contacts?.end();
  }
  prepareStep(dt){const sandStart=performance.now();this.gpu.nativeNeighbors=this.optimizations.nativeNeighbors;this.gpu.nativeDensity=this.optimizations.nativeContacts!==false;this.gpu.contactGeometry=this;this.gpu.uniforms.uPackedGpuNeighbors.value=!!this.optimizations.packedGpuNeighbors;this.gpu.packedNeighbors=this.optimizations?.packedNeighbors;this.gpu.neighborBounds=this.optimizations?.neighborBounds!==false;this.gpu.uniforms.uReuseBoundary.value=this.optimizations?.boundaryReuse!==false;this.sand.optimizations=this.optimizations;advanceSkyClocks(this,dt);this.tide.step(this,dt);this.indexFluid();this.sandWind=createSandWind(this);this.sand?.step(dt,p=>this.waterAt(p),this.sandWind,this.spec.scale,this.rain.enabled?this.rain.rate/60000*.3:0,this.spacing);if(this.sand){if(this.resolveSandObjectContacts)this.resolveSandObjectContacts(dt);else resolveSandContacts(this.sand.parcels,this.balls,dt,this.optimizations?.broadphase?(this.sandContactGrid??=new BoundsGrid()):null);}this.sand?.touchShapes();this.sandStepMs=performance.now()-sandStart;return super.prepareStep(dt);}
  finishStep(context,next,defer=false){super.finishStep(context,next,defer);if(context.generation===this.generation){this.grains?.advance(context.dt);this.seaFoam?.advance(context.dt,this);}this.fluidIndex=null;}
