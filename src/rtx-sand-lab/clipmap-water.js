@@ -44,7 +44,16 @@ export class ClipmapWaterField {
  }
  get scene(){return this.coarse.scene;}get camera(){return this.coarse.camera;}get target(){return this.active?.target||this.coarse.target;}
  get occupancy(){return this.coarse.occupancy;}set occupancy(v){this.coarse.occupancy=v;}
- setup(spacing,bounds,allocate=true){this.spacing=spacing;this.bounds=bounds||{min:[-6,-1,-5.5],max:[6,10,5.5]};this.layout=allocate?this.coarse.setup(spacing,this.bounds):fieldLayout(spacing,1,this.bounds);return this.layout;}
+ setup(spacing,bounds,allocate=true){
+  this.spacing=spacing;this.bounds=bounds||{min:[-6,-1,-5.5],max:[6,10,5.5]};
+  this.coarse.emptySpace=this.emptySpace;
+  this.layout=allocate?this.coarse.setup(spacing,this.bounds):fieldLayout(spacing,1,this.bounds);
+  // Startup preparation must see the same sampling/skip flags as the first
+  // reconstruction. Leaving the wrapper at its defaults recompiled every
+  // water-aware pass synchronously immediately after successful preparation.
+  if(allocate)this.copyUniforms(this.coarse);
+  return this.layout;
+ }
  copyUniforms(source){for(const [k,u] of Object.entries(source.u)){const dest=this.u[k];if(dest.value?.isVector2||dest.value?.isVector3)dest.value.copy(u.value);else dest.value=u.value;}}
  update(items,spacing,bounds){
   this.setup(spacing,bounds,false);this.items=items;

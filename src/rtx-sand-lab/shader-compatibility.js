@@ -20,7 +20,7 @@ export function explicitTextureLevel(source,names){
  return source;
 }
 
-export function installRTXShaderCompatibility(renderer){
+export function installRTXShaderCompatibility(renderer,{declaredOnly=false}={}){
  const draw=renderer.render.bind(renderer),states=new WeakMap();
  const prepare=scene=>{
   scene.traverse?.(o=>{for(const m of Array.isArray(o.material)?o.material:[o.material]){
@@ -30,7 +30,7 @@ export function installRTXShaderCompatibility(renderer){
    // Null data samplers are populated after field allocation. Treat them as
    // level-zero samplers now, so compilation matches the first real draw.
    const samplers=new Set();for(const match of (m.vertexShader+'\n'+m.fragmentShader).matchAll(/uniform\s+(?:(?:highp|mediump|lowp)\s+)?sampler2D\s+([^;]+);/g))for(const n of match[1].split(','))samplers.add(n.trim());
-   const names=Object.entries(m.uniforms).filter(([n,u])=>(u.value==null&&samplers.has(n))||(u.value?.isTexture&&u.value.generateMipmaps===false&&!u.value.mipmaps?.length)).map(([name])=>name).sort(),key=names.join(',');
+   const names=Object.entries(m.uniforms).filter(([n,u])=>(!declaredOnly||samplers.has(n))&&((u.value==null&&samplers.has(n))||(u.value?.isTexture&&u.value.generateMipmaps===false&&!u.value.mipmaps?.length))).map(([name])=>name).sort(),key=names.join(',');
    let state=states.get(m);
    if(!state){
     state={key,names};states.set(m,state);const original=m.onBeforeCompile,cache=m.customProgramCacheKey;

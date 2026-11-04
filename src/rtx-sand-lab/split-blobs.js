@@ -17,7 +17,7 @@ function functionSource(source,name){
 // out of secondary reflection, contact and lighting paths altogether.
 // The two float attachments retain the original normal, path, chemistry and
 // depth. Small droplets reuse rendered scene colors for secondary rays.
-export function splitBlobSources(source){
+export function splitBlobSources(source,fieldSource=CLIPMAP_FIELD_GLSL){
  const start=source.indexOf('out vec4 outColor;')+'out vec4 outColor;'.length;
  const end=source.indexOf('uniform sampler2D uBulkWater;');
  if(start<18||end<start)throw Error('Unexpected detached-water shader layout');
@@ -29,7 +29,7 @@ export function splitBlobSources(source){
  const trace=`precision highp float;precision highp int;
 flat in vec4 vK[5],vA[2],vBound;flat in vec3 vChem;
 layout(location=0)out vec4 normalPath;layout(location=1)out vec4 chemistryDepth;
-${CLIPMAP_FIELD_GLSL}
+${fieldSource}
 uniform highp sampler2D uImage,uBulkWater;uniform bool uBlobDepth;
 uniform vec3 uEye;uniform vec2 uResolution;uniform float uSpacing;
 uniform mat4 uInverseProjection,uCameraMatrix,uProjection,uViewMatrix;
@@ -52,8 +52,8 @@ void main(){
 }
 
 export class SplitBlobPass {
- constructor(blob){
-  this.blob=blob;const source=splitBlobSources(blob.material.fragmentShader);
+ constructor(blob,fieldSource){
+  this.blob=blob;const source=splitBlobSources(blob.material.fragmentShader,fieldSource);
   this.target=new THREE.WebGLRenderTarget(1,1,{count:2,type:THREE.FloatType,depthBuffer:true,minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter});
   Object.assign(blob.u,{uBlobMarchLimit:{value:192},uBlobColumnLimit:{value:256}});
   blob.material.fragmentShader=source.trace;blob.material.name='detached-water-trace';blob.material.needsUpdate=true;

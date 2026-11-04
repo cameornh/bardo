@@ -53,7 +53,14 @@ export function firstFrameShaderJobs(draw){
  if(draw.splitBlobs)add('detached water shading',draw.splitBlobs.scene,draw.splitBlobs.camera,draw.blobs);
  add('water merge',draw.mergeScene,draw.quadCamera,draw.resolvedWater);
  add('image copy',draw.copyScene,draw.quadCamera,draw.composite);
- add('rain',draw.rainScene,camera,draw.composite);
+ // These are empty while paused, but wind/rain can activate them immediately
+ // after Resume. Prepare the bounded live programs before the first draw.
+ if(draw.splitBlobs){
+  add('fine water lighting',draw.detailRenderer.opticalScene,draw.detailRenderer.camera,draw.detailRenderer.paths);
+  add('fine water Gaussians',draw.detailRenderer.scene,camera,draw.detailRenderer.target);
+  add('fine water composite',draw.detailRenderer.composite,draw.detailRenderer.camera,draw.composite);
+ }
+ if(!draw.splitBlobs||lab.rain.enabled)add('rain',draw.rainScene,camera,draw.composite);
  add('glass surfaces',draw.shellScene,draw.quadCamera,draw.shellTarget);
  add('Gaussian stars',draw.stars.scene,camera,field.target);
  add('exposure reduction',draw.exposure.reduce.scene,draw.exposure.camera,draw.exposure.states[0]);

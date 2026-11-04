@@ -14,6 +14,7 @@ import {lunarDirection} from '../sand-lab/night-sky-model.js';
 import {lunarState,moonPhaseState,tidalElevation,LUNAR_MONTH} from '../sand-lab/tides.js';
 import {installOrbitPivot} from '../lab-orbit-pivot.js';
 import {installProgramSpecialization} from '../sand-lab/program-specialization.js';
+import {liveProgramConstants} from './shader-dependencies.js';
 import {inspectSandRay} from '../sand-lab/wetness-view.js';
 import {installWetnessQA} from '../sand-lab/wetness-qa.js';
 import {verifySandAir} from '../sand-lab/sand-wind-verify.js';
@@ -59,7 +60,7 @@ window.addEventListener('error',e=>showGraphicsError(e.error||new Error(e.messag
 await boot.step('Creating WebGL 2 context');
 const canvas=$('view'),renderer=createLabRenderer(THREE.WebGLRenderer,{canvas,antialias:false,powerPreference:'high-performance'},showGraphicsError);
 const graphics=installRTXGraphicsGuard(renderer,showGraphicsError,boot.pass);renderer.setPixelRatio(1);renderer.autoClear=false;
-installRTXShaderCompatibility(renderer);
+installRTXShaderCompatibility(renderer,{declaredOnly:true});
 $('gpu-device').textContent=JSON.stringify(rendererInfo(renderer),null,2);
 if(requiresOpenGLWindow(rendererInfo(renderer))&&new URLSearchParams(location.search).get('allow-d3d')!=='1'){
  showGraphicsError(Error('This Chrome window uses Direct3D 11, which stalled this test on the RTX machine. Scene startup has been stopped before submitting scene shaders. Use Start-Windows-OpenGL.cmd or npm run start:windows:opengl to open the separate OpenGL Chrome window.'));return;
@@ -71,7 +72,7 @@ const field={renderer,camera,target,output,quadCamera,resolution:new THREE.Vecto
 const lab=new SandLab(renderer,{boulders:true,physicalResolution:true});Object.assign(lab.optimizations,{batchedContacts:true,nativeSandContacts:true,adaptivePressure:true,distantOptics:true,viewPassCulling:true});
 configureRTXLab(lab,rendererInfo(renderer));
 await boot.step('Preparing scene renderer');
-lab.reactiveWaves=true;lab.seaFoam=new SeaFoam(renderer);const draw=new WaterLabRenderer(field,lab);draw.fixedLoadScale=lab.hardwarePolicy.drawingScale;draw.mediumShadows.u.uMediumSize.value.set(16,12,16);lab.rain.rate=100;lab.radius=.75;installProgramSpecialization(renderer,()=>lab.optimizations.sandPrograms!==false,{warmObjects:false,prepareCompile:true});
+lab.reactiveWaves=true;lab.seaFoam=new SeaFoam(renderer);const draw=new WaterLabRenderer(field,lab);draw.fixedLoadScale=lab.hardwarePolicy.drawingScale;draw.mediumShadows.u.uMediumSize.value.set(16,12,16);lab.rain.rate=100;lab.radius=.75;installProgramSpecialization(renderer,()=>lab.optimizations.sandPrograms!==false,{warmObjects:false,prepareCompile:true,filterConstants:liveProgramConstants});
 graphics.label(lab,'simulation');graphics.label(draw,'render');graphics.label({output},'display');
 const resize=()=>{if(graphics.failed)return;renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();const reduction=Math.min(1,lab.hardwarePolicy.maxWidth/innerWidth,lab.hardwarePolicy.maxHeight/innerHeight);field.resolution.set(Math.round(innerWidth*reduction),Math.round(innerHeight*reduction));};window.addEventListener('resize',resize);resize();
 let pivotControl;function home(){camera.position.set(4.8,4,4.4);controls.target.set(0,.65,0);controls.update();pivotControl?.reset();}home();

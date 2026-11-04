@@ -1,0 +1,35 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as THREE from 'three';
+import {LiveSandLab} from '../src/rtx-sand-lab/live-lab.js';
+import {LiveWaterRenderer} from '../src/rtx-sand-lab/live-renderer.js';
+import {LIVE_DETAIL_LIGHTING} from '../src/rtx-sand-lab/detail-lighting.js';
+import {DETAIL_VERTEX} from '../src/sand-lab/water-lab-detail-renderer.js';
+import {firstFrameShaderJobs} from '../src/rtx-sand-lab/shader-startup.js';
+import {liveProgramConstants} from '../src/rtx-sand-lab/shader-dependencies.js';
+import {programConstants} from '../src/sand-lab/program-specialization.js';
+
+test('fine water retains Gaussian projection and transport without nested geometry tracing',()=>{
+ const renderer={extensions:{has:()=>false,get:()=>null},getContext:()=>({getExtension:()=>null}),initRenderTarget(){},copyTextureToTexture(){},render(){assert.fail('Unexpected GPU work');}};
+ const lab=new LiveSandLab(renderer),field={renderer,camera:new THREE.PerspectiveCamera(),uniforms:{uView:{value:0},uSHDegree:{value:3}},water:{uniforms:{uWaterRoughness:{value:.14},uTurbidity:{value:0}}}},draw=new LiveWaterRenderer(field,lab),detail=draw.detailRenderer;
+ assert.equal(detail.material.vertexShader,DETAIL_VERTEX);
+ assert.equal(detail.opticalMaterial.fragmentShader,LIVE_DETAIL_LIGHTING);
+ assert.ok(LIVE_DETAIL_LIGHTING.length<18000);
+ assert.ok(detail.material.fragmentShader.length<1500);
+ assert.doesNotMatch(detail.material.fragmentShader,/uSandCount|labPhysicalSolid|labOpaque/);
+ assert.match(detail.material.fragmentShader,/if\(vDepth>opaque\)discard/);
+ assert.doesNotMatch(LIVE_DETAIL_LIGHTING,/labSolid|labOpaque|bodyTransmission|sandDistance|uSandCount/);
+ assert.match(LIVE_DETAIL_LIGHTING,/mediumSky\(q\)/);assert.match(LIVE_DETAIL_LIGHTING,/mediumSun\(q\)/);
+ assert.match(LIVE_DETAIL_LIGHTING,/detailTransportStep\(outTau.rgb,outScatter.rgb/);
+ assert.equal(detail.opticalMaterial.uniforms,detail.material.uniforms);
+ assert.equal(detail.opticalMaterial.uniforms.uLabField,draw.density.u.uLabField);
+ const material=detail.opticalMaterial,empty=liveProgramConstants(material,programConstants(material.uniforms));
+ material.uniforms.uSandCount.value=19;material.uniforms.uSandMax.value.set(1,2,3);
+ assert.deepEqual(liveProgramConstants(material,programConstants(material.uniforms)),empty,'Wind creating sand must not change the lighting program');
+ const jobs=firstFrameShaderJobs(draw),lighting=jobs.find(j=>j.name==='fine water lighting');
+ assert.equal(draw.density.coarse.emptySpace,true);
+ assert.equal(draw.u.uFieldSkipping.value,true,'Prepared field flags must match the first reconstruction');
+ assert.equal(draw.u.uFieldLinear.value,draw.density.coarse.u.uFieldLinear.value);
+ assert.equal(lighting.scene,detail.opticalScene);assert.equal(lighting.target,detail.paths);
+ assert.ok(jobs.some(j=>j.scene===detail.scene));assert.ok(jobs.some(j=>j.scene===detail.composite));
+});

@@ -7,7 +7,7 @@ export const requiresOpenGLWindow=device=>/Direct3D11|D3D11/.test(device.adapter
 export function hardwarePolicy(device={}){
  const discreteRTX=/NVIDIA.*RTX|RTX.*NVIDIA|GeForce RTX/i.test(device.adapter||'');
  return {name:discreteRTX?'discrete GPU':'compatible GPU',defaultBackend:discreteRTX?'gpu':'safe',frameHz:RTX_FRAME_HZ,
-  maxWidth:960,maxHeight:640,drawingScale:.5};
+  maxWidth:960,maxHeight:640,drawingScale:.5,nestedWaterFields:discreteRTX};
 }
 
 export function applyRTXBackend(lab,requested,draw=null,bounded=null){

@@ -21,12 +21,16 @@ export function specializeSource(source,constants){
  });
  return source;
 }
-export function installProgramSpecialization(renderer,enabled,{warmObjects=true,prepareCompile=false}={}){
+export function installProgramSpecialization(renderer,enabled,{warmObjects=true,prepareCompile=false,filterConstants=null}={}){
  const render=renderer.render.bind(renderer),states=new WeakMap();
+ const constantsFor=(material,objectCapable)=>{
+  const constants=programConstants(material.uniforms,enabled(),objectCapable);
+  return filterConstants?filterConstants(material,constants):constants;
+ };
  const prepare=(scene,objectCapable=false)=>{
   scene.traverse(object=>{for(const material of (Array.isArray(object.material)?object.material:[object.material])){
    if(!material?.isShaderMaterial)continue;
-   const constants=programConstants(material.uniforms,enabled(),objectCapable),key=JSON.stringify(constants);
+   const constants=constantsFor(material,objectCapable),key=JSON.stringify(constants);
    let state=states.get(material);
    if(!state){const original=material.onBeforeCompile,cacheKey=material.customProgramCacheKey();state={key,constants,original,cacheKey};states.set(material,state);
     material.onBeforeCompile=(shader,r)=>{original.call(material,shader,r);shader.vertexShader=specializeSource(shader.vertexShader,state.constants);shader.fragmentShader=specializeSource(shader.fragmentShader,state.constants);};
@@ -42,7 +46,7 @@ export function installProgramSpecialization(renderer,enabled,{warmObjects=true,
   if(warmFailure)throw warmFailure;if(!renderer.compileAsync)return;let needed=false;const replacements=new Map();
   scene.traverse(object=>{for(const material of (Array.isArray(object.material)?object.material:[object.material])){
    if(!material?.isShaderMaterial||material.userData?.skipObjectWarmup||material.uniforms.uBodyCount?.value!==0)return;
-   const constants=programConstants(material.uniforms,enabled(),true),key=JSON.stringify(constants);let keys=warmed.get(material);
+   const constants=constantsFor(material,true),key=JSON.stringify(constants);let keys=warmed.get(material);
    if(!keys)warmed.set(material,keys=new Map());
    if(!keys.has(key)){
     let copy=material;

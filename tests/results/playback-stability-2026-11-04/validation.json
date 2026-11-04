@@ -1,0 +1,28 @@
+{
+  "status": "Compatibility patch; final full-scene GPU playback unverified",
+  "changes": [
+    "Program variants depend only on uniforms declared by that material, not every shared scene uniform.",
+    "Water-field sampling flags are initialized before startup shader preparation.",
+    "Fine-particle lighting uses shared illumination caches and bounded water absorption, with opaque-depth clipping.",
+    "Compatible hardware uses the pre-existing single-resolution GPU water field; NVIDIA RTX keeps nested fields.",
+    "Disabled rain is not speculatively compiled or drawn by the live renderer."
+  ],
+  "numericalAndStructuralTests": {"passed": 77, "failed": 0},
+  "productionBuild": "pass",
+  "cacheRegression": {"previousKeysForIdenticalMergeShader": 32, "currentKeys": 1},
+  "gpuTesting": {
+    "pipeline": "Full default beach physics, 13,293 water samples, wind 24, 96 by 64 image, one completed frame at a time",
+    "outcome": "Earlier nested-field candidates reproduced compiler failures when loose sand appeared at 0.6 simulated seconds. A later candidate with dynamic geometry counts lost its context during its first paused frame. Testing was stopped; that broader specialization change was reverted. No application or machine restart was performed.",
+    "finalCompatibleFieldFallbackTestedOnGPU": false,
+    "interpretation": "Do not treat passing CPU checks or a build as proof the reported full-scene crash is resolved."
+  },
+  "preExistingTestFailure": {
+    "test": "tests/sand-drops-rigid.test.js: sand/object constraints cannot submit GPU work, including deferred and packed modes",
+    "detail": "Backend label assertion expects CPU object contacts but receives JavaScript CPU.",
+    "reproducedOnUnmodifiedCommit": "a798e27"
+  },
+  "tradeoffs": [
+    "The compatible GPU path reconstructs the original full water field, so it gives up the new nested-field texture savings.",
+    "Fine particles retain spectral water scattering but use approximate cached lighting instead of individual geometry-shadow rays."
+  ]
+}

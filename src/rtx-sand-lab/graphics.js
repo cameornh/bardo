@@ -1,7 +1,7 @@
 // RTX-only diagnostics. A rejected optional pressure program falls back without
 // poisoning healthy rendering; a lost context always stops all submissions.
 export function installRTXGraphicsGuard(renderer,report,progress=()=>{}){
- let failure=null,active=[],stage='startup';const rejected=new WeakMap();
+ let failure=null,active=[],stage='startup';const rejected=new WeakMap(),recentPasses=[];
  const lost=()=>renderer.getContext().isContextLost();
  const stop=error=>{if(!failure){failure=error instanceof Error?error:new Error(String(error));report(failure);}return failure;};
  const assertHealthy=()=>{if(failure)throw failure;if(lost())throw stop(Error('Graphics context lost during '+stage+'. No further graphics work will be submitted.'));};
@@ -19,6 +19,8 @@ export function installRTXGraphicsGuard(renderer,report,progress=()=>{}){
  const draw=renderer.render.bind(renderer);
  renderer.render=(scene,...args)=>{
   assertHealthy();const previous=active;active=materials(scene);active.forEach(name);
+  const target=renderer.getRenderTarget?.();
+  recentPasses.push({programs:active.map(name),target:target?[target.width,target.height]:null,compiledPrograms:renderer.info?.programs?.length??null});if(recentPasses.length>16)recentPasses.shift();
   progress({stage,programs:active.map(name)});
   try{for(const m of active)if(rejected.has(m))throw rejected.get(m);return draw(scene,...args);}
   catch(error){throw handle(error);}finally{active=previous;}
@@ -27,7 +29,7 @@ export function installRTXGraphicsGuard(renderer,report,progress=()=>{}){
   const source=gl.getShaderSource(fragment)||'',vertexSource=gl.getShaderSource(vertex)||'';
   const shader=active.map(name).join(', ')||source.match(/#define SHADER_NAME ([^\n]+)/)?.[1]||stage;
   const logs=[gl.getProgramInfoLog(program),gl.getShaderInfoLog(vertex),gl.getShaderInfoLog(fragment)].filter(Boolean).join('\n');
-  const detail={stage,program:shader,vertexCompiled:gl.getShaderParameter(vertex,gl.COMPILE_STATUS),fragmentCompiled:gl.getShaderParameter(fragment,gl.COMPILE_STATUS),linked:gl.getProgramParameter(program,gl.LINK_STATUS),contextLost:gl.isContextLost(),glError:gl.getError(),vertexChars:vertexSource.length,fragmentChars:source.length};
+  const detail={stage,program:shader,vertexCompiled:gl.getShaderParameter(vertex,gl.COMPILE_STATUS),fragmentCompiled:gl.getShaderParameter(fragment,gl.COMPILE_STATUS),linked:gl.getProgramParameter(program,gl.LINK_STATUS),contextLost:gl.isContextLost(),glError:gl.getError(),vertexChars:vertexSource.length,fragmentChars:source.length,recentPasses};
   throw handle(Error('Graphics shader failed: '+shader+'\n'+(logs||'The driver returned no compiler log.')+'\n'+JSON.stringify(detail,null,2)));
  };
  renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();stop(Error('Graphics context lost during '+stage+'. No further graphics work will be submitted.'));});
