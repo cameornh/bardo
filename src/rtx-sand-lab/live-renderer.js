@@ -1,6 +1,7 @@
 import {WaterLabRenderer} from '../sand-lab/water-lab-renderer.js';
 import {LAB_FIELD_GLSL} from '../sand-lab/water-lab-field.js';
 import {ClipmapWaterField,CLIPMAP_FIELD_GLSL} from './clipmap-water.js';
+import {SplitBlobPass} from './split-blobs.js';
 
 export class LiveWaterRenderer extends WaterLabRenderer {
  constructor(field,lab){
@@ -17,8 +18,16 @@ export class LiveWaterRenderer extends WaterLabRenderer {
   // Lighting remains in world space; looking around cannot move its cache.
   for(const scene of [this.photonScene,this.photonGather])scene.traverse(o=>{if(o.material)o.material.uniforms={...o.material.uniforms,...this.density.coarse.u};});
   this.mediumShadows.density=this.density.coarse;Object.assign(this.mediumShadows.uniforms,this.density.coarse.u);
+  this.splitBlobs=new SplitBlobPass(this.blobRenderer);
  }
  syncFieldConsumers(){if([this.density,this.density.coarse,this.density.reference].includes(this.mediumShadows.density))this.mediumShadows.density=this.density.lightingField;Object.assign(this.mediumShadows.uniforms,this.mediumShadows.density.u);for(const scene of [this.photonScene,this.photonGather])scene.traverse(o=>{if(o.material)Object.assign(o.material.uniforms,this.density.lightingField.u);});}
  updateParticles(){super.updateParticles();this.syncFieldConsumers();}
- render(options){this.density.setView(this.field.camera.position.toArray(),options?.adaptive!==false&&this.lab.optimizations?.distanceDetail!==false,this.densityRevision!==this.lab.revision);this.syncFieldConsumers();return super.render(options);}
+ render(options){
+  this.density.setView(this.field.camera.position.toArray(),options?.adaptive!==false&&this.lab.optimizations?.distanceDetail!==false,this.densityRevision!==this.lab.revision);this.syncFieldConsumers();
+  // Intercept only this live pass, inside this render call. Historical render
+  // implementations and other scenes keep their original submission path.
+  const r=this.renderer,submit=r.render;
+  r.render=(scene,camera,...args)=>scene===this.blobRenderer.scene?this.splitBlobs.render(r,camera,submit):submit.call(r,scene,camera,...args);
+  try{return super.render(options);}finally{r.render=submit;}
+ }
 }

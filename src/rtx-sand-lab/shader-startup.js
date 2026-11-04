@@ -49,7 +49,8 @@ export function firstFrameShaderJobs(draw){
  add('water front',draw.splatScene,camera,draw.front);
  add('opaque scene',draw.backgroundScene,draw.quadCamera,draw.background);
  add('water surface',draw.waterScene,draw.quadCamera,draw.water);
- add('detached water',draw.blobRenderer.scene,camera,draw.blobs);
+ add('detached water tracing',draw.blobRenderer.scene,camera,draw.splitBlobs?.target||draw.blobs);
+ if(draw.splitBlobs)add('detached water shading',draw.splitBlobs.scene,draw.splitBlobs.camera,draw.blobs);
  add('water merge',draw.mergeScene,draw.quadCamera,draw.resolvedWater);
  add('image copy',draw.copyScene,draw.quadCamera,draw.composite);
  add('rain',draw.rainScene,camera,draw.composite);

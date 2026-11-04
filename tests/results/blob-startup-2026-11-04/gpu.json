@@ -1,0 +1,16 @@
+{
+  "pass": true,
+  "frames": 12,
+  "detachedFamilies": 1,
+  "carvedSandShapes": 1,
+  "objects": 2,
+  "coverage": 355,
+  "maxSurfaceError": 0.00029381271793699204,
+  "noLateCompile": true,
+  "programs": {
+    "prepared": 2
+  },
+  "traceChars": 7372,
+  "shadeChars": 11784,
+  "contextLost": false
+}

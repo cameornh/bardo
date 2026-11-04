@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-04",
+  "purpose": "Prevent live detached-water shader compiler failure when playback first creates blob families.",
+  "implementation": "Separate Gaussian tracing and bounded scene-buffer lighting into two programs, prepared before playback. Bulk water and historical snapshots retain their existing render paths.",
+  "gpuFixture": "12 frames at 96x64 using actual live renderer shaders, one moving detached family, carved sand, rock and glass cup. No full-beach stress run.",
+  "gpuNumericalCheck": "Reconstructed fragment depths agree with the CPU Gaussian isosurface reference within 0.000294 density units.",
+  "tradeoff": "Detached droplets use screen-space secondary reflection/refraction and cached medium light. Off-screen reflections fall back to the sky; local light visibility is approximate.",
+  "investigation": "An intermediate split retaining the large scene-lighting program lost context with objects. That program was removed from the live blob pass. The subsequent graphics-only health check and final bounded regression both passed without restarting."
+}

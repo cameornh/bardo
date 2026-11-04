@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: live blob tracing is independent of the large scene-lighting program
+ok 1 - live blob tracing is independent of the large scene-lighting program
+  ---
+  duration_ms: 315.75196
+  type: 'test'
+  ...
+# Subtest: split blob draw skips empty paused frames, retains depth and restores target on failure
+ok 2 - split blob draw skips empty paused frames, retains depth and restores target on failure
+  ---
+  duration_ms: 168.369765
+  type: 'test'
+  ...
+# Subtest: incremental geometry matches full packing after motion, cuts, deletion, reorder and growth
+ok 3 - incremental geometry matches full packing after motion, cuts, deletion, reorder and growth
+  ---
+  duration_ms: 192.92853
+  type: 'test'
+  ...
+# Subtest: moving one handful leaves unrelated GPU rows and stable bins untouched
+ok 4 - moving one handful leaves unrelated GPU rows and stable bins untouched
+  ---
+  duration_ms: 9.259134
+  type: 'test'
+  ...
+# Subtest: terrain heights and wetness remain current without geometry repacking
+ok 5 - terrain heights and wetness remain current without geometry repacking
+  ---
+  duration_ms: 6.227832
+  type: 'test'
+  ...
+# Subtest: CSG bricks return exact distances for flattened, cut, intersected and translated parcels
+ok 6 - CSG bricks return exact distances for flattened, cut, intersected and translated parcels
+  ---
+  duration_ms: 185.39299
+  type: 'test'
+  ...
+# Subtest: worker replies cannot restore deleted or edited geometry; translations reuse exact caches
+ok 7 - worker replies cannot restore deleted or edited geometry; translations reuse exact caches
+  ---
+  duration_ms: 8.518259
+  type: 'test'
+  ...
+# Subtest: clipmap moves on a common lattice and fades fully before a window boundary
+ok 8 - clipmap moves on a common lattice and fades fully before a window boundary
+  ---
+  duration_ms: 1.153135
+  type: 'test'
+  ...
+# Subtest: compiled contacts consume incremental bins after insertions, motion and deletion
+ok 9 - compiled contacts consume incremental bins after insertions, motion and deletion
+  ---
+  duration_ms: 271.679777
+  type: 'test'
+  ...
+# Subtest: live optical passes use nested fields while lighting and snapshots stay camera independent
+ok 10 - live optical passes use nested fields while lighting and snapshots stay camera independent
+  ---
+  duration_ms: 190.622392
+  type: 'test'
+  ...
+# Subtest: switching live cache controls retains matching geometry and stock
+ok 11 - switching live cache controls retains matching geometry and stock
+  ---
+  duration_ms: 82.735881
+  type: 'test'
+  ...
+# Subtest: water level switches release inactive targets and tiny fields retain the reference
+ok 12 - water level switches release inactive targets and tiny fields retain the reference
+  ---
+  duration_ms: 5.006473
+  type: 'test'
+  ...
+# Subtest: the reported RTX D3D11 path is guarded while the working NVIDIA OpenGL and Mac Metal paths are allowed
+ok 13 - the reported RTX D3D11 path is guarded while the working NVIDIA OpenGL and Mac Metal paths are allowed
+  ---
+  duration_ms: 5.81783
+  type: 'test'
+  ...
+# Subtest: shader preparation yields and polls completion before asking for uniforms or drawing
+ok 14 - shader preparation yields and polls completion before asking for uniforms or drawing
+  ---
+  duration_ms: 7.428339
+  type: 'test'
+  ...
+# Subtest: a timed-out shader stops the remaining compilation jobs without querying link status
+ok 15 - a timed-out shader stops the remaining compilation jobs without querying link status
+  ---
+  duration_ms: 0.822952
+  type: 'test'
+  ...
+# Subtest: lost context and unavailable parallel compilation submit no program
+ok 16 - lost context and unavailable parallel compilation submit no program
+  ---
+  duration_ms: 0.293133
+  type: 'test'
+  ...
+# Subtest: flat macro reduction visits every original sample in exactly the same order
+ok 17 - flat macro reduction visits every original sample in exactly the same order
+  ---
+  duration_ms: 4.661088
+  type: 'test'
+  ...
+# Subtest: parallel preparation applies the same specialization as drawing and stable null samplers
+ok 18 - parallel preparation applies the same specialization as drawing and stable null samplers
+  ---
+  duration_ms: 3.690019
+  type: 'test'
+  ...
+# Subtest: rejected optional compute program does not blank a healthy renderer or resubmit
+ok 19 - rejected optional compute program does not blank a healthy renderer or resubmit
+  ---
+  duration_ms: 2.468733
+  type: 'test'
+  ...
+# Subtest: loss of context stops optional compute and later scene draws
+ok 20 - loss of context stops optional compute and later scene draws
+  ---
+  duration_ms: 0.381936
+  type: 'test'
+  ...
+# Subtest: render errors identify the pass even when shader source and driver logs vanish
+ok 21 - render errors identify the pass even when shader source and driver logs vanish
+  ---
+  duration_ms: 2.003435
+  type: 'test'
+  ...
+# Subtest: explicit level zero preserves nested coordinates and ignores comments, bias and other textures
+ok 22 - explicit level zero preserves nested coordinates and ignores comments, bias and other textures
+  ---
+  duration_ms: 0.903746
+  type: 'test'
+  ...
+# Subtest: compatibility transform composes with specialization and keeps mipmapped textures unchanged
+ok 23 - compatibility transform composes with specialization and keeps mipmapped textures unchanged
+  ---
+  duration_ms: 10.767922
+  type: 'test'
+  ...
+# Subtest: RTX pressure is split into small geometry-free neighbor programs
+ok 24 - RTX pressure is split into small geometry-free neighbor programs
+  ---
+  duration_ms: 2.719607
+  type: 'test'
+  ...
+# Subtest: smaller liquid lobes conserve volume and center of mass throughout breakup
+ok 25 - smaller liquid lobes conserve volume and center of mass throughout breakup
+  ---
+  duration_ms: 36.503444
+  type: 'test'
+  ...
+# Subtest: analytic Gaussian gradient matches finite differences, including tiny lobes
+ok 26 - analytic Gaussian gradient matches finite differences, including tiny lobes
+  ---
+  duration_ms: 0.710724
+  type: 'test'
+  ...
+# Subtest: refinement has a hard cap, does not alter simulation parcels, and returns dense water to the bulk
+ok 27 - refinement has a hard cap, does not alter simulation parcels, and returns dense water to the bulk
+  ---
+  duration_ms: 283.550912
+  type: 'test'
+  ...
+# Subtest: held parcels stay connected and activation is based on simulation time
+ok 28 - held parcels stay connected and activation is based on simulation time
+  ---
+  duration_ms: 0.624714
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 886.702645
