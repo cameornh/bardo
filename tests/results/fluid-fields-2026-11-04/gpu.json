@@ -1,0 +1,34 @@
+{
+  "pass": true,
+  "device": "ANGLE (Intel, ANGLE Metal Renderer: Intel(R) UHD Graphics 630, Unspecified Version)",
+  "algorithm": "3D red/black pressure SOR compared with independent FP64 CPU reference",
+  "tolerance": 0.00002,
+  "cases": [
+    {
+      "obstacle": false,
+      "components": 2,
+      "maximumError": 1.593724357484838e-7,
+      "maximumGradientError": 2.649675997501433e-7,
+      "divergenceBefore": 0.49718588421469156,
+      "divergenceAfter": 3.922574969987955e-7,
+      "relativeResidual": 7.889554177279389e-7,
+      "pass": true
+    },
+    {
+      "obstacle": true,
+      "components": 4,
+      "maximumError": 8.18613020703296e-8,
+      "maximumGradientError": 1.810913003996717e-7,
+      "divergenceBefore": 0.5563518524409711,
+      "divergenceAfter": 2.500064224287494e-7,
+      "relativeResidual": 4.493674665156731e-7,
+      "pass": true
+    }
+  ],
+  "calibration": {
+    "cells": 2304,
+    "cpuMs": 7,
+    "gpuMs": 64.30000001192093,
+    "selected": "cpu"
+  }
+}
