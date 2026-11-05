@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Beach field integration checks</title>
+<style>body{background:#172127;color:#e6edef;font:14px system-ui;margin:20px}button,select{font:inherit;margin:4px;padding:7px}canvas{max-width:100%}pre{white-space:pre-wrap}label{margin:10px}a{color:#ade2ef}</style>
+<h1>Beach field integration checks</h1><p>CPU beach physics with the live grid; bounded GPU pressure verification uses only 288 cells and no scene shaders.</p>
+<button id="step">Step beach once</button><button id="run">Run 12 beach steps</button><button id="gpu">Verify small GPU field</button><a href="/?scene=sand-lab&amp;paused=1">Open live beach</a>
+<label>Field<select id="value"><option value="gauge">Pressure</option><option value="temperature">Temperature</option><option value="speed">Velocity</option><option value="humidity">Humidity</option><option value="divergence">Divergence</option></select></label>
+<canvas id="slice" width="800" height="460"></canvas><canvas id="legend" width="500" height="12"></canvas><pre id="result">Ready. No GPU work submitted.</pre><pre id="hover"></pre>
+<script type="module" src="./live-beach-fields.js"></script></html>

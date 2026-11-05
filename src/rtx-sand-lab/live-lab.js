@@ -8,12 +8,13 @@ import {LIVE_WIND_BRUSH,windBrushErosion} from './wind-brush.js';
 import {IncrementalSand} from './incremental-sand.js';
 import {SandDistanceCache} from './sand-distance-cache.js';
 import {LiveRigidPhysics} from './rigid-physics.js';
+import {BeachFields} from './fields/beach-fields.js';
 export {LIVE_WIND_BRUSH} from './wind-brush.js';
 
 // Shared live experience. Historical fixtures still instantiate SandLab.
 // Only one physics step may be in flight; fixed dt, mass and forces are unchanged.
 export class LiveSandLab extends SandLab{
- constructor(...args){super(...args);this.windStrength=LIVE_WIND_BRUSH.initial;this.rigidContacts=new LiveRigidPhysics();Object.assign(this.optimizations,{collisionMesh:true,rigidReuse:true,rigidSleep:true,rigidBroadphase:true});}
+ constructor(...args){super(...args);this.windStrength=LIVE_WIND_BRUSH.initial;this.rigidContacts=new LiveRigidPhysics();Object.assign(this.optimizations,{collisionMesh:true,rigidReuse:true,rigidSleep:true,rigidBroadphase:true});if(args[1]?.bulkFields)this.bulkFields=new BeachFields(this);}
  syncSandUniforms(){
   if(!this.sand)return;
   if(this.optimizations?.sandCache===false||this.optimizations?.compactSand===false){this.incrementalSand=null;this.distanceCache?.reset();return super.syncSandUniforms();}
@@ -22,7 +23,13 @@ export class LiveSandLab extends SandLab{
   this.incrementalSand.update(this);
   (this.distanceCache??=new SandDistanceCache()).refresh(this.sandRenderParcels);
  }
- configure(...args){super.configure(...args);if(this.sand){this.sand.editPolicy=new SandEditPolicy();this.sand.windBrushErosion=windBrushErosion;}}
+ configure(...args){super.configure(...args);this.bulkFields?.reset();if(this.sand){this.sand.editPolicy=new SandEditPolicy();this.sand.windBrushErosion=windBrushErosion;}}
+ prepareStep(dt){if(this.bulkFields?.enabled)this.bulkFields.ensure();return super.prepareStep(dt);}
+ step(dt,deferDetail=false){
+  if(!this.bulkFields?.enabled||!this.count)return super.step(dt,deferDetail);
+  const context=this.prepareStep(dt),next=this.bulkFields.solve(context);
+  this.finishStep(context,next,deferDetail);
+ }
  resolveSandObjectContacts(dt){this.sandContactStats=resolveCarvedSandContacts(this.sand.parcels,this.balls,dt,this.optimizations?.broadphase?(this.sandContactGrid??=new BoundsGrid()):null);}
  moveHeld(origin,direction){
   // A stationary held handful used to invalidate the entire terrain and
@@ -39,12 +46,13 @@ export class LiveSandLab extends SandLab{
   if(this.windHeld)this.jet=this.windRay||this.simulationRay;
   this.accumulator=Math.max(0,this.accumulator-dt);
   // Install the pending guard before preparing a step or invoking a thenable.
-  this.asyncPending=Promise.resolve().then(()=>{
+  this.asyncPending=Promise.resolve().then(async()=>{
    if(generation!==this.generation)return false;
    const start=performance.now();
    if(!this.optimizations?.gpuBatch||!this.count){this.step(dt);return true;}
    const context=this.prepareStep(dt);
-   this.gpu.solve(context.predicted,context.s,p=>this.collide(p),3,p=>this.solid(p),false,true);
+   if(this.bulkFields?.enabled){const next=await this.bulkFields.solveAsync(context);if(!next||generation!==this.generation)return false;}
+   else this.gpu.solve(context.predicted,context.s,p=>this.collide(p),3,p=>this.solid(p),false,true);
    this.transportGPU.solve(context.old,context.old,this.velocities,this.chem,this.gpu.neighbors,context.s,context.scale,dt,context.predicted,this.gpu,true);
    const probes=this.optimizations?.emitterProbes&&this.detail.enabled&&!this.gpu.cpuContacts?
     (this.emitterProbes??=new EmitterProbes(this.renderer,this.u)).update(this.gpu,this.transportGPU,this.count,this.spacing):null;
