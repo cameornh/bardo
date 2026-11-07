@@ -1,0 +1,5 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Beach field playback regression</title>
+<style>body{font:14px system-ui;background:#20272c;color:#eee;margin:16px}canvas{display:block;max-width:100%;width:576px;image-rendering:auto}button{margin:8px 4px;padding:8px}pre{white-space:pre-wrap}a{color:#b8d4e0}</style>
+<button id="compile">Check surface shaders only</button><button id="run">Check beach field playback</button><button id="stop">Stop</button><a href="/?scene=sand-lab&amp;paused=1">Live beach</a><canvas id="view"></canvas>
+<pre id="result">No graphics work on page load. Compilation checks the split tracing and lighting programs without drawing. Playback first warms fullscreen programs one pixel at a time, then runs a bounded 96 × 64 beach view. Each frame must complete before another is submitted; failures stop the test without retrying. CPU reference checks pass; browser playback has not yet been verified on this revision.</pre>
+<script type="module" src="./live-field-playback-gpu.js"></script>

@@ -5,6 +5,10 @@ import {SplitBlobPass} from './split-blobs.js';
 import {installLiveDetailLighting} from './detail-lighting.js';
 import {WaterSurfaceState,StableBlobFamilies} from './water-surface-state.js';
 import {installEdgeMirage} from './edge-mirage.js';
+import {reachableShader} from './shader-reachability.js';
+import {installShaderLoopBounds} from './shader-loop-bounds.js';
+import {SplitSurfacePass} from './split-surfaces.js';
+import {SprayShadowAtlas} from './spray-atlas.js';
 
 export class LiveWaterRenderer extends WaterLabRenderer {
  constructor(field,lab){
@@ -31,6 +35,21 @@ export class LiveWaterRenderer extends WaterLabRenderer {
   installLiveDetailLighting(this.detailRenderer,fieldSource);
   this.surfaceState=new WaterSurfaceState();this.blobRenderer.families=new StableBlobFamilies();
   this.edgeMirage=installEdgeMirage(this);
+  this.splitSurfaces=new Map([[this.backgroundScene,'opaque'],[this.waterScene,'water'],[this.submergedScene,'submerged'],[this.shellScene,'glass']].map(([scene,kind])=>[scene,new SplitSurfacePass(scene,kind)]));
+  this.sprayAtlas=new SprayShadowAtlas(this.renderer,this.sprayShadows);
+  const updateSpray=this.sprayShadows.update.bind(this.sprayShadows);
+  this.sprayShadows.update=()=>{const changed=updateSpray();if(changed)this.sprayAtlas.update();return changed;};
+  // Only the new deferred passes need the extra sampler headroom. Leave the
+  // established fine-particle and snapshot shader sources unchanged.
+  for(const split of this.splitSurfaces.values())for(const job of split.jobs(null))job.scene.traverse(o=>{if(o.material)this.sprayAtlas.install(o.material);});
+  // Glass uses the same geometry, tint, highlights and rain veil as before,
+  // but not the opaque/water reflection and volume-integration entry points.
+  // Do not send those unused nested tracing paths to the driver compiler.
+  const shell=this.shellScene.children[0].material;
+  // Preserve the canonical field sampler as a unit (including its helpers)
+  // for the hardware policy's exact sampling contract.
+  shell.fragmentShader=reachableShader(shell.fragmentShader,['parcelSample','fieldEmptyAdvance','fieldDetailDx']);shell.needsUpdate=true;
+  for(const m of [...materials,...worldMaterials,this.splitBlobs.material])installShaderLoopBounds(m);
  }
  syncFieldConsumers(){if([this.density,this.density.coarse,this.density.reference].includes(this.mediumShadows.density))this.mediumShadows.density=this.density.lightingField;Object.assign(this.mediumShadows.uniforms,this.mediumShadows.density.u);for(const scene of [this.photonScene,this.photonGather])scene.traverse(o=>{if(o.material)Object.assign(o.material.uniforms,this.density.lightingField.u);});}
  updateParticles(){
@@ -46,6 +65,7 @@ export class LiveWaterRenderer extends WaterLabRenderer {
   const r=this.renderer,submit=r.render;
   r.render=(scene,camera,...args)=>{
    if(scene===this.rainScene&&!this.rainGeometry.instanceCount)return;
+   const split=this.splitSurfaces.get(scene);if(split)return split.render(r,submit);
    return scene===this.blobRenderer.scene?this.splitBlobs.render(r,camera,submit):submit.call(r,scene,camera,...args);
   };
   try{return super.render(options);}finally{r.render=submit;}

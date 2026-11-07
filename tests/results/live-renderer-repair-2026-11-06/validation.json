@@ -1,0 +1,70 @@
+{
+  "status": "Renderer repair implemented; CPU numerical, command-path and reference-compiler checks passed. GPU playback and visual correctness are unverified on this revision.",
+  "baseCommit": "ed42190",
+  "scope": "Shared live scene on main and codex/rtx-5070-ti-gpu. Historical test implementations unchanged.",
+  "findings": [
+    "Primary-hit splitting alone retained nested secondary intersections, receiver lighting and repeated geometric shadow marches inside volume integration.",
+    "The first eroded sand parcel or spawned body previously changed shader specialization, starting synchronous compilation during playback.",
+    "Deferred optics initially required 18 fragment texture inputs; packing sixteen spray-shadow layers into one texture reduced the maximum to 15.",
+    "Cold spray shadow and nested-water copy programs were not included in preparation.",
+    "The last submitted pass label was not proof of which GPU work failed to finish."
+  ],
+  "changes": [
+    "Separate primary hits, secondary reflection/transmission hits, receiver lighting and composition into bounded programs, including the underwater path.",
+    "Use cached world-space illumination for volume scattering. Keep exact Beer interval weights and geometric surface shadows.",
+    "Pack spray-shadow maps without changing bilinear filtering, including tile edges.",
+    "Reuse transient optical hit-record attachments after their lighting consumer.",
+    "Keep live sand/body counts as uniforms; remove unreachable functions; prevent large literal loops from forcing static expansion.",
+    "Prepare actual playback programs sequentially, then exercise fullscreen first draws using isolated one-pixel outputs.",
+    "Allow one rendered frame in flight; stop physics/render submissions after a failed completion rather than retrying through another path.",
+    "Keep the independent WebGPU pressure probe isolated. It is not a beach backend and its GPU implementation remains unverified."
+  ],
+  "verification": {
+    "numericalAndRegressionCommand": "node --test tests/live-*.test.js tests/rtx-*.test.js tests/beach-fields*.test.js tests/fluid-fields*.test.js tests/webgpu-pressure-probe.test.js",
+    "testsPassed": 151,
+    "testsFailed": 0,
+    "productionBuild": "passed",
+    "compiler": "Khronos glslang 16.6.0; CPU-only GLSL ES 3.00 compile/link/reflection, four draw buffers",
+    "shaderAudits": [
+      {
+        "hardwarePolicy": "compatible GPU",
+        "hardwareLinearFiltering": true,
+        "pass": true,
+        "programs": 48,
+        "shaders": 96,
+        "textureLimit": 16,
+        "maxFragmentSamplers": 15
+      },
+      {
+        "hardwarePolicy": "discrete GPU",
+        "hardwareLinearFiltering": true,
+        "pass": true,
+        "programs": 49,
+        "shaders": 98,
+        "textureLimit": 32,
+        "maxFragmentSamplers": 15
+      },
+      {
+        "hardwarePolicy": "compatible GPU",
+        "hardwareLinearFiltering": false,
+        "pass": true,
+        "programs": 48,
+        "shaders": 96,
+        "textureLimit": 16,
+        "maxFragmentSamplers": 15
+      }
+    ],
+    "commandPath": "Real live render orchestration with a mock driver, both machine policies; glass, rock, mirror, light and spray activation; no unprepared sources/keys and no active sampler reading its own output.",
+    "numericComparisons": "Spray-atlas filtering matches original independent maps within 1e-13; volume integration matches homogeneous Beer closed form within 1e-10. Other tests cover fields, rigid contacts, shader lifecycle and failure cancellation."
+  },
+  "gpuVerification": {
+    "pass": null,
+    "reason": "In-app browser cannot create even the existing one-pixel WebGL health-check context: GL_VENDOR=Disabled, GL_RENDERER=Disabled, BindToCurrentSequence failed.",
+    "sceneDrawsThisValidation": 0,
+    "userActionsRequested": 0,
+    "browserOrComputerRestarts": 0,
+    "diagnosticPage": "/tests/live-field-playback-gpu.html; page load performs no graphics work. Controls and status text inspected in local preview.",
+    "limits": "Reference compilation and mock-driver checks do not establish driver execution, frame rate, visual equivalence or that the original freeze is resolved. Completion fences cannot preempt a draw already running in the driver."
+  },
+  "fidelityTradeoff": "Volume scattering uses cached illumination and analytic local-lamp attenuation instead of repeating geometric shadow marches at every integration sample. Surface shadows, offscreen geometry reflections, refraction, Gaussian primitives, SH lighting and the real bounded edge effect remain."
+}

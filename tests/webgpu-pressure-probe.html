@@ -1,0 +1,6 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bounded WebGPU pressure probe</title>
+<style>body{font:15px system-ui;margin:24px;max-width:850px;background:#20272c;color:#eee}button{padding:8px;margin:4px}pre{white-space:pre-wrap}canvas{width:384px;height:288px;image-rendering:pixelated}a{color:#b8d4e0}</style>
+<p>First WebGPU check: 288 air/water pressure cells from the beach solver. No beach renderer, WebGL context, or animation loop is started. This tests one pressure smoothing kernel, not a complete fluid solver.</p>
+<button id="cpu">Run CPU reference</button><button id="gpu">Compare WebGPU with CPU</button><button id="stop" disabled>Stop</button>
+<p id="status">Ready. GPU work only starts when requested.</p><canvas id="slice" width="8" height="6" aria-label="Pressure slice"></canvas><pre id="result"></pre>
+<script type="module" src="./webgpu-pressure-probe.js"></script>

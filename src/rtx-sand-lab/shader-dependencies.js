@@ -16,5 +16,12 @@ export function shaderUniforms(material){
 }
 export function liveProgramConstants(material,constants){
  const names=shaderUniforms(material);
- return Object.fromEntries(Object.entries(constants).filter(([name])=>names.has(name)));
+ // Particle/body counts change during ordinary play.
+ // Specializing them makes the first eroded sand parcel compile an entirely
+ // new scene program, synchronously in render(). Keep them as uniforms from
+ // the first prepared frame. Retain specialization of execution settings:
+ // compiling both interpolation / lighting algorithms into a single shader
+ // increases driver complexity substantially. Startup prepares those settings.
+ return Object.fromEntries(Object.entries(constants).filter(([name])=>
+  name!=='uSandCount'&&name!=='uBodyCount'&&names.has(name)));
 }

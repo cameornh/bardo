@@ -1,0 +1,147 @@
+{
+  "status": "incomplete: surface compilation passed; regular-browser first-frame playback lost context before any physics; later completion tracking is CPU-tested only",
+  "baseCommit": "ed42190",
+  "reportedFailure": "render-shellScene-0 shader rejection after starting playback",
+  "changes": [
+    "Keep changing sand and object counts as uniforms, preserving prepared shader programs during playback.",
+    "Remove unreachable functions from the live glass shader without rewriting retained functions.",
+    "Use unchanged uniform bounds for large literal loops in live rendering and compute shaders to avoid driver static expansion.",
+    "Wait for visible preview before starting scene compilation.",
+    "Cancel pending simulation results and retries after a graphics failure.",
+    "Split live opaque, water and glass primary intersection from shading using float32 hit records, retaining the original tracing and lighting math.",
+    "Prune unreachable functions from live shaders before driver compilation.",
+    "Prepare first-play particle, sand, transport and air programs with their real scene bindings before playback.",
+    "Add an isolated, capped WebGPU pressure-stencil probe with an independently checked CPU reference; it does not replace the beach solver.",
+    "Keep one presented frame in flight and stop further physics submission while rendering completion is pending.",
+    "Track per-pass GPU completion with bounded fences and preserve the first unconfirmed pass in failure reports; this cannot interrupt a running GPU draw or prove the source of a driver hang.",
+    "Suspend the playback diagnostic button after the reported first-frame failure; no additional GPU tests requested or run."
+  ],
+  "automatedChecks": {
+    "testsPassed": 85,
+    "testsFailed": 0,
+    "command": "node --test tests/live-program-stability.test.js tests/live-split-surfaces.test.js tests/live-shader-dependencies.test.js tests/live-compatible-field.test.js tests/live-blob-startup.test.js tests/live-detail-lighting.test.js tests/rtx-shader-preparation.test.js tests/beach-fields.test.js tests/fluid-fields*.test.js tests/live-surface-stability.test.js tests/live-experience.test.js tests/rtx-startup.test.js tests/webgpu-pressure-probe.test.js tests/live-frame-completion.test.js tests/live-first-frame-reference.test.js",
+    "productionBuild": "passed",
+    "diffCheck": "passed"
+  },
+  "previewChecks": {
+    "initialExperiments": "Two initial approaches lost the graphics context before the first completed frame. They were revised.",
+    "lastPlaybackAttempt": {
+      "finalPatch": false,
+      "reasonNotFinalPatch": "Compute-loop coverage and graphics failure cancellation were added afterward and have CPU tests only.",
+      "resolution": 2.2,
+      "image": [
+        96,
+        64
+      ],
+      "completedSteps": 58,
+      "simulatedSeconds": 3.866666666666672,
+      "shellProgramVariants": 1,
+      "mergeProgramVariants": 1,
+      "copyProgramVariants": 1,
+      "compiledPrograms": 31,
+      "waterSamples": 13301,
+      "fineParticleCapacityReached": 32768,
+      "sandParcels": 65,
+      "pass": false,
+      "stopReason": "Frame completion exceeded two seconds on the following frame.",
+      "contextLostAtReport": false,
+      "visualResult": "No completed visual validation; canvas appeared blank after stopping."
+    },
+    "followingAttempt": "WebGLRenderer failed to create a context; no scene was submitted.",
+    "furtherGPUWork": "Stopped after regular-browser playback failure. No further graphics draws, WebGPU device requests or restarts performed.",
+    "regularBrowserHealth": {
+      "source": "user supplied",
+      "pass": true,
+      "pixel": [
+        64,
+        128,
+        191,
+        255
+      ],
+      "error": 0,
+      "floatRenderTargets": true,
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "renderer": "WebKit WebGL"
+    },
+    "automationLimit": "In-app preview WebGL disabled (BindToCurrentSequence failed); native Chrome control timed out. No full scene was submitted through this preview during the split-surface validation.",
+    "regularBrowserSplitPlayback": {
+      "source": "user supplied",
+      "requestedSteps": 24,
+      "phase": "paused",
+      "frames": 0,
+      "elapsedSeconds": 68.19759999999404,
+      "simulatedSeconds": 0,
+      "waterSamples": 3024,
+      "mergePrograms": 0,
+      "copyPrograms": 0,
+      "surfacePrograms": {},
+      "lastPass": {
+        "stage": "Compiling display",
+        "programs": [
+          "display"
+        ]
+      },
+      "fieldStats": {
+        "backend": "CPU multigrid-PCG \u00b7 preparing"
+      },
+      "contextLost": true,
+      "rows": [],
+      "pass": false,
+      "compileOnly": false,
+      "compiled": [],
+      "error": "Graphics context lost during Compiling display. No further graphics work will be submitted.",
+      "interpretation": "No completed first frame or physics steps. The compilation stage label remained stale while drawing; last submitted display pass does not identify which prior pass failed to complete.",
+      "laterChangesNotGPUValidated": [
+        "frame-completion.js",
+        "serialized live rendering/physics submission",
+        "diagnostic completion snapshot"
+      ]
+    },
+    "surfaceCompilation": {
+      "source": "user supplied from compile-only diagnostic",
+      "pass": true,
+      "draws": 0,
+      "physicsSteps": 0,
+      "contextLost": false,
+      "programMilliseconds": {
+        "opaque-hit-record": 469,
+        "opaque-lighting": 664,
+        "water-hit-record": 323,
+        "water-lighting": 796,
+        "glass-hit-record": 328,
+        "glass-lighting": 570
+      }
+    }
+  },
+  "remaining": [
+    "Identify the first-frame rendering stall; shader compilation success has not resolved it.",
+    "Do not ask for another full playback run while this failure remains unexplained.",
+    "Validate bounded GPU execution and actual scene output before enabling playback or declaring a fix.",
+    "Keep the WebGPU pressure probe isolated and unexecuted on the GPU until rendering stability is established.",
+    "Commit and push to both branches only after verification."
+  ],
+  "webgpuProbe": {
+    "backendValidated": "CPU float32 reference only",
+    "gpuValidated": false,
+    "cells": 288,
+    "iterations": 32,
+    "relativeResidual": 0.00025277955169892397,
+    "cpuReferenceComparedToIndependentDoublePrecision": true,
+    "previewScreenshot": "pressure-reference.png",
+    "limits": {
+      "cells": 512,
+      "neighbors": 6,
+      "iterations": 64,
+      "batch": 8,
+      "waitMs": 2000
+    }
+  },
+  "offlineFirstFrameAudit": {
+    "usesActualLiveRenderOrchestration": true,
+    "gpuUsed": false,
+    "submittedPasses": 25,
+    "unpreparedShaderSourcesOrKeys": 0,
+    "activeSamplerFeedbackToCurrentOutput": 0,
+    "limits": "Source and command orchestration checks only; cannot validate driver execution, timing or visual equivalence."
+  }
+}

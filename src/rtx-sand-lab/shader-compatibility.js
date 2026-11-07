@@ -3,6 +3,8 @@
 // compiler to unroll loops on some backends, despite no mip level to pick.
 // Explicit level zero preserves filtering and samples, without derivatives.
 import {compactMacroReduction,MACRO_REDUCTION_SAMPLES} from './macro-reduction.js';
+import {installShaderLoopBounds} from './shader-loop-bounds.js';
+import {installShaderReachability} from './shader-reachability.js';
 export function explicitTextureLevel(source,names){
  const eligible=new Set(names),edits=[];
  // Match comments as well so text inside them can never be rewritten.
@@ -20,11 +22,15 @@ export function explicitTextureLevel(source,names){
  return source;
 }
 
-export function installRTXShaderCompatibility(renderer,{declaredOnly=false}={}){
+export function installRTXShaderCompatibility(renderer,{declaredOnly=false,boundedLoops=false,reachableOnly=false}={}){
  const draw=renderer.render.bind(renderer),states=new WeakMap();
  const prepare=scene=>{
   scene.traverse?.(o=>{for(const m of Array.isArray(o.material)?o.material:[o.material]){
    if(!m?.isShaderMaterial)continue;
+   // Explicit live opt-in also covers simulation materials created lazily
+   // after Resume. Historical fixtures retain their original shader source.
+   if(boundedLoops)installShaderLoopBounds(m);
+   if(reachableOnly)installShaderReachability(m);
    const reduced=compactMacroReduction(m.fragmentShader);
    if(reduced!==m.fragmentShader){m.fragmentShader=reduced;m.uniforms.uReductionSamples={value:MACRO_REDUCTION_SAMPLES};m.needsUpdate=true;}
    // Null data samplers are populated after field allocation. Treat them as

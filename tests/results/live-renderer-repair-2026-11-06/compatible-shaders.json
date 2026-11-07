@@ -1,0 +1,707 @@
+{
+  "check": "CPU reference compile, link and WebGL 2 texture budget",
+  "gpuWork": false,
+  "hardwarePolicy": "compatible GPU",
+  "hardwareLinearFiltering": true,
+  "pass": true,
+  "programs": 48,
+  "shaders": 96,
+  "textureLimit": 16,
+  "maxFragmentSamplers": 15,
+  "rows": [
+    {
+      "name": "atmosphere",
+      "fragmentChars": 4330,
+      "fragmentSamplers": [],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "spray shadows",
+      "fragmentChars": 881,
+      "fragmentSamplers": [
+        "uDetailP",
+        "uDetailV",
+        "uDetailI"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "spray-shadow-atlas",
+      "fragmentChars": 454,
+      "fragmentSamplers": [
+        "uSprayShadow0",
+        "uSprayShadow1",
+        "uSprayShadow2",
+        "uSprayShadow3"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "Gaussian water reconstruction",
+      "fragmentChars": 628,
+      "fragmentSamplers": [
+        "uCenters",
+        "uChannels",
+        "uShapes"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "water field maxima",
+      "fragmentChars": 719,
+      "fragmentSamplers": [
+        "uSource"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "water field copy",
+      "fragmentChars": 124,
+      "fragmentSamplers": [
+        "uSource"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "medium lighting",
+      "fragmentChars": 11984,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uSandParcels",
+        "uSandBins",
+        "uLabField",
+        "uAtmosphere"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "caustic photons",
+      "fragmentChars": 23028,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uLabField",
+        "uSprayShadow0",
+        "uSprayShadow1",
+        "uSprayShadow2",
+        "uSprayShadow3",
+        "uMediumTransport"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "caustic gather",
+      "fragmentChars": 219,
+      "fragmentSamplers": [
+        "uPhotonHits",
+        "uPhotonFlux"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "water front",
+      "fragmentChars": 397,
+      "fragmentSamplers": [
+        "uOpaqueRead"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "opaque-hit-record",
+      "fragmentChars": 14717,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "opaque-reflection-hit",
+      "fragmentChars": 14430,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uSurfaceHit"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "opaque-reflection-lighting",
+      "fragmentChars": 30465,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uLabField",
+        "uAtmosphere",
+        "uSprayAtlas",
+        "uMediumTransport",
+        "uCaustics",
+        "uSurfaceHit",
+        "uOpticOpaque",
+        "uOpticGlass"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "opaque-lighting",
+      "fragmentChars": 30626,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uLabField",
+        "uAtmosphere",
+        "uSprayAtlas",
+        "uMediumTransport",
+        "uCaustics",
+        "uReflectedColor",
+        "uSurfaceHit"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "water-hit-record",
+      "fragmentChars": 9151,
+      "fragmentSamplers": [
+        "uLabField",
+        "uImage",
+        "uFront"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "water-reflection-hit",
+      "fragmentChars": 16183,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uSurfaceHit",
+        "uSurfaceMedium"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "water-reflection-lighting",
+      "fragmentChars": 34896,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uLabField",
+        "uAtmosphere",
+        "uSprayAtlas",
+        "uMediumTransport",
+        "uCaustics",
+        "uSurfaceHit",
+        "uSurfaceMedium",
+        "uOpticOpaque",
+        "uOpticGlass"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "water-transmission-hit",
+      "fragmentChars": 16183,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uSurfaceHit",
+        "uSurfaceMedium"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "water-transmission-lighting",
+      "fragmentChars": 34896,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uLabField",
+        "uAtmosphere",
+        "uSprayAtlas",
+        "uMediumTransport",
+        "uCaustics",
+        "uSurfaceHit",
+        "uSurfaceMedium",
+        "uOpticOpaque",
+        "uOpticGlass"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "water-lighting",
+      "fragmentChars": 22642,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uLabField",
+        "uAtmosphere",
+        "uSprayAtlas",
+        "uMediumTransport",
+        "uReflectedColor",
+        "uTransmittedColor",
+        "uSurfaceMedium",
+        "uImage",
+        "uSurfaceHit"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "submerged-hit-record",
+      "fragmentChars": 6488,
+      "fragmentSamplers": [
+        "uLabField",
+        "uImage"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "submerged-reflection-hit",
+      "fragmentChars": 16512,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uSurfaceHit",
+        "uSurfaceMedium"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "submerged-reflection-lighting",
+      "fragmentChars": 33142,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uLabField",
+        "uAtmosphere",
+        "uSprayAtlas",
+        "uMediumTransport",
+        "uCaustics",
+        "uSurfaceHit",
+        "uSurfaceMedium",
+        "uOpticOpaque",
+        "uOpticGlass"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "submerged-transmission-hit",
+      "fragmentChars": 16512,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uSurfaceHit",
+        "uSurfaceMedium"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "submerged-transmission-lighting",
+      "fragmentChars": 33142,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uLabField",
+        "uAtmosphere",
+        "uSprayAtlas",
+        "uMediumTransport",
+        "uCaustics",
+        "uSurfaceHit",
+        "uSurfaceMedium",
+        "uOpticOpaque",
+        "uOpticGlass"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "submerged-lighting",
+      "fragmentChars": 9956,
+      "fragmentSamplers": [
+        "uBodyExtra",
+        "uBodies",
+        "uSprayAtlas",
+        "uMediumTransport",
+        "uSurfaceMedium",
+        "uSurfaceHit",
+        "uImage",
+        "uReflectedColor",
+        "uTransmittedColor"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "detached-water-trace",
+      "fragmentChars": 4549,
+      "fragmentSamplers": [
+        "uLabField",
+        "uBlobKernels",
+        "uImage",
+        "uBulkWater"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "detached-water-shading",
+      "fragmentChars": 9187,
+      "fragmentSamplers": [
+        "uAtmosphere",
+        "uMediumTransport",
+        "uImage",
+        "uBodies",
+        "uBodyExtra",
+        "uBlobChemistryDepth",
+        "uBlobNormalPath"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "water merge",
+      "fragmentChars": 230,
+      "fragmentSamplers": [
+        "uBulkWater",
+        "uBlobSurface"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "image copy",
+      "fragmentChars": 138,
+      "fragmentSamplers": [
+        "uImage"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "fine-water-cached-lighting",
+      "fragmentChars": 11583,
+      "fragmentSamplers": [
+        "uLabField",
+        "uMediumTransport",
+        "uSprayShadow0",
+        "uSprayShadow1",
+        "uSprayShadow2",
+        "uSprayShadow3",
+        "uBodies",
+        "uBodyExtra",
+        "uDetailP",
+        "uDetailV",
+        "uDetailI",
+        "uOpaqueRead",
+        "uWaterSurface"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "fine-water-depth-composite",
+      "fragmentChars": 731,
+      "fragmentSamplers": [
+        "uDetailP",
+        "uDetailV",
+        "uDetailI",
+        "uDetailPaths",
+        "uDetailViewTau",
+        "uDetailScatter",
+        "uOpaqueRead"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "fine water composite",
+      "fragmentChars": 666,
+      "fragmentSamplers": [
+        "uOpaqueRead",
+        "uMist"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "glass-hit-record",
+      "fragmentChars": 7672,
+      "fragmentSamplers": [
+        "uBodyExtra",
+        "uBodies",
+        "uOpaqueRead",
+        "uWaterSurface"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "glass-lighting",
+      "fragmentChars": 26396,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uLabField",
+        "uAtmosphere",
+        "uSprayAtlas",
+        "uMediumTransport",
+        "uOpaqueRead",
+        "uWaterSurface",
+        "uSurfaceHit",
+        "uImage"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "fine water transport",
+      "fragmentChars": 16441,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uFlowTexture",
+        "uAirField",
+        "uFoamContact",
+        "uDetailP",
+        "uDetailV",
+        "uDetailI",
+        "uSpawnP",
+        "uSpawnV",
+        "uSpawnI"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "fine water flow field",
+      "fragmentChars": 628,
+      "fragmentSamplers": [
+        "uCenters",
+        "uChannels",
+        "uShapes"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "foam contact field",
+      "fragmentChars": 95,
+      "fragmentSamplers": [
+        "uDetailP",
+        "uDetailV",
+        "uDetailI"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "sand grain transport",
+      "fragmentChars": 12530,
+      "fragmentSamplers": [
+        "uSand",
+        "uLabBed",
+        "uBodyExtra",
+        "uBodies",
+        "uSandParcels",
+        "uSandBins",
+        "uFlowTexture",
+        "uSpawnP",
+        "uGrainP",
+        "uGrainV",
+        "uSpawnV",
+        "uGrainInfo"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "sand grain drawing",
+      "fragmentChars": 332,
+      "fragmentSamplers": [
+        "uLabField",
+        "uGrainP",
+        "uGrainV",
+        "uGrainInfo",
+        "uOpaqueRead"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "water transport",
+      "fragmentChars": 2663,
+      "fragmentSamplers": [
+        "uOld",
+        "uNext",
+        "uChem",
+        "uNeighbors",
+        "uPredicted"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "physics transfer",
+      "fragmentChars": 521,
+      "fragmentSamplers": [
+        "uPosition",
+        "uVelocity",
+        "uChemistry",
+        "uMetric",
+        "uActivity",
+        "uEmitter"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "live-projected-air-resample",
+      "fragmentChars": 654,
+      "fragmentSamplers": [
+        "uSource"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "Gaussian stars",
+      "fragmentChars": 2612,
+      "fragmentSamplers": [
+        "uOpaqueRead",
+        "uWaterSurface",
+        "uExposure",
+        "uAtmosphere"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "Gaussian stars",
+      "fragmentChars": 1242,
+      "fragmentSamplers": [
+        "uOpaqueRead",
+        "uWaterSurface",
+        "uAtmosphere",
+        "uExposure"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "exposure reduction",
+      "fragmentChars": 529,
+      "fragmentSamplers": [
+        "uInput"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "exposure adaptation",
+      "fragmentChars": 779,
+      "fragmentSamplers": [
+        "uStats",
+        "uPrevious"
+      ],
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "display",
+      "fragmentChars": 572,
+      "fragmentSamplers": [
+        "uExposure",
+        "uImage"
+      ],
+      "pass": true,
+      "error": null
+    }
+  ]
+}

@@ -26,6 +26,7 @@ export class LiveSandLab extends SandLab{
  configure(...args){super.configure(...args);this.bulkFields?.reset();if(this.sand){this.sand.editPolicy=new SandEditPolicy();this.sand.windBrushErosion=windBrushErosion;}}
  prepareStep(dt){if(this.bulkFields?.enabled)this.bulkFields.ensure();return super.prepareStep(dt);}
  step(dt,deferDetail=false){
+  if(this.graphicsStopped)return;
   if(!this.bulkFields?.enabled||!this.count)return super.step(dt,deferDetail);
   const context=this.prepareStep(dt),next=this.bulkFields.solve(context);
   this.finishStep(context,next,deferDetail);
@@ -42,7 +43,7 @@ export class LiveSandLab extends SandLab{
  }
  startAsyncStep(){
   const dt=this.timestep,generation=this.generation;
-  if(!this.asyncSimulation||!this.enabled||this.paused||this.qaRunning||this.gpu.cpu||this.asyncPending||this.accumulator+1e-12<dt)return;
+  if(this.graphicsStopped||this.renderPending||!this.asyncSimulation||!this.enabled||this.paused||this.qaRunning||this.gpu.cpu||this.asyncPending||this.accumulator+1e-12<dt)return;
   if(this.windHeld)this.jet=this.windRay||this.simulationRay;
   this.accumulator=Math.max(0,this.accumulator-dt);
   // Install the pending guard before preparing a step or invoking a thenable.
@@ -68,10 +69,11 @@ export class LiveSandLab extends SandLab{
   }).then(completed=>{if(completed&&generation===this.generation)this.completedDt+=dt;})
    .catch(error=>{
     if(generation!==this.generation)return;
-    // A failed optional transfer is not retried on the next frame.
+    // A failed transfer must not silently switch to synchronous physics and
+    // immediately submit more transport/render work to the same GPU.
     this.verification='Asynchronous simulation stopped: '+error.message;
     this.asyncSimulation=false;this.gpu.forceCPUConstraints=true;
-    this.pipelineError=error.message;
+    this.stopGraphicsWork(error);this.onGraphicsFailure?.(error);
    }).finally(()=>{
     this.asyncPending=null;
     // Consume only time already earned by foreground frames. Yield between
@@ -82,5 +84,14 @@ export class LiveSandLab extends SandLab{
      },0);
     }
    });
+ }
+ stopGraphicsWork(error){
+  if(this.graphicsStopped)return;
+  this.graphicsStopped=true;this.generation++;
+  this.enabled=false;this.paused=true;this.asyncSimulation=false;this.accumulator=0;
+  if(this.asyncTimer){clearTimeout(this.asyncTimer);this.asyncTimer=null;}
+  // Existing awaited steps check generation before publishing or finishing.
+  // Do not switch to another GPU path or retry a damaged graphics context.
+  this.pipelineError=error?.message||String(error);
  }
 }
