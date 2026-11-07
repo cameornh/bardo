@@ -54,10 +54,11 @@ export class LiveSandLab extends SandLab{
    const context=this.prepareStep(dt);
    if(this.bulkFields?.enabled){
     const next=await this.bulkFields.solveAsync(context);if(!next||generation!==this.generation)return false;
-    // Projection/contact state is already on the CPU. Keep the matched
-    // transport there instead of uploading it just to read five textures back.
+    // The field backend supplies matching transport, either on CPU or in
+    // its single packed WebGPU result. Do not run legacy transport again.
     this.emitterSamples=null;this.pipelineSubmitMs=performance.now()-start;this.pipelineWaitMs=0;
-    this.finishStep(context,next);return true;
+    this.finishStep(context,next);
+    if(context.particleReadback)this.timings={...this.timings,readback:context.particleReadback.waitMs,readbacks:1,readbackBytes:context.particleReadback.readbackBytes};return true;
    }
    else this.gpu.solve(context.predicted,context.s,p=>this.collide(p),3,p=>this.solid(p),false,true);
    this.transportGPU.solve(context.old,context.old,this.velocities,this.chem,this.gpu.neighbors,context.s,context.scale,dt,context.predicted,this.gpu,true);

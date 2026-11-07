@@ -1,0 +1,565 @@
+{
+  "pass": true,
+  "runs": [
+    {
+      "backend": "webgpu",
+      "actualBackend": "webgpu",
+      "count": 3024,
+      "time": 1.0666666666666667,
+      "rows": [
+        {
+          "ms": 826,
+          "prepare": 53.5,
+          "pressure": 5,
+          "scalar": 11.699999988079071,
+          "surface": null,
+          "transfer": null,
+          "transport": 709.3999999761581,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 22.80000001192093,
+            "waitMs": 686.5999999642372,
+            "totalMs": 709.3999999761581,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 130.69999998807907,
+          "prepare": 51.19999998807907,
+          "pressure": 5.099999964237213,
+          "scalar": 7.700000047683716,
+          "surface": null,
+          "transfer": null,
+          "transport": 33.69999998807907,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 25.5,
+            "waitMs": 8.199999988079071,
+            "totalMs": 33.69999998807907,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 114.69999998807907,
+          "prepare": 31.100000023841858,
+          "pressure": 3.800000011920929,
+          "scalar": 3.399999976158142,
+          "surface": null,
+          "transfer": null,
+          "transport": 32.5,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 25.19999998807907,
+            "waitMs": 7.300000011920929,
+            "totalMs": 32.5,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 64.30000001192093,
+          "prepare": 25,
+          "pressure": 3.800000011920929,
+          "scalar": 3.199999988079071,
+          "surface": null,
+          "transfer": null,
+          "transport": 16.5,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 9.300000011920929,
+            "waitMs": 7.199999988079071,
+            "totalMs": 16.5,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 55.5,
+          "prepare": 16.69999998807907,
+          "pressure": 4,
+          "scalar": 2.699999988079071,
+          "surface": null,
+          "transfer": null,
+          "transport": 15.699999988079071,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 7.800000011920929,
+            "waitMs": 7.899999976158142,
+            "totalMs": 15.699999988079071,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 59.59999996423721,
+          "prepare": 17,
+          "pressure": 3.5,
+          "scalar": 4.199999988079071,
+          "surface": null,
+          "transfer": null,
+          "transport": 9.800000011920929,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 2.5,
+            "waitMs": 7.300000011920929,
+            "totalMs": 9.800000011920929,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 59.60000002384186,
+          "prepare": 25.100000023841858,
+          "pressure": 3.799999952316284,
+          "scalar": 4,
+          "surface": null,
+          "transfer": null,
+          "transport": 14.100000023841858,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 2.800000011920929,
+            "waitMs": 11.300000011920929,
+            "totalMs": 14.100000023841858,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 48.19999998807907,
+          "prepare": 17.19999998807907,
+          "pressure": 3.5,
+          "scalar": 4,
+          "surface": null,
+          "transfer": null,
+          "transport": 9.900000035762787,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 2.700000047683716,
+            "waitMs": 7.199999988079071,
+            "totalMs": 9.900000035762787,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 68.79999995231628,
+          "prepare": 29.799999952316284,
+          "pressure": 4.900000035762787,
+          "scalar": 5.099999964237213,
+          "surface": null,
+          "transfer": null,
+          "transport": 11.900000035762787,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 3.400000035762787,
+            "waitMs": 8.5,
+            "totalMs": 11.900000035762787,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 77.60000002384186,
+          "prepare": 42.80000001192093,
+          "pressure": 3.699999988079071,
+          "scalar": 4.199999988079071,
+          "surface": null,
+          "transfer": null,
+          "transport": 10.199999988079071,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 3.199999988079071,
+            "waitMs": 7,
+            "totalMs": 10.199999988079071,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 47.80000001192093,
+          "prepare": 18.69999998807907,
+          "pressure": 3.600000023841858,
+          "scalar": 3.5,
+          "surface": null,
+          "transfer": null,
+          "transport": 10.899999976158142,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 2.699999988079071,
+            "waitMs": 8.199999988079071,
+            "totalMs": 10.899999976158142,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 63.10000002384186,
+          "prepare": 15.300000011920929,
+          "pressure": 3.5,
+          "scalar": 3.399999976158142,
+          "surface": null,
+          "transfer": null,
+          "transport": 10.699999988079071,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 2.5,
+            "waitMs": 8.199999988079071,
+            "totalMs": 10.699999988079071,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 54.60000002384186,
+          "prepare": 17.599999964237213,
+          "pressure": 3.400000035762787,
+          "scalar": 3.699999988079071,
+          "surface": null,
+          "transfer": null,
+          "transport": 10.5,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 2.199999988079071,
+            "waitMs": 8.300000011920929,
+            "totalMs": 10.5,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 53.39999997615814,
+          "prepare": 15.699999988079071,
+          "pressure": 3.300000011920929,
+          "scalar": 3.399999976158142,
+          "surface": null,
+          "transfer": null,
+          "transport": 9.699999988079071,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 2.100000023841858,
+            "waitMs": 7.599999964237213,
+            "totalMs": 9.699999988079071,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 50.5,
+          "prepare": 13.300000011920929,
+          "pressure": 3,
+          "scalar": 3.399999976158142,
+          "surface": null,
+          "transfer": null,
+          "transport": 9.699999988079071,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 2.199999988079071,
+            "waitMs": 7.5,
+            "totalMs": 9.699999988079071,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        },
+        {
+          "ms": 47.90000003576279,
+          "prepare": 14,
+          "pressure": 3.100000023841858,
+          "scalar": 3.299999952316284,
+          "surface": null,
+          "transfer": null,
+          "transport": 9.400000035762787,
+          "particle": {
+            "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4",
+              "device": "",
+              "description": ""
+            },
+            "packMs": 2,
+            "waitMs": 7.400000035762787,
+            "totalMs": 9.400000035762787,
+            "readbackBytes": 241924,
+            "particles": 3024,
+            "warmup": false
+          }
+        }
+      ]
+    },
+    {
+      "backend": "cpu",
+      "actualBackend": "cpu",
+      "count": 3024,
+      "time": 1.0666666666666667,
+      "rows": [
+        {
+          "ms": 119.5,
+          "prepare": 49,
+          "pressure": 3.600000023841858,
+          "scalar": 11.199999988079071,
+          "surface": 16.200000047683716,
+          "transfer": 7.5,
+          "transport": 7,
+          "particle": null
+        },
+        {
+          "ms": 74.10000002384186,
+          "prepare": 13.600000023841858,
+          "pressure": 3.399999976158142,
+          "scalar": 2.699999988079071,
+          "surface": 7.100000023841858,
+          "transfer": 6.199999988079071,
+          "transport": 2.699999988079071,
+          "particle": null
+        },
+        {
+          "ms": 101.5,
+          "prepare": 37.60000002384186,
+          "pressure": 4.100000023841858,
+          "scalar": 6.199999988079071,
+          "surface": 9.199999988079071,
+          "transfer": 4.5,
+          "transport": 2.800000011920929,
+          "particle": null
+        },
+        {
+          "ms": 49.69999998807907,
+          "prepare": 15.199999988079071,
+          "pressure": 3.700000047683716,
+          "scalar": 2.800000011920929,
+          "surface": 7.399999976158142,
+          "transfer": 3.300000011920929,
+          "transport": 2.800000011920929,
+          "particle": null
+        },
+        {
+          "ms": 45.700000047683716,
+          "prepare": 14.900000035762787,
+          "pressure": 3.399999976158142,
+          "scalar": 2.899999976158142,
+          "surface": 6.399999976158142,
+          "transfer": 3.100000023841858,
+          "transport": 2.5,
+          "particle": null
+        },
+        {
+          "ms": 52.19999998807907,
+          "prepare": 12.600000023841858,
+          "pressure": 3.099999964237213,
+          "scalar": 3.699999988079071,
+          "surface": 7.600000023841858,
+          "transfer": 3.300000011920929,
+          "transport": 2.399999976158142,
+          "particle": null
+        },
+        {
+          "ms": 57,
+          "prepare": 19.399999976158142,
+          "pressure": 3.600000023841858,
+          "scalar": 4.099999964237213,
+          "surface": 7.600000023841858,
+          "transfer": 3.600000023841858,
+          "transport": 2.699999988079071,
+          "particle": null
+        },
+        {
+          "ms": 50,
+          "prepare": 19.100000023841858,
+          "pressure": 3.599999964237213,
+          "scalar": 4,
+          "surface": 6.5,
+          "transfer": 3.5,
+          "transport": 2.699999988079071,
+          "particle": null
+        },
+        {
+          "ms": 52.19999998807907,
+          "prepare": 16.30000001192093,
+          "pressure": 4.099999964237213,
+          "scalar": 4.199999988079071,
+          "surface": 6.300000011920929,
+          "transfer": 3.900000035762787,
+          "transport": 3.099999964237213,
+          "particle": null
+        },
+        {
+          "ms": 51.799999952316284,
+          "prepare": 19,
+          "pressure": 3.899999976158142,
+          "scalar": 4.400000035762787,
+          "surface": 6.800000011920929,
+          "transfer": 4.399999976158142,
+          "transport": 3.199999988079071,
+          "particle": null
+        },
+        {
+          "ms": 47.799999952316284,
+          "prepare": 17.900000035762787,
+          "pressure": 3.699999988079071,
+          "scalar": 4,
+          "surface": 5.700000047683716,
+          "transfer": 4.399999976158142,
+          "transport": 3,
+          "particle": null
+        },
+        {
+          "ms": 62.5,
+          "prepare": 18,
+          "pressure": 3.5,
+          "scalar": 4,
+          "surface": 6.600000023841858,
+          "transfer": 4.199999988079071,
+          "transport": 3.399999976158142,
+          "particle": null
+        },
+        {
+          "ms": 69.80000001192093,
+          "prepare": 15.199999988079071,
+          "pressure": 3.800000011920929,
+          "scalar": 4.299999952316284,
+          "surface": 7.800000011920929,
+          "transfer": 4.900000035762787,
+          "transport": 3,
+          "particle": null
+        },
+        {
+          "ms": 71.09999996423721,
+          "prepare": 26.900000035762787,
+          "pressure": 4.599999964237213,
+          "scalar": 4.600000023841858,
+          "surface": 6.199999988079071,
+          "transfer": 4.300000011920929,
+          "transport": 3,
+          "particle": null
+        },
+        {
+          "ms": 79.10000002384186,
+          "prepare": 21.30000001192093,
+          "pressure": 4.199999988079071,
+          "scalar": 5.100000023841858,
+          "surface": 15.600000023841858,
+          "transfer": 5.599999964237213,
+          "transport": 5.199999988079071,
+          "particle": null
+        },
+        {
+          "ms": 90.30000001192093,
+          "prepare": 32.90000003576279,
+          "pressure": 4.599999964237213,
+          "scalar": 4.700000047683716,
+          "surface": 13.5,
+          "transfer": 5.099999964237213,
+          "transport": 5.100000023841858,
+          "particle": null
+        }
+      ]
+    }
+  ]
+}

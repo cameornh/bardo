@@ -10,9 +10,11 @@ import {pointVelocity} from '../../sand-lab/rigid-contacts.js';
 import {FieldTransport} from './native-transport.js';
 import {FieldNeighbors} from './neighbors.js';
 import {FieldPressure} from './native-pressure.js';
+import {ParticlePipeline} from './particles/pipeline.js';
+import {verifyParticles} from './particles/verify.js';
 
 export class BeachFields {
- constructor(lab){this.lab=lab;this.enabled=true;this.backend='cpu';this.stats={backend:'CPU multigrid-PCG · preparing'};this.events=[];this.attach();}
+ constructor(lab){this.lab=lab;this.enabled=true;this.backend='cpu';this.particleBackend='cpu';this.stats={backend:'CPU multigrid-PCG · preparing'};this.events=[];this.attach();}
  attach(){
   const lab=this.lab,air=lab.air;this.originalAirUpdate=air.update.bind(air);this.originalAirSample=air.sampleGrid.bind(air);
   air.update=(...args)=>{if(!this.enabled)return this.originalAirUpdate(...args);air.grid=this.grid||null;air.lab=lab;air.jet=lab.jet;};
@@ -48,14 +50,33 @@ export class BeachFields {
   if(this.backend==='gpu'&&this.gpu?.validated&&!this.gpu.disabled){try{result=await this.gpu.solve(this.grid.levels,rhs);}catch(error){this.stats.fallback=error.message;this.backend='cpu';}}
   // A reset while the single GPU job is in flight must never write new state.
   if(context.generation!==this.lab.generation)return null;
-  result??=this.solveCPU(rhs);return this.finish(context,result);
+  result??=this.solveCPU(rhs);
+  if(this.particleBackend==='webgpu'&&this.particles?.validated&&!this.particles.disabled){
+   this.finishFields(context,result);
+   let particles;
+   try{particles=await this.particles.solve(context,this.lab,this.grid);}catch(error){this.stats.particleFallback=error.message;this.particleBackend='cpu';}
+   if(context.generation!==this.lab.generation)return null;
+   return this.finish(context,result,true,particles);
+  }
+  if(this.particles?.disabled){if(this.particleBackend==='webgpu')this.stats.particleFallback=this.particles.failure||'GPU particle backend unavailable';this.particleBackend='cpu';}
+  return this.finish(context,result);
  }
- finish(context,result){
+ finishFields(context,result){
   if(!Number.isFinite(result.relativeResidual)||result.relativeResidual>1e-3&&result.absoluteResidual>1e-8)throw Error('Beach field pressure failed convergence: '+result.relativeResidual);
   const lab=this.lab,g=this.grid,start=performance.now();g.project(result.potential,context.dt);g.buildAirVelocity();g.transport(context.dt);this.thermal(context.dt);
-  const scalarDone=performance.now(),transferred=g.transfer(context.old,context.predicted,context.dt,context.scale,context.s),gatherDone=performance.now(),builder=this.neighbors??=new FieldNeighbors(),neighbors=builder.build(transferred,context.s,{native:lab.gpu.nativeNeighbors!==false,reuse:lab.optimizations?.neighborReuse!==false});lab.gpu.neighborMs=performance.now()-gatherDone;lab.gpu.neighbors=neighbors.data;lab.gpu.overflow=neighbors.overflow;lab.gpu.neighborReused=builder.reused;lab.gpu.neighborBackend=builder.backend;
-  const surfaceStart=performance.now(),surface=surfaceConstraints(lab,transferred,neighbors.data,g);
-  this.stats={...this.stats,...result,potential:undefined,...g.summary(),before:this.before,prepareMs:this.prepareMs,transferMs:surfaceStart-start,scalarMs:scalarDone-start,gatherMs:gatherDone-scalarDone,neighborMs:lab.gpu.neighborMs,surfaceMs:performance.now()-surfaceStart,surfaceParticles:surface.active,surfaceBackend:surface.backend,totalParticles:lab.count};
+  this.scalarMs=performance.now()-start;
+ }
+ finish(context,result,prepared=false,particles=null){
+  if(!prepared)this.finishFields(context,result);
+  const lab=this.lab,g=this.grid,start=performance.now(),scalarDone=start;let surface;
+  if(particles){
+   surface={positions:particles.positions};context.transport=particles.transport;context.cpuTransport=true;context.particleReadback=particles.stats;
+   this.stats={...this.stats,...result,potential:undefined,...g.summary(),before:this.before,prepareMs:this.prepareMs,scalarMs:this.scalarMs,totalParticles:lab.count,surfaceParticles:null,surfaceMs:null,gatherMs:null,neighborMs:null,transferMs:null,surfaceBackend:'WebGPU exact contacts',transportBackend:particles.stats.backend,transportMs:particles.stats.totalMs,particleCompute:particles.stats};
+   lab.gpu.overflow=0;lab.gpu.neighborReused=false;lab.gpu.neighborBackend='WebGPU spatial buckets';lab.gpu.neighborMs=0;
+  }else{
+  const transferred=g.transfer(context.old,context.predicted,context.dt,context.scale,context.s),gatherDone=performance.now(),builder=this.neighbors??=new FieldNeighbors(),neighbors=builder.build(transferred,context.s,{native:lab.gpu.nativeNeighbors!==false,reuse:lab.optimizations?.neighborReuse!==false});lab.gpu.neighborMs=performance.now()-gatherDone;lab.gpu.neighbors=neighbors.data;lab.gpu.overflow=neighbors.overflow;lab.gpu.neighborReused=builder.reused;lab.gpu.neighborBackend=builder.backend;
+  const surfaceStart=performance.now(),computedSurface=surfaceConstraints(lab,transferred,neighbors.data,g);surface=computedSurface;
+  this.stats={...this.stats,...result,potential:undefined,...g.summary(),before:this.before,prepareMs:this.prepareMs,transferMs:surfaceStart-start,scalarMs:this.scalarMs,gatherMs:gatherDone-scalarDone,neighborMs:lab.gpu.neighborMs,surfaceMs:performance.now()-surfaceStart,surfaceParticles:surface.active,surfaceBackend:surface.backend,totalParticles:lab.count};
   const transportStart=performance.now();
   // Local density relaxation re-spaces markers after bulk projection. It is
   // not another pressure impulse: feeding the whole shift into velocity was
@@ -64,8 +85,9 @@ export class BeachFields {
   const shiftedOld=context.old.slice(),shiftedPrediction=context.predicted.slice();
   for(let o=0;o<surface.shift.length;o+=4)for(let k=0;k<3;k++){shiftedOld[o+k]+=surface.shift[o+k];shiftedPrediction[o+k]+=surface.shift[o+k];}
   context.transport=(this.transport??=new FieldTransport()).solve(shiftedOld,surface.positions,lab.velocities,lab.chem,neighbors.data,context.s,context.scale,context.dt,shiftedPrediction,!neighbors.overflow);
-  context.cpuTransport=true;this.stats.transportBackend=this.transport.backend;this.stats.transportMs=performance.now()-transportStart;
-  lab.gpu.contactArithmetic=this.stats.backend+' / '+this.stats.surfaceBackend+' surface / '+this.transport.backend;
+  context.cpuTransport=true;this.stats.transportBackend=this.transport.backend;this.stats.transportMs=performance.now()-transportStart;this.stats.particleCompute=null;
+  }
+  lab.gpu.contactArithmetic=this.stats.backend+' / '+this.stats.surfaceBackend+' surface / '+this.stats.transportBackend;
   if(!lab.gpu.cpu)(this.airTexture??=new AirFieldTexture(lab.renderer,lab.air)).update(g,lab.spec.scale);else lab.air.u.uAirEnabled.value=false;
   lab.air.grid=g;return surface.positions;
  }
@@ -81,11 +103,24 @@ export class BeachFields {
    const energy=(sample.temperature-p.temperature)*(1-Math.exp(-dt*.08))*c*airCapacity/(c+airCapacity);p.temperature+=energy/c;g.temperature[sample.i]-=energy/airCapacity;g.ledger.dropHeat-=energy;
   }
  }
+ async verifyParticles(){
+  if(this.lab.asyncPending)throw Error('Pause and wait for the current step');
+  this.particleBackend='cpu';this.particles?.dispose();this.particles=await new ParticlePipeline().initialize();
+  const result=await verifyParticles(this.particles);this.particleVerification=result;if(result.pass)delete this.stats.particleFallback;
+  if(result.pass&&this.lab.count){
+   // Exercise the actual geometry/count while paused. Discard the result:
+   // verification must never advance the beach, moisture, tides or player.
+   this.ensure();const lab=this.lab,g=this.grid,grid=new BeachFieldGrid({dims:g.dims,h:g.h,origin:g.origin,extent:g.cellSize.map((v,k)=>v*g.dims[k])}),context={old:lab.positions.slice(),predicted:lab.positions.slice(),dt:lab.timestep,s:lab.spacing,scale:lab.spec.scale};
+   const rhs=grid.deposit(context.old,context.predicted,context.dt,context.scale,context.s,p=>lab.solid(p.map(v=>v/context.scale))*context.scale,()=>[0,0,0]);grid.solve(rhs,context.dt);
+   try{const warm=await this.particles.solve(context,lab,grid);result.sceneWarmup=warm.stats;}
+   catch(e){result.sceneWarning=e.message;this.particles.validated=false;result.pass=false;}
+  }return result;
+ }
  async verify(){
   if(this.lab.asyncPending)throw Error('Pause and wait for the current step before verifying');
   const grid=new BeachFieldGrid({dims:[8,6,6],h:1,origin:[0,0,0]}),phase=new Uint8Array(grid.count).fill(AIR);for(let i=0;i<grid.count;i++)if(grid.coords[i][1]<2)phase[i]=WATER;grid.setPhase(phase);
   const rhs=Float64Array.from({length:grid.count},(_,i)=>Math.sin(i*.31)*.1);this.gpu??=new GPUMultigrid(this.lab.renderer);
   const result=await this.gpu.verify(grid.levels,rhs);this.verification=result;return result;
  }
- dispose(){this.airTexture?.dispose();this.gpu?.dispose();}
+ dispose(){this.particles?.dispose();this.airTexture?.dispose();this.gpu?.dispose();}
 }

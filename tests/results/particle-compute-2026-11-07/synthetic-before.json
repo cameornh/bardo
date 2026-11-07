@@ -1,0 +1,206 @@
+{
+  "cpuReferenceMs": 104.5,
+  "cpuOptimizedMs": [
+    28,
+    15.400000035762787,
+    13.299999952316284,
+    12.900000035762787,
+    13,
+    12.5
+  ],
+  "cpuBackend": "WebAssembly CPU transport",
+  "rows": [
+    {
+      "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "gcn-4",
+        "device": "",
+        "description": ""
+      },
+      "packMs": 12.400000035762787,
+      "waitMs": 696.3999999761581,
+      "totalMs": 708.8000000119209,
+      "readbackBytes": 327684,
+      "particles": 4096,
+      "warmup": false,
+      "diagnostics": [],
+      "intermediate": {
+        "position": 0,
+        "shift": 0,
+        "neighbors": 0
+      },
+      "worst": [],
+      "pass": true,
+      "errors": {
+        "positions": 2.384185791015625e-7,
+        "velocities": 0.000007096678018569946,
+        "chem": 1.4901161193847656e-8,
+        "metrics": 0.0005404949188232422,
+        "counts": 0,
+        "activity": 0.002304026624187827,
+        "breakup": 8.195638656616211e-7
+      }
+    },
+    {
+      "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "gcn-4",
+        "device": "",
+        "description": ""
+      },
+      "packMs": 19.900000035762787,
+      "waitMs": 10,
+      "totalMs": 29.900000035762787,
+      "readbackBytes": 327684,
+      "particles": 4096,
+      "warmup": false,
+      "diagnostics": [],
+      "intermediate": {
+        "position": 0,
+        "shift": 0,
+        "neighbors": 0
+      },
+      "worst": [],
+      "pass": true,
+      "errors": {
+        "positions": 2.384185791015625e-7,
+        "velocities": 0.000007096678018569946,
+        "chem": 1.4901161193847656e-8,
+        "metrics": 0.0004833489656448364,
+        "counts": 0,
+        "activity": 0.002304026624187827,
+        "breakup": 8.195638656616211e-7
+      }
+    },
+    {
+      "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "gcn-4",
+        "device": "",
+        "description": ""
+      },
+      "packMs": 11.200000047683716,
+      "waitMs": 10.599999964237213,
+      "totalMs": 21.80000001192093,
+      "readbackBytes": 327684,
+      "particles": 4096,
+      "warmup": false,
+      "diagnostics": [],
+      "intermediate": {
+        "position": 0,
+        "shift": 0,
+        "neighbors": 0
+      },
+      "worst": [],
+      "pass": true,
+      "errors": {
+        "positions": 2.384185791015625e-7,
+        "velocities": 0.000007096678018569946,
+        "chem": 1.4901161193847656e-8,
+        "metrics": 0.000360637903213501,
+        "counts": 0,
+        "activity": 0.006103515625,
+        "breakup": 0.000004090368747711182
+      }
+    },
+    {
+      "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "gcn-4",
+        "device": "",
+        "description": ""
+      },
+      "packMs": 10.400000035762787,
+      "waitMs": 9.599999964237213,
+      "totalMs": 20,
+      "readbackBytes": 327684,
+      "particles": 4096,
+      "warmup": false,
+      "diagnostics": [],
+      "intermediate": {
+        "position": 0,
+        "shift": 0,
+        "neighbors": 0
+      },
+      "worst": [],
+      "pass": true,
+      "errors": {
+        "positions": 2.384185791015625e-7,
+        "velocities": 0.000007096678018569946,
+        "chem": 1.4901161193847656e-8,
+        "metrics": 0.0004936754703521729,
+        "counts": 0,
+        "activity": 0.002304026624187827,
+        "breakup": 7.301568984985352e-7
+      }
+    },
+    {
+      "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "gcn-4",
+        "device": "",
+        "description": ""
+      },
+      "packMs": 9.200000047683716,
+      "waitMs": 9,
+      "totalMs": 18.200000047683716,
+      "readbackBytes": 327684,
+      "particles": 4096,
+      "warmup": false,
+      "diagnostics": [],
+      "intermediate": {
+        "position": 0,
+        "shift": 0,
+        "neighbors": 0
+      },
+      "worst": [],
+      "pass": true,
+      "errors": {
+        "positions": 2.384185791015625e-7,
+        "velocities": 0.000007096678018569946,
+        "chem": 1.4901161193847656e-8,
+        "metrics": 0.0005366355180740356,
+        "counts": 0,
+        "activity": 0.006103515625,
+        "breakup": 0.000004090368747711182
+      }
+    },
+    {
+      "backend": "WebGPU particle transfer / neighbors / contacts / transport",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "gcn-4",
+        "device": "",
+        "description": ""
+      },
+      "packMs": 8.800000011920929,
+      "waitMs": 9.399999976158142,
+      "totalMs": 18.19999998807907,
+      "readbackBytes": 327684,
+      "particles": 4096,
+      "warmup": false,
+      "diagnostics": [],
+      "intermediate": {
+        "position": 0,
+        "shift": 0,
+        "neighbors": 0
+      },
+      "worst": [],
+      "pass": true,
+      "errors": {
+        "positions": 2.384185791015625e-7,
+        "velocities": 0.000007096678018569946,
+        "chem": 1.4901161193847656e-8,
+        "metrics": 0.00048169493675231934,
+        "counts": 0,
+        "activity": 0.0014394395984709263,
+        "breakup": 0.0000011622905731201172
+      }
+    }
+  ]
+}

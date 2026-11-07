@@ -1,0 +1,11 @@
+Numerical comparison and overflow fallback passed. WebGPU is available. Current beach warmed in 98 ms.
+Active · WebAssembly CPU multigrid-PCG
+3553 field cells · 675 water cells
+12992/13293 particles coupled · GPU surface/contact band
+Pressure: 4.8 ms · 8 iterations · 4 levels
+Relative residual: 3.99e-6
+Divergence: 1.08e-1 → 4.31e-7 /s
+CPU: field deposition, moving geometry, scalar transport
+WebGPU particle transfer / neighbors / contacts / transport: 137.4 ms · one bounded physics readback
+Surface contacts: WebGPU exact contacts · included above
+GPU pressure available after numerical verification

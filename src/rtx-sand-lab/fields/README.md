@@ -23,8 +23,9 @@ The terrain edit store, Gaussian/SH renderer, and 60 Hz presentation cap are unc
    the adjacent interior particles. The same existing WASM arithmetic accelerates
    this pass, with a tested JavaScript reference. Thin cups and carved sand still
    use fine SDF contacts; their sub-cell shape is not replaced by the coarse mask.
-5. Reuse the existing GPU water transport, surface reconstruction, spray, foam
-   and grain systems. A small GPU resampling pass supplies the projected air to
+5. Water transport defaults to compiled CPU arithmetic alongside the CPU contact
+   pass, avoiding its former extra round trip. Reuse the existing GPU surface
+   reconstruction, spray, foam and grain systems. A small GPU resampling pass supplies the projected air to
    their existing air atlas. CPU rain, wind forces, and objects sample that same
    projected field. Changes to water parcels from rain/tides appear in the next
    grid occupancy/deposition; no separate grid water mass is added.
@@ -62,7 +63,8 @@ The optional GPU backend uses short, generic sparse-stencil shaders on the
 existing WebGL renderer. Pressure, residual, restriction and prolongation stay
 GPU-resident across two V-cycles; only the final pressure is read back. CPU
 residual correction completes convergence when necessary. Transfers, geometry,
-temperature/humidity transport, surface contacts and rigid bodies still use CPU.
+temperature/humidity transport and rigid bodies still use CPU. Surface contacts
+and water-particle transport default to CPU, with the separate WebGPU option below.
 Only one physics job is in flight. Work/stencil/readback budgets disable failed
 or excessively slow GPU solves instead of repeatedly submitting them.
 
@@ -89,3 +91,41 @@ The checkbox can compare with the old solver without clearing terrain edits.
 Run `node --test tests/beach-fields.test.js tests/fluid-fields.test.js` and
 `npm run build`. `/tests/live-beach-fields.html` runs bounded numerical beach
 steps and a small GPU check without loading the full scene shaders.
+
+
+## Optional WebGPU particle pipeline (2026-11-07)
+
+`Verify GPU particles` compares six bounded fixtures against the CPU reference,
+checks deliberate spatial-bucket overflow, then warms the current beach while
+paused. The warm-up result is discarded. Select **WebGPU** under **Particle
+backend** after it passes; the default remains CPU/WebAssembly. Both machine
+branches share these controls and code. `/tests/live-particle-compute.html`
+contains the isolated numerical and physics-only comparison, without a WebGL
+renderer. This backend is independent of the optional WebGL pressure backend.
+
+Five compute passes keep grid-to-particle transfer, spatial hashing, neighbor
+lists, density/contact correction and viscosity/chemistry transport together.
+They share GPU buffers and use one packed readback per step. Exact cell checks
+reject hash collisions. Terrain B-splines, ordered sand CSG, oriented cup walls,
+spheres and the player capsule use the same contact formulas as the CPU oracle.
+There is no camera-dependent physics resolution.
+
+Particle-to-grid deposition, the default pressure solve, phase geometry and
+heat/humidity advection remain on CPU. Moving deposition alone would add another
+readback before the CPU pressure solve. Removing that boundary means porting
+these operations together, including rendering consumption of the resulting
+state; that is future work, not a benefit claimed for this implementation.
+
+Storage is fixed at approximately 35.4 MiB plus bounded readback. Limits are
+32,768 particles, 8,192 hash buckets, 64 bucket entries, 128 neighbors, 32 objects,
+32 sand parcels per query cell and 16 cuts per parcel, with an additional contact
+work estimate. Overflow discards the entire result and selects exact CPU fallback;
+it never silently truncates contacts. One job may be in flight. Failed/lost
+WebGPU devices, invalid data and timeout/throughput guards select CPU. These
+bounds reduce risk; browser GPU work cannot be guaranteed immune to driver bugs.
+
+On the development Mac, numerical errors were small and the full beach ran
+without a context loss. The GPU improved the measured particle stage, but did
+not improve end-to-end frame rate in the high-wind rendered scene. CPU is kept
+as the default for that reason. See the dated results and report under
+`tests/results/particle-compute-2026-11-07/` for raw measurements and limitations.

@@ -53,5 +53,5 @@ export function surfaceConstraints(lab,positions,neighbors,grid,{native=true}={}
  if(geometry){const o=kernel.offsets,count=kernel.instance.exports.contactBatch(n,o.positions,o.delta,o.geometry,o.metric,o.missing,s*WATER_CONTACT_SKIN);
   for(let at=0;at<count;at++){const i=kernel.missing[at];if(positions[i*4+3])continue;kernel.positions.set(lab.collide(Array.from(kernel.delta.subarray(i*3,i*3+3))),i*4);}next.set(kernel.positions.subarray(0,n*4));
  }
- return {positions:next,shift,active:active.length,backend:kernel?'WebAssembly CPU':'JavaScript CPU reference'};
+ return {positions:next,shift,lambda,wall,active:active.length,backend:kernel?'WebAssembly CPU':'JavaScript CPU reference'};
 }
