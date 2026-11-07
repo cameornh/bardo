@@ -1,0 +1,52 @@
+[
+  {
+    "name": "opaque-reflection-lighting",
+    "stage": "complete",
+    "compileMs": 113,
+    "draws": [
+      {
+        "milliseconds": 54
+      },
+      {
+        "milliseconds": 19.5
+      }
+    ],
+    "physicsSteps": 0,
+    "sceneFrames": 0,
+    "visibility": "visible",
+    "contextLost": false,
+    "completion": {
+      "pending": false,
+      "lastConfirmedComplete": "opaque-reflection-lighting",
+      "firstUnconfirmed": null,
+      "submitting": null,
+      "unconfirmedPasses": []
+    },
+    "pass": true
+  },
+  {
+    "name": "water-lighting",
+    "stage": "complete",
+    "compileMs": 145.60000002384186,
+    "draws": [
+      {
+        "milliseconds": 849.8999999761581
+      },
+      {
+        "milliseconds": 123.09999996423721
+      }
+    ],
+    "physicsSteps": 0,
+    "sceneFrames": 0,
+    "visibility": "visible",
+    "contextLost": false,
+    "completion": {
+      "pending": false,
+      "lastConfirmedComplete": "water-lighting",
+      "firstUnconfirmed": null,
+      "submitting": null,
+      "unconfirmedPasses": []
+    },
+    "pass": true
+  }
+]

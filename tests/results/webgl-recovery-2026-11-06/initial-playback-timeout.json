@@ -1,0 +1,34 @@
+{
+  "phase": "Preparing first draw: opaque-reflection-lighting",
+  "frames": 0,
+  "elapsedSeconds": 7.7015,
+  "simulatedSeconds": 0,
+  "waterSamples": 3024,
+  "mergePrograms": 0,
+  "copyPrograms": 0,
+  "surfacePrograms": {},
+  "lastPass": {
+    "stage": "Preparing first draw: opaque-reflection-lighting",
+    "programs": [
+      "opaque-reflection-lighting"
+    ]
+  },
+  "gpuCompletion": {
+    "pending": true,
+    "lastConfirmedComplete": "work queued before frame",
+    "firstUnconfirmed": "opaque-reflection-lighting",
+    "submitting": null,
+    "unconfirmedPasses": [
+      "opaque-reflection-lighting"
+    ]
+  },
+  "fieldStats": {
+    "backend": "CPU multigrid-PCG · preparing"
+  },
+  "contextLost": false,
+  "rows": [],
+  "pass": false,
+  "compileOnly": false,
+  "compiled": [],
+  "error": "Error: GPU frame exceeded completion budget. Last completed: work queued before frame. First outstanding: opaque-reflection-lighting. No further frames submitted.\n    at FrameCompletion.finish (http://localhost:5173/src/rtx-sand-lab/frame-completion.js:45:45)\n    at async http://localhost:5173/src/rtx-sand-lab/frame-completion.js:57:4\n    at async exercise (http://localhost:5173/src/rtx-sand-lab/shader-startup.js:43:52)\n    at async prepareShaderJobs (http://localhost:5173/src/rtx-sand-lab/shader-startup.js:25:65)\n    at async run (http://localhost:5173/tests/live-field-playback-gpu.js:55:7)"
+}

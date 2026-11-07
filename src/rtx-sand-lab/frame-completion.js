@@ -38,15 +38,15 @@ export class FrameCompletion {
    this.lastCompleted=pass.name;gl.deleteSync(pass.fence);this.passes.shift();
   }
  }
- async finish(){
+ async finish(timeoutMs=this.timeoutMs){
   this.gl.flush();const start=this.now();
   while(this.passes.length){
    this.poll();if(!this.passes.length)break;
-   if(this.now()-start>this.timeoutMs)throw Error('GPU frame exceeded completion budget. Last completed: '+(this.lastCompleted||'none')+'. First outstanding: '+this.passes[0].name+'. No further frames submitted.');
+   if(this.now()-start>timeoutMs)throw Error('GPU frame exceeded completion budget. Last completed: '+(this.lastCompleted||'none')+'. First outstanding: '+this.passes[0].name+'. No further frames submitted.');
    await this.wait();
   }
  }
- run(submit){
+ run(submit,{completionTimeoutMs=this.timeoutMs}={}){
   if(this.failed)return Promise.reject(this.failed);
   if(this.pending)return Promise.reject(Error('A graphics frame is already pending'));
   // Install the guard before executing user code; all GL submission remains
@@ -54,7 +54,7 @@ export class FrameCompletion {
   this.pending=Promise.resolve().then(async()=>{
    this.checkpoint('work queued before frame');await this.finish();
    this.active=true;try{submit();}finally{this.active=false;}
-   await this.finish();
+   await this.finish(completionTimeoutMs);
   }).catch(error=>{
    // Preserve evidence before cleanup, including synchronous draw failures.
    // The first unconfirmed pass is a lower bound, not proof of the culprit.

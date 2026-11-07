@@ -1,0 +1,5 @@
+<!doctype html><meta charset="utf-8"><title>Single-program first-use check</title>
+<style>body{font:14px system-ui;background:#20272c;color:#eee;margin:16px}button{padding:8px}pre{white-space:pre-wrap}</style>
+<button id="run">Check one-pixel first use</button><canvas id="view" width="1" height="1"></canvas>
+<pre id="result">No graphics work on page load. Checks one named live program, then repeats the same one-pixel draw only after completion. No scene rendering or physics. The observation window is ten seconds; a failure stops all submissions.</pre>
+<script type="module" src="./live-first-use-probe.js"></script>

@@ -1,0 +1,45 @@
+{
+  "result": {
+    "fixture": "45-frame benchmark",
+    "medianFrameMs": 350.1000000000058,
+    "p95FrameMs": 483.8000000000029,
+    "simulatedSeconds": 2.933333333333336,
+    "wallSeconds": 15.891400000035762,
+    "bulk": 13299,
+    "fine": 32768,
+    "sandMassError": 1.663506069893561e-14,
+    "timing": {
+      "predict": 16.80000001192093,
+      "constraintsTransportAndReadback": 140.19999998807907,
+      "exchangeAndSpray": 29.30000001192093,
+      "readback": 24.400000035762787,
+      "readbacks": 1
+    },
+    "prepare": {
+      "pump": 0,
+      "rain": 0.10000002384185791,
+      "wetting": 1.399999976158142,
+      "predict": 15.300000011920929,
+      "emission": 22.900000035762787
+    },
+    "gpu": {
+      "surface": 80.53126861501555,
+      "atmosphere": 0.058001841959886995,
+      "spray shadows": 1.9725096040324404,
+      "density": 60.90930275386509,
+      "medium shadows": 1.9195317653141792,
+      "photons": 1.3605961811072314,
+      "front": 7.167396141374478,
+      "background": 6.116916038681962,
+      "water": 10.138555372710062,
+      "blobs": 57.10840106224905,
+      "sea foam": 0,
+      "sand grains": 56.681288449159865,
+      "rain / lens": 0.9923479638047826,
+      "foam lighting": 0.48534167031822656,
+      "foam splats": 58.97462975370498
+    }
+  },
+  "diagnostics": "40.0 fps · 0.00× realtime\nCPU multigrid-PCG · GPU transport / air / fine\nCPU: sand stock / bonds / rigid bodies / player / rain mass / surface beads / tides / sky SH\nPipeline: one asynchronous step · compatible GPU\nSubmit: 142.3 ms · transfer latency: 24.4 ms\nNeighbors: WebAssembly CPU\nExposure: GPU (extremes only)\nSky: GPU atmosphere (cached)\n13299 bulk · 32768 fine\nWater drawing kernels: 14015 · CPU grouping / GPU reconstruction\nWater fields: GPU reference · 100% of reference field samples\nSand updates: 42 shapes / 42 bins · 1 settled / 41 moving\nSand distance: CPU worker / exact CSG bricks · 0 caches prepared\n1.91 m water spacing\n110 × 98 m basin · 16.5 m depth\n65 sand aggregates\nPressure passes: multigrid bulk / 6704 surface particles\nSea foam: GPU surface transport · fixed 96 × 96 coverage field · CPU surface sampling\nWind grains: GPU · 8,192 cap\nBond load: 0% · 0 breaks\nSand mass error: 1.66e-12%\n4 objects · held: none\nRain object contacts: GPU\nRain added: 0.00 m³\nGPU surface: 85.8 ms\n50% image · 2.9 s simulated",
+  "errors": []
+}

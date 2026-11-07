@@ -1,0 +1,82 @@
+{
+  "pass": true,
+  "compileOnly": true,
+  "draws": 0,
+  "physicsSteps": 0,
+  "compiled": [
+    {
+      "name": "opaque-hit-record",
+      "milliseconds": 2328
+    },
+    {
+      "name": "opaque-reflection-hit",
+      "milliseconds": 541
+    },
+    {
+      "name": "opaque-reflection-lighting",
+      "milliseconds": 844
+    },
+    {
+      "name": "opaque-lighting",
+      "milliseconds": 850
+    },
+    {
+      "name": "water-hit-record",
+      "milliseconds": 533
+    },
+    {
+      "name": "water-reflection-hit",
+      "milliseconds": 1123
+    },
+    {
+      "name": "water-reflection-lighting",
+      "milliseconds": 1607
+    },
+    {
+      "name": "water-transmission-hit",
+      "milliseconds": 20
+    },
+    {
+      "name": "water-transmission-lighting",
+      "milliseconds": 21
+    },
+    {
+      "name": "water-lighting",
+      "milliseconds": 3021
+    },
+    {
+      "name": "submerged-hit-record",
+      "milliseconds": 1199
+    },
+    {
+      "name": "submerged-reflection-hit",
+      "milliseconds": 623
+    },
+    {
+      "name": "submerged-reflection-lighting",
+      "milliseconds": 2762
+    },
+    {
+      "name": "submerged-transmission-hit",
+      "milliseconds": 18
+    },
+    {
+      "name": "submerged-transmission-lighting",
+      "milliseconds": 21
+    },
+    {
+      "name": "submerged-lighting",
+      "milliseconds": 3152
+    },
+    {
+      "name": "glass-hit-record",
+      "milliseconds": 1889
+    },
+    {
+      "name": "glass-lighting",
+      "milliseconds": 945
+    }
+  ],
+  "contextLost": false,
+  "note": "Compilation passed. Playback and visual correctness have not been tested."
+}

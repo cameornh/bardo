@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-06",
+  "baseRevision": "030865dfc1cffcb5161c590e1eddffc29dae49be",
+  "environment": {
+    "browser": "Codex in-app browser, after user restarted Codex",
+    "adapter": "ANGLE (AMD, ANGLE Metal Renderer: AMD Radeon Pro 560X, Unspecified Version)",
+    "graphicsHealthPassed": true,
+    "graphicsHealthPixel": [64, 128, 191, 255],
+    "physics": "CPU multigrid-PCG and WebAssembly surface contacts; GPU transport, air textures, fine particles and rendering",
+    "webgpuTested": false
+  },
+  "change": "Allow up to ten seconds to observe completion of each isolated one-pixel startup draw. Normal scene frames and previously queued simulation work retain their two-second completion budget. No concurrent frames or automatic retries were added.",
+  "evidence": {
+    "surfaceCompile": "18 programs passed; compile.json",
+    "initialFailure": "First-use completion timed out at opaque-reflection-lighting without context loss; initial-playback-timeout.json. A subsequent attempt before the fix progressed to opaque-lighting and timed out there instead.",
+    "isolatedFirstUse": "first-use.json contains two sequential one-pixel draws of reflection lighting and water lighting. Earlier attempts may have warmed the driver cache.",
+    "smallPlayback": "24-step and 120-step playback passed at 96 x 64, with glass spawning halfway, 44 stable prepared programs and no context loss. See playback-24.json and playback-120.json.",
+    "normalBeach": "Normal live beach at 2.2x resolution, 110 m width, 24 m/s wind and adaptive rendering completed 45 frames. Then a fresh normal scene with a spawned glass ball completed another 45 frames. Viewport 1280 x 720, drawing scale 50%. See normal-beach-45.json and normal-beach-object-45.json.",
+    "visual": "normal-beach.jpg shows the normal beach paused after successful playback with the spawned glass sphere. No error/warning console messages were captured at completion.",
+    "interruptedAttempt": "One intervening object benchmark was interrupted by Vite reloading after an unrelated diagnostic-file edit. It is excluded from successful-run counts.",
+    "tests": {"passed": 153, "failed": 0, "command": "node --test tests/live-*.test.js tests/rtx-*.test.js tests/beach-fields*.test.js tests/fluid-fields*.test.js tests/webgpu-pressure-probe.test.js"},
+    "build": "npm run build passed; existing chunk-size warning remains"
+  },
+  "limitations": [
+    "These are bounded playback and visual checks, not a long-duration stability guarantee or fully cold-driver-cache validation.",
+    "Normal playback remains slow on this GPU: about 2.8 FPS and 0.18x realtime in the measured runs. High paused FPS is not playback throughput.",
+    "The completion guard cannot preempt an individual draw or synchronous driver compilation. This change adjusts startup observation, not GPU execution limits.",
+    "No GPU pressure backend or WebGPU beach solver was enabled by these checks. Windows/RTX was not retested on hardware."
+  ]
+}

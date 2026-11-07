@@ -40,7 +40,11 @@ export function createShaderExercise(renderer,completion){
   const count=job.target?.textures.length||1;
   if(!targets.has(count))targets.set(count,new THREE.WebGLRenderTarget(1,1,{count,type:THREE.FloatType,depthBuffer:false,minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter}));
   const previous=renderer.getRenderTarget();
-  try{renderer.setRenderTarget(targets.get(count));await completion.run(()=>renderer.render(job.scene,job.camera));}
+  // Some drivers finish their native pipeline on first draw, after link
+  // completion. Observe this single pixel for a bounded startup interval;
+  // never submit another job until it finishes. Normal frames keep their
+  // existing two-second budget. This does not extend queued simulation work.
+  try{renderer.setRenderTarget(targets.get(count));await completion.run(()=>renderer.render(job.scene,job.camera),{completionTimeoutMs:10000});}
   finally{if(!renderer.getContext().isContextLost())renderer.setRenderTarget(previous);}
  };
  exercise.dispose=()=>{for(const target of targets.values())target.dispose();targets.clear();};
