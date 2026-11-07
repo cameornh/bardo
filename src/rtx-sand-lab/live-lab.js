@@ -14,7 +14,7 @@ export {LIVE_WIND_BRUSH} from './wind-brush.js';
 // Shared live experience. Historical fixtures still instantiate SandLab.
 // Only one physics step may be in flight; fixed dt, mass and forces are unchanged.
 export class LiveSandLab extends SandLab{
- constructor(...args){super(...args);this.windStrength=LIVE_WIND_BRUSH.initial;this.rigidContacts=new LiveRigidPhysics();Object.assign(this.optimizations,{collisionMesh:true,rigidReuse:true,rigidSleep:true,rigidBroadphase:true});if(args[1]?.bulkFields)this.bulkFields=new BeachFields(this);}
+ constructor(...args){super(...args);this.windStrength=LIVE_WIND_BRUSH.initial;this.rigidContacts=new LiveRigidPhysics();Object.assign(this.optimizations,{collisionMesh:true,rigidReuse:true,rigidSleep:true,rigidBroadphase:true,fineParticleResolution:true});if(args[1]?.bulkFields)this.bulkFields=new BeachFields(this);}
  syncSandUniforms(){
   if(!this.sand)return;
   if(this.optimizations?.sandCache===false||this.optimizations?.compactSand===false){this.incrementalSand=null;this.distanceCache?.reset();return super.syncSandUniforms();}
@@ -52,7 +52,13 @@ export class LiveSandLab extends SandLab{
    const start=performance.now();
    if(!this.optimizations?.gpuBatch||!this.count){this.step(dt);return true;}
    const context=this.prepareStep(dt);
-   if(this.bulkFields?.enabled){const next=await this.bulkFields.solveAsync(context);if(!next||generation!==this.generation)return false;}
+   if(this.bulkFields?.enabled){
+    const next=await this.bulkFields.solveAsync(context);if(!next||generation!==this.generation)return false;
+    // Projection/contact state is already on the CPU. Keep the matched
+    // transport there instead of uploading it just to read five textures back.
+    this.emitterSamples=null;this.pipelineSubmitMs=performance.now()-start;this.pipelineWaitMs=0;
+    this.finishStep(context,next);return true;
+   }
    else this.gpu.solve(context.predicted,context.s,p=>this.collide(p),3,p=>this.solid(p),false,true);
    this.transportGPU.solve(context.old,context.old,this.velocities,this.chem,this.gpu.neighbors,context.s,context.scale,dt,context.predicted,this.gpu,true);
    const probes=this.optimizations?.emitterProbes&&this.detail.enabled&&!this.gpu.cpuContacts?

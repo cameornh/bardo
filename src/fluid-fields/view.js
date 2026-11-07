@@ -41,6 +41,7 @@ export class FieldSliceView {
   }
   draw(grid) {
     const canvas=this.canvas, ctx=this.context, spec=VIEWS[this.key], values=fieldValues(grid,this.key);
+    const cellSize=grid.cellSize||[grid.h,grid.h,grid.h];
     const axes=this.axis===0?[2,1]:[0,1,2].filter(k=>k!==this.axis), [a,b]=axes, nx=grid.dims[a], ny=grid.dims[b];
     const slice=Math.round(this.slice*(grid.dims[this.axis]-1));
     const left=62, top=56, availableWidth=canvas.width-92, availableHeight=canvas.height-108;
@@ -55,7 +56,7 @@ export class FieldSliceView {
     }
     ctx.fillStyle='#101a21';ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.font='18px system-ui';ctx.fillStyle='#e4edf0';ctx.fillText(spec.label,left,28);
-    ctx.font='12px system-ui';ctx.fillStyle='#9bb3bf';ctx.fillText(`${['X','Y','Z'][this.axis]} = ${((slice+.5)*grid.h).toFixed(2)} m · cell width ${grid.h.toFixed(2)} m`,left,46);
+    ctx.font='12px system-ui';ctx.fillStyle='#9bb3bf';ctx.fillText(`${['X','Y','Z'][this.axis]} = ${((slice+.5)*cellSize[this.axis]).toFixed(2)} m · cell width ${cellSize[a].toFixed(2)} m`,left,46);
     const cell=[0,0,0];cell[this.axis]=slice;
     for(let y=0;y<ny;y++)for(let x=0;x<nx;x++) {
       cell[a]=x;cell[b]=y;const i=index3(grid.dims,...cell), phase=grid.phase[i], valid=phase&&(!this.phase||phase===this.phase)&&Number.isFinite(values[i]);
@@ -79,8 +80,8 @@ export class FieldSliceView {
       }
       if(i===this.hover){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(left+x*cw+1,top+(ny-1-y)*ch+1,cw-2,ch-2);}
     }
-    ctx.font='13px system-ui';ctx.fillStyle='#beced5';ctx.fillText(`${['X','Y','Z'][a]} (m)  0`,left,top+height+22);ctx.fillText((nx*grid.h).toFixed(1),left+width-24,top+height+22);
-    ctx.fillText(`${['X','Y','Z'][b]} (m)`,6,top+12);ctx.fillText((ny*grid.h).toFixed(1),22,top+32);ctx.fillText('0',36,top+height);
+    ctx.font='13px system-ui';ctx.fillStyle='#beced5';ctx.fillText(`${['X','Y','Z'][a]} (m)  0`,left,top+height+22);ctx.fillText((nx*cellSize[a]).toFixed(1),left+width-24,top+height+22);
+    ctx.fillText(`${['X','Y','Z'][b]} (m)`,6,top+12);ctx.fillText((ny*cellSize[b]).toFixed(1),22,top+32);ctx.fillText('0',36,top+height);
     const lg=this.legend.getContext('2d');for(let x=0;x<this.legend.width;x++){lg.fillStyle=`rgb(${color(x/(this.legend.width-1),spec.diverging).join(',')})`;lg.fillRect(x,0,1,this.legend.height);}
     return {low,high,unit:spec.unit,slice};
   }

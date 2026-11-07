@@ -1,21 +1,22 @@
-import * as THREE from 'three';
 import {BeachFieldGrid,AIR,WATER} from './grid.js';
 import {MATERIAL,relativeHumidity} from '../../fluid-fields/model.js';
-import {solveMultigrid,norm} from './multigrid.js';
+import {norm} from './multigrid.js';
 import {GPUMultigrid} from './gpu-multigrid.js';
 import {AirFieldTexture} from './air-texture.js';
 import {surfaceConstraints} from './surface-constraints.js';
-import {packNeighborTexture} from '../../sand-lab/neighbor-texture.js';
 import {windAt} from '../../beach-wind.js';
 import {bodyDistance} from '../../sand-lab/objects.js';
 import {pointVelocity} from '../../sand-lab/rigid-contacts.js';
+import {FieldTransport} from './native-transport.js';
+import {FieldNeighbors} from './neighbors.js';
+import {FieldPressure} from './native-pressure.js';
 
 export class BeachFields {
  constructor(lab){this.lab=lab;this.enabled=true;this.backend='cpu';this.stats={backend:'CPU multigrid-PCG · preparing'};this.events=[];this.attach();}
  attach(){
   const lab=this.lab,air=lab.air;this.originalAirUpdate=air.update.bind(air);this.originalAirSample=air.sampleGrid.bind(air);
   air.update=(...args)=>{if(!this.enabled)return this.originalAirUpdate(...args);air.grid=this.grid||null;air.lab=lab;air.jet=lab.jet;};
-  air.sampleGrid=p=>this.enabled&&this.grid?this.grid.sampleVelocity(p.map(v=>v*lab.spec.scale)).map(v=>v/lab.spec.scale):this.originalAirSample(p);
+  air.sampleGrid=p=>this.enabled&&this.grid?this.grid.sampleAirVelocity(p.map(v=>v*lab.spec.scale)).map(v=>v/lab.spec.scale):this.originalAirSample(p);
   const impact=lab.rain.impact.bind(lab.rain);
   lab.rain.impact=(drop,hit)=>{if(this.enabled&&this.grid){drop.temperature=this.sampleAir(hit.point).temperature;if(hit.particle>=0&&this.events.length<256)this.events.push({point:hit.point.slice(),volume:drop.volume,temperature:drop.temperature});}return impact(drop,hit);};
  }
@@ -24,7 +25,7 @@ export class BeachFields {
   if(this.grid)return;const lab=this.lab,scale=lab.spec.scale;
   let h=Math.max(lab.spacing*scale*1.7,Math.cbrt(11*6*9.8*scale**3/3200));let dims;
   do{dims=[11,6,9.8].map(v=>Math.ceil(v*scale/h));if(dims.reduce((a,b)=>a*b)<=4096)break;h*=1.025;}while(true);
-  this.grid=new BeachFieldGrid({dims,h,origin:[-5.5,-.5,-4.9].map(v=>v*scale)});
+  this.grid=new BeachFieldGrid({dims,h,origin:[-5.5,-.5,-4.9].map(v=>v*scale),extent:[11,6,9.8].map(v=>v*scale)});
  }
  sampleAir(point){const g=this.grid,scale=this.lab.spec.scale,p=point.map(v=>v*scale);let i=g.cellAt(p);
   if(i>=0&&g.phase[i]!==AIR){const c=g.coords[i];let best=Infinity,found=-1;for(let z=-2;z<=2;z++)for(let y=-2;y<=2;y++)for(let x=-2;x<=2;x++){const q=[c[0]+x,c[1]+y,c[2]+z];if(q.some((v,k)=>v<0||v>=g.dims[k]))continue;const j=q[0]+g.dims[0]*(q[1]+g.dims[1]*q[2]);if(g.phase[j]!==AIR)continue;const d=x*x+y*y+z*z;if(d<best){best=d;found=j;}}i=found;}
@@ -39,33 +40,37 @@ export class BeachFields {
   this.rhs=g.deposit(context.old,context.predicted,dt,scale,lab.spacing,solid,wind,wall);this.before=norm(g.divergence());this.prepareMs=performance.now()-start;
   return this.rhs;
  }
- solve(context){const rhs=this.prepare(context),result=solveMultigrid(this.grid.levels,rhs);return this.finish(context,result);}
+ solveCPU(rhs){return (this.cpuPressure??=new FieldPressure()).solve(this.grid.levels,rhs);}
+ solve(context){const rhs=this.prepare(context),result=this.solveCPU(rhs);return this.finish(context,result);}
  async solveAsync(context){
   const rhs=this.prepare(context);let result;
   if(this.backend==='gpu'&&this.gpu?.disabled){this.backend='cpu';this.stats.fallback='GPU pressure exceeded its time/work budget; CPU multigrid active';}
   if(this.backend==='gpu'&&this.gpu?.validated&&!this.gpu.disabled){try{result=await this.gpu.solve(this.grid.levels,rhs);}catch(error){this.stats.fallback=error.message;this.backend='cpu';}}
   // A reset while the single GPU job is in flight must never write new state.
   if(context.generation!==this.lab.generation)return null;
-  result??=solveMultigrid(this.grid.levels,rhs);return this.finish(context,result);
+  result??=this.solveCPU(rhs);return this.finish(context,result);
  }
  finish(context,result){
   if(!Number.isFinite(result.relativeResidual)||result.relativeResidual>1e-3&&result.absoluteResidual>1e-8)throw Error('Beach field pressure failed convergence: '+result.relativeResidual);
-  const lab=this.lab,g=this.grid,start=performance.now();g.project(result.potential,context.dt);g.transport(context.dt);this.thermal(context.dt);
-  const transferred=g.transfer(context.old,context.predicted,context.dt,context.scale,context.s),neighbors=lab.gpu.neighborList(transferred,context.s);lab.gpu.neighbors=neighbors.data;lab.gpu.overflow=neighbors.overflow;
+  const lab=this.lab,g=this.grid,start=performance.now();g.project(result.potential,context.dt);g.buildAirVelocity();g.transport(context.dt);this.thermal(context.dt);
+  const scalarDone=performance.now(),transferred=g.transfer(context.old,context.predicted,context.dt,context.scale,context.s),gatherDone=performance.now(),builder=this.neighbors??=new FieldNeighbors(),neighbors=builder.build(transferred,context.s,{native:lab.gpu.nativeNeighbors!==false,reuse:lab.optimizations?.neighborReuse!==false});lab.gpu.neighborMs=performance.now()-gatherDone;lab.gpu.neighbors=neighbors.data;lab.gpu.overflow=neighbors.overflow;lab.gpu.neighborReused=builder.reused;lab.gpu.neighborBackend=builder.backend;
   const surfaceStart=performance.now(),surface=surfaceConstraints(lab,transferred,neighbors.data,g);
-  this.stats={...this.stats,...result,potential:undefined,...g.summary(),before:this.before,prepareMs:this.prepareMs,transferMs:surfaceStart-start,surfaceMs:performance.now()-surfaceStart,surfaceParticles:surface.active,surfaceBackend:surface.backend,totalParticles:lab.count};
-  if(!lab.gpu.cpu){this.publish(context,surface.positions);(this.airTexture??=new AirFieldTexture(lab.renderer,lab.air)).update(g,lab.spec.scale);}else lab.air.u.uAirEnabled.value=false;
+  this.stats={...this.stats,...result,potential:undefined,...g.summary(),before:this.before,prepareMs:this.prepareMs,transferMs:surfaceStart-start,scalarMs:scalarDone-start,gatherMs:gatherDone-scalarDone,neighborMs:lab.gpu.neighborMs,surfaceMs:performance.now()-surfaceStart,surfaceParticles:surface.active,surfaceBackend:surface.backend,totalParticles:lab.count};
+  const transportStart=performance.now();
+  // Local density relaxation re-spaces markers after bulk projection. It is
+  // not another pressure impulse: feeding the whole shift into velocity was
+  // continually launching jets at terrain contacts. Exact collision impulses
+  // remain in next - shiftedOld (including moving walls and carried bodies).
+  const shiftedOld=context.old.slice(),shiftedPrediction=context.predicted.slice();
+  for(let o=0;o<surface.shift.length;o+=4)for(let k=0;k<3;k++){shiftedOld[o+k]+=surface.shift[o+k];shiftedPrediction[o+k]+=surface.shift[o+k];}
+  context.transport=(this.transport??=new FieldTransport()).solve(shiftedOld,surface.positions,lab.velocities,lab.chem,neighbors.data,context.s,context.scale,context.dt,shiftedPrediction,!neighbors.overflow);
+  context.cpuTransport=true;this.stats.transportBackend=this.transport.backend;this.stats.transportMs=performance.now()-transportStart;
+  lab.gpu.contactArithmetic=this.stats.backend+' / '+this.stats.surfaceBackend+' surface / '+this.transport.backend;
+  if(!lab.gpu.cpu)(this.airTexture??=new AirFieldTexture(lab.renderer,lab.air)).update(g,lab.spec.scale);else lab.air.u.uAirEnabled.value=false;
   lab.air.grid=g;return surface.positions;
  }
- publish(context,next){
-  const gpu=this.lab.gpu,n=next.length/4;gpu.allocate(n);gpu.finishDeferredPressure=null;
-  gpu.data.fill(0);gpu.data.set(context.predicted);gpu.texture.needsUpdate=true;
-  if(gpu.packedTexture)packNeighborTexture(gpu.neighbors,gpu.neighborData,n);else{gpu.neighborData.fill(-1);gpu.neighborData.set(gpu.neighbors);}gpu.neighborTexture.needsUpdate=true;gpu.uploadedNeighbors=gpu.neighbors;
-  if(!gpu.cpuResult)gpu.cpuResult=new THREE.DataTexture(new Float32Array(gpu.data.length),64,gpu.height,THREE.RGBAFormat,THREE.FloatType);
-  gpu.cpuResult.image.data.fill(0);gpu.cpuResult.image.data.set(next);gpu.cpuResult.needsUpdate=true;gpu.resultTexture=gpu.cpuResult;gpu.contactArithmetic=this.stats.backend+' / surface-band contacts';
- }
  thermal(dt){
-  const lab=this.lab,g=this.grid,water=MATERIAL[WATER],air=MATERIAL[AIR],waterCapacity=water.density*water.heatCapacity*g.h**3,airCapacity=air.density*air.heatCapacity*g.h**3;
+  const lab=this.lab,g=this.grid,water=MATERIAL[WATER],air=MATERIAL[AIR],waterCapacity=water.density*water.heatCapacity*g.volume,airCapacity=air.density*air.heatCapacity*g.volume;
   for(const e of this.events){const i=g.cellAt(e.point.map(v=>v*lab.spec.scale));if(i<0||g.phase[i]!==WATER)continue;const c=e.volume*lab.spec.scale**3*water.density*water.heatCapacity,energy=(e.temperature-g.temperature[i])*c*waterCapacity/(c+waterCapacity);g.temperature[i]+=energy/waterCapacity;g.ledger.rainHeat+=energy;}this.events=[];
   // Existing rain-only capillary patches share air temperature/humidity and
   // exchange sensible heat conservatively. No unrequested evaporation/weather

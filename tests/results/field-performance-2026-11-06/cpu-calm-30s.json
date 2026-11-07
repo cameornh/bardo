@@ -1,0 +1,73 @@
+{
+  "pass": true,
+  "backend": "WebAssembly CPU multigrid-PCG",
+  "graphicsWork": false,
+  "wind": 0,
+  "tides": false,
+  "particles": 13293,
+  "spacingMeters": 1.909090909090909,
+  "rows": [
+    {
+      "step": 75,
+      "seconds": 5.000000000000002,
+      "rmsMetersPerSecond": 0.7659598231267101,
+      "edgeRmsMetersPerSecond": 0.6634681165752433,
+      "edgeMaxMetersPerSecond": 6.192388696755302,
+      "peakMetersPerSecond": 7.831533988678298,
+      "pressureMs": 3.7263900000016292,
+      "pressureResidual": 0.000005485787141745315
+    },
+    {
+      "step": 150,
+      "seconds": 9.999999999999984,
+      "rmsMetersPerSecond": 0.29732226958130686,
+      "edgeRmsMetersPerSecond": 0.2772963749052896,
+      "edgeMaxMetersPerSecond": 4.85938519613769,
+      "peakMetersPerSecond": 4.85938519613769,
+      "pressureMs": 3.51790500000061,
+      "pressureResidual": 0.000004963719112341211
+    },
+    {
+      "step": 225,
+      "seconds": 14.999999999999966,
+      "rmsMetersPerSecond": 0.11673490421669398,
+      "edgeRmsMetersPerSecond": 0.10915287246863925,
+      "edgeMaxMetersPerSecond": 1.5027536542886484,
+      "peakMetersPerSecond": 3.968863090080296,
+      "pressureMs": 3.303538000000117,
+      "pressureResidual": 0.000005029122398801202
+    },
+    {
+      "step": 300,
+      "seconds": 19.99999999999995,
+      "rmsMetersPerSecond": 0.3018764710407689,
+      "edgeRmsMetersPerSecond": 0.03931614226120727,
+      "edgeMaxMetersPerSecond": 0.25870570370069035,
+      "peakMetersPerSecond": 6.562939883466879,
+      "pressureMs": 3.388151999999536,
+      "pressureResidual": 0.000005097073849274981
+    },
+    {
+      "step": 375,
+      "seconds": 24.999999999999932,
+      "rmsMetersPerSecond": 0.06919383756673572,
+      "edgeRmsMetersPerSecond": 0.11294243660547884,
+      "edgeMaxMetersPerSecond": 1.4518343537860356,
+      "peakMetersPerSecond": 3.28710906736016,
+      "pressureMs": 3.423114999997779,
+      "pressureResidual": 0.000004877064192609352
+    },
+    {
+      "step": 450,
+      "seconds": 29.999999999999915,
+      "rmsMetersPerSecond": 0.04875534434983207,
+      "edgeRmsMetersPerSecond": 0.022863461448631245,
+      "edgeMaxMetersPerSecond": 0.08004185160706735,
+      "peakMetersPerSecond": 3.514775050938563,
+      "pressureMs": 3.474672999996983,
+      "pressureResidual": 0.000005000670938742102
+    }
+  ],
+  "medianStepMs": 102.34900899999775,
+  "p95StepMs": 120.57283600000005
+}

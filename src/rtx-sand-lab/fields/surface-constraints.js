@@ -6,7 +6,7 @@ import {NativeDensity,nativeDensityAvailable} from '../../sand-lab/native-densit
 export function surfaceConstraints(lab,positions,neighbors,grid,{native=true}={}){
  const n=positions.length/4,s=lab.spacing,h=2*s,volume=s**3,W=315/(64*Math.PI*h**3),G=-45/(Math.PI*h**6),lambda=new Float32Array(n),wall=new Float32Array(n*4),active=[];
  const kernel=native&&nativeDensityAvailable()?(lab.fieldSurfaceKernel??=new NativeDensity()):null;
- const next=positions.slice(),point=[0,0,0];
+ const next=positions.slice(),shift=new Float32Array(positions.length),point=[0,0,0];
  const band=new Uint8Array(grid.count);for(let i=0;i<grid.count;i++)if(grid.phase[i]!==WATER)band[i]=1;
  for(const face of grid.faces)for(let k=0;k<face.a.length;k++){const a=face.a[k],b=face.b[k];if(grid.phase[a]!==WATER&&b>=0)band[b]=1;if(grid.phase[b]!==WATER&&a>=0)band[a]=1;}
  const geometry=kernel&&lab.sand&&lab.optimizations?.terrainCache!==false&&lab.optimizations?.batchedContacts===true;
@@ -46,12 +46,12 @@ export function surfaceConstraints(lab,positions,neighbors,grid,{native=true}={}
   if(kernel){dx=kernel.delta[i*3]-positions[o];dy=kernel.delta[i*3+1]-positions[o+1];dz=kernel.delta[i*3+2]-positions[o+2];}else{
   for(let k=0;k<NEIGHBORS;k++){const j=neighbors[i*NEIGHBORS+k];if(j<0)break;const p=j*4,x=positions[o]-positions[p],y=positions[o+1]-positions[p+1],z=positions[o+2]-positions[p+2],r2=x*x+y*y+z*z;if(r2<1e-12||r2>=h*h)continue;const r=Math.sqrt(r2),f=(lambda[i]+lambda[j])*volume*G*(h-r)**2/r;dx+=x*f;dy+=y*f;dz+=z*f;}
   }
-  const cap=Math.min(1,s*.12/Math.max(1e-12,Math.hypot(dx,dy,dz)));point[0]=positions[o]+dx*cap;point[1]=positions[o+1]+dy*cap;point[2]=positions[o+2]+dz*cap;
+  const cap=Math.min(1,s*.12/Math.max(1e-12,Math.hypot(dx,dy,dz)));point[0]=positions[o]+dx*cap;point[1]=positions[o+1]+dy*cap;point[2]=positions[o+2]+dz*cap;shift[o]=dx*cap;shift[o+1]=dy*cap;shift[o+2]=dz*cap;
   if(geometry){kernel.delta.set(point,i*3);continue;}
   const p=lab.solid(point)<s*WATER_CONTACT_SKIN?lab.collide(point):point;next[o]=p[0];next[o+1]=p[1];next[o+2]=p[2];
  }
  if(geometry){const o=kernel.offsets,count=kernel.instance.exports.contactBatch(n,o.positions,o.delta,o.geometry,o.metric,o.missing,s*WATER_CONTACT_SKIN);
   for(let at=0;at<count;at++){const i=kernel.missing[at];if(positions[i*4+3])continue;kernel.positions.set(lab.collide(Array.from(kernel.delta.subarray(i*3,i*3+3))),i*4);}next.set(kernel.positions.subarray(0,n*4));
  }
- return {positions:next,active:active.length,backend:kernel?'WebAssembly CPU':'JavaScript CPU reference'};
+ return {positions:next,shift,active:active.length,backend:kernel?'WebAssembly CPU':'JavaScript CPU reference'};
 }

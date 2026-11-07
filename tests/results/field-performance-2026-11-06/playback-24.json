@@ -1,0 +1,152 @@
+{
+  "phase": "complete",
+  "frames": 24,
+  "elapsedSeconds": 9.16219999998808,
+  "simulatedSeconds": 1.5999999999999999,
+  "waterSamples": 3024,
+  "mergePrograms": 1,
+  "copyPrograms": 1,
+  "surfacePrograms": {
+    "opaque-hit-record": 1,
+    "opaque-lighting": 1,
+    "water-hit-record": 1,
+    "water-lighting": 1,
+    "submerged-hit-record": 1,
+    "submerged-lighting": 1,
+    "glass-hit-record": 1,
+    "glass-lighting": 1
+  },
+  "lastPass": {
+    "stage": "playback 24",
+    "programs": [
+      "display"
+    ]
+  },
+  "gpuCompletion": {
+    "pending": false,
+    "lastConfirmedComplete": "display",
+    "firstUnconfirmed": null,
+    "submitting": null,
+    "unconfirmedPasses": []
+  },
+  "fieldStats": {
+    "backend": "CPU multigrid-PCG",
+    "absoluteResidual": 0.00006200627644417342,
+    "relativeResidual": 0.000010117321693734139,
+    "iterations": 8,
+    "levels": 4,
+    "milliseconds": 10.099999964237213,
+    "cells": 3553,
+    "waterCells": 646,
+    "divergence": 0.0000018003445578751999,
+    "coupled": 2967,
+    "before": 0.1779467543266426,
+    "prepareMs": 17.900000035762787,
+    "transferMs": 5.100000023841858,
+    "surfaceMs": 7.599999964237213,
+    "surfaceParticles": 2443,
+    "surfaceBackend": "WebAssembly CPU",
+    "totalParticles": 3024,
+    "transportBackend": "WebAssembly CPU transport",
+    "transportMs": 5
+  },
+  "contextLost": false,
+  "rows": [
+    {
+      "frame": 19,
+      "time": 1.2666666666666666,
+      "ms": 161.9000000357628,
+      "physicsMs": 71.60000002384186,
+      "submitMs": 79,
+      "completionMs": 11.300000011920929,
+      "programs": 44,
+      "blobs": 0,
+      "fine": 32768,
+      "sandParcels": 42
+    },
+    {
+      "frame": 20,
+      "time": 1.3333333333333333,
+      "ms": 165.19999998807907,
+      "physicsMs": 71.19999998807907,
+      "submitMs": 84.89999997615814,
+      "completionMs": 9.100000023841858,
+      "programs": 44,
+      "blobs": 0,
+      "fine": 32768,
+      "sandParcels": 35
+    },
+    {
+      "frame": 21,
+      "time": 1.4,
+      "ms": 144.4000000357628,
+      "physicsMs": 74.5,
+      "submitMs": 61.60000002384186,
+      "completionMs": 8.300000011920929,
+      "programs": 44,
+      "blobs": 0,
+      "fine": 32768,
+      "sandParcels": 28
+    },
+    {
+      "frame": 22,
+      "time": 1.4666666666666666,
+      "ms": 162,
+      "physicsMs": 67.89999997615814,
+      "submitMs": 70.5,
+      "completionMs": 23.600000023841858,
+      "programs": 44,
+      "blobs": 0,
+      "fine": 32768,
+      "sandParcels": 23
+    },
+    {
+      "frame": 23,
+      "time": 1.5333333333333332,
+      "ms": 161.29999995231628,
+      "physicsMs": 63.299999952316284,
+      "submitMs": 73.10000002384186,
+      "completionMs": 24.899999976158142,
+      "programs": 44,
+      "blobs": 0,
+      "fine": 32768,
+      "sandParcels": 22
+    },
+    {
+      "frame": 24,
+      "time": 1.5999999999999999,
+      "ms": 210.80000001192093,
+      "physicsMs": 78.19999998807907,
+      "submitMs": 83.60000002384186,
+      "completionMs": 49,
+      "programs": 44,
+      "blobs": 0,
+      "fine": 32768,
+      "sandParcels": 53
+    }
+  ],
+  "pass": true,
+  "fields": {
+    "backend": "CPU multigrid-PCG",
+    "absoluteResidual": 0.00006200627644417342,
+    "relativeResidual": 0.000010117321693734139,
+    "iterations": 8,
+    "levels": 4,
+    "milliseconds": 10.099999964237213,
+    "cells": 3553,
+    "waterCells": 646,
+    "divergence": 0.0000018003445578751999,
+    "coupled": 2967,
+    "before": 0.1779467543266426,
+    "prepareMs": 17.900000035762787,
+    "transferMs": 5.100000023841858,
+    "surfaceMs": 7.599999964237213,
+    "surfaceParticles": 2443,
+    "surfaceBackend": "WebAssembly CPU",
+    "totalParticles": 3024,
+    "transportBackend": "WebAssembly CPU transport",
+    "transportMs": 5
+  },
+  "preparedPrograms": 44,
+  "backend": "CPU multigrid-PCG / WebAssembly CPU surface / WebAssembly CPU transport"
+}

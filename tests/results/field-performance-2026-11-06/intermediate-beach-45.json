@@ -1,0 +1,41 @@
+{
+  "fixture": "45-frame benchmark",
+  "medianFrameMs": 266.6999999999971,
+  "p95FrameMs": 333.90000000000146,
+  "simulatedSeconds": 2.933333333333336,
+  "wallSeconds": 12.280899999976159,
+  "bulk": 13299,
+  "fine": 32768,
+  "sandMassError": 1.9081393154661435e-14,
+  "timing": {
+    "predict": 8.399999976158142,
+    "constraintsTransportAndReadback": 118.10000002384186,
+    "exchangeAndSpray": 11.100000023841858,
+    "readback": 0,
+    "readbacks": 0
+  },
+  "prepare": {
+    "pump": 0,
+    "rain": 0,
+    "wetting": 1.300000011920929,
+    "predict": 7.099999964237213,
+    "emission": 4.100000023841858
+  },
+  "gpu": {
+    "surface": 21.94622109492806,
+    "atmosphere": 0.05390391195741706,
+    "spray shadows": 2.099767234431179,
+    "density": 27.00914065434466,
+    "medium shadows": 4.467733962046036,
+    "photons": 1.9125677674880004,
+    "front": 8.729224371705763,
+    "background": 5.549996367002639,
+    "water": 7.4828019562815955,
+    "blobs": 0.18419839993806325,
+    "sea foam": 0,
+    "sand grains": 53.15897098702132,
+    "rain / lens": 0.9273399871972134,
+    "foam lighting": 0.4665332366040585,
+    "foam splats": 53.01680439446147
+  }
+}

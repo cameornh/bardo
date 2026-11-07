@@ -9,6 +9,7 @@ import {reachableShader} from './shader-reachability.js';
 import {installShaderLoopBounds} from './shader-loop-bounds.js';
 import {SplitSurfacePass} from './split-surfaces.js';
 import {SprayShadowAtlas} from './spray-atlas.js';
+import {installDetailResolution} from './detail-resolution.js';
 
 export class LiveWaterRenderer extends WaterLabRenderer {
  constructor(field,lab){
@@ -17,6 +18,11 @@ export class LiveWaterRenderer extends WaterLabRenderer {
   // on the affected Metal driver. Retain the original single-field GPU path
   // there; this changes reconstruction policy, never physics or features.
   this.nestedWaterFields=lab.hardwarePolicy?.nestedWaterFields!==false;
+  // Submission measurements are separate from GPU elapsed-time queries:
+  // CPU reconstruction between draws can otherwise look like GPU cost.
+  this.cpuStages={};const begin=this.timers.begin.bind(this.timers),end=this.timers.end.bind(this.timers);
+  this.timers.begin=name=>{this.cpuStage={name,start:performance.now()};begin(name);};
+  this.timers.end=()=>{if(this.cpuStage){const {name,start}=this.cpuStage;this.cpuStages[name]=performance.now()-start;this.cpuStage=null;}end();};
   this.density.enabled=this.nestedWaterFields;
   const seen=new Set(),materials=new Set(),worldMaterials=new Set();
   for(const scene of [this.mediumShadows.scene,this.photonScene,this.photonGather])scene.traverse(o=>{if(o.material)worldMaterials.add(o.material);});
@@ -33,6 +39,7 @@ export class LiveWaterRenderer extends WaterLabRenderer {
   const fieldSource=this.nestedWaterFields?CLIPMAP_FIELD_GLSL:LAB_FIELD_GLSL+'\nfloat fieldDetailDx(vec3 p){return uFieldDx;}\n';
   this.splitBlobs=new SplitBlobPass(this.blobRenderer,fieldSource);
   installLiveDetailLighting(this.detailRenderer,fieldSource);
+  installDetailResolution(this.detailRenderer);
   this.surfaceState=new WaterSurfaceState();this.blobRenderer.families=new StableBlobFamilies();
   this.edgeMirage=installEdgeMirage(this);
   this.splitSurfaces=new Map([[this.backgroundScene,'opaque'],[this.waterScene,'water'],[this.submergedScene,'submerged'],[this.shellScene,'glass']].map(([scene,kind])=>[scene,new SplitSurfacePass(scene,kind)]));

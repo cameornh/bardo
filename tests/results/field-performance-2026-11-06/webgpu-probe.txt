@@ -1,0 +1,20 @@
+{
+  "computeAndWaitMs": 16.900000035762787,
+  "backend": "WebGPU compute",
+  "adapter": "gen-9",
+  "iterations": 32,
+  "cells": 288,
+  "gpuValidated": true,
+  "pass": true,
+  "maxError": 2.384185791015625e-7,
+  "relativeResidual": 0.00025278498720229895,
+  "tolerance": 0.000026188418865203858,
+  "cpuMs": 8,
+  "limits": {
+    "cells": 512,
+    "neighbors": 6,
+    "iterations": 64,
+    "batch": 8,
+    "waitMs": 2000
+  }
+}
