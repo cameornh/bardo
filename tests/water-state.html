@@ -1,0 +1,8 @@
+<!doctype html><meta charset="utf-8"><title>Resident water state checks</title>
+<style>body{background:#17212b;color:#eee;font:14px system-ui}button{padding:8px;margin:4px}pre{white-space:pre-wrap}canvas{max-width:100%;border:1px solid #777}</style>
+<p>Bounded resident water checks. The complete beach renderer and CPU feature mirrors are retained. No graphics work on load.</p>
+<button id="verify">Validate resident water</button><button id="prepare">Prepare full beach</button>
+<button id="measure">Measure complete frames</button><button id="features">Check feature synchronization</button>
+<button id="lifecycle">Check resets and fallback</button><button id="image">Save preview</button><button id="export">Export report</button>
+<canvas id="view" width="320" height="200"></canvas><pre id="result">No graphics work on load</pre>
+<script type="module" src="./water-state.js"></script>

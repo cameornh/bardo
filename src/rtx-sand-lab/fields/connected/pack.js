@@ -26,8 +26,8 @@ export function connectivity(g){
  for(const cells of g.closed){for(const i of cells){closed[i*2]=at;closed[i*2+1]=cells.length;}closed.set(cells,at);at+=cells.length;}
  return {nodes,links,closed};
 }
-export function packConnected(context,lab,g,geometry,bins,wind,wall){
- const n=validateParticleInput(context,lab,g),input=new Float32Array(n*17),config=new Float32Array(32),offsets=[];let faces=0;
+export function packConnected(context,lab,g,geometry,bins,wind,wall,particlePacker=null){
+ const n=validateParticleInput(context,lab,g),input=particlePacker?particlePacker(context,lab,g):new Float32Array(n*17),config=new Float32Array(32),offsets=[];let faces=0;
  for(const f of g.faces){offsets.push(faces);faces+=f.velocity.length;}
  const bandOffset=faces*4,geometryOffset=bandOffset+g.count,field=new Float32Array(geometryOffset+geometry.length),faceMeta=(g.connectedFaceMeta??=new Float32Array(faces*16)),band=new Uint8Array(g.count);
  if(geometry.length>PARTICLE_LIMITS.geometryFloats||!geometry.every(Number.isFinite))throw Error('Invalid GPU collision geometry');
@@ -46,7 +46,7 @@ export function packConnected(context,lab,g,geometry,bins,wind,wall){
   field[j*4+2]=wet?1:0;if(pa!==WATER&&b>=0)band[b]=1;if(pb!==WATER&&a>=0)band[a]=1;
  }
  g.connectedFaceVersion=g.topologyVersion;
- let coupled=0;for(let i=0;i<n;i++){const o=i*17;input.set(context.old.subarray(i*4,i*4+4),o);input.set(context.predicted.subarray(i*4,i*4+4),o+4);input.set(lab.velocities.subarray(i*4,i*4+4),o+8);input.set(lab.chem.subarray(i*4,i*4+4),o+12);const c=g.particleCell[i];if(!context.old[i*4+3]&&c>=0&&g.phase[c]===WATER){input[o+16]=1;coupled++;}}
+ let coupled=0;for(let i=0;i<n;i++){const o=i*17;if(!particlePacker){input.set(context.old.subarray(i*4,i*4+4),o);input.set(context.predicted.subarray(i*4,i*4+4),o+4);input.set(lab.velocities.subarray(i*4,i*4+4),o+8);input.set(lab.chem.subarray(i*4,i*4+4),o+12);}const c=g.particleCell[i];if(!context.old[i*4+3]&&c>=0&&g.phase[c]===WATER){if(!particlePacker)input[o+16]=1;coupled++;}}
  g.coupled=coupled;field.set(band,bandOffset);field.set(geometry,geometryOffset);
  const coeff=physicalCoefficients(context.s,context.scale,context.dt);
  config.set([n,context.s,context.scale,context.dt,1-Math.exp(-context.dt*1.5),coeff.viscosity,coeff.capillary,WATER_SURFACE_TENSION/WATER_DENSITY,...g.origin,0,...g.cellSize,0,geometryOffset,bandOffset,0,0,...g.dims,0]);

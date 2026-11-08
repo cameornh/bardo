@@ -17,7 +17,7 @@ export class ConnectedFields {
  pack(context,lab,grid,geometry){
   if(grid.count>4096)throw Error('Connected field grid exceeds 4096 cells');
   const start=performance.now();const resetPressure=this.cachedGrid!==grid;this.grid=grid;this.context=context;
-  const bins=prepareOccupancy(grid,context,this.environment.solid),packed=packConnected(context,lab,grid,geometry,bins,this.environment.wind,this.environment.wall);
+  const bins=prepareOccupancy(grid,context,this.environment.solid),packed=packConnected(context,lab,grid,geometry,bins,this.environment.wind,this.environment.wall,this.particlePacker?.bind(this));
   if(this.cachedGrid!==grid||this.version!==grid.topologyVersion){
    const {nodes,links,closed}=connectivity(grid);this.hierarchyOffset=nodes.length+links.length+closed.length;const mg=packHierarchy(grid.levels,this.hierarchyOffset);if(mg.work>24576)throw Error('Multigrid work budget exceeded');this.topology=new Float32Array(this.hierarchyOffset+mg.data.length);this.topology.set(mg.data,this.hierarchyOffset);this.topology.set(nodes);this.topology.set(links,nodes.length);this.topology.set(closed,nodes.length+links.length);this.linkOffset=nodes.length;this.closedOffset=nodes.length+links.length;this.cachedGrid=grid;this.version=grid.topologyVersion;this.dirty=true;
   }

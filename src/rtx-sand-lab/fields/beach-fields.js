@@ -46,7 +46,7 @@ export class BeachFields {
   return {solid,wind,wall};
  }
  prepare(context){
-  this.ensure();const lab=this.lab,g=this.grid,scale=lab.spec.scale,dt=context.dt,start=performance.now(),{solid,wind,wall}=this.environment();
+  this.lab.completeWaterPrediction?.(context);this.ensure();const lab=this.lab,g=this.grid,scale=lab.spec.scale,dt=context.dt,start=performance.now(),{solid,wind,wall}=this.environment();
   g.nativeTransfer=lab.optimizations?.nativeFieldTransfer===true?(this.nativeTransfer??=new FieldTransfer()):null;
   this.rhs=g.deposit(context.old,context.predicted,dt,scale,lab.spacing,solid,wind,wall);this.before=norm(g.divergence());this.prepareMs=performance.now()-start;
   return this.rhs;
@@ -145,6 +145,7 @@ export class BeachFields {
   if(this.lab.asyncPending)throw Error('Pause and wait for the current step');
   this.particleBackend='cpu';this.connected?.dispose();this.connected=await (this.createConnectedPipeline?.()||new ConnectedPipeline()).initialize(this.sharedDevice());
   const result=await verifyConnected(this.connected);this.connectedVerification=result;
+  if(result.pass&&this.connected.verifyState){result.resident=await this.connected.verifyState();result.pass=result.resident.pass;this.connected.validated=result.pass;}
   if(result.pass&&this.lab.count){
    this.ensure();const lab=this.lab,grid=freshGrid(this.grid),context={old:lab.positions.slice(),predicted:lab.positions.slice(),dt:lab.timestep,s:lab.spacing,scale:lab.spec.scale};
    try{const warm=await this.connected.solve(context,lab,grid,{environment:this.environment()});result.sceneWarmup=warm.stats;}
