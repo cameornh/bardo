@@ -3,13 +3,13 @@ import {ResidentSimulation} from '../src/resident-water/simulation.js';
 import {ResidentRenderer} from '../src/resident-water/renderer.js';
 import {fixture,outputState,frameSchedule,LIMITS,stateMetrics} from '../src/resident-water/model.js';
 import {referenceStep,compareState} from '../src/resident-water/reference.js';
-const el=id=>document.getElementById(id),out=el('result'),hud=el('hud');let sim,draw,stop=false,running=false,verification,cpu,preparing=false,redraw=Promise.resolve(),failed=false;
+const el=id=>document.getElementById(id),out=el('result'),hud=el('hud');let sim,draw,stop=false,running=false,verification,cpu,preparing=false,redraw=Promise.resolve(),failed=false,starting=false;
 const yieldFrame=()=>new Promise(r=>requestAnimationFrame(r));
 const report=value=>out.textContent=JSON.stringify(value,null,2);
-const failure=e=>{if(failed)return;failed=true;stop=true;running=false;draw?.dispose();sim?.dispose();hud.textContent='Stopped safely. '+e.message;report({pass:false,error:e.stack});for(const id of ['prepare','run','play'])el(id).disabled=true;};
+const failure=e=>{if(failed)return;failed=true;stop=true;running=false;draw?.dispose();sim?.dispose();hud.textContent='Stopped safely. '+e.message;report({pass:false,error:e.stack});for(const id of ['start','prepare','run','play'])el(id).disabled=true;};
 el('stop').onclick=()=>stop=true;document.addEventListener('visibilitychange',()=>{if(document.hidden)stop=true;});
 el('verify').onclick=async()=>{
- el('verify').disabled=true;
+ el('verify').disabled=true;el('start').disabled=true;
  try{
   hud.textContent='Creating bounded WebGPU pipelines';sim=await new ResidentSimulation().initialize();const rows=[];
   for(const size of [48,192,1164]){
@@ -22,14 +22,14 @@ el('verify').onclick=async()=>{
   const crowded=fixture(1.4);crowded.positions=new Float32Array(65*4);crowded.velocities=crowded.positions.slice();crowded.chem=crowded.positions.slice();for(let i=0;i<65;i++)crowded.positions.set([0,2,0,0],i*4);sim.load(crowded);let overflowGuard=false;
   try{await sim.submit(e=>sim.encode(e));}catch(e){if(!e.message.includes('Capacity guard'))throw e;overflowGuard=true;}
   if(!overflowGuard)throw Error('Capacity guard did not stop an overfull bucket');
-  sim=await new ResidentSimulation().initialize();verification={pass:true,overflowGuard,adapter:sim.adapter,rows};report(verification);hud.textContent='CPU/GPU verification passed. Ready to prepare a bounded beach.';el('prepare').disabled=false;
+  sim=await new ResidentSimulation().initialize();verification={pass:true,overflowGuard,adapter:sim.adapter,rows};report(verification);hud.textContent='Checks passed. Click Start test to show and play the beach, or Prepare beach for a paused view.';el('prepare').disabled=false;if(!starting)el('start').disabled=false;
  }catch(e){failure(e);}
 };
 el('prepare').onclick=async()=>{
  if(running||preparing)return;preparing=true;el('prepare').disabled=true;await redraw;
  try{
   draw?.dispose();cpu?.lab.bulkFields?.dispose();const f=fixture(Number(el('resolution').value));sim.load(f);cpu=el('backend').value==='current'?await currentCPU(f):null;hud.textContent='Preparing Gaussian rendering';await yieldFrame();const width=Number(new URLSearchParams(location.search).get('width')||640),height=Math.round(width*9/16);draw=await new ResidentRenderer(sim,el('view'),{width,height}).initialize();
-  await sim.submit(e=>draw.encode(e));preparing=false;await viewChange();hud.textContent=`Ready · ${f.positions.length/4} particles · ${width} × ${height} · ${(sim.bytes/1048576).toFixed(1)} MiB compute storage`;el('run').disabled=false;el('play').disabled=false;el('prepare').disabled=false;report({pass:true,phase:'ready',adapter:sim.adapter,water:f.positions.length/4,storageBytes:sim.bytes,grid:sim.gridPlan.dims,verification});
+  await sim.submit(e=>draw.encode(e));el('view').hidden=false;preparing=false;await viewChange();hud.textContent=`Ready · ${f.positions.length/4} particles · ${width} × ${height} · ${(sim.bytes/1048576).toFixed(1)} MiB compute storage`;el('run').disabled=false;el('play').disabled=false;el('prepare').disabled=false;report({pass:true,phase:'ready',adapter:sim.adapter,water:f.positions.length/4,storageBytes:sim.bytes,grid:sim.gridPlan.dims,verification});
  }catch(e){failure(e);}
 };
 function viewChange(){if(!draw||running||preparing)return redraw;redraw=redraw.then(async()=>{if(running||preparing||sim.disabled)return;const views={shore:[[4.8,4,4.4],[0,.65,0]],low:[[3.8,2.4,1.8],[0,1.2,-2]],top:[[0,10,.1],[0,0,0]]},v=views[el('camera').value];draw.camera.position.fromArray(v[0]);draw.camera.lookAt(...v[1]);draw.update({organic:Number(el('organic').value),debug:Number(el('debug').value)});try{await sim.submit(e=>draw.encode(e));}catch(e){failure(e);}});return redraw;}
@@ -55,5 +55,12 @@ async function run(seconds){
  el('run').disabled=false;el('play').disabled=false;el('prepare').disabled=false;
 }
 el('run').onclick=()=>run(15);el('play').onclick=()=>run(30);
+// One visible entry point retains the exact checks and bounded workload, but
+// no longer makes users discover three separate startup buttons in sequence.
+el('start').onclick=async()=>{
+ if(starting||running||preparing||failed)return;starting=true;el('start').disabled=true;
+ try{if(!verification)await el('verify').onclick();if(failed)return;await el('prepare').onclick();if(failed)return;el('start').hidden=true;await run(30);if(!failed)hud.textContent+=' · Paused — select Play 30 seconds to continue.';}
+ catch(e){failure(e);}finally{starting=false;}
+};
 
 window.addEventListener('pagehide',()=>{stop=true;draw?.dispose();sim?.dispose();cpu?.lab.bulkFields?.dispose();});
