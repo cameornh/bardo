@@ -126,9 +126,10 @@ export class BeachFields {
    const energy=(sample.temperature-p.temperature)*(1-Math.exp(-dt*.08))*c*airCapacity/(c+airCapacity);p.temperature+=energy/c;g.temperature[sample.i]-=energy/airCapacity;g.ledger.dropHeat-=energy;
   }
  }
+ sharedDevice(){const r=this.lab.renderer;return r.isSharedSceneWebGPU?{device:r.device,adapterInfo:{vendor:r.adapter.info?.vendor,architecture:r.adapter.info?.architecture}}:undefined;}
  async verifyParticles(){
   if(this.lab.asyncPending)throw Error('Pause and wait for the current step');
-  this.particleBackend='cpu';this.particles?.dispose();this.particles=await new ParticlePipeline().initialize();
+  this.particleBackend='cpu';this.particles?.dispose();this.particles=await new ParticlePipeline().initialize(this.sharedDevice());
   const result=await verifyParticles(this.particles);this.particleVerification=result;if(result.pass)delete this.stats.particleFallback;
   if(result.pass&&this.lab.count){
    // Exercise the actual geometry/count while paused. Discard the result:
@@ -141,7 +142,7 @@ export class BeachFields {
  }
  async verifyConnected(){
   if(this.lab.asyncPending)throw Error('Pause and wait for the current step');
-  this.particleBackend='cpu';this.connected?.dispose();this.connected=await new ConnectedPipeline().initialize();
+  this.particleBackend='cpu';this.connected?.dispose();this.connected=await new ConnectedPipeline().initialize(this.sharedDevice());
   const result=await verifyConnected(this.connected);this.connectedVerification=result;
   if(result.pass&&this.lab.count){
    this.ensure();const lab=this.lab,grid=freshGrid(this.grid),context={old:lab.positions.slice(),predicted:lab.positions.slice(),dt:lab.timestep,s:lab.spacing,scale:lab.spec.scale};

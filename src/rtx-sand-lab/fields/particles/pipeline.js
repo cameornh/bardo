@@ -49,10 +49,12 @@ export class ParticlePipeline {
  constructor(){this.buffers={};this.validated=false;this.disabled=false;this.busy=false;}
  async initialize(gpu=globalThis.navigator?.gpu){
   if(!gpu)throw Error('WebGPU unavailable; CPU particle pipeline remains active');
-  const adapter=await wait(gpu.requestAdapter({powerPreference:'high-performance'}),3000,'WebGPU adapter');if(!adapter)throw Error('No WebGPU adapter');
-  this.adapter={vendor:adapter.info?.vendor,architecture:adapter.info?.architecture,device:adapter.info?.device,description:adapter.info?.description};
-  const request=adapter.requestDevice();let expired=false;request.then(d=>{if(expired)d.destroy();},()=>{});
-  try{this.device=await wait(request,3000,'WebGPU device');}catch(e){expired=true;throw e;}
+  this.ownsDevice=!gpu.device;
+  if(gpu.device){this.device=gpu.device;this.adapter=gpu.adapterInfo||{};}
+  else{const adapter=await wait(gpu.requestAdapter({powerPreference:'high-performance'}),3000,'WebGPU adapter');if(!adapter)throw Error('No WebGPU adapter');
+   this.adapter={vendor:adapter.info?.vendor,architecture:adapter.info?.architecture,device:adapter.info?.device,description:adapter.info?.description};
+   const request=adapter.requestDevice();let expired=false;request.then(d=>{if(expired)d.destroy();},()=>{});
+   try{this.device=await wait(request,3000,'WebGPU device');}catch(e){expired=true;throw e;}}
   const d=this.device;d.lost.then(info=>{this.disabled=true;this.failure=info.message||'WebGPU device closed';});d.addEventListener('uncapturederror',e=>{this.disabled=true;this.failure=e.error.message;});
   d.pushErrorScope('validation');
   try{
@@ -91,5 +93,5 @@ export class ParticlePipeline {
    this.warmed=true;return {...result,intermediate,fieldResult,stats:this.stats};
   }catch(e){if(submitted&&!/bucket full|neighbor list full|requires CPU fallback/.test(e.message)){this.failure=e.message;this.dispose();}throw e;}finally{this.busy=false;}
  }
- dispose(){this.disabled=true;for(const b of Object.values(this.buffers))b.destroy();this.buffers={};this.device?.destroy();this.device=null;}
+ dispose(){this.disabled=true;for(const b of Object.values(this.buffers))b.destroy();this.buffers={};if(this.ownsDevice!==false)this.device?.destroy();this.device=null;}
 }

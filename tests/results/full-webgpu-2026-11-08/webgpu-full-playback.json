@@ -1,0 +1,71 @@
+{
+  "fixture": "45-frame benchmark",
+  "medianFrameMs": 265.70000000001164,
+  "p95FrameMs": 501.0999999999767,
+  "simulatedSeconds": 3.1333333333333364,
+  "wallSeconds": 13.418899999976158,
+  "bulk": 13299,
+  "fine": 32768,
+  "sandMassError": 1.8102860172371105e-14,
+  "timing": {
+    "predict": 11.400000035762787,
+    "constraintsTransportAndReadback": 91.09999996423721,
+    "exchangeAndSpray": 7.5,
+    "readback": 0,
+    "readbacks": 0
+  },
+  "prepare": {
+    "pump": 0,
+    "rain": 0.10000002384185791,
+    "wetting": 2,
+    "predict": 9.300000011920929,
+    "emission": 7.5
+  },
+  "neighborMs": 19.69999998807907,
+  "fields": {
+    "backend": "WebAssembly CPU multigrid-PCG",
+    "absoluteResidual": 0.00003850776454690402,
+    "relativeResidual": 0.000008076622253305665,
+    "iterations": 8,
+    "levels": 4,
+    "milliseconds": 4.100000023841858,
+    "cells": 3553,
+    "waterCells": 666,
+    "divergence": 0.0000011180681749264117,
+    "coupled": 12946,
+    "before": 0.1384326442246925,
+    "prepareMs": 18.299999952316284,
+    "transferMs": 21.80000001192093,
+    "scalarMs": 4.199999988079071,
+    "gatherMs": 2.100000023841858,
+    "neighborMs": 19.69999998807907,
+    "surfaceMs": 26.5,
+    "surfaceParticles": 10015,
+    "surfaceBackend": "WebAssembly CPU",
+    "totalParticles": 13299,
+    "transportBackend": "WebAssembly CPU transport",
+    "transportMs": 16.19999998807907,
+    "particleCompute": null,
+    "transferBackend": "WebAssembly CPU"
+  },
+  "cpuRender": {
+    "atmosphere": 0,
+    "spray shadows": 0.19999998807907104,
+    "density": 22.100000023841858,
+    "medium shadows": 0.3999999761581421,
+    "photons": 0.6000000238418579,
+    "front": 0.3999999761581421,
+    "background": 1.100000023841858,
+    "water": 1.699999988079071,
+    "blobs": 0.40000003576278687,
+    "sea foam": 0,
+    "sand grains": 0.19999998807907104,
+    "rain / lens": 1.300000011920929,
+    "particle visibility": 0.09999996423721313,
+    "foam lighting": 0.30000001192092896,
+    "foam splats": 0.5
+  },
+  "gpu": {
+    "surface": 0
+  }
+}

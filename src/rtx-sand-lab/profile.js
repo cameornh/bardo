@@ -48,6 +48,7 @@ export function configureRTXLab(lab,device={}){
 }
 
 export function rendererInfo(renderer){
+ if(renderer.isSharedSceneWebGPU)return {adapter:[renderer.adapter.info?.vendor,renderer.adapter.info?.architecture,renderer.adapter.info?.description].filter(Boolean).join(' '),api:'WebGPU · shared scene shaders',floatTargets:true,maxTextureSize:renderer.capabilities.maxTextureSize,fragmentTextureUnits:renderer.device.limits.maxSampledTexturesPerShaderStage};
  const gl=renderer.getContext(),debug=gl.getExtension('WEBGL_debug_renderer_info');
  return {adapter:gl.getParameter(debug?debug.UNMASKED_RENDERER_WEBGL:gl.RENDERER),
   vendor:gl.getParameter(debug?debug.UNMASKED_VENDOR_WEBGL:gl.VENDOR),version:gl.getParameter(gl.VERSION),

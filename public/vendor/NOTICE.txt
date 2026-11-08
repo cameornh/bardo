@@ -1,0 +1,17 @@
+The live WebGPU scene uses locally bundled shader translation; no runtime CDN is required.
+
+TWGSL — https://github.com/BabylonJS/twgsl
+Copyright 2021–2024 The Babylon.js team. Apache License 2.0.
+Files fetched from https://cdn.babylonjs.com/twgsl/ on 2026-11-08:
+  twgsl/twgsl.js SHA256 b4f1f66263b801210f955f74aa71f1939be647ce0fd80ea5befd12a78499d5ff
+  twgsl/twgsl.wasm SHA256 a434c2decdbb38caadf5f486d806384a1543554828c983c77922b2d92579914c
+The binary includes Tint. See twgsl/Tint-LICENSE.txt and twgsl/Apache-2.0.txt.
+
+Babylon.js shader preprocessing — @babylonjs/core 9.35.0 (package-lock.json)
+Copyright The Babylon.js team. Apache License 2.0.
+Only the shader preprocessor is used, not the Babylon renderer.
+
+GLSLang — @webgpu/glslang 0.0.15 (package-lock.json)
+https://github.com/kainino0x/-webgpu-glslang
+https://github.com/KhronosGroup/glslang
+See GLSLANG-LICENSE.txt for glslang's component licenses.

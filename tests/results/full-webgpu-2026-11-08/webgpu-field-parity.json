@@ -1,0 +1,19 @@
+{
+  "pass": true,
+  "reconstruction": {
+    "error": 8.925449779262351e-8,
+    "macroError": 0,
+    "macroCells": 1452,
+    "pass": true
+  },
+  "pressure": {
+    "pass": true,
+    "maxPotentialError": 4.0932846695485026e-9,
+    "relativePressureError": 0.000004396783666139394,
+    "relativeResidual": 0.000007158587178057622,
+    "draws": 85,
+    "coldMilliseconds": 399.0999999642372,
+    "milliseconds": 36.80000001192093,
+    "readbacks": 1
+  }
+}

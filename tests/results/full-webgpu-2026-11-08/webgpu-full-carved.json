@@ -1,0 +1,87 @@
+{
+  "fixture": "45-frame benchmark",
+  "medianFrameMs": 332.79999999998836,
+  "p95FrameMs": 384.20000000001164,
+  "simulatedSeconds": 2.933333333333336,
+  "wallSeconds": 14.911899999976159,
+  "bulk": 13157,
+  "fine": 630,
+  "sandMassError": 1.7124327190080775e-14,
+  "timing": {
+    "predict": 36,
+    "constraintsTransportAndReadback": 89.19999998807907,
+    "exchangeAndSpray": 8.100000023841858,
+    "readback": 59.09999996423721,
+    "readbacks": 1,
+    "readbackBytes": 1348324
+  },
+  "prepare": {
+    "pump": 0,
+    "rain": 23.600000023841858,
+    "wetting": 1.5999999642372131,
+    "predict": 10.800000011920929,
+    "emission": 6.100000023841858
+  },
+  "neighborMs": 0,
+  "fields": {
+    "backend": "WebGPU connected deposition / multigrid-PCG / projection",
+    "absoluteResidual": 0.000026231202004633666,
+    "relativeResidual": 0.0000066332917850268855,
+    "iterations": 9,
+    "levels": 4,
+    "topologyUploads": 131,
+    "prepareMs": 22.899999976158142,
+    "milliseconds": null,
+    "cells": 3553,
+    "waterCells": 664,
+    "divergence": 7.723103158508474e-7,
+    "coupled": 12890,
+    "before": 0.11481775964197438,
+    "scalarMs": 4,
+    "totalParticles": 13157,
+    "surfaceParticles": null,
+    "surfaceMs": null,
+    "gatherMs": null,
+    "neighborMs": null,
+    "transferMs": null,
+    "surfaceBackend": "WebGPU exact contacts",
+    "transportBackend": "WebGPU deposition / pressure / particles / contacts",
+    "transportMs": 84.30000001192093,
+    "particleCompute": {
+      "backend": "WebGPU deposition / pressure / particles / contacts",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "gcn-4"
+      },
+      "packMs": 24,
+      "waitMs": 59.09999996423721,
+      "totalMs": 84.30000001192093,
+      "readbackBytes": 1348324,
+      "particles": 13157,
+      "warmup": false,
+      "unpackMs": 1.100000023841858,
+      "storageBytes": 41651504
+    },
+    "transferBackend": "JavaScript CPU reference"
+  },
+  "cpuRender": {
+    "atmosphere": 0,
+    "spray shadows": 0.30000001192092896,
+    "density": 17.30000001192093,
+    "medium shadows": 0.5,
+    "photons": 0.5,
+    "front": 0.19999998807907104,
+    "background": 0.8999999761581421,
+    "water": 1.300000011920929,
+    "blobs": 0.3999999761581421,
+    "sea foam": 0,
+    "sand grains": 0.10000002384185791,
+    "rain / lens": 6.5,
+    "particle visibility": 0,
+    "foam lighting": 0.10000002384185791,
+    "foam splats": 0.3999999761581421
+  },
+  "gpu": {
+    "surface": 0
+  }
+}

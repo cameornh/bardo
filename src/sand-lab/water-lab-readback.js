@@ -4,7 +4,7 @@
 const queues=new WeakMap();
 export function pollLabReadbacks(renderer){for(const poll of [...(queues.get(renderer)||[])])poll();}
 export function readLabPixelsAsync(renderer,target,width,height,buffer,{eager=false}={}){
- if(!renderer.getContext)return renderer.readRenderTargetPixelsAsync(target,0,0,width,height,buffer);
+ if(renderer.isSharedSceneWebGPU||!renderer.getContext)return renderer.readRenderTargetPixelsAsync(target,0,0,width,height,buffer);
  const gl=renderer.getContext(),previous=renderer.getRenderTarget(),pbo=gl.createBuffer();
  renderer.setRenderTarget(target);gl.bindBuffer(gl.PIXEL_PACK_BUFFER,pbo);gl.bufferData(gl.PIXEL_PACK_BUFFER,buffer.byteLength,gl.STREAM_READ);gl.readPixels(0,0,width,height,gl.RGBA,gl.FLOAT,0);const fence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);renderer.setRenderTarget(previous);
  let queue=queues.get(renderer);if(!queue)queues.set(renderer,queue=new Set());

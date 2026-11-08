@@ -11,6 +11,12 @@
     "start:windows:opengl": "node tools/start-windows.mjs --opengl",
     "test": "node --test tests/*.test.js"
   },
-  "dependencies": { "three": "^0.180.0" },
-  "devDependencies": { "vite": "^7.1.0" }
+  "dependencies": {
+    "@babylonjs/core": "9.35.0",
+    "@webgpu/glslang": "0.0.15",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.0"
+  }
 }
