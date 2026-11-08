@@ -1,0 +1,147 @@
+{
+  "pass": true,
+  "overflowGuard": true,
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "gcn-4",
+    "device": "",
+    "description": ""
+  },
+  "rows": [
+    {
+      "size": 48,
+      "step": 1,
+      "pass": true,
+      "errors": {
+        "position": 0,
+        "velocity": 3.725290298461914e-9,
+        "chemistry": 0,
+        "normal": 0.4356831833720207,
+        "count": 0
+      },
+      "fault": 0,
+      "beforeDivergence": 0.0000012750295436732665,
+      "afterDivergence": 4.092803191974634e-17
+    },
+    {
+      "size": 48,
+      "step": 2,
+      "pass": true,
+      "errors": {
+        "position": 0,
+        "velocity": 7.450580596923828e-9,
+        "chemistry": 0,
+        "normal": 0.4356831833720207,
+        "count": 0
+      },
+      "fault": 0,
+      "beforeDivergence": 0.0000012747035401507106,
+      "afterDivergence": 7.809789604060465e-17
+    },
+    {
+      "size": 48,
+      "step": 3,
+      "pass": true,
+      "errors": {
+        "position": 0,
+        "velocity": 7.450580596923828e-9,
+        "chemistry": 0,
+        "normal": 0.4356831833720207,
+        "count": 0
+      },
+      "fault": 0,
+      "beforeDivergence": 0.0000012741749747328737,
+      "afterDivergence": 7.944079635000633e-17
+    },
+    {
+      "size": 192,
+      "step": 1,
+      "pass": true,
+      "errors": {
+        "position": 0,
+        "velocity": 1.4901161193847656e-8,
+        "chemistry": 0,
+        "normal": 0.000007323920726776123,
+        "count": 0
+      },
+      "fault": 0,
+      "beforeDivergence": 0.28591564169242145,
+      "afterDivergence": 3.3030788648467305e-15
+    },
+    {
+      "size": 192,
+      "step": 2,
+      "pass": true,
+      "errors": {
+        "position": 2.9802322387695312e-8,
+        "velocity": 8.866190910339355e-7,
+        "chemistry": 0,
+        "normal": 0.0000036209821701049805,
+        "count": 0
+      },
+      "fault": 0,
+      "beforeDivergence": 0.17816355396845598,
+      "afterDivergence": 2.8606761812963076e-15
+    },
+    {
+      "size": 192,
+      "step": 3,
+      "pass": true,
+      "errors": {
+        "position": 1.1920928955078125e-7,
+        "velocity": 0.00000356137752532959,
+        "chemistry": 0,
+        "normal": 0.0000013709068298339844,
+        "count": 0
+      },
+      "fault": 0,
+      "beforeDivergence": 0.13614929952484192,
+      "afterDivergence": 2.3972981333952456e-15
+    },
+    {
+      "size": 1164,
+      "step": 1,
+      "pass": true,
+      "errors": {
+        "position": 0.000003337860107421875,
+        "velocity": 0.00000712275505065918,
+        "chemistry": 2.9802322387695312e-8,
+        "normal": 0.0012873709201812744,
+        "count": 0
+      },
+      "fault": 0,
+      "beforeDivergence": 0.5767098994002604,
+      "afterDivergence": 6.781908934432026e-7
+    },
+    {
+      "size": 1164,
+      "step": 2,
+      "pass": true,
+      "errors": {
+        "position": 0.0000035762786865234375,
+        "velocity": 0.00002141110599040985,
+        "chemistry": 2.9802322387695312e-8,
+        "normal": 0.0007734745740890503,
+        "count": 0
+      },
+      "fault": 0,
+      "beforeDivergence": 0.4125170916832208,
+      "afterDivergence": 8.568243821506102e-7
+    },
+    {
+      "size": 1164,
+      "step": 3,
+      "pass": true,
+      "errors": {
+        "position": 0.0000035762786865234375,
+        "velocity": 0.000024980399757623672,
+        "chemistry": 5.960464477539063e-8,
+        "normal": 0.0005012452602386475,
+        "count": 0
+      },
+      "fault": 0,
+      "beforeDivergence": 0.37793576593898726,
+      "afterDivergence": 8.696800931298175e-7
+    }
+  ]
+}

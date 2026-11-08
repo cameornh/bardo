@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8"><title>Resident WebGPU water prototype</title>
+<style>body{font:14px system-ui;background:#20272c;color:#eee;margin:16px}button,select{padding:7px;margin:4px}canvas{display:block;width:960px;max-width:100%;margin-top:10px}pre{white-space:pre-wrap;max-width:960px}a{color:#bce7ff}label{margin:8px}</style>
+<p>Isolated water prototype. Saved terrain and the live beach are untouched. Water prediction, field projection, neighbors, contacts, viscosity and rendering stay on the GPU. Fixed sand and boulders; no rain, foam, moving bodies, night sky or underwater multi-layer optics in this experiment.</p>
+<button id="verify">Verify against CPU</button><button id="prepare" disabled>Prepare beach</button><button id="run" disabled>Measure 15 seconds</button><button id="play" disabled>Play 30 seconds</button><button id="stop">Stop</button>
+<label>Physics <select id="backend"><option value="resident">Resident WebGPU</option><option value="current">Current CPU + same WebGPU renderer</option></select></label> <label>Resolution <select id="resolution"><option value="1">1.0</option><option value="1.4" selected>1.4</option><option value="2.2">2.2</option></select></label>
+<label>View <select id="camera"><option value="shore">Shore</option><option value="low">Low over water</option><option value="top">Overhead</option></select></label>
+<label>Display <select id="debug"><option value="0">Water</option><option value="1">Ground</option><option value="2">Depth</option><option value="3">Thickness</option><option value="4">Normals</option></select></label>
+<label>Organic load <input id="organic" type="range" min="0" max="3" step=".05" value="0"></label>
+<label>Wind <input id="wind" type="range" min="0" max="40" step="1" value="0"></label>
+<p><a href="./resident-water-baseline.html">Matched current WebGL scene benchmark</a> · <a href="/?scene=sand-lab&paused=1">Live beach</a></p>
+<canvas id="view"></canvas><p id="hud">No graphics work on load.</p><pre id="result"></pre><script type="module" src="./resident-water.js"></script>
