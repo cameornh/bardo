@@ -5,9 +5,9 @@ import {CONNECTED_WGSL} from './shaders.js';
 import {multiply,norm} from '../multigrid.js';
 import {MATERIAL,WATER} from '../../../fluid-fields/model.js';
 export class ConnectedFields {
- constructor(particles){this.particles=particles;this.uploads=0;}
+ constructor(particles,shader=CONNECTED_WGSL){this.particles=particles;this.shader=shader;this.uploads=0;}
  async initialize(){
-  const d=this.particles.device;d.pushErrorScope('validation');const module=d.createShaderModule({label:'connected field kernels',code:CONNECTED_WGSL});
+  const d=this.particles.device;d.pushErrorScope('validation');const module=d.createShaderModule({label:'connected field kernels',code:this.shader});
   const info=await wait(module.getCompilationInfo(),5000,'Connected field compilation'),errors=info.messages.filter(m=>m.type==='error');if(errors.length)throw Error(errors.map(e=>e.lineNum+': '+e.message).join('\n'));
   this.layout=d.createBindGroupLayout({entries:[{binding:0,visibility:GPUShaderStage.COMPUTE,buffer:{type:'uniform'}},...Array.from({length:6},(_,i)=>({binding:i+1,visibility:GPUShaderStage.COMPUTE,buffer:{type:i<2||i===5?'storage':'read-only-storage'}}))]});
   const layout=d.createPipelineLayout({bindGroupLayouts:[this.layout]});this.pipelines={};
@@ -49,7 +49,8 @@ export class ConnectedFields {
  }
 }
 export class ConnectedPipeline extends ParticlePipeline {
- async initialize(gpu){await super.initialize(gpu);try{this.fields=await new ConnectedFields(this).initialize();}catch(e){this.dispose();throw e;}return this;}
+ createFields(){return new ConnectedFields(this);}
+ async initialize(gpu){await super.initialize(gpu);try{this.fields=await this.createFields().initialize();}catch(e){this.dispose();throw e;}return this;}
  async solve(context,lab,grid,{environment,geometry=null,debug=false}={}){
   this.fields.environment=environment||{solid:p=>lab.solid(p.map(v=>v/context.scale))*context.scale,wind:()=>[0,0,0],wall:()=>[0,0,0]};
   const r=await super.solve(context,lab,grid,{geometry,debug,connected:this.fields});r.stats.backend='WebGPU deposition / pressure / particles / contacts';r.stats.storageBytes=Object.entries(this.buffers).reduce((sum,[key,b])=>sum+(key==='readback'?0:b.size),0);return r;

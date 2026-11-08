@@ -1,5 +1,6 @@
 // Shared live sand lab. Hardware policy changes execution, never features.
 import {configureRTXLab,applyRTXBackend,RTX_FRAME_HZ,rendererInfo,requiresOpenGLWindow} from './profile.js';
+import {installFieldLocality} from './fields/locality.js';
 import {installParticleVisibility} from './particle-visibility.js';
 import {FramePacer} from './frame-pacing.js';
 import {installOrbitToolInput} from './orbit-tool-input.js';
@@ -88,6 +89,7 @@ const lab=new SandLab(renderer,{boulders:true,physicalResolution:true,bulkFields
 stopSimulation=error=>lab.stopGraphicsWork(error);
 lab.onGraphicsFailure=error=>graphics.stop(error);
 configureRTXLab(lab,rendererInfo(renderer));
+installFieldLocality(lab);
 installCollisionDiagnostics(lab,$('diagnostics'));
 installBeachFieldControls(lab,$('diagnostics'));
 await boot.step('Preparing scene renderer');

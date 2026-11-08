@@ -76,6 +76,8 @@ export class BeachFieldGrid {
    this.temperature[i]=t;this.humidity[i]=q;this.phase[i]=next[i];
   }
   if(!changed)return false;
+  // Optional live experiment; historical fixtures retain the reference builder.
+  if(this.topologyBuilder){this.topologyBuilder.rebuild(this);this.topologyVersion=(this.topologyVersion||0)+1;return true;}
   const rows=Array.from({length:this.count},()=>new Map()),boundary=new Float64Array(this.count);
   for(const f of this.faces)for(let k=0;k<f.velocity.length;k++){
    const a=f.a[k],b=f.b[k],pa=a<0?AIR:this.phase[a],pb=b<0?AIR:this.phase[b],outer=a<0||b<0;

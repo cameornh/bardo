@@ -1,0 +1,23 @@
+{
+  "note": "Topology rebuild microbenchmark, not full-scene throughput",
+  "cells": 3553,
+  "frames": 60,
+  "blocks": [
+    {
+      "optimized": false,
+      "ms": 6.987205666666667
+    },
+    {
+      "optimized": true,
+      "ms": 2.3177675333333316
+    },
+    {
+      "optimized": true,
+      "ms": 2.6475833500000023
+    },
+    {
+      "optimized": false,
+      "ms": 9.366823833333335
+    }
+  ]
+}

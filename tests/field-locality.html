@@ -1,0 +1,9 @@
+<!doctype html><meta charset="utf-8"><title>Field locality experiments</title>
+<style>body{background:#17212b;color:#eee;font:14px system-ui}button{padding:8px;margin:4px}pre{white-space:pre-wrap}canvas{max-width:100%;border:1px solid #777}</style>
+<p>Bounded field locality experiments. CPU references and original GPU path remain available. No graphics work on load.</p>
+<button id="verify">Validate GPU coarse memory</button><button id="prepare">Prepare full beach</button>
+<button id="cpu">Measure CPU topology reuse</button><button id="gpu">Measure connected GPU pressure</button>
+<button id="live">Check live integration and switches</button>
+<button id="image">Save preview</button>
+<button id="export">Export report</button><canvas id="view" width="320" height="200"></canvas><pre id="result">No graphics work on load</pre>
+<script type="module" src="./field-locality.js"></script>

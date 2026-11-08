@@ -27,10 +27,11 @@ export class BeachFields {
  }
  reset(){this.grid=null;this.events=[];this.stats={backend:'CPU multigrid-PCG · preparing'};if(!this.gpu?.busy)this.gpu?.clear();}
  ensure(){
-  if(this.grid)return;const lab=this.lab,scale=lab.spec.scale;
+  if(this.grid){this.configureTopology?.(this.grid);return;}const lab=this.lab,scale=lab.spec.scale;
   let h=Math.max(lab.spacing*scale*1.7,Math.cbrt(11*6*9.8*scale**3/3200));let dims;
   do{dims=[11,6,9.8].map(v=>Math.ceil(v*scale/h));if(dims.reduce((a,b)=>a*b)<=4096)break;h*=1.025;}while(true);
   this.grid=new BeachFieldGrid({dims,h,origin:[-5.5,-.5,-4.9].map(v=>v*scale),extent:[11,6,9.8].map(v=>v*scale)});
+  this.configureTopology?.(this.grid);
  }
  sampleAir(point){const g=this.grid,scale=this.lab.spec.scale,p=point.map(v=>v*scale);let i=g.cellAt(p);
   if(i>=0&&g.phase[i]!==AIR){const c=g.coords[i];let best=Infinity,found=-1;for(let z=-2;z<=2;z++)for(let y=-2;y<=2;y++)for(let x=-2;x<=2;x++){const q=[c[0]+x,c[1]+y,c[2]+z];if(q.some((v,k)=>v<0||v>=g.dims[k]))continue;const j=q[0]+g.dims[0]*(q[1]+g.dims[1]*q[2]);if(g.phase[j]!==AIR)continue;const d=x*x+y*y+z*z;if(d<best){best=d;found=j;}}i=found;}
@@ -142,7 +143,7 @@ export class BeachFields {
  }
  async verifyConnected(){
   if(this.lab.asyncPending)throw Error('Pause and wait for the current step');
-  this.particleBackend='cpu';this.connected?.dispose();this.connected=await new ConnectedPipeline().initialize(this.sharedDevice());
+  this.particleBackend='cpu';this.connected?.dispose();this.connected=await (this.createConnectedPipeline?.()||new ConnectedPipeline()).initialize(this.sharedDevice());
   const result=await verifyConnected(this.connected);this.connectedVerification=result;
   if(result.pass&&this.lab.count){
    this.ensure();const lab=this.lab,grid=freshGrid(this.grid),context={old:lab.positions.slice(),predicted:lab.positions.slice(),dt:lab.timestep,s:lab.spacing,scale:lab.spec.scale};
