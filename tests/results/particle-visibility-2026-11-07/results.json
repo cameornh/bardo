@@ -1,0 +1,4332 @@
+{
+  "pass": true,
+  "contextLost": false,
+  "backend": {
+    "rendering": "WebGL 2",
+    "physics": "WebAssembly CPU multigrid-PCG / WebAssembly CPU surface / WebAssembly CPU transport",
+    "fields": "WebAssembly CPU multigrid-PCG"
+  },
+  "resolution": [
+    640,
+    360
+  ],
+  "sand": 8192,
+  "foam": 32768,
+  "physicsSteps": 12,
+  "playback": [
+    {
+      "frame": 1,
+      "physicsMs": 159,
+      "frameMs": 254.19999998807907,
+      "time": 0.06666666666666667,
+      "programs": 54
+    },
+    {
+      "frame": 2,
+      "physicsMs": 123.5,
+      "frameMs": 241.19999998807907,
+      "time": 0.13333333333333333,
+      "programs": 54
+    },
+    {
+      "frame": 3,
+      "physicsMs": 99.19999998807907,
+      "frameMs": 192.39999997615814,
+      "time": 0.2,
+      "programs": 54
+    },
+    {
+      "frame": 4,
+      "physicsMs": 60.5,
+      "frameMs": 169.80000001192093,
+      "time": 0.26666666666666666,
+      "programs": 54
+    },
+    {
+      "frame": 5,
+      "physicsMs": 64.39999997615814,
+      "frameMs": 156.5,
+      "time": 0.3333333333333333,
+      "programs": 54
+    },
+    {
+      "frame": 6,
+      "physicsMs": 78.80000001192093,
+      "frameMs": 200.10000002384186,
+      "time": 0.39999999999999997,
+      "programs": 54
+    },
+    {
+      "frame": 7,
+      "physicsMs": 111.19999998807907,
+      "frameMs": 281.89999997615814,
+      "time": 0.4666666666666666,
+      "programs": 54
+    },
+    {
+      "frame": 8,
+      "physicsMs": 118.69999998807907,
+      "frameMs": 302.2999999523163,
+      "time": 0.5333333333333333,
+      "programs": 54
+    },
+    {
+      "frame": 9,
+      "physicsMs": 106.60000002384186,
+      "frameMs": 241.80000001192093,
+      "time": 0.6,
+      "programs": 54
+    },
+    {
+      "frame": 10,
+      "physicsMs": 74.19999998807907,
+      "frameMs": 201.60000002384186,
+      "time": 0.6666666666666666,
+      "programs": 54
+    },
+    {
+      "frame": 11,
+      "physicsMs": 57.90000003576279,
+      "frameMs": 170.19999998807907,
+      "time": 0.7333333333333333,
+      "programs": 54
+    },
+    {
+      "frame": 12,
+      "physicsMs": 143.20000004768372,
+      "frameMs": 253.9000000357628,
+      "time": 0.7999999999999999,
+      "programs": 54
+    }
+  ],
+  "preparedPrograms": 54,
+  "wholeFrames": [
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 82.40000003576279
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 92.39999997615814
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 80.59999996423721
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 81.5
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 82.59999996423721
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 119
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 96.5
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 106.29999995231628
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 106.10000002384186
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 160.69999998807907
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 107.10000002384186
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 78.10000002384186
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 123
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 95.39999997615814
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 84.5
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 98.19999998807907
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 75.10000002384186
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 91.09999996423721
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 87.19999998807907
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 74.90000003576279
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 85.30000001192093
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 86.5
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 96.69999998807907
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 100.59999996423721
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 99.80000001192093
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 102.30000001192093
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 79
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 78.60000002384186
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 84.69999998807907
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 81.19999998807907
+    },
+    {
+      "view": "beach",
+      "mode": "reference",
+      "ms": 81.70000004768372
+    },
+    {
+      "view": "beach",
+      "mode": "sparse",
+      "ms": 85.40000003576279
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 85.69999998807907
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 81.60000002384186
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 84
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 77
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 87.89999997615814
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 79.69999998807907
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 86.90000003576279
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 96.5
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 85.5
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 84.90000003576279
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 82.19999998807907
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 92.39999997615814
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 87
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 83.5
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 97.79999995231628
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 82.5
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 81.69999998807907
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 82.39999997615814
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 97.40000003576279
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 91.19999998807907
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 243.9000000357628
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 98.5
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 111.39999997615814
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 92.30000001192093
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 91.89999997615814
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 128
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 103.29999995231628
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 126.69999998807907
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 98.09999996423721
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 90.69999998807907
+    },
+    {
+      "view": "shore",
+      "mode": "reference",
+      "ms": 92.29999995231628
+    },
+    {
+      "view": "shore",
+      "mode": "sparse",
+      "ms": 94.69999998807907
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 188.5999999642372
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 148.69999998807907
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 170.5
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 172.30000001192093
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 167
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 153
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 156.5
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 166.70000004768372
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 153.5
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 163.39999997615814
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 166.60000002384186
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 180.19999998807907
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 164.5
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 148.69999998807907
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 156.39999997615814
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 169.5
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 150.89999997615814
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 160.5
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 166.80000001192093
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 173.69999998807907
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 167.60000002384186
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 158.19999998807907
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 171
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 172.69999998807907
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 170.69999998807907
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 170.19999998807907
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 150.39999997615814
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 172.5
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 152.60000002384186
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 175.19999998807907
+    },
+    {
+      "view": "underwater",
+      "mode": "reference",
+      "ms": 169.5999999642372
+    },
+    {
+      "view": "underwater",
+      "mode": "sparse",
+      "ms": 168.0999999642372
+    }
+  ],
+  "comparisons": [
+    {
+      "view": "beach",
+      "occlusionMeanError": 0,
+      "sparse": {
+        "meanAbsoluteLinearError": 0.04721688098861099,
+        "maxAbsoluteLinearError": 0.5044325590133667,
+        "relativeMeanDifference": -0.0100718926782144
+      },
+      "meanAbsoluteLinearError": 3.735998891190522e-8,
+      "maxAbsoluteLinearError": 0.00011432170867919922,
+      "componentsOver002": 0,
+      "nonFinite": 0,
+      "repeatMaxError": 0,
+      "seaMeanError": 0
+    },
+    {
+      "view": "shore",
+      "occlusionMeanError": 0,
+      "sparse": {
+        "meanAbsoluteLinearError": 0.01874219262596752,
+        "maxAbsoluteLinearError": 0.4484289661049843,
+        "relativeMeanDifference": 0.004774210336609297
+      },
+      "meanAbsoluteLinearError": 1.1445653601387878e-7,
+      "maxAbsoluteLinearError": 0.00044280290603637695,
+      "componentsOver002": 0,
+      "nonFinite": 0,
+      "repeatMaxError": 0,
+      "seaMeanError": 0
+    },
+    {
+      "view": "underwater",
+      "occlusionMeanError": 0,
+      "sparse": {
+        "meanAbsoluteLinearError": 0.0037839492732025014,
+        "maxAbsoluteLinearError": 0.20621618628501892,
+        "relativeMeanDifference": 0.0021706964297203424
+      },
+      "meanAbsoluteLinearError": 6.5335562895698886e-9,
+      "maxAbsoluteLinearError": 0.00013396143913269043,
+      "componentsOver002": 0,
+      "nonFinite": 0,
+      "repeatMaxError": 0,
+      "seaMeanError": 1.0887430966653887e-9
+    }
+  ],
+  "measurements": {
+    "beach/sand/reference": {
+      "gpuMs": {
+        "median": 0.494249,
+        "mean": 0.4852215555555556,
+        "p95": 0.51725,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 14.599999964237213,
+        "mean": 13.15555555290646,
+        "p95": 15,
+        "samples": 9
+      }
+    },
+    "beach/sand/optimized": {
+      "gpuMs": {
+        "median": 0.385666,
+        "mean": 0.3894533333333333,
+        "p95": 0.407582,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.199999988079071,
+        "mean": 15.322222219573128,
+        "p95": 19.30000001192093,
+        "samples": 9
+      }
+    },
+    "beach/sand/sparse": {
+      "gpuMs": {
+        "median": 0.425,
+        "mean": 0.4358883333333333,
+        "p95": 0.45024899999999995,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.400000035762787,
+        "mean": 17.177777767181396,
+        "p95": 19.69999998807907,
+        "samples": 9
+      }
+    },
+    "beach/sand/occlusion": {
+      "gpuMs": {
+        "median": 0.413833,
+        "mean": 0.40352722222222215,
+        "p95": 0.434749,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.5,
+        "mean": 20.13333331876331,
+        "p95": 19.80000001192093,
+        "samples": 9
+      }
+    },
+    "beach/foam/reference": {
+      "gpuMs": {
+        "median": 7.951915,
+        "mean": 11.556314444444446,
+        "p95": 24.312416,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 20.80000001192093,
+        "mean": 23.12222221824858,
+        "p95": 33.299999952316284,
+        "samples": 9
+      }
+    },
+    "beach/foam/optimized": {
+      "gpuMs": {
+        "median": 8.35625,
+        "mean": 11.931721333333334,
+        "p95": 24.273415,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 20.299999952316284,
+        "mean": 25.31111110581292,
+        "p95": 34.5,
+        "samples": 9
+      }
+    },
+    "beach/foam/sparse": {
+      "gpuMs": {
+        "median": 4.179832,
+        "mean": 4.159332555555555,
+        "p95": 4.1935,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.799999952316284,
+        "mean": 16.233333322736954,
+        "p95": 16,
+        "samples": 9
+      }
+    },
+    "beach/foam/occlusion": {
+      "gpuMs": {
+        "median": 8.404499,
+        "mean": 11.941378777777778,
+        "p95": 24.153831999999998,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 20.19999998807907,
+        "mean": 25.73333333598243,
+        "p95": 35.59999996423721,
+        "samples": 9
+      }
+    },
+    "beach/sea/reference": {
+      "gpuMs": {
+        "median": 1.0294159999999999,
+        "mean": 1.0723602222222222,
+        "p95": 1.109916,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 19.099999964237213,
+        "mean": 24.71111110183928,
+        "p95": 39.30000001192093,
+        "samples": 9
+      }
+    },
+    "beach/sea/optimized": {
+      "gpuMs": {
+        "median": 1.0378319999999999,
+        "mean": 1.083805,
+        "p95": 1.1550829999999999,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.199999988079071,
+        "mean": 19.88888888226615,
+        "p95": 35.90000003576279,
+        "samples": 9
+      }
+    },
+    "beach/sea/sparse": {
+      "gpuMs": {
+        "median": 1.111667,
+        "mean": 6.607203222222221,
+        "p95": 17.410832,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 19.5,
+        "mean": 25.144444439146255,
+        "p95": 37.5,
+        "samples": 9
+      }
+    },
+    "beach/sea/occlusion": {
+      "gpuMs": {
+        "median": 1.1361649999999999,
+        "mean": 1.199388111111111,
+        "p95": 1.336665,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 34.60000002384186,
+        "mean": 31.555555568801033,
+        "p95": 53.10000002384186,
+        "samples": 9
+      }
+    },
+    "beach/both/reference": {
+      "gpuMs": {
+        "median": 8.106083,
+        "mean": 10.05091622222222,
+        "p95": 8.791331999999999,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 19.80000001192093,
+        "mean": 21.30000000529819,
+        "p95": 26.099999964237213,
+        "samples": 9
+      }
+    },
+    "beach/both/optimized": {
+      "gpuMs": {
+        "median": 8.377583999999999,
+        "mean": 10.287129222222221,
+        "p95": 9.13825,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 21,
+        "mean": 23.92222221692403,
+        "p95": 35.19999998807907,
+        "samples": 9
+      }
+    },
+    "beach/both/sparse": {
+      "gpuMs": {
+        "median": 4.397997999999999,
+        "mean": 4.524008888888888,
+        "p95": 4.7248339999999995,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.099999964237213,
+        "mean": 16.111111104488373,
+        "p95": 20.900000035762787,
+        "samples": 9
+      }
+    },
+    "beach/both/occlusion": {
+      "gpuMs": {
+        "median": 8.481582,
+        "mean": 10.34328611111111,
+        "p95": 8.826998999999999,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 20.30000001192093,
+        "mean": 26.133333325386047,
+        "p95": 34.39999997615814,
+        "samples": 9
+      }
+    },
+    "shore/sand/reference": {
+      "gpuMs": {
+        "median": 0.459916,
+        "mean": 0.4899069999999999,
+        "p95": 0.608833,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 19.19999998807907,
+        "mean": 25.822222232818604,
+        "p95": 43.60000002384186,
+        "samples": 9
+      }
+    },
+    "shore/sand/optimized": {
+      "gpuMs": {
+        "median": 0.382833,
+        "mean": 0.46312,
+        "p95": 0.612,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.199999988079071,
+        "mean": 21.45555555820465,
+        "p95": 34.59999996423721,
+        "samples": 9
+      }
+    },
+    "shore/sand/sparse": {
+      "gpuMs": {
+        "median": 0.366332,
+        "mean": 2.225582444444444,
+        "p95": 0.6104149999999999,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 14.399999976158142,
+        "mean": 20.166666673289406,
+        "p95": 29.80000001192093,
+        "samples": 9
+      }
+    },
+    "shore/sand/occlusion": {
+      "gpuMs": {
+        "median": 0.422917,
+        "mean": 0.5199074444444444,
+        "p95": 0.6688339999999999,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 33.80000001192093,
+        "mean": 33.099999997350906,
+        "p95": 39.60000002384186,
+        "samples": 9
+      }
+    },
+    "shore/foam/reference": {
+      "gpuMs": {
+        "median": 5.632166,
+        "mean": 5.651416,
+        "p95": 5.816999,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.899999976158142,
+        "mean": 16.711111095216538,
+        "p95": 19.5,
+        "samples": 9
+      }
+    },
+    "shore/foam/optimized": {
+      "gpuMs": {
+        "median": 6.047249,
+        "mean": 6.0790180000000005,
+        "p95": 6.107251,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.099999964237213,
+        "mean": 15.599999990728167,
+        "p95": 16.100000023841858,
+        "samples": 9
+      }
+    },
+    "shore/foam/sparse": {
+      "gpuMs": {
+        "median": 3.4304159999999997,
+        "mean": 3.451518,
+        "p95": 3.486834,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.199999988079071,
+        "mean": 18.788888884915245,
+        "p95": 15.800000011920929,
+        "samples": 9
+      }
+    },
+    "shore/foam/occlusion": {
+      "gpuMs": {
+        "median": 6.093582,
+        "mean": 6.096499666666666,
+        "p95": 6.13725,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.199999988079071,
+        "mean": 16.83333334657881,
+        "p95": 19.100000023841858,
+        "samples": 9
+      }
+    },
+    "shore/sea/reference": {
+      "gpuMs": {
+        "median": 2.913666,
+        "mean": 2.970823444444444,
+        "p95": 3.1869159999999996,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.400000035762787,
+        "mean": 20.69999998807907,
+        "p95": 20,
+        "samples": 9
+      }
+    },
+    "shore/sea/optimized": {
+      "gpuMs": {
+        "median": 2.964165,
+        "mean": 3.0008234444444444,
+        "p95": 3.177666,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 14.899999976158142,
+        "mean": 15.355555560853746,
+        "p95": 15.399999976158142,
+        "samples": 9
+      }
+    },
+    "shore/sea/sparse": {
+      "gpuMs": {
+        "median": 2.900499,
+        "mean": 2.9763788888888887,
+        "p95": 3.043417,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.199999988079071,
+        "mean": 16.31111110581292,
+        "p95": 19.600000023841858,
+        "samples": 9
+      }
+    },
+    "shore/sea/occlusion": {
+      "gpuMs": {
+        "median": 3.0806649999999998,
+        "mean": 3.0754252222222225,
+        "p95": 3.213583,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 14.900000035762787,
+        "mean": 19.044444455040825,
+        "p95": 18.69999998807907,
+        "samples": 9
+      }
+    },
+    "shore/both/reference": {
+      "gpuMs": {
+        "median": 6.085833999999999,
+        "mean": 6.189953222222223,
+        "p95": 6.405081999999999,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 16.19999998807907,
+        "mean": 29.888888875643413,
+        "p95": 58.80000001192093,
+        "samples": 9
+      }
+    },
+    "shore/both/optimized": {
+      "gpuMs": {
+        "median": 6.471334,
+        "mean": 8.341712555555555,
+        "p95": 6.632415,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 16.30000001192093,
+        "mean": 31.022222227520412,
+        "p95": 64.39999997615814,
+        "samples": 9
+      }
+    },
+    "shore/both/sparse": {
+      "gpuMs": {
+        "median": 3.847917,
+        "mean": 7.553120111111111,
+        "p95": 3.8876649999999997,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.299999952316284,
+        "mean": 30.71111110183928,
+        "p95": 49.5,
+        "samples": 9
+      }
+    },
+    "shore/both/occlusion": {
+      "gpuMs": {
+        "median": 6.444666,
+        "mean": 6.462434666666666,
+        "p95": 6.522749,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 30.900000035762787,
+        "mean": 35.733333342605164,
+        "p95": 59.19999998807907,
+        "samples": 9
+      }
+    },
+    "underwater/sand/reference": {
+      "gpuMs": {
+        "median": 0.5929989999999999,
+        "mean": 0.5815735555555555,
+        "p95": 0.598417,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 14.900000035762787,
+        "mean": 14.88888888888889,
+        "p95": 15.799999952316284,
+        "samples": 9
+      }
+    },
+    "underwater/sand/optimized": {
+      "gpuMs": {
+        "median": 0.521583,
+        "mean": 0.5165828888888889,
+        "p95": 0.554082,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 14.699999988079071,
+        "mean": 14.722222215599484,
+        "p95": 15.399999976158142,
+        "samples": 9
+      }
+    },
+    "underwater/sand/sparse": {
+      "gpuMs": {
+        "median": 0.493,
+        "mean": 0.48251844444444436,
+        "p95": 0.514417,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 14.800000011920929,
+        "mean": 15.177777787049612,
+        "p95": 18.700000047683716,
+        "samples": 9
+      }
+    },
+    "underwater/sand/occlusion": {
+      "gpuMs": {
+        "median": 0.546666,
+        "mean": 0.5463514444444445,
+        "p95": 0.5795819999999999,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 14.800000011920929,
+        "mean": 15.333333333333334,
+        "p95": 19.5,
+        "samples": 9
+      }
+    },
+    "underwater/foam/reference": {
+      "gpuMs": {
+        "median": 3.191497,
+        "mean": 4.9960454444444435,
+        "p95": 3.3499179999999997,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.800000011920929,
+        "mean": 23.76666666401757,
+        "p95": 37.10000002384186,
+        "samples": 9
+      }
+    },
+    "underwater/foam/optimized": {
+      "gpuMs": {
+        "median": 4.049999,
+        "mean": 4.087129222222221,
+        "p95": 4.255832,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 19.5,
+        "mean": 25.30000000529819,
+        "p95": 38.90000003576279,
+        "samples": 9
+      }
+    },
+    "underwater/foam/sparse": {
+      "gpuMs": {
+        "median": 3.2425829999999998,
+        "mean": 5.139620222222222,
+        "p95": 3.651833,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 20.5,
+        "mean": 24.62222221824858,
+        "p95": 41.799999952316284,
+        "samples": 9
+      }
+    },
+    "underwater/foam/occlusion": {
+      "gpuMs": {
+        "median": 4.014082999999999,
+        "mean": 4.0628327777777775,
+        "p95": 4.1704159999999995,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 18.400000035762787,
+        "mean": 22.344444440470802,
+        "p95": 35.299999952316284,
+        "samples": 9
+      }
+    },
+    "underwater/sea/reference": {
+      "gpuMs": {
+        "median": 4.618917,
+        "mean": 6.598082888888887,
+        "p95": 5.0055819999999995,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 19.099999964237213,
+        "mean": 19.511111113760208,
+        "p95": 19.899999976158142,
+        "samples": 9
+      }
+    },
+    "underwater/sea/optimized": {
+      "gpuMs": {
+        "median": 3.2919989999999997,
+        "mean": 3.375666333333333,
+        "p95": 3.611334,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 14.5,
+        "mean": 15.92222222354677,
+        "p95": 19.299999952316284,
+        "samples": 9
+      }
+    },
+    "underwater/sea/sparse": {
+      "gpuMs": {
+        "median": 3.380333,
+        "mean": 3.409221555555556,
+        "p95": 3.56025,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 14,
+        "mean": 14.76666666401757,
+        "p95": 19.30000001192093,
+        "samples": 9
+      }
+    },
+    "underwater/sea/occlusion": {
+      "gpuMs": {
+        "median": 3.398332,
+        "mean": 3.412545888888889,
+        "p95": 3.585667,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.799999952316284,
+        "mean": 16.46666665871938,
+        "p95": 19.5,
+        "samples": 9
+      }
+    },
+    "underwater/both/reference": {
+      "gpuMs": {
+        "median": 4.111415,
+        "mean": 4.093147,
+        "p95": 4.196168,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.5,
+        "mean": 15.422222210301292,
+        "p95": 16.19999998807907,
+        "samples": 9
+      }
+    },
+    "underwater/both/optimized": {
+      "gpuMs": {
+        "median": 5.078249,
+        "mean": 5.071452888888889,
+        "p95": 5.156833,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.399999976158142,
+        "mean": 16.34444444709354,
+        "p95": 18.899999976158142,
+        "samples": 9
+      }
+    },
+    "underwater/both/sparse": {
+      "gpuMs": {
+        "median": 4.2309969999999995,
+        "mean": 4.165610444444444,
+        "p95": 4.245416,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 16,
+        "mean": 19.30000000529819,
+        "p95": 17.900000035762787,
+        "samples": 9
+      }
+    },
+    "underwater/both/occlusion": {
+      "gpuMs": {
+        "median": 5.075667,
+        "mean": 5.017471111111111,
+        "p95": 5.158582,
+        "samples": 9
+      },
+      "wallMs": {
+        "median": 15.600000023841858,
+        "mean": 17.700000007947285,
+        "p95": 20.600000023841858,
+        "samples": 9
+      }
+    }
+  },
+  "rows": [
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.430832,
+      "wallMs": 9.5
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.36824999999999997,
+      "wallMs": 10.199999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.603583,
+      "wallMs": 33.90000003576279
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.34124899999999997,
+      "wallMs": 10.399999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.43183299999999997,
+      "wallMs": 10.899999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.35666699999999996,
+      "wallMs": 10
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.3535,
+      "wallMs": 10.5
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.359083,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.45241499999999996,
+      "wallMs": 15
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.370083,
+      "wallMs": 14.300000011920929
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.387999,
+      "wallMs": 19.69999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.434749,
+      "wallMs": 19.5
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.494249,
+      "wallMs": 14.400000035762787
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.385083,
+      "wallMs": 19.30000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.407749,
+      "wallMs": 10.099999964237213
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.39641499999999996,
+      "wallMs": 19.80000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.49116699999999996,
+      "wallMs": 14.699999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.385666,
+      "wallMs": 19.599999964237213
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.42141599999999996,
+      "wallMs": 14.599999964237213
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.413,
+      "wallMs": 14.399999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.511833,
+      "wallMs": 14.599999964237213
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.4245,
+      "wallMs": 15.300000011920929
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.45024899999999995,
+      "wallMs": 19.399999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.43633299999999997,
+      "wallMs": 51.89999997615814
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.516749,
+      "wallMs": 9.5
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.4075,
+      "wallMs": 18.80000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.43124999999999997,
+      "wallMs": 15.799999952316284
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.422583,
+      "wallMs": 15.5
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.520666,
+      "wallMs": 14.600000023841858
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.39974899999999997,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.425,
+      "wallMs": 15.400000035762787
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.413833,
+      "wallMs": 18.899999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.51725,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.407582,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.442249,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.4145,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 24.449167,
+      "wallMs": 36.39999997615814
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 8.393248999999999,
+      "wallMs": 20.099999964237213
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 4.190166,
+      "wallMs": 15.5
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 8.434833,
+      "wallMs": 20.19999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 7.9043339999999995,
+      "wallMs": 20.30000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 25.186498999999998,
+      "wallMs": 34.5
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 4.179832,
+      "wallMs": 20.5
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 8.404499,
+      "wallMs": 20.400000035762787
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 8.1585,
+      "wallMs": 20.80000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 24.273415,
+      "wallMs": 46.80000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 4.052332,
+      "wallMs": 15.699999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 8.082165999999999,
+      "wallMs": 19
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 7.550249,
+      "wallMs": 16
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 8.002165,
+      "wallMs": 20.19999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 4.0178329999999995,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 8.400082,
+      "wallMs": 15.699999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 7.559832999999999,
+      "wallMs": 15.700000047683716
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 8.102916,
+      "wallMs": 21.100000023841858
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 4.012332,
+      "wallMs": 16
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 24.153831999999998,
+      "wallMs": 34
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 7.934583,
+      "wallMs": 24.69999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 7.979666,
+      "wallMs": 20.299999952316284
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 4.045167,
+      "wallMs": 15.799999952316284
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 8.382333,
+      "wallMs": 19.100000023841858
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 24.312416,
+      "wallMs": 33.299999952316284
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 8.353332,
+      "wallMs": 24.69999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 4.180249,
+      "wallMs": 15.600000023841858
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 8.427249999999999,
+      "wallMs": 19.600000023841858
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 7.951915,
+      "wallMs": 15.799999952316284
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 8.35625,
+      "wallMs": 20
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 4.1935,
+      "wallMs": 15.899999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 24.853915,
+      "wallMs": 35.59999996423721
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 8.185832999999999,
+      "wallMs": 25.100000023841858
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 8.738,
+      "wallMs": 20.100000023841858
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 4.562582,
+      "wallMs": 15.899999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 8.333499,
+      "wallMs": 48
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 1.109916,
+      "wallMs": 15.299999952316284
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 1.090916,
+      "wallMs": 15.100000023841858
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 1.123167,
+      "wallMs": 19.5
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 1.336665,
+      "wallMs": 57.5
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 1.022082,
+      "wallMs": 39.30000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 1.001666,
+      "wallMs": 15
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 1.101583,
+      "wallMs": 33.5
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 1.3013329999999999,
+      "wallMs": 37.80000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 1.012499,
+      "wallMs": 19.099999964237213
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 1.0378319999999999,
+      "wallMs": 9.299999952316284
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 17.410832,
+      "wallMs": 29.80000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 1.304749,
+      "wallMs": 38.40000003576279
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 1.028332,
+      "wallMs": 18.30000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 1.1550829999999999,
+      "wallMs": 43.69999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 1.388415,
+      "wallMs": 37.5
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 1.378,
+      "wallMs": 53.10000002384186
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 1.2873329999999998,
+      "wallMs": 60.39999997615814
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 1.323833,
+      "wallMs": 35.90000003576279
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 34.171417,
+      "wallMs": 45.69999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 1.134332,
+      "wallMs": 34.60000002384186
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 1.0346659999999999,
+      "wallMs": 19.5
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 1.0245,
+      "wallMs": 9.899999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 1.052082,
+      "wallMs": 15.5
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 1.04825,
+      "wallMs": 15.100000023841858
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 1.0294159999999999,
+      "wallMs": 14.899999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 1.011583,
+      "wallMs": 16.099999964237213
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 1.037084,
+      "wallMs": 14.800000011920929
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 1.057583,
+      "wallMs": 14.399999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 1.024249,
+      "wallMs": 20.400000035762787
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 1.008166,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 1.068582,
+      "wallMs": 15.599999964237213
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 1.097416,
+      "wallMs": 14.900000035762787
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 1.102749,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 1.100666,
+      "wallMs": 18.80000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 1.111667,
+      "wallMs": 14.399999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 1.1361649999999999,
+      "wallMs": 18.19999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 8.791331999999999,
+      "wallMs": 26.099999964237213
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 9.13825,
+      "wallMs": 21.30000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.913749999999999,
+      "wallMs": 14.399999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 8.826998999999999,
+      "wallMs": 48.19999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 7.978331,
+      "wallMs": 20.899999976158142
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 8.489583,
+      "wallMs": 35.59999996423721
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.367083,
+      "wallMs": 21.19999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 8.399165,
+      "wallMs": 20.30000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 8.268583999999999,
+      "wallMs": 19.80000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 24.494332999999997,
+      "wallMs": 35.19999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.397997999999999,
+      "wallMs": 20.900000035762787
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 8.455083,
+      "wallMs": 18.69999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 8.013667,
+      "wallMs": 15.100000023841858
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 8.368414999999999,
+      "wallMs": 20
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.371415,
+      "wallMs": 15.699999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 8.405082,
+      "wallMs": 20.599999964237213
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 7.981166999999999,
+      "wallMs": 15.900000035762787
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 8.293082,
+      "wallMs": 20
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.35825,
+      "wallMs": 15.800000011920929
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 8.516831999999999,
+      "wallMs": 34.39999997615814
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 8.106083,
+      "wallMs": 20.100000023841858
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 8.346748999999999,
+      "wallMs": 18.5
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.7248339999999995,
+      "wallMs": 14
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 8.542249,
+      "wallMs": 19.099999964237213
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 8.350916,
+      "wallMs": 19.099999964237213
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 8.377583999999999,
+      "wallMs": 21
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.57275,
+      "wallMs": 13.699999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 8.394332,
+      "wallMs": 20.19999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 24.940416,
+      "wallMs": 34.90000003576279
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 8.3575,
+      "wallMs": 24.19999998807907
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.627332,
+      "wallMs": 15.099999964237213
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 8.481582,
+      "wallMs": 19.700000047683716
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 8.02775,
+      "wallMs": 19.80000001192093
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 8.718667,
+      "wallMs": 19.5
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.382668,
+      "wallMs": 14.199999988079071
+    },
+    {
+      "view": "beach",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 25.068251,
+      "wallMs": 34
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.45674899999999996,
+      "wallMs": 19.19999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.381084,
+      "wallMs": 14.5
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.366332,
+      "wallMs": 14.399999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.400084,
+      "wallMs": 19.19999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.459916,
+      "wallMs": 15
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.658083,
+      "wallMs": 34.59999996423721
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.341999,
+      "wallMs": 10.199999988079071
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.385834,
+      "wallMs": 9.199999988079071
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.46325,
+      "wallMs": 13.900000035762787
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.382833,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.417,
+      "wallMs": 20
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.422917,
+      "wallMs": 14.199999988079071
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.512083,
+      "wallMs": 19.69999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.444583,
+      "wallMs": 9.800000011920929
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.384499,
+      "wallMs": 24.400000035762787
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.663916,
+      "wallMs": 83.69999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.62075,
+      "wallMs": 52.10000002384186
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.352083,
+      "wallMs": 10.600000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.334916,
+      "wallMs": 10
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.663999,
+      "wallMs": 39.60000002384186
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.608833,
+      "wallMs": 35.30000001192093
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.602749,
+      "wallMs": 29
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.327999,
+      "wallMs": 10.300000011920929
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.377083,
+      "wallMs": 39
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.424666,
+      "wallMs": 18.5
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.355082,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 16.908499,
+      "wallMs": 29.80000001192093
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.73425,
+      "wallMs": 39
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.43249899999999997,
+      "wallMs": 15.100000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.612,
+      "wallMs": 49.30000001192093
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.6104149999999999,
+      "wallMs": 49
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.36224999999999996,
+      "wallMs": 20.19999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.430417,
+      "wallMs": 43.60000002384186
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.379583,
+      "wallMs": 14.700000047683716
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.33858299999999997,
+      "wallMs": 13.400000035762787
+    },
+    {
+      "view": "shore",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.6688339999999999,
+      "wallMs": 33.80000001192093
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 5.567334,
+      "wallMs": 14.599999964237213
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 6.078332,
+      "wallMs": 14.399999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.399832,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 6.105332,
+      "wallMs": 18.400000035762787
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 5.559749,
+      "wallMs": 14.5
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 6.003417,
+      "wallMs": 16
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.4255,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 6.214917,
+      "wallMs": 15.100000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 5.644748,
+      "wallMs": 19.599999964237213
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 6.000331,
+      "wallMs": 15.099999964237213
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.424082,
+      "wallMs": 15.300000011920929
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 6.093582,
+      "wallMs": 14.800000011920929
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 5.816999,
+      "wallMs": 19.299999952316284
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 6.346501,
+      "wallMs": 14.699999988079071
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.485249,
+      "wallMs": 48
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 6.0655,
+      "wallMs": 18.900000035762787
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 5.836164999999999,
+      "wallMs": 15.300000011920929
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 6.031667,
+      "wallMs": 19.19999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.407499,
+      "wallMs": 15
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 6.057251,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 5.5563329999999995,
+      "wallMs": 16.100000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 6.047249,
+      "wallMs": 15.099999964237213
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.455583,
+      "wallMs": 14.5
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 6.0607489999999995,
+      "wallMs": 14.800000011920929
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 5.662166,
+      "wallMs": 19.5
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 5.997165,
+      "wallMs": 16.100000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.4304159999999997,
+      "wallMs": 14.800000011920929
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 6.093832,
+      "wallMs": 15.100000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 5.587084,
+      "wallMs": 15.599999964237213
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 6.0992489999999995,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.486834,
+      "wallMs": 15.800000011920929
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 6.13725,
+      "wallMs": 19.100000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 5.632166,
+      "wallMs": 15.899999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 6.107251,
+      "wallMs": 14.600000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.548667,
+      "wallMs": 15.099999964237213
+    },
+    {
+      "view": "shore",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 6.040083999999999,
+      "wallMs": 20.099999964237213
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 2.913666,
+      "wallMs": 15.400000035762787
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 2.937,
+      "wallMs": 14.700000047683716
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 2.8952489999999997,
+      "wallMs": 19
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.0959999999999996,
+      "wallMs": 48.10000002384186
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 2.779499,
+      "wallMs": 15
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 2.898583,
+      "wallMs": 19
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 2.889916,
+      "wallMs": 14.799999952316284
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 2.931333,
+      "wallMs": 13.699999988079071
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 2.9112489999999998,
+      "wallMs": 19.599999964237213
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 2.964165,
+      "wallMs": 14.899999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 2.8619149999999998,
+      "wallMs": 14.600000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 2.9483319999999997,
+      "wallMs": 18.600000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 2.8745,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 2.8906669999999997,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 2.900499,
+      "wallMs": 13.600000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 2.893249,
+      "wallMs": 15
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 2.966665,
+      "wallMs": 18.19999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 2.9729989999999997,
+      "wallMs": 14.700000047683716
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 2.865833,
+      "wallMs": 14.399999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 2.902249,
+      "wallMs": 18.69999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 2.906084,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 2.8734159999999997,
+      "wallMs": 14.600000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 3.03625,
+      "wallMs": 19.600000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.111166,
+      "wallMs": 14.700000047683716
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 3.008749,
+      "wallMs": 20
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 3.0529159999999997,
+      "wallMs": 14.799999952316284
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 3.043417,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.213583,
+      "wallMs": 14
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 3.190083,
+      "wallMs": 15.099999964237213
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 3.177666,
+      "wallMs": 15.100000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 3.281749,
+      "wallMs": 20.19999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.5022499999999996,
+      "wallMs": 14.900000035762787
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 3.1869159999999996,
+      "wallMs": 52.19999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 3.239999,
+      "wallMs": 15
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 3.0125819999999996,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "shore",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.0806649999999998,
+      "wallMs": 13.699999988079071
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 6.689417,
+      "wallMs": 62.200000047683716
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 6.632415,
+      "wallMs": 77.69999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 3.780668,
+      "wallMs": 43.80000001192093
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 6.535832999999999,
+      "wallMs": 61.700000047683716
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 6.405081999999999,
+      "wallMs": 58.80000001192093
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 6.515667,
+      "wallMs": 39.80000001192093
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 37.3125,
+      "wallMs": 49.5
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 6.514583,
+      "wallMs": 59.19999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 6.085833999999999,
+      "wallMs": 41.19999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 23.291916999999998,
+      "wallMs": 64.39999997615814
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 3.8298319999999997,
+      "wallMs": 93.19999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 6.522749,
+      "wallMs": 30.900000035762787
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 6.082584,
+      "wallMs": 29.69999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 6.471334,
+      "wallMs": 19.100000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 3.847917,
+      "wallMs": 14.899999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 6.418581,
+      "wallMs": 49.90000003576279
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 6.125083,
+      "wallMs": 14.299999952316284
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 6.438084,
+      "wallMs": 14.800000011920929
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 3.784833,
+      "wallMs": 15
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 6.476334,
+      "wallMs": 18.5
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 6.0780829999999995,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 6.390916,
+      "wallMs": 16.30000001192093
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 3.8693329999999997,
+      "wallMs": 15.299999952316284
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 6.412417,
+      "wallMs": 15.5
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 6.103581999999999,
+      "wallMs": 16.19999998807907
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 6.448833,
+      "wallMs": 16.30000001192093
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 3.801999,
+      "wallMs": 15.699999988079071
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 6.421501,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 6.056082,
+      "wallMs": 15.099999964237213
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 6.5004159999999995,
+      "wallMs": 15.600000023841858
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 3.863334,
+      "wallMs": 15
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 6.444666,
+      "wallMs": 18
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 6.083832,
+      "wallMs": 16.099999964237213
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 6.385831,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 3.8876649999999997,
+      "wallMs": 14
+    },
+    {
+      "view": "shore",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 6.415248,
+      "wallMs": 52.5
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.5157499999999999,
+      "wallMs": 19.399999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.443917,
+      "wallMs": 14.900000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.419166,
+      "wallMs": 15.300000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.48899899999999996,
+      "wallMs": 14.699999988079071
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.526582,
+      "wallMs": 15.799999952316284
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.470083,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.443333,
+      "wallMs": 14
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.5795819999999999,
+      "wallMs": 10.099999964237213
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.5585829999999999,
+      "wallMs": 9.900000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.521583,
+      "wallMs": 14.600000023841858
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.514417,
+      "wallMs": 13.5
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.5275,
+      "wallMs": 20
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.6599999999999999,
+      "wallMs": 14.5
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.507666,
+      "wallMs": 14.699999988079071
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.49116699999999996,
+      "wallMs": 19.5
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.5384169999999999,
+      "wallMs": 14.800000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.598417,
+      "wallMs": 15.400000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.53025,
+      "wallMs": 14.300000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.493,
+      "wallMs": 14.300000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.558165,
+      "wallMs": 19.400000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.593832,
+      "wallMs": 14.300000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.554082,
+      "wallMs": 13.899999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.5081669999999999,
+      "wallMs": 14.800000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.58975,
+      "wallMs": 19.5
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.5929989999999999,
+      "wallMs": 14.699999988079071
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.576583,
+      "wallMs": 19.399999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.508749,
+      "wallMs": 15.800000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.5589999999999999,
+      "wallMs": 15.800000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.592834,
+      "wallMs": 14.900000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.524582,
+      "wallMs": 15
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.444167,
+      "wallMs": 18.700000047683716
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.546666,
+      "wallMs": 14
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "reference",
+      "gpuMs": 0.5951649999999999,
+      "wallMs": 15.099999964237213
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "optimized",
+      "gpuMs": 0.5205,
+      "wallMs": 10.299999952316284
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "sparse",
+      "gpuMs": 0.5205,
+      "wallMs": 10.699999988079071
+    },
+    {
+      "view": "underwater",
+      "kind": "sand",
+      "mode": "occlusion",
+      "gpuMs": 0.529084,
+      "wallMs": 9.699999988079071
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 3.3173329999999996,
+      "wallMs": 15.800000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 4.255832,
+      "wallMs": 14.300000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.651833,
+      "wallMs": 14.399999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 4.487582,
+      "wallMs": 18.400000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 3.3499179999999997,
+      "wallMs": 15
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 4.320333,
+      "wallMs": 33.19999998807907
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 20.101416999999998,
+      "wallMs": 30.600000023841858
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 4.1704159999999995,
+      "wallMs": 42
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 3.0278329999999998,
+      "wallMs": 37.69999998807907
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 4.024916999999999,
+      "wallMs": 19.5
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.208834,
+      "wallMs": 41.799999952316284
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 4.014082999999999,
+      "wallMs": 24.899999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 3.033251,
+      "wallMs": 37.10000002384186
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 4.063166,
+      "wallMs": 33
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.179583,
+      "wallMs": 44.5
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 3.9375829999999996,
+      "wallMs": 35.299999952316284
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 19.660581999999998,
+      "wallMs": 30.19999998807907
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 4.038415,
+      "wallMs": 38.90000003576279
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.2425829999999998,
+      "wallMs": 25
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 3.9591659999999997,
+      "wallMs": 14.099999964237213
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 3.2270809999999996,
+      "wallMs": 34.09999996423721
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 4.219918,
+      "wallMs": 44.09999996423721
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.102333,
+      "wallMs": 20.5
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 3.890917,
+      "wallMs": 19.900000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 3.106998,
+      "wallMs": 14.899999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 3.8563319999999996,
+      "wallMs": 14.899999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.187583,
+      "wallMs": 14
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 3.923415,
+      "wallMs": 15.400000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 3.049916,
+      "wallMs": 14.800000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 3.9552509999999996,
+      "wallMs": 14.900000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.2889169999999996,
+      "wallMs": 15.300000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 4.091417,
+      "wallMs": 15.599999964237213
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "reference",
+      "gpuMs": 3.191497,
+      "wallMs": 14.300000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "optimized",
+      "gpuMs": 4.049999,
+      "wallMs": 14.900000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "sparse",
+      "gpuMs": 3.2934989999999997,
+      "wallMs": 15.5
+    },
+    {
+      "view": "underwater",
+      "kind": "foam",
+      "mode": "occlusion",
+      "gpuMs": 4.090916,
+      "wallMs": 15.5
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 4.178582,
+      "wallMs": 15
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 3.109167,
+      "wallMs": 19.19999998807907
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 3.248833,
+      "wallMs": 10.599999964237213
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.2479989999999996,
+      "wallMs": 15.199999988079071
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 22.500249999999998,
+      "wallMs": 34.5
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 3.248499,
+      "wallMs": 19.5
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 3.544749,
+      "wallMs": 14.300000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.4339999999999997,
+      "wallMs": 14.600000023841858
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 4.618917,
+      "wallMs": 15.200000047683716
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 3.4495,
+      "wallMs": 13.900000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 3.380333,
+      "wallMs": 19.69999998807907
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.585667,
+      "wallMs": 15.799999952316284
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 5.0055819999999995,
+      "wallMs": 18.700000047683716
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 3.611334,
+      "wallMs": 14.5
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 3.7274149999999997,
+      "wallMs": 13.400000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.661666,
+      "wallMs": 17.899999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 4.946917,
+      "wallMs": 19.399999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 3.77275,
+      "wallMs": 19.299999952316284
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 3.56025,
+      "wallMs": 19.30000001192093
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.267833,
+      "wallMs": 9.399999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 4.362333,
+      "wallMs": 19.80000001192093
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 3.28875,
+      "wallMs": 13.900000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 3.2275829999999996,
+      "wallMs": 9.5
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.271416,
+      "wallMs": 18.399999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 4.437416,
+      "wallMs": 14
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 3.2160819999999997,
+      "wallMs": 14.5
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 3.2298329999999997,
+      "wallMs": 14
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.455917,
+      "wallMs": 19.5
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 4.571833,
+      "wallMs": 19.099999964237213
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 3.392916,
+      "wallMs": 14.399999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 3.444499,
+      "wallMs": 18.19999998807907
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.3900829999999997,
+      "wallMs": 14.300000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "reference",
+      "gpuMs": 4.760916,
+      "wallMs": 19.899999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "optimized",
+      "gpuMs": 3.2919989999999997,
+      "wallMs": 14.100000023841858
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "sparse",
+      "gpuMs": 3.319499,
+      "wallMs": 13.899999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "sea",
+      "mode": "occlusion",
+      "gpuMs": 3.398332,
+      "wallMs": 23.100000023841858
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 3.9476649999999998,
+      "wallMs": 14.899999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 4.984748,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.048249,
+      "wallMs": 17.900000035762787
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 4.912497999999999,
+      "wallMs": 15.599999964237213
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 4.002914,
+      "wallMs": 16.19999998807907
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 4.855333,
+      "wallMs": 16.100000023841858
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.036583,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 4.929332,
+      "wallMs": 15.599999964237213
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 4.114415,
+      "wallMs": 15.5
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 4.899666,
+      "wallMs": 14.599999964237213
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.055416999999999,
+      "wallMs": 16.100000023841858
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 4.889416,
+      "wallMs": 14.200000047683716
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 3.954332,
+      "wallMs": 16.19999998807907
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 5.1471659999999995,
+      "wallMs": 15
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.2424159999999995,
+      "wallMs": 16
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 5.150999,
+      "wallMs": 20.5
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 4.111415,
+      "wallMs": 15
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 5.355999,
+      "wallMs": 15.5
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.2309969999999995,
+      "wallMs": 15.300000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 5.158582,
+      "wallMs": 15.600000023841858
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 4.109001,
+      "wallMs": 14.5
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 5.140916,
+      "wallMs": 21.30000001192093
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.2409159999999995,
+      "wallMs": 15.699999988079071
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 5.313498,
+      "wallMs": 15.800000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 4.269581,
+      "wallMs": 15.5
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 5.024166,
+      "wallMs": 15.100000023841858
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.102751,
+      "wallMs": 15.300000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 5.075667,
+      "wallMs": 15.300000011920929
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 4.132832,
+      "wallMs": 15.599999964237213
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 5.078249,
+      "wallMs": 15.200000047683716
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.245416,
+      "wallMs": 16
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 5.112331999999999,
+      "wallMs": 20.600000023841858
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "reference",
+      "gpuMs": 4.196168,
+      "wallMs": 15.399999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "optimized",
+      "gpuMs": 5.156833,
+      "wallMs": 18.899999976158142
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "sparse",
+      "gpuMs": 4.287749,
+      "wallMs": 46
+    },
+    {
+      "view": "underwater",
+      "kind": "both",
+      "mode": "occlusion",
+      "gpuMs": 4.614916,
+      "wallMs": 26.100000023841858
+    }
+  ]
+}

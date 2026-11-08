@@ -1,5 +1,5 @@
 // These dependencies describe execution paths, not mutually exclusive quality levels.
-export const OPTIMIZATION_DEPENDENCIES={nativeSandContacts:['batchedContacts'],batchedContacts:['nativeContacts','terrainCache'],adaptivePressure:['batchedContacts'],distantOptics:['distanceDetail'],windBatch:['windGeometry'],nativeNeighbors:['packedNeighbors','neighborBounds'],emitterProbes:['gpuBatch'],neighborBounds:['packedNeighbors']};
+export const OPTIMIZATION_DEPENDENCIES={particleSparse:['particleShaders'],nativeSandContacts:['batchedContacts'],batchedContacts:['nativeContacts','terrainCache'],adaptivePressure:['batchedContacts'],distantOptics:['distanceDetail'],windBatch:['windGeometry'],nativeNeighbors:['packedNeighbors','neighborBounds'],emitterProbes:['gpuBatch'],neighborBounds:['packedNeighbors']};
 const labels={fineParticleResolution:"Lower-resolution soft water particles",nativeSandContacts:'Compiled carved-sand water contacts',viewPassCulling:"Skip unused underwater view",batchedContacts:'Batch water contact arithmetic',adaptivePressure:'Focus pressure work on unsettled water',distantOptics:'Stronger gradual distant water detail',nativeContacts:'Compiled CPU water contacts',interiorCompression:'Compress quiet water interiors',distanceDetail:'Gradual distant drawing detail',surfaceLightReuse:'Reuse surface illumination',packedGpuNeighbors:'Packed GPU neighbor reads',windBatch:'Batch moving-sand wind queries',nativeNeighbors:'Compiled CPU neighbor search',
  mergeWindDeposits:'Merge small wind deposits',settlingIndex:'Local settling queries',patchFloor:'Limit sub-resolution subdivision',
  predictBudget:'Predict physics step cost',fastHeight:'Fast terrain height sampling',windGeometry:'Reuse wind geometry queries',
@@ -11,7 +11,7 @@ const labels={fineParticleResolution:"Lower-resolution soft water particles",nat
 };
 const previous=new Set(['gpuBatch','packedNeighbors','broadphase','sandCache','emptySpace','splatBounds','lightingTiles']);
 // These options are supplied only by the live lab, not historical snapshots.
-Object.assign(labels,{collisionMesh:'Cached collision meshes',rigidReuse:'Reuse object contacts',rigidSleep:'Sleep supported objects',rigidBroadphase:'Filter nearby object pairs'});
+Object.assign(labels,{particleFrustum:'Cull off-screen particles',particleOcclusion:'Cull hidden particles (optional; may cost more)',particleSparse:'Stable sparse sand / foam drawing',particleShaders:'Reuse foam lighting per particle',collisionMesh:'Cached collision meshes',rigidReuse:'Reuse object contacts',rigidSleep:'Sleep supported objects',rigidBroadphase:'Filter nearby object pairs'});
 export function optimizationPreset(defaults,mode){return Object.fromEntries(Object.keys(defaults).map(k=>[k,mode==='all'?defaults[k]:mode==='baseline'&&previous.has(k)]));}
 export function effectiveOptimizations(selected){
  const flags={...selected};let changed;
@@ -46,7 +46,10 @@ export function installOptimizationControls(panel,defaults,onChange){
   master.checked=n===total;master.indeterminate=n>0&&n<total;count.textContent=`${n} of ${total} enabled`;
   for(const [key,{row,input,reason}] of rows){const missing=(OPTIMIZATION_DEPENDENCIES[key]||[]).filter(k=>!flags[k]);input.checked=flags[key];input.disabled=!!missing.length;row.classList.toggle('unavailable',!!missing.length);reason.hidden=!missing.length;reason.textContent=missing.length?`Requires ${missing.map(k=>labels[k]||k).join(' and ')}.`:'';}
  }
- master.onchange=()=>{selected=optimizationPreset(defaults,master.checked?'all':'reference');sync();onChange(effectiveOptimizations(selected));};
+ // Live particle occlusion is intentionally off by default, but the master
+ // checkbox still explicitly enables every available option. Snapshot panels
+ // retain their original preset behavior.
+ master.onchange=()=>{selected='particleOcclusion' in defaults?Object.fromEntries(Object.keys(defaults).map(k=>[k,master.checked])):optimizationPreset(defaults,master.checked?'all':'reference');sync();onChange(effectiveOptimizations(selected));};
  const baseline=document.createElement('button');baseline.textContent='Before performance pass';baseline.onclick=()=>{selected=optimizationPreset(defaults,'baseline');sync();onChange(effectiveOptimizations(selected));};group.append(baseline);
  sync();return {get selection(){return {...selected};},get flags(){return effectiveOptimizations(selected);},setSelection(flags){selected={...flags};sync();},setBusy(busy){group.disabled=busy;}};
 }

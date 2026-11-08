@@ -15,3 +15,5 @@ The user has authorized pushing completed, verified changes to `https://github.c
 Keep `main` and `codex/rtx-5070-ti-gpu` in feature parity. Live scene features and controls share one implementation; machine-specific differences belong in hardware/execution policy. Deliver feature changes to both branches. Historical snapshot URLs remain isolated.
 
 Keep presentation capped at 60 FPS. Use spare capacity to maintain physics speed and handle harder rendering workloads, rather than raising presentation FPS or automatically increasing image resolution.
+
+Read `DEVELOPMENT_BACKLOG.md` at the start of development work. Maintain its priorities, evidence and unfinished user intentions when completing a task; remove obsolete leads. The backlog is working memory, not authorization to implement unrelated features.

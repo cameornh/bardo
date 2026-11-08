@@ -114,6 +114,7 @@ export function firstFrameShaderJobs(draw){
    const air=lab.bulkFields.airTexture;add('projected air transfer',air.scene,air.camera,target(1));
   }else add('air field',lab.air.scene,lab.air.camera,target(1));
  }
+ for(const job of draw.particleVisibility?.jobs()||[])add(job.name,job.scene,job.camera,job.target);
  add('Gaussian stars',draw.stars.scene,camera,field.target);
  add('exposure reduction',draw.exposure.reduce.scene,draw.exposure.camera,draw.exposure.states[0]);
  add('exposure adaptation',draw.exposure.adapt.scene,draw.exposure.camera,draw.exposure.states[0]);

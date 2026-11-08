@@ -1,5 +1,6 @@
 // Shared live sand lab. Hardware policy changes execution, never features.
 import {configureRTXLab,applyRTXBackend,RTX_FRAME_HZ,rendererInfo,requiresOpenGLWindow} from './profile.js';
+import {installParticleVisibility} from './particle-visibility.js';
 import {FramePacer} from './frame-pacing.js';
 import {installOrbitToolInput} from './orbit-tool-input.js';
 import {verifyRTXPressure,getRTXPressure} from './verify.js';
@@ -86,7 +87,7 @@ configureRTXLab(lab,rendererInfo(renderer));
 installCollisionDiagnostics(lab,$('diagnostics'));
 installBeachFieldControls(lab,$('diagnostics'));
 await boot.step('Preparing scene renderer');
-lab.reactiveWaves=true;lab.seaFoam=new SeaFoam(renderer);const draw=new WaterLabRenderer(field,lab);draw.fixedLoadScale=lab.hardwarePolicy.drawingScale;draw.mediumShadows.u.uMediumSize.value.set(16,12,16);lab.rain.rate=100;lab.radius=.75;installProgramSpecialization(renderer,()=>lab.optimizations.sandPrograms!==false,{warmObjects:false,prepareCompile:true,filterConstants:liveProgramConstants});
+lab.reactiveWaves=true;lab.seaFoam=new SeaFoam(renderer);const draw=new WaterLabRenderer(field,lab);installParticleVisibility(draw);draw.fixedLoadScale=lab.hardwarePolicy.drawingScale;draw.mediumShadows.u.uMediumSize.value.set(16,12,16);lab.rain.rate=100;lab.radius=.75;installProgramSpecialization(renderer,()=>lab.optimizations.sandPrograms!==false,{warmObjects:false,prepareCompile:true,filterConstants:liveProgramConstants});
 graphics.label(lab,'simulation');graphics.label(draw,'render');graphics.label({output},'display');
 const resize=()=>{if(graphics.failed)return;renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();const reduction=Math.min(1,lab.hardwarePolicy.maxWidth/innerWidth,lab.hardwarePolicy.maxHeight/innerHeight);field.resolution.set(Math.round(innerWidth*reduction),Math.round(innerHeight*reduction));};window.addEventListener('resize',resize);resize();
 let pivotControl;function home(){camera.position.set(4.8,4,4.4);controls.target.set(0,.65,0);controls.update();pivotControl?.reset();}home();
