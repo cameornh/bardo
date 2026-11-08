@@ -3,6 +3,9 @@ import {shaderUniforms} from '../rtx-sand-lab/shader-dependencies.js';
 import {SceneShaderCompiler} from './compiler.js';
 import {packUniforms,cloneUniformValue} from './uniforms.js';
 import {wait} from '../rtx-sand-lab/fields/particles/pipeline.js';
+import {renderPassPlan} from './pass-plan.js';
+import {sceneTextureFormat,textureBytes,packTextureRows} from './formats.js';
+import {PassTimestamps} from './timestamps.js';
 
 const align=(n,a)=>Math.ceil(n/a)*a;
 const usage=()=>GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.COPY_SRC|GPUTextureUsage.COPY_DST;
@@ -34,17 +37,20 @@ function blend(material){
 // live lab. THREE remains responsible for cameras, geometry and scene objects;
 // no WebGL context is created and every draw targets a native WebGPU texture.
 export class SharedSceneWebGPU {
- static async create(canvas){
+ static async create(canvas,options={}){
   if(!navigator.gpu)throw Error('WebGPU is unavailable in this preview');
   const adapter=await wait(navigator.gpu.requestAdapter({powerPreference:'high-performance'}),3000,'WebGPU adapter');if(!adapter)throw Error('No WebGPU adapter');
   const features=['float32-filterable','float32-blendable'];for(const feature of features)if(!adapter.features.has(feature))throw Error('The shared WebGPU scene requires '+feature+'. Use the WebGL scene on this device.');
+  if(options.timestamps!==false&&adapter.features.has('timestamp-query'))features.push('timestamp-query');
   const requiredLimits={};for(const name of ['maxSampledTexturesPerShaderStage','maxSamplersPerShaderStage','maxColorAttachmentBytesPerSample','maxUniformBufferBindingSize'])requiredLimits[name]=adapter.limits[name];
   const request=adapter.requestDevice({requiredFeatures:features,requiredLimits});let expired=false;request.then(d=>{if(expired)d.destroy();},()=>{});
-  try{const device=await wait(request,5000,'WebGPU device');return new SharedSceneWebGPU(canvas,adapter,device);}catch(e){expired=true;throw e;}
+  try{const device=await wait(request,5000,'WebGPU device');return new SharedSceneWebGPU(canvas,adapter,device,options);}catch(e){expired=true;throw e;}
  }
- constructor(canvas,adapter,device){
+ constructor(canvas,adapter,device,options={}){
+  this.options={mergePasses:true,compactFormats:true,timestamps:true,...options};
   this.isSharedSceneWebGPU=true;this.domElement=canvas;this.adapter=adapter;this.device=device;this.context=canvas.getContext('webgpu');this.format=navigator.gpu.getPreferredCanvasFormat();this.context.configure({device,format:this.format,alphaMode:'opaque'});
   this.compiler=new SceneShaderCompiler();window.addEventListener('pagehide',()=>this.dispose(),{once:true});this.programs=new Map();this.materialPrograms=new WeakMap();this.pipelines=new Map();this.textures=new WeakMap();this.targets=new WeakMap();this.attributes=new WeakMap();this.geometryResources=new WeakMap();this.attributeOwners=new WeakMap();this.samplers=new Map();this.commands=[];this.temporary=[];this.uniformBuffers=[];this.uniformIndex=0;this.allocationBytes=0;this.allocations=new WeakMap();this.resourceBudget=512*1024*1024;
+  this.timing=this.createPassTiming();
   this.info={programs:[],render:{calls:0,triangles:0},memory:{textures:0}};this.debug={};this.properties=new WeakMap();this.autoClear=true;this.clearColor=new THREE.Color(0);this.clearAlpha=0;this.target=null;this.viewport=new THREE.Vector4(0,0,canvas.width,canvas.height);this.scissor=this.viewport.clone();this.scissorTest=false;
   this.capabilities={maxTextureSize:device.limits.maxTextureDimension2D};this.extensions={has:name=>['EXT_color_buffer_float','KHR_parallel_shader_compile'].includes(name)||(name==='OES_texture_float_linear'&&device.features.has('float32-filterable'))};
   // Only capability probes / timer availability use this compatibility view.
@@ -53,6 +59,7 @@ export class SharedSceneWebGPU {
   device.lost.then(info=>{if(!this.disposed)this.failure=Error('WebGPU device lost: '+info.message);});device.addEventListener('uncapturederror',e=>{this.failure??=Error(e.error.message);});
   this.empty=new THREE.DataTexture(new Float32Array(4),1,1,THREE.RGBAFormat,THREE.FloatType);this.empty.needsUpdate=true;
  }
+ createPassTiming(){return new PassTimestamps(this.device,{enabled:this.options.timestamps,createBuffer:d=>this.createBuffer(d),destroyBuffer:b=>this.destroyResource(b)});}
  getContext(){return this.gl;}setPixelRatio(){}getPixelRatio(){return 1;}
  getSize(v){return v.set(this.domElement.width,this.domElement.height);}
  setSize(w,h,style=true){this.domElement.width=w;this.domElement.height=h;if(style){this.domElement.style.width=w+'px';this.domElement.style.height=h+'px';}if(!this.target)this.viewport.set(0,0,w,h);}
@@ -63,10 +70,10 @@ export class SharedSceneWebGPU {
  assertHealthy(){if(this.failure)throw this.failure;}
  reserve(bytes){if(!Number.isSafeInteger(bytes)||bytes<0||this.allocationBytes+bytes>this.resourceBudget)throw Error('WebGPU scene exceeds its 512 MiB rendering budget; reduce resolution before retrying');}
  createBuffer(descriptor){this.reserve(descriptor.size);const resource=this.device.createBuffer(descriptor);this.allocations.set(resource,descriptor.size);this.allocationBytes+=descriptor.size;return resource;}
- createTexture(descriptor){const [w,h]=descriptor.size,bytes=w*h*(descriptor.format==='rgba32float'?16:descriptor.format==='rgba16float'?8:4);if(w>this.device.limits.maxTextureDimension2D||h>this.device.limits.maxTextureDimension2D)throw Error('WebGPU texture exceeds device dimensions');this.reserve(bytes);const resource=this.device.createTexture(descriptor);this.allocations.set(resource,bytes);this.allocationBytes+=bytes;return resource;}
+ createTexture(descriptor){const [w,h]=descriptor.size,bytes=w*h*textureBytes(descriptor.format);if(w>this.device.limits.maxTextureDimension2D||h>this.device.limits.maxTextureDimension2D)throw Error('WebGPU texture exceeds device dimensions');this.reserve(bytes);const resource=this.device.createTexture(descriptor);this.allocations.set(resource,bytes);this.allocationBytes+=bytes;return resource;}
  destroyResource(resource){this.allocationBytes-=this.allocations.get(resource)||0;this.allocations.delete(resource);resource.destroy();}
 
- formatFor(t){if(t.type===THREE.UnsignedByteType)return 'rgba8unorm';if(t.type===THREE.HalfFloatType)return 'rgba16float';return 'rgba32float';}
+ formatFor(t){return sceneTextureFormat(t,this.options?.compactFormats!==false);}
  initRenderTarget(target){
   let state=this.targets.get(target);if(state&&state.width===target.width&&state.height===target.height)return state;
   if(state){for(const t of state.colors)this.temporary.push(t.texture);if(state.depth)this.temporary.push(state.depth);}
@@ -82,9 +89,7 @@ export class SharedSceneWebGPU {
   const format=this.formatFor(t),width=image.width,height=image.height;
   if(!state||state.width!==width||state.height!==height||state.format!==format){if(state)this.temporary.push(state.texture);const texture=this.createTexture({label:t.name||'scene data',size:[width,height],format,usage:usage()});state={texture,view:texture.createView(),format,width,height,version:-1};this.textures.set(t,state);if(!this.textureDisposers)this.textureDisposers=new WeakSet();if(!this.textureDisposers.has(t)){this.textureDisposers.add(t);t.addEventListener('dispose',()=>{const r=this.textures.get(t);if(r){this.temporary.push(r.texture);this.textures.delete(t);}});}}
   if(state.version!==t.version){
-   const channels=t.format===THREE.RedFormat?1:t.format===THREE.RGFormat?2:4,bytes=format==='rgba32float'?16:format==='rgba16float'?8:4,row=align(width*bytes,256),data=new Uint8Array(row*height),src=new Uint8Array(image.data.buffer,image.data.byteOffset,image.data.byteLength);
-   if(channels!==4){const view=new DataView(data.buffer);for(let y=0;y<height;y++)for(let x=0;x<width;x++){const at=y*row+x*bytes+3*bytes/4;if(bytes===16)view.setFloat32(at,1,true);else if(bytes===8)view.setUint16(at,0x3c00,true);else data[at]=255;}}
-   if(channels===4){for(let y=0;y<height;y++)data.set(src.subarray(y*width*bytes,(y+1)*width*bytes),y*row);}else{const size=bytes/4;for(let y=0;y<height;y++)for(let x=0;x<width;x++)for(let c=0;c<channels;c++)data.set(src.subarray(((y*width+x)*channels+c)*size,((y*width+x)*channels+c+1)*size),y*row+x*bytes+c*size);}
+   const channels=t.format===THREE.RedFormat?1:t.format===THREE.RGFormat?2:4,{row,data}=packTextureRows(image,channels,format);
    const buffer=this.createBuffer({size:data.byteLength,usage:GPUBufferUsage.COPY_SRC,mappedAtCreation:true});new Uint8Array(buffer.getMappedRange()).set(data);buffer.unmap();this.temporary.push(buffer);this.commands.push({type:'upload',buffer,texture:state.texture,row,width,height});state.version=t.version;
   }
   return state;
@@ -140,7 +145,7 @@ export class SharedSceneWebGPU {
    const attributes={};for(const [name,a] of Object.entries(geometry.attributes))attributes[name]={buffer:this.attribute(a),itemSize:a.itemSize,stepMode:a.isInstancedBufferAttribute?'instance':'vertex',array:a.array,normalized:a.normalized,stride:a.isInterleavedBufferAttribute?a.data.stride:a.itemSize,offset:a.isInterleavedBufferAttribute?a.offset:0};
    for(const [name,size] of [['uv',2],['normal',3]])if(!attributes[name]){const a=new THREE.Float32BufferAttribute(new Float32Array((geometry.attributes.position?.count||4)*size),size);attributes[name]={buffer:this.attribute(a),itemSize:size,stepMode:'vertex',stride:size,offset:0};this.temporary.push(attributes[name].buffer);}
    const index=geometry.index?{buffer:this.attribute(geometry.index,true),format:geometry.index.array instanceof Uint32Array?'uint32':'uint16',count:geometry.index.count}:null;
-   this.commands.push({type:'draw',program,name:material.name,state,uniforms,textures,samplers,attributes,index,instances:Number.isFinite(instances)?instances:1,count:geometry.attributes.position?.count||0,range:{...geometry.drawRange},viewport:this.viewport.toArray(),scissor:this.scissorTest?this.scissor.toArray():null,blend:blend(material),depthTest:material.depthTest,depthWrite:material.depthWrite,depthFunc:material.depthFunc,side:material.side});
+   this.commands.push({type:'draw',program,name:material.name,stage:this.timingStage,state,uniforms,textures,samplers,attributes,index,instances:Number.isFinite(instances)?instances:1,count:geometry.attributes.position?.count||0,range:{...geometry.drawRange},viewport:this.viewport.toArray(),scissor:this.scissorTest?this.scissor.toArray():null,blend:blend(material),depthTest:material.depthTest,depthWrite:material.depthWrite,depthFunc:material.depthFunc,side:material.side});
   }
   if(this.commands.length>512)throw Error('WebGPU frame command budget exceeded');
  }
@@ -159,33 +164,38 @@ export class SharedSceneWebGPU {
  }
  async flush({timeoutMs=2000,cpuWork=null}={}){
   this.assertHealthy();if(!this.commands.length&&!this.temporary.length&&!this.flushing){cpuWork?.();return;}if(this.flushing)throw Error('A WebGPU scene frame is already outstanding');this.flushing=true;const commands=this.commands.splice(0),retired=this.temporary.splice(0);this.uniformIndex=0;const d=this.device;
-  const began=performance.now();let prepared,encoded;
+  const began=performance.now();let prepared,encoded,timingBatch,scope=false;
   try{
    // Compile sequentially before submitting any draw. A failed shader cannot
    // leave a partially queued heavy frame behind it.
    for(const c of commands)if(c.type==='draw'){this.pipelineProgress?.(c.name);c.p=await c.program;c.pipeline=await this.pipeline(c,c.p);}
-   prepared=performance.now();d.pushErrorScope('validation');const encoder=d.createCommandEncoder({label:'shared sand scene'});let calls=0;
-   for(const c of commands){
-    if(c.type==='upload'){encoder.copyBufferToTexture({buffer:c.buffer,bytesPerRow:c.row},{texture:c.texture},[c.width,c.height]);continue;}
-    if(c.type==='copy'){encoder.copyTextureToTexture(c.source,c.destination,c.size);continue;}
-    if(c.type==='clear'){encoder.beginRenderPass(this.attachments(c.state,c.color,c.depth)).end();continue;}
+   prepared=performance.now();d.pushErrorScope('validation');scope=true;const encoder=d.createCommandEncoder({label:'shared sand scene'});let calls=0,renderPasses=0;
+   timingBatch=this.timing?.begin();
+   for(const group of renderPassPlan(commands,this.options?.mergePasses!==false)){
+    if(group.type==='upload'){encoder.copyBufferToTexture({buffer:group.buffer,bytesPerRow:group.row},{texture:group.texture},[group.width,group.height]);continue;}
+    if(group.type==='copy'){encoder.copyTextureToTexture(group.source,group.destination,group.size);continue;}
+    const label=group.draws.map(c=>c.name||c.stage||('program '+c.p.key)).join(' + ')||'clear';
+    const pass=encoder.beginRenderPass({...this.attachments(group.state,group.color,group.depth),label,timestampWrites:this.timing?.writes(timingBatch,label)});renderPasses++;
+    for(const c of group.draws){
     const p=c.p,resources=new Map(),uniform=this.uniform(packUniforms(p.uniforms,c.uniforms)),internals=this.uniform(new Float32Array([c.uniforms.yFactor_,c.uniforms.textureOutputHeight_,0,0]));
     for(const [name,b] of Object.entries(p.buffers))resources.set(b.binding.groupIndex+':'+b.binding.bindingIndex,{buffer:name==='LeftOver'?uniform:internals});
     for(const [name,t] of Object.entries(p.textures)){const b=t.textures[0],image=c.textures[name]||this.texture(this.empty);if(p.resources.has(b.groupIndex+':'+b.bindingIndex)&&c.state?.colors.some(t=>t.texture===image.texture))throw Error('Texture feedback in '+c.name+': '+name);resources.set(b.groupIndex+':'+b.bindingIndex,image.view);}
     for(const [name,s] of Object.entries(p.samplers))resources.set(s.binding.groupIndex+':'+s.binding.bindingIndex,c.samplers[s.sourceTexture||name.replace(/Sampler$/,'')]||this.sampler(this.empty));
     const groups=p.layouts.map((layout,g)=>d.createBindGroup({layout,entries:[...p.resources.values()].filter(r=>r.group===g).map(r=>({binding:r.binding,resource:resources.get(g+':'+r.binding)}))}));
-    const pass=encoder.beginRenderPass({...this.attachments(c.state),label:c.name});pass.setPipeline(c.pipeline.pipeline);groups.forEach((group,g)=>pass.setBindGroup(g,group));c.pipeline.activeAttributes.forEach(([name],i)=>pass.setVertexBuffer(i,c.attributes[name].buffer));
-    const [x,y,w,h]=c.viewport;pass.setViewport(x,y,w,h,0,1);if(c.scissor){const [sx,sy,sw,sh]=c.scissor;pass.setScissorRect(sx,sy,sw,sh);}
-    const start=c.range.start||0,count=Math.max(0,Math.min(c.range.count,(c.index?.count??c.count)-start));if(c.index){pass.setIndexBuffer(c.index.buffer,c.index.format);pass.drawIndexed(count,c.instances,start);}else pass.draw(count,c.instances,start);pass.end();calls++;
+    pass.setPipeline(c.pipeline.pipeline);groups.forEach((group,g)=>pass.setBindGroup(g,group));c.pipeline.activeAttributes.forEach(([name],i)=>pass.setVertexBuffer(i,c.attributes[name].buffer));
+    const [x,y,w,h]=c.viewport;pass.setViewport(x,y,w,h,0,1);const [sx,sy,sw,sh]=c.scissor||[0,0,c.state?.width||this.domElement.width,c.state?.height||this.domElement.height];pass.setScissorRect(sx,sy,sw,sh);
+    const start=c.range.start||0,count=Math.max(0,Math.min(c.range.count,(c.index?.count??c.count)-start));if(c.index){pass.setIndexBuffer(c.index.buffer,c.index.format);pass.drawIndexed(count,c.instances,start);}else pass.draw(count,c.instances,start);calls++;
+    }
+    pass.end();
    }
-   d.queue.submit([encoder.finish()]);encoded=performance.now();const completion=wait(d.queue.onSubmittedWorkDone(),timeoutMs,'Shared WebGPU frame');cpuWork?.();await completion;const error=await d.popErrorScope();if(error)throw Error(error.message);this.info.render.calls=calls;this.frameTimes={prepare:prepared-began,encode:encoded-prepared,wait:performance.now()-encoded,total:performance.now()-began};this.assertHealthy();
-  }catch(error){this.failure=error;throw error;}finally{for(const resource of retired)this.destroyResource(resource);this.flushing=false;}
+   this.timing?.resolve(encoder,timingBatch);d.queue.submit([encoder.finish()]);this.timing?.submitted(timingBatch);encoded=performance.now();const completion=wait(d.queue.onSubmittedWorkDone(),timeoutMs,'Shared WebGPU frame');cpuWork?.();await completion;const error=await d.popErrorScope();scope=false;if(error)throw Error(error.message);this.info.render.calls=calls;this.info.render.passes=renderPasses;this.frameTimes={prepare:prepared-began,encode:encoded-prepared,wait:performance.now()-encoded,total:performance.now()-began,renderPasses,gpu:this.timing?.snapshot()||null};this.assertHealthy();
+  }catch(error){this.timing?.cancel(timingBatch);this.failure=error;throw error;}finally{if(scope)await d.popErrorScope();for(const resource of retired)this.destroyResource(resource);this.flushing=false;}
  }
  copyTextureToTexture(source,destination,region=null,position={x:0,y:0}){const a=this.texture(source),b=this.texture(destination);this.commands.push({type:'copy',source:{texture:a.texture},destination:{texture:b.texture,origin:[position.x,position.y]},size:[a.width,a.height]});}
  async readRenderTargetPixelsAsync(target,x,y,w,h,output,cubeFace=0,attachment=0){
-  await this.flush();const state=this.initRenderTarget(target),t=state.colors[attachment],bytes=t.format==='rgba32float'?16:t.format==='rgba16float'?8:4,row=align(w*bytes,256),d=this.device,buffer=this.createBuffer({size:row*h,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});const encoder=d.createCommandEncoder();encoder.copyTextureToBuffer({texture:t.texture,origin:[x,y]},{buffer,bytesPerRow:row},[w,h]);d.queue.submit([encoder.finish()]);
+  await this.flush();const state=this.initRenderTarget(target),t=state.colors[attachment],bytes=textureBytes(t.format),row=align(w*bytes,256),d=this.device,buffer=this.createBuffer({size:row*h,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});const encoder=d.createCommandEncoder();encoder.copyTextureToBuffer({texture:t.texture,origin:[x,y]},{buffer,bytesPerRow:row},[w,h]);d.queue.submit([encoder.finish()]);
   try{await wait(buffer.mapAsync(GPUMapMode.READ),2000,'Scene diagnostic readback');const src=new Uint8Array(buffer.getMappedRange()),dst=new Uint8Array(output.buffer,output.byteOffset,output.byteLength);for(let y=0;y<h;y++)dst.set(src.subarray(y*row,y*row+w*bytes),y*w*bytes);return output;}finally{buffer.unmap();this.destroyResource(buffer);}
  }
  readRenderTargetPixels(){throw Error('Synchronous graphics readback is unavailable on WebGPU; use the asynchronous diagnostic');}
- dispose(){if(this.disposed)return;this.disposed=true;this.compiler.stop();this.device.destroy();}
+ dispose(){if(this.disposed)return;this.disposed=true;this.timing?.dispose();this.compiler.stop();this.device.destroy();}
 }

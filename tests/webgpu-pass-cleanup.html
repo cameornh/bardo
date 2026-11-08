@@ -1,0 +1,9 @@
+<!doctype html><meta charset="utf-8"><title>WebGPU pass cleanup checks</title>
+<style>body{background:#17212b;color:#eee;font:14px system-ui}button{padding:8px;margin:4px}pre{white-space:pre-wrap}canvas{max-width:100%;border:1px solid #777}</style>
+<p>Bounded checks. One device and one submitted workload at a time. No graphics work on load.</p>
+<button id="tiny">Check pass ordering, formats and timestamps</button>
+<button id="prepare">Prepare beach</button><button id="images">Compare frozen beach images</button>
+<button id="measure">Measure baseline and cleanup</button><button id="busy">Add objects, rain and edits</button><button id="night">Underwater night view</button>
+<button id="compute">Check connected compute timestamps</button><button id="export">Export report</button>
+<canvas id="view" width="320" height="200"></canvas><pre id="result">No graphics work on load</pre>
+<script type="module" src="./webgpu-pass-cleanup.js"></script>

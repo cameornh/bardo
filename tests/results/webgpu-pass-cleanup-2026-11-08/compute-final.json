@@ -1,0 +1,1310 @@
+{
+  "checks": [
+    {
+      "name": "connected",
+      "pass": true,
+      "overflowGuard": true,
+      "rows": [
+        {
+          "case": "open field",
+          "closedComponents": 0,
+          "particles": 48,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 0,
+            "shift": 1.1920928955078125e-07,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 1.1920928955078125e-07,
+            "velocities": 8.903443813323975e-07,
+            "chem": 7.450580596923828e-09,
+            "metrics": 2.7865171432495117e-06,
+            "counts": 0,
+            "activity": 0.00245092436671257,
+            "breakup": 9.015202522277832e-07
+          },
+          "faceError": 2.5813541931762884e-07,
+          "beforeError": 3.112790720877223e-07,
+          "rhsError": 4.552170211002959e-06,
+          "relativeResidual": 4.891457778149463e-06,
+          "cpuMs": 44.5,
+          "gpu": {
+            "backend": "WebGPU deposition / pressure / particles / contacts",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4"
+            },
+            "packMs": 19.900000035762787,
+            "waitMs": 899.5999999642372,
+            "totalMs": 919.8000000119209,
+            "readbackBytes": 117396,
+            "particles": 48,
+            "warmup": true,
+            "gpuTiming": {
+              "supported": true,
+              "enabled": true,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": {
+                "sequence": 1,
+                "truncated": false,
+                "sumMs": 20.054016,
+                "spanMs": 20.119552,
+                "elapsedMs": 898.1999999880791,
+                "passes": [
+                  {
+                    "name": "field-stencils",
+                    "ms": 1.114112
+                  },
+                  {
+                    "name": "field-deposit",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-advect",
+                    "ms": 0.196608
+                  },
+                  {
+                    "name": "field-viscosity",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "field-rhs",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-compatible",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-pressure",
+                    "ms": 16.973824
+                  },
+                  {
+                    "name": "field-project",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "gather",
+                    "ms": 0
+                  },
+                  {
+                    "name": "neighbors",
+                    "ms": 0.393216
+                  },
+                  {
+                    "name": "density",
+                    "ms": 0.262144
+                  },
+                  {
+                    "name": "contacts",
+                    "ms": 0.262144
+                  },
+                  {
+                    "name": "transport",
+                    "ms": 0.196608
+                  }
+                ],
+                "byName": {
+                  "field-stencils": 1.114112,
+                  "field-deposit": 0.131072,
+                  "field-extend": 0.196608,
+                  "field-extended": 0.065536,
+                  "field-advect": 0.196608,
+                  "field-viscosity": 0.131072,
+                  "field-rhs": 0.065536,
+                  "field-compatible": 0,
+                  "field-pressure": 16.973824,
+                  "field-project": 0.065536,
+                  "gather": 0,
+                  "neighbors": 0.393216,
+                  "density": 0.262144,
+                  "contacts": 0.262144,
+                  "transport": 0.196608
+                }
+              }
+            },
+            "unpackMs": 0.19999998807907104,
+            "storageBytes": 41651504
+          }
+        },
+        {
+          "case": "open field",
+          "closedComponents": 0,
+          "particles": 140,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 1.4901161193847656e-08,
+            "shift": 1.7136335372924805e-07,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 1.6689300537109375e-06,
+            "velocities": 4.9591064453125e-05,
+            "chem": 1.1771917343139648e-06,
+            "metrics": 0.0001163482666015625,
+            "counts": 0,
+            "activity": 0.000457763671875,
+            "breakup": 0.00011351704597473145
+          },
+          "faceError": 2.6279235951220947e-07,
+          "beforeError": 3.168327760427747e-07,
+          "rhsError": 4.552170211002959e-06,
+          "relativeResidual": 4.945824472506611e-06,
+          "cpuMs": 26.399999976158142,
+          "gpu": {
+            "backend": "WebGPU deposition / pressure / particles / contacts",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4"
+            },
+            "packMs": 13.800000011920929,
+            "waitMs": 86.19999998807907,
+            "totalMs": 100.30000001192093,
+            "readbackBytes": 124756,
+            "particles": 140,
+            "warmup": false,
+            "gpuTiming": {
+              "supported": true,
+              "enabled": true,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": {
+                "sequence": 2,
+                "truncated": false,
+                "sumMs": 24.707071999999997,
+                "spanMs": 24.838144,
+                "elapsedMs": 85.30000001192093,
+                "passes": [
+                  {
+                    "name": "field-stencils",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-deposit",
+                    "ms": 1.6383999999999999
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-advect",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "field-viscosity",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "field-rhs",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-compatible",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-pressure",
+                    "ms": 20.119552
+                  },
+                  {
+                    "name": "field-project",
+                    "ms": 0
+                  },
+                  {
+                    "name": "gather",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "neighbors",
+                    "ms": 0.9830399999999999
+                  },
+                  {
+                    "name": "density",
+                    "ms": 0.393216
+                  },
+                  {
+                    "name": "contacts",
+                    "ms": 0.393216
+                  },
+                  {
+                    "name": "transport",
+                    "ms": 0.32767999999999997
+                  }
+                ],
+                "byName": {
+                  "field-stencils": 0.065536,
+                  "field-deposit": 1.6383999999999999,
+                  "field-extend": 0.131072,
+                  "field-extended": 0.131072,
+                  "field-advect": 0.131072,
+                  "field-viscosity": 0.131072,
+                  "field-rhs": 0.065536,
+                  "field-compatible": 0.065536,
+                  "field-pressure": 20.119552,
+                  "field-project": 0,
+                  "gather": 0.131072,
+                  "neighbors": 0.9830399999999999,
+                  "density": 0.393216,
+                  "contacts": 0.393216,
+                  "transport": 0.32767999999999997
+                }
+              }
+            },
+            "unpackMs": 0.30000001192092896,
+            "storageBytes": 41651504
+          }
+        },
+        {
+          "case": "open field",
+          "closedComponents": 0,
+          "particles": 540,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 1.1920928955078125e-07,
+            "shift": 3.725290298461914e-07,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 1.3113021850585938e-06,
+            "velocities": 3.409385681152344e-05,
+            "chem": 1.3113021850585938e-06,
+            "metrics": 0.00013113021850585938,
+            "counts": 0,
+            "activity": 0.00091552734375,
+            "breakup": 4.8279762268066406e-05
+          },
+          "faceError": 2.662696575450596e-07,
+          "beforeError": 3.112790720877223e-07,
+          "rhsError": 4.552170211002959e-06,
+          "relativeResidual": 1.805357726784312e-05,
+          "cpuMs": 34.5,
+          "gpu": {
+            "backend": "WebGPU deposition / pressure / particles / contacts",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4"
+            },
+            "packMs": 12.800000011920929,
+            "waitMs": 31.69999998807907,
+            "totalMs": 45.39999997615814,
+            "readbackBytes": 156756,
+            "particles": 540,
+            "warmup": false,
+            "gpuTiming": {
+              "supported": true,
+              "enabled": true,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": {
+                "sequence": 3,
+                "truncated": false,
+                "sumMs": 26.476544,
+                "spanMs": 26.54208,
+                "elapsedMs": 30.5,
+                "passes": [
+                  {
+                    "name": "field-stencils",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "field-deposit",
+                    "ms": 2.883584
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-advect",
+                    "ms": 0.196608
+                  },
+                  {
+                    "name": "field-viscosity",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "field-rhs",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-compatible",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-pressure",
+                    "ms": 19.267584
+                  },
+                  {
+                    "name": "field-project",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "gather",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "neighbors",
+                    "ms": 2.29376
+                  },
+                  {
+                    "name": "density",
+                    "ms": 0.393216
+                  },
+                  {
+                    "name": "contacts",
+                    "ms": 0.393216
+                  },
+                  {
+                    "name": "transport",
+                    "ms": 0.32767999999999997
+                  }
+                ],
+                "byName": {
+                  "field-stencils": 0.131072,
+                  "field-deposit": 2.883584,
+                  "field-extend": 0.196608,
+                  "field-extended": 0.065536,
+                  "field-advect": 0.196608,
+                  "field-viscosity": 0.131072,
+                  "field-rhs": 0.065536,
+                  "field-compatible": 0,
+                  "field-pressure": 19.267584,
+                  "field-project": 0.065536,
+                  "gather": 0.065536,
+                  "neighbors": 2.29376,
+                  "density": 0.393216,
+                  "contacts": 0.393216,
+                  "transport": 0.32767999999999997
+                }
+              }
+            },
+            "unpackMs": 0.8999999761581421,
+            "storageBytes": 41651504
+          }
+        },
+        {
+          "case": "carved terrain",
+          "closedComponents": 0,
+          "particles": 140,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 1.4901161193847656e-08,
+            "shift": 9.98377799987793e-07,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 4.112720489501953e-06,
+            "velocities": 0.00012540817260742188,
+            "chem": 3.3229589462280273e-06,
+            "metrics": 0.00033126771450042725,
+            "counts": 0,
+            "activity": 0.0017108917236328125,
+            "breakup": 0.0002009868621826172
+          },
+          "faceError": 2.6279235951220947e-07,
+          "beforeError": 3.168327760427747e-07,
+          "rhsError": 4.552170211002959e-06,
+          "relativeResidual": 4.945824472506611e-06,
+          "cpuMs": 25.400000035762787,
+          "gpu": {
+            "backend": "WebGPU deposition / pressure / particles / contacts",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4"
+            },
+            "packMs": 9.399999976158142,
+            "waitMs": 26.900000035762787,
+            "totalMs": 36.39999997615814,
+            "readbackBytes": 124756,
+            "particles": 140,
+            "warmup": false,
+            "gpuTiming": {
+              "supported": true,
+              "enabled": true,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": {
+                "sequence": 4,
+                "truncated": false,
+                "sumMs": 24.182783999999995,
+                "spanMs": 24.379392,
+                "elapsedMs": 26,
+                "passes": [
+                  {
+                    "name": "field-stencils",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-deposit",
+                    "ms": 1.6383999999999999
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-advect",
+                    "ms": 0.196608
+                  },
+                  {
+                    "name": "field-viscosity",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "field-rhs",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-compatible",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-pressure",
+                    "ms": 19.529728
+                  },
+                  {
+                    "name": "field-project",
+                    "ms": 0
+                  },
+                  {
+                    "name": "gather",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "neighbors",
+                    "ms": 0.9830399999999999
+                  },
+                  {
+                    "name": "density",
+                    "ms": 0.458752
+                  },
+                  {
+                    "name": "contacts",
+                    "ms": 0.524288
+                  },
+                  {
+                    "name": "transport",
+                    "ms": 0.262144
+                  }
+                ],
+                "byName": {
+                  "field-stencils": 0.065536,
+                  "field-deposit": 1.6383999999999999,
+                  "field-extend": 0.131072,
+                  "field-extended": 0.065536,
+                  "field-advect": 0.196608,
+                  "field-viscosity": 0.131072,
+                  "field-rhs": 0.065536,
+                  "field-compatible": 0,
+                  "field-pressure": 19.529728,
+                  "field-project": 0,
+                  "gather": 0.131072,
+                  "neighbors": 0.9830399999999999,
+                  "density": 0.458752,
+                  "contacts": 0.524288,
+                  "transport": 0.262144
+                }
+              }
+            },
+            "unpackMs": 0.09999996423721313,
+            "storageBytes": 41651504
+          }
+        },
+        {
+          "case": "boundary",
+          "closedComponents": 0,
+          "particles": 48,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 0,
+            "shift": 8.493661880493164e-07,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 5.245208740234375e-06,
+            "velocities": 0.00015592575073242188,
+            "chem": 2.4884939193725586e-06,
+            "metrics": 0.00024890899658203125,
+            "counts": 0,
+            "activity": 0.0020294189453125,
+            "breakup": 3.1366944313049316e-06
+          },
+          "faceError": 2.6264718350210714e-07,
+          "beforeError": 9.757046465219688e-07,
+          "rhsError": 4.552170211002959e-06,
+          "relativeResidual": 5.280160858896748e-06,
+          "cpuMs": 12.600000023841858,
+          "gpu": {
+            "backend": "WebGPU deposition / pressure / particles / contacts",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4"
+            },
+            "packMs": 8,
+            "waitMs": 24.19999998807907,
+            "totalMs": 32.19999998807907,
+            "readbackBytes": 117396,
+            "particles": 48,
+            "warmup": false,
+            "gpuTiming": {
+              "supported": true,
+              "enabled": true,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": {
+                "sequence": 5,
+                "truncated": false,
+                "sumMs": 22.151168000000002,
+                "spanMs": 22.151168,
+                "elapsedMs": 23.599999964237213,
+                "passes": [
+                  {
+                    "name": "field-stencils",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-deposit",
+                    "ms": 0.458752
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-advect",
+                    "ms": 0.196608
+                  },
+                  {
+                    "name": "field-viscosity",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "field-rhs",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-compatible",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-pressure",
+                    "ms": 19.6608
+                  },
+                  {
+                    "name": "field-project",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "gather",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "neighbors",
+                    "ms": 0.393216
+                  },
+                  {
+                    "name": "density",
+                    "ms": 0.262144
+                  },
+                  {
+                    "name": "contacts",
+                    "ms": 0.32767999999999997
+                  },
+                  {
+                    "name": "transport",
+                    "ms": 0.196608
+                  }
+                ],
+                "byName": {
+                  "field-stencils": 0.065536,
+                  "field-deposit": 0.458752,
+                  "field-extend": 0.196608,
+                  "field-extended": 0.065536,
+                  "field-advect": 0.196608,
+                  "field-viscosity": 0.131072,
+                  "field-rhs": 0.065536,
+                  "field-compatible": 0,
+                  "field-pressure": 19.6608,
+                  "field-project": 0.065536,
+                  "gather": 0.065536,
+                  "neighbors": 0.393216,
+                  "density": 0.262144,
+                  "contacts": 0.32767999999999997,
+                  "transport": 0.196608
+                }
+              }
+            },
+            "unpackMs": 0,
+            "storageBytes": 41651504
+          }
+        },
+        {
+          "case": "player contact",
+          "closedComponents": 0,
+          "particles": 140,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 1.4901161193847656e-08,
+            "shift": 1.4901161193847656e-07,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 7.152557373046875e-07,
+            "velocities": 2.0503997802734375e-05,
+            "chem": 4.172325134277344e-07,
+            "metrics": 6.431341171264648e-05,
+            "counts": 0,
+            "activity": 0.0010121534578502178,
+            "breakup": 2.0742416381835938e-05
+          },
+          "faceError": 2.6279235951220947e-07,
+          "beforeError": 3.168327760427747e-07,
+          "rhsError": 4.552170211002959e-06,
+          "relativeResidual": 4.945824472506611e-06,
+          "cpuMs": 17.100000023841858,
+          "gpu": {
+            "backend": "WebGPU deposition / pressure / particles / contacts",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4"
+            },
+            "packMs": 8.699999988079071,
+            "waitMs": 26,
+            "totalMs": 34.80000001192093,
+            "readbackBytes": 124756,
+            "particles": 140,
+            "warmup": false,
+            "gpuTiming": {
+              "supported": true,
+              "enabled": true,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": {
+                "sequence": 6,
+                "truncated": false,
+                "sumMs": 24.117248000000004,
+                "spanMs": 24.313855999999998,
+                "elapsedMs": 25.30000001192093,
+                "passes": [
+                  {
+                    "name": "field-stencils",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-deposit",
+                    "ms": 1.6383999999999999
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-advect",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "field-viscosity",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "field-rhs",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-compatible",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-pressure",
+                    "ms": 19.6608
+                  },
+                  {
+                    "name": "field-project",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "gather",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "neighbors",
+                    "ms": 0.9830399999999999
+                  },
+                  {
+                    "name": "density",
+                    "ms": 0.32767999999999997
+                  },
+                  {
+                    "name": "contacts",
+                    "ms": 0.32767999999999997
+                  },
+                  {
+                    "name": "transport",
+                    "ms": 0.32767999999999997
+                  }
+                ],
+                "byName": {
+                  "field-stencils": 0.065536,
+                  "field-deposit": 1.6383999999999999,
+                  "field-extend": 0.196608,
+                  "field-extended": 0.065536,
+                  "field-advect": 0.131072,
+                  "field-viscosity": 0.131072,
+                  "field-rhs": 0.065536,
+                  "field-compatible": 0.065536,
+                  "field-pressure": 19.6608,
+                  "field-project": 0.065536,
+                  "gather": 0.065536,
+                  "neighbors": 0.9830399999999999,
+                  "density": 0.32767999999999997,
+                  "contacts": 0.32767999999999997,
+                  "transport": 0.32767999999999997
+                }
+              }
+            },
+            "unpackMs": 0.10000002384185791,
+            "storageBytes": 41651504
+          }
+        },
+        {
+          "case": "sealed field",
+          "closedComponents": 1,
+          "particles": 540,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 5.960464477539063e-08,
+            "shift": 1.73225998878479e-07,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 1.7881393432617188e-07,
+            "velocities": 3.557652235031128e-06,
+            "chem": 1.4901161193847656e-08,
+            "metrics": 4.652142524719238e-05,
+            "counts": 0,
+            "activity": 0.004102697130292654,
+            "breakup": 4.7497451305389404e-08
+          },
+          "faceError": 8.107563137516038e-08,
+          "beforeError": 3.0615469320816047e-07,
+          "rhsError": 1.3552321505017062e-06,
+          "relativeResidual": 5.732028676239082e-06,
+          "cpuMs": 19.099999964237213,
+          "gpu": {
+            "backend": "WebGPU deposition / pressure / particles / contacts",
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "gcn-4"
+            },
+            "packMs": 10.5,
+            "waitMs": 20,
+            "totalMs": 30.80000001192093,
+            "readbackBytes": 156756,
+            "particles": 540,
+            "warmup": false,
+            "gpuTiming": {
+              "supported": true,
+              "enabled": true,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": {
+                "sequence": 7,
+                "truncated": false,
+                "sumMs": 16.973823999999997,
+                "spanMs": 17.301503999999998,
+                "elapsedMs": 19.200000047683716,
+                "passes": [
+                  {
+                    "name": "field-stencils",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "field-deposit",
+                    "ms": 2.883584
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-extend",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-extended",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-advect",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-viscosity",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "field-rhs",
+                    "ms": 0
+                  },
+                  {
+                    "name": "field-compatible",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "field-pressure",
+                    "ms": 8.192
+                  },
+                  {
+                    "name": "field-project",
+                    "ms": 0
+                  },
+                  {
+                    "name": "gather",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "neighbors",
+                    "ms": 3.801088
+                  },
+                  {
+                    "name": "density",
+                    "ms": 0.458752
+                  },
+                  {
+                    "name": "contacts",
+                    "ms": 0.458752
+                  },
+                  {
+                    "name": "transport",
+                    "ms": 0.524288
+                  }
+                ],
+                "byName": {
+                  "field-stencils": 0.131072,
+                  "field-deposit": 2.883584,
+                  "field-extend": 0.065536,
+                  "field-extended": 0.065536,
+                  "field-advect": 0.065536,
+                  "field-viscosity": 0.131072,
+                  "field-rhs": 0,
+                  "field-compatible": 0.065536,
+                  "field-pressure": 8.192,
+                  "field-project": 0,
+                  "gather": 0.131072,
+                  "neighbors": 3.801088,
+                  "density": 0.458752,
+                  "contacts": 0.458752,
+                  "transport": 0.524288
+                }
+              }
+            },
+            "unpackMs": 0.19999998807907104,
+            "storageBytes": 41651504
+          }
+        }
+      ],
+      "sceneWarmup": {
+        "backend": "WebGPU deposition / pressure / particles / contacts",
+        "adapter": {
+          "vendor": "amd",
+          "architecture": "gcn-4"
+        },
+        "packMs": 25.600000023841858,
+        "waitMs": 34.60000002384186,
+        "totalMs": 61.10000002384186,
+        "readbackBytes": 262324,
+        "particles": 1164,
+        "warmup": false,
+        "gpuTiming": {
+          "supported": true,
+          "enabled": true,
+          "skipped": 0,
+          "rejected": 0,
+          "lastRejected": null,
+          "error": null,
+          "sample": {
+            "sequence": 9,
+            "truncated": false,
+            "sumMs": 31.784959999999998,
+            "spanMs": 31.784959999999998,
+            "elapsedMs": 33.10000002384186,
+            "passes": [
+              {
+                "name": "field-stencils",
+                "ms": 0.262144
+              },
+              {
+                "name": "field-deposit",
+                "ms": 0.917504
+              },
+              {
+                "name": "field-extend",
+                "ms": 0.065536
+              },
+              {
+                "name": "field-extended",
+                "ms": 0
+              },
+              {
+                "name": "field-extend",
+                "ms": 0.065536
+              },
+              {
+                "name": "field-extended",
+                "ms": 0.065536
+              },
+              {
+                "name": "field-extend",
+                "ms": 0.065536
+              },
+              {
+                "name": "field-extended",
+                "ms": 0.065536
+              },
+              {
+                "name": "field-advect",
+                "ms": 0.196608
+              },
+              {
+                "name": "field-viscosity",
+                "ms": 0.196608
+              },
+              {
+                "name": "field-rhs",
+                "ms": 0.065536
+              },
+              {
+                "name": "field-compatible",
+                "ms": 0.065536
+              },
+              {
+                "name": "field-pressure",
+                "ms": 27.131904
+              },
+              {
+                "name": "field-project",
+                "ms": 0.065536
+              },
+              {
+                "name": "gather",
+                "ms": 0.131072
+              },
+              {
+                "name": "neighbors",
+                "ms": 1.3107199999999999
+              },
+              {
+                "name": "density",
+                "ms": 0.393216
+              },
+              {
+                "name": "contacts",
+                "ms": 0.458752
+              },
+              {
+                "name": "transport",
+                "ms": 0.262144
+              }
+            ],
+            "byName": {
+              "field-stencils": 0.262144,
+              "field-deposit": 0.917504,
+              "field-extend": 0.196608,
+              "field-extended": 0.131072,
+              "field-advect": 0.196608,
+              "field-viscosity": 0.196608,
+              "field-rhs": 0.065536,
+              "field-compatible": 0.065536,
+              "field-pressure": 27.131904,
+              "field-project": 0.065536,
+              "gather": 0.131072,
+              "neighbors": 1.3107199999999999,
+              "density": 0.393216,
+              "contacts": 0.458752,
+              "transport": 0.262144
+            }
+          }
+        },
+        "unpackMs": 0.8999999761581421,
+        "storageBytes": 41651504
+      },
+      "timing": {
+        "supported": true,
+        "enabled": true,
+        "skipped": 0,
+        "rejected": 0,
+        "lastRejected": null,
+        "error": null,
+        "sample": {
+          "sequence": 9,
+          "truncated": false,
+          "sumMs": 31.784959999999998,
+          "spanMs": 31.784959999999998,
+          "elapsedMs": 33.10000002384186,
+          "passes": [
+            {
+              "name": "field-stencils",
+              "ms": 0.262144
+            },
+            {
+              "name": "field-deposit",
+              "ms": 0.917504
+            },
+            {
+              "name": "field-extend",
+              "ms": 0.065536
+            },
+            {
+              "name": "field-extended",
+              "ms": 0
+            },
+            {
+              "name": "field-extend",
+              "ms": 0.065536
+            },
+            {
+              "name": "field-extended",
+              "ms": 0.065536
+            },
+            {
+              "name": "field-extend",
+              "ms": 0.065536
+            },
+            {
+              "name": "field-extended",
+              "ms": 0.065536
+            },
+            {
+              "name": "field-advect",
+              "ms": 0.196608
+            },
+            {
+              "name": "field-viscosity",
+              "ms": 0.196608
+            },
+            {
+              "name": "field-rhs",
+              "ms": 0.065536
+            },
+            {
+              "name": "field-compatible",
+              "ms": 0.065536
+            },
+            {
+              "name": "field-pressure",
+              "ms": 27.131904
+            },
+            {
+              "name": "field-project",
+              "ms": 0.065536
+            },
+            {
+              "name": "gather",
+              "ms": 0.131072
+            },
+            {
+              "name": "neighbors",
+              "ms": 1.3107199999999999
+            },
+            {
+              "name": "density",
+              "ms": 0.393216
+            },
+            {
+              "name": "contacts",
+              "ms": 0.458752
+            },
+            {
+              "name": "transport",
+              "ms": 0.262144
+            }
+          ],
+          "byName": {
+            "field-stencils": 0.262144,
+            "field-deposit": 0.917504,
+            "field-extend": 0.196608,
+            "field-extended": 0.131072,
+            "field-advect": 0.196608,
+            "field-viscosity": 0.196608,
+            "field-rhs": 0.065536,
+            "field-compatible": 0.065536,
+            "field-pressure": 27.131904,
+            "field-project": 0.065536,
+            "gather": 0.131072,
+            "neighbors": 1.3107199999999999,
+            "density": 0.393216,
+            "contacts": 0.458752,
+            "transport": 0.262144
+          }
+        }
+      }
+    }
+  ]
+}

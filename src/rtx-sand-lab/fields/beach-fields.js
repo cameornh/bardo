@@ -126,7 +126,7 @@ export class BeachFields {
    const energy=(sample.temperature-p.temperature)*(1-Math.exp(-dt*.08))*c*airCapacity/(c+airCapacity);p.temperature+=energy/c;g.temperature[sample.i]-=energy/airCapacity;g.ledger.dropHeat-=energy;
   }
  }
- sharedDevice(){const r=this.lab.renderer;return r.isSharedSceneWebGPU?{device:r.device,adapterInfo:{vendor:r.adapter.info?.vendor,architecture:r.adapter.info?.architecture}}:undefined;}
+ sharedDevice(){const r=this.lab.renderer;return r.isSharedSceneWebGPU?{device:r.device,createTiming:()=>r.createPassTiming(),adapterInfo:{vendor:r.adapter.info?.vendor,architecture:r.adapter.info?.architecture}}:undefined;}
  async verifyParticles(){
   if(this.lab.asyncPending)throw Error('Pause and wait for the current step');
   this.particleBackend='cpu';this.particles?.dispose();this.particles=await new ParticlePipeline().initialize(this.sharedDevice());

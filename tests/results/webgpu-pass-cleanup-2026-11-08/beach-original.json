@@ -1,0 +1,3393 @@
+{
+  "checks": [],
+  "runs": [
+    {
+      "variant": "beach",
+      "resolution": [
+        320,
+        200
+      ],
+      "water": 1164,
+      "physics": "CPU/WASM, one fixed step per frame in both arms",
+      "adapter": {},
+      "summary": [
+        {
+          "optimized": false,
+          "fps": 7.1609726987915865,
+          "realtime": 0.4773981799194391,
+          "meanFrameMs": 139.21875000124177
+        },
+        {
+          "optimized": true,
+          "fps": 7.3971336107258425,
+          "realtime": 0.4931422407150562,
+          "meanFrameMs": 134.36041667188206
+        }
+      ],
+      "blocks": [
+        {
+          "optimized": false,
+          "frames": 24,
+          "wall": 3.447199999988079,
+          "fps": 6.962172197749767,
+          "realtime": 0.46414481318331785,
+          "medianMs": 139.10000002384186,
+          "p95Ms": 171.29999995231628,
+          "bytes": 53489200,
+          "rows": [
+            {
+              "frameMs": 139.10000002384186,
+              "cpuMs": 45.5,
+              "prepare": 0.19999998807907104,
+              "encode": 2.399999976158142,
+              "wait": 81.90000003576279,
+              "total": 84.5,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 19,
+                  "truncated": false,
+                  "totalMs": 48.82432000000001
+                }
+              }
+            },
+            {
+              "frameMs": 138.80000001192093,
+              "cpuMs": 44.30000001192093,
+              "prepare": 0.09999996423721313,
+              "encode": 2.199999988079071,
+              "wait": 84.10000002384186,
+              "total": 86.39999997615814,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 20,
+                  "truncated": false,
+                  "totalMs": 47.316992000000006
+                }
+              }
+            },
+            {
+              "frameMs": 130.60000002384186,
+              "cpuMs": 36.30000001192093,
+              "prepare": 0.19999998807907104,
+              "encode": 2.300000011920929,
+              "wait": 83.19999998807907,
+              "total": 85.69999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 21,
+                  "truncated": false,
+                  "totalMs": 47.579136
+                }
+              }
+            },
+            {
+              "frameMs": 163.5,
+              "cpuMs": 63.5,
+              "prepare": 0.10000002384185791,
+              "encode": 2.300000011920929,
+              "wait": 87.59999996423721,
+              "total": 90,
+              "renderPasses": 52,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 22,
+                  "truncated": false,
+                  "totalMs": 50.59379200000001
+                }
+              }
+            },
+            {
+              "frameMs": 165.0999999642372,
+              "cpuMs": 56.299999952316284,
+              "prepare": 0.30000001192092896,
+              "encode": 3.099999964237213,
+              "wait": 87.80000001192093,
+              "total": 91.19999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 23,
+                  "truncated": false,
+                  "totalMs": 48.168960000000006
+                }
+              }
+            },
+            {
+              "frameMs": 160.80000001192093,
+              "cpuMs": 77.90000003576279,
+              "prepare": 0.19999998807907104,
+              "encode": 2.699999988079071,
+              "wait": 71.80000001192093,
+              "total": 74.69999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 24,
+                  "truncated": false,
+                  "totalMs": 48.75878400000002
+                }
+              }
+            },
+            {
+              "frameMs": 139.10000002384186,
+              "cpuMs": 56.89999997615814,
+              "prepare": 0.19999998807907104,
+              "encode": 2.199999988079071,
+              "wait": 72.60000002384186,
+              "total": 75,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 25,
+                  "truncated": false,
+                  "totalMs": 49.414144000000015
+                }
+              }
+            },
+            {
+              "frameMs": 123,
+              "cpuMs": 46.10000002384186,
+              "prepare": 0.09999996423721313,
+              "encode": 2.100000023841858,
+              "wait": 66.89999997615814,
+              "total": 69.09999996423721,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 26,
+                  "truncated": false,
+                  "totalMs": 47.38252800000003
+                }
+              }
+            },
+            {
+              "frameMs": 132.5999999642372,
+              "cpuMs": 41.5,
+              "prepare": 0.20000004768371582,
+              "encode": 2,
+              "wait": 81.69999998807907,
+              "total": 83.90000003576279,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 27,
+                  "truncated": false,
+                  "totalMs": 48.562176000000015
+                }
+              }
+            },
+            {
+              "frameMs": 165.69999998807907,
+              "cpuMs": 53,
+              "prepare": 0.30000001192092896,
+              "encode": 2.5,
+              "wait": 102.30000001192093,
+              "total": 105.10000002384186,
+              "renderPasses": 52,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 28,
+                  "truncated": false,
+                  "totalMs": 47.31699200000002
+                }
+              }
+            },
+            {
+              "frameMs": 122.10000002384186,
+              "cpuMs": 36.40000003576279,
+              "prepare": 0.10000002384185791,
+              "encode": 2.299999952316284,
+              "wait": 76,
+              "total": 78.39999997615814,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 29,
+                  "truncated": false,
+                  "totalMs": 46.53056000000002
+                }
+              }
+            },
+            {
+              "frameMs": 154.39999997615814,
+              "cpuMs": 35.69999998807907,
+              "prepare": 0.10000002384185791,
+              "encode": 2.399999976158142,
+              "wait": 108.80000001192093,
+              "total": 111.30000001192093,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 30,
+                  "truncated": false,
+                  "totalMs": 46.465024000000014
+                }
+              }
+            },
+            {
+              "frameMs": 152.9000000357628,
+              "cpuMs": 35.30000001192093,
+              "prepare": 0.19999998807907104,
+              "encode": 2.200000047683716,
+              "wait": 107.69999998807907,
+              "total": 110.10000002384186,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 31,
+                  "truncated": false,
+                  "totalMs": 46.39948800000002
+                }
+              }
+            },
+            {
+              "frameMs": 130.9000000357628,
+              "cpuMs": 35.40000003576279,
+              "prepare": 0.10000002384185791,
+              "encode": 2.099999964237213,
+              "wait": 86.10000002384186,
+              "total": 88.30000001192093,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 32,
+                  "truncated": false,
+                  "totalMs": 46.333952000000004
+                }
+              }
+            },
+            {
+              "frameMs": 158.69999998807907,
+              "cpuMs": 36.89999997615814,
+              "prepare": 0.09999996423721313,
+              "encode": 2.300000011920929,
+              "wait": 111.89999997615814,
+              "total": 114.29999995231628,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 33,
+                  "truncated": false,
+                  "totalMs": 46.85824000000001
+                }
+              }
+            },
+            {
+              "frameMs": 165.60000002384186,
+              "cpuMs": 36.10000002384186,
+              "prepare": 0.3999999761581421,
+              "encode": 3.199999988079071,
+              "wait": 117.60000002384186,
+              "total": 121.19999998807907,
+              "renderPasses": 52,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 34,
+                  "truncated": false,
+                  "totalMs": 45.744128000000025
+                }
+              }
+            },
+            {
+              "frameMs": 148.19999998807907,
+              "cpuMs": 32,
+              "prepare": 0.20000004768371582,
+              "encode": 2.5,
+              "wait": 104.89999997615814,
+              "total": 107.60000002384186,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 35,
+                  "truncated": false,
+                  "totalMs": 47.90681600000001
+                }
+              }
+            },
+            {
+              "frameMs": 185.70000004768372,
+              "cpuMs": 35.200000047683716,
+              "prepare": 0.30000001192092896,
+              "encode": 2.899999976158142,
+              "wait": 137.10000002384186,
+              "total": 140.30000001192093,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 36,
+                  "truncated": false,
+                  "totalMs": 46.26841600000002
+                }
+              }
+            },
+            {
+              "frameMs": 171.29999995231628,
+              "cpuMs": 36.19999998807907,
+              "prepare": 0.30000001192092896,
+              "encode": 2.800000011920929,
+              "wait": 123.39999997615814,
+              "total": 126.5,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 37,
+                  "truncated": false,
+                  "totalMs": 46.39948800000001
+                }
+              }
+            },
+            {
+              "frameMs": 113.60000002384186,
+              "cpuMs": 31.69999998807907,
+              "prepare": 0.20000004768371582,
+              "encode": 2.399999976158142,
+              "wait": 72.19999998807907,
+              "total": 74.80000001192093,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 38,
+                  "truncated": false,
+                  "totalMs": 46.79270400000003
+                }
+              }
+            },
+            {
+              "frameMs": 120.79999995231628,
+              "cpuMs": 34.69999998807907,
+              "prepare": 0.19999998807907104,
+              "encode": 2.400000035762787,
+              "wait": 76.29999995231628,
+              "total": 78.89999997615814,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 39,
+                  "truncated": false,
+                  "totalMs": 47.710208000000016
+                }
+              }
+            },
+            {
+              "frameMs": 130.39999997615814,
+              "cpuMs": 36.19999998807907,
+              "prepare": 0.10000002384185791,
+              "encode": 2.199999988079071,
+              "wait": 83.89999997615814,
+              "total": 86.19999998807907,
+              "renderPasses": 52,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 40,
+                  "truncated": false,
+                  "totalMs": 47.185920000000024
+                }
+              }
+            },
+            {
+              "frameMs": 114.30000001192093,
+              "cpuMs": 29.80000001192093,
+              "prepare": 0.19999998807907104,
+              "encode": 2.199999988079071,
+              "wait": 74.80000001192093,
+              "total": 77.19999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 41,
+                  "truncated": false,
+                  "totalMs": 45.809664000000026
+                }
+              }
+            },
+            {
+              "frameMs": 111.59999996423721,
+              "cpuMs": 33.09999996423721,
+              "prepare": 0.19999998807907104,
+              "encode": 2.300000011920929,
+              "wait": 68.5,
+              "total": 71,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 42,
+                  "truncated": false,
+                  "totalMs": 46.53056000000001
+                }
+              }
+            }
+          ],
+          "lastPassTiming": {
+            "supported": true,
+            "enabled": true,
+            "skipped": 0,
+            "error": null,
+            "sample": {
+              "sequence": 42,
+              "truncated": false,
+              "totalMs": 46.53056000000001,
+              "passes": [
+                {
+                  "name": "live-projected-air-resample",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "fine water flow field",
+                  "ms": 0.9830399999999999
+                },
+                {
+                  "name": "fine water transport",
+                  "ms": 3.670016
+                },
+                {
+                  "name": "sand grain transport",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "spray shadows",
+                  "ms": 1.9660799999999998
+                },
+                {
+                  "name": "spray-shadow-atlas",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "density",
+                  "ms": 2.228224
+                },
+                {
+                  "name": "density",
+                  "ms": 5.177344
+                },
+                {
+                  "name": "density",
+                  "ms": 0.065536
+                },
+                {
+                  "name": "medium lighting",
+                  "ms": 5.177344
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "water front",
+                  "ms": 3.080192
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "opaque-hit-record",
+                  "ms": 7.667712
+                },
+                {
+                  "name": "opaque-reflection-hit",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "opaque-reflection-lighting",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "opaque-lighting",
+                  "ms": 2.883584
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "water-hit-record",
+                  "ms": 2.883584
+                },
+                {
+                  "name": "water-reflection-hit",
+                  "ms": 1.900544
+                },
+                {
+                  "name": "water-reflection-lighting",
+                  "ms": 0.524288
+                },
+                {
+                  "name": "water-transmission-hit",
+                  "ms": 1.441792
+                },
+                {
+                  "name": "water-transmission-lighting",
+                  "ms": 1.900544
+                },
+                {
+                  "name": "water-lighting",
+                  "ms": 0.32767999999999997
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "water merge",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "image copy",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "fine-water-visible-lighting",
+                  "ms": 0.9830399999999999
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "fine-water-visible-Gaussians",
+                  "ms": 0.851968
+                },
+                {
+                  "name": "fine water composite",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "visible-sand-grains",
+                  "ms": 0.262144
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "glass-hit-record",
+                  "ms": 0.262144
+                },
+                {
+                  "name": "glass-lighting",
+                  "ms": 0.32767999999999997
+                },
+                {
+                  "name": "image copy",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "Gaussian stars",
+                  "ms": 0.065536
+                },
+                {
+                  "name": "Gaussian stars",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0.065536
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0.065536
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0
+                },
+                {
+                  "name": "exposure adaptation",
+                  "ms": 0
+                },
+                {
+                  "name": "display",
+                  "ms": 0.065536
+                }
+              ],
+              "byName": {
+                "live-projected-air-resample": 0.131072,
+                "clear": 0,
+                "fine water flow field": 0.9830399999999999,
+                "fine water transport": 3.670016,
+                "sand grain transport": 0.196608,
+                "spray shadows": 1.9660799999999998,
+                "spray-shadow-atlas": 0.196608,
+                "density": 7.4711039999999995,
+                "medium lighting": 5.177344,
+                "water front": 3.080192,
+                "opaque-hit-record": 7.667712,
+                "opaque-reflection-hit": 0.196608,
+                "opaque-reflection-lighting": 0.196608,
+                "opaque-lighting": 2.883584,
+                "water-hit-record": 2.883584,
+                "water-reflection-hit": 1.900544,
+                "water-reflection-lighting": 0.524288,
+                "water-transmission-hit": 1.441792,
+                "water-transmission-lighting": 1.900544,
+                "water-lighting": 0.32767999999999997,
+                "water merge": 0.196608,
+                "image copy": 0.32767999999999997,
+                "fine-water-visible-lighting": 0.9830399999999999,
+                "fine-water-visible-Gaussians": 0.851968,
+                "fine water composite": 0.131072,
+                "visible-sand-grains": 0.262144,
+                "glass-hit-record": 0.262144,
+                "glass-lighting": 0.32767999999999997,
+                "Gaussian stars": 0.196608,
+                "exposure reduction": 0.131072,
+                "exposure adaptation": 0,
+                "display": 0.065536
+              }
+            }
+          }
+        },
+        {
+          "optimized": true,
+          "frames": 24,
+          "wall": 3.325300000011921,
+          "fps": 7.217393919319749,
+          "realtime": 0.48115959462131663,
+          "medianMs": 135.9000000357628,
+          "p95Ms": 183.0999999642372,
+          "bytes": 53489200,
+          "rows": [
+            {
+              "frameMs": 110,
+              "cpuMs": 33.10000002384186,
+              "prepare": 0.10000002384185791,
+              "encode": 2.199999988079071,
+              "wait": 67.19999998807907,
+              "total": 69.5,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 51,
+                  "truncated": false,
+                  "totalMs": 41.091072000000004
+                }
+              }
+            },
+            {
+              "frameMs": 157.80000001192093,
+              "cpuMs": 33.60000002384186,
+              "prepare": 0.19999998807907104,
+              "encode": 3.300000011920929,
+              "wait": 113.19999998807907,
+              "total": 116.69999998807907,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 52,
+                  "truncated": false,
+                  "totalMs": 41.484288000000014
+                }
+              }
+            },
+            {
+              "frameMs": 106,
+              "cpuMs": 29.400000035762787,
+              "prepare": 0.19999998807907104,
+              "encode": 2.600000023841858,
+              "wait": 66.69999998807907,
+              "total": 69.5,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 53,
+                  "truncated": false,
+                  "totalMs": 43.31929600000001
+                }
+              }
+            },
+            {
+              "frameMs": 135.9000000357628,
+              "cpuMs": 58,
+              "prepare": 0.10000002384185791,
+              "encode": 2.399999976158142,
+              "wait": 67.70000004768372,
+              "total": 70.20000004768372,
+              "renderPasses": 42,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 54,
+                  "truncated": false,
+                  "totalMs": 43.58144
+                }
+              }
+            },
+            {
+              "frameMs": 131.19999998807907,
+              "cpuMs": 50.59999996423721,
+              "prepare": 0.19999998807907104,
+              "encode": 1.899999976158142,
+              "wait": 70.60000002384186,
+              "total": 72.69999998807907,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 55,
+                  "truncated": false,
+                  "totalMs": 43.58144000000001
+                }
+              }
+            },
+            {
+              "frameMs": 123.60000002384186,
+              "cpuMs": 43.5,
+              "prepare": 0.19999998807907104,
+              "encode": 2.100000023841858,
+              "wait": 70.80000001192093,
+              "total": 73.10000002384186,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 56,
+                  "truncated": false,
+                  "totalMs": 44.23680000000001
+                }
+              }
+            },
+            {
+              "frameMs": 123.40000003576279,
+              "cpuMs": 42.30000001192093,
+              "prepare": 0.19999998807907104,
+              "encode": 1.9000000357627869,
+              "wait": 71.80000001192093,
+              "total": 73.90000003576279,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 57,
+                  "truncated": false,
+                  "totalMs": 44.040192000000005
+                }
+              }
+            },
+            {
+              "frameMs": 129.80000001192093,
+              "cpuMs": 44.700000047683716,
+              "prepare": 0.20000004768371582,
+              "encode": 2.099999964237213,
+              "wait": 75.5,
+              "total": 77.80000001192093,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 58,
+                  "truncated": false,
+                  "totalMs": 43.58144000000002
+                }
+              }
+            },
+            {
+              "frameMs": 152.69999998807907,
+              "cpuMs": 37.09999996423721,
+              "prepare": 0.09999996423721313,
+              "encode": 2.100000023841858,
+              "wait": 106.19999998807907,
+              "total": 108.39999997615814,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 59,
+                  "truncated": false,
+                  "totalMs": 45.08876800000002
+                }
+              }
+            },
+            {
+              "frameMs": 136.5,
+              "cpuMs": 40,
+              "prepare": 0.19999998807907104,
+              "encode": 2.699999988079071,
+              "wait": 86.30000001192093,
+              "total": 89.19999998807907,
+              "renderPasses": 42,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 60,
+                  "truncated": false,
+                  "totalMs": 44.36787200000002
+                }
+              }
+            },
+            {
+              "frameMs": 143.10000002384186,
+              "cpuMs": 35.700000047683716,
+              "prepare": 0.30000001192092896,
+              "encode": 2.199999988079071,
+              "wait": 97.09999996423721,
+              "total": 99.59999996423721,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 61,
+                  "truncated": false,
+                  "totalMs": 44.04019200000001
+                }
+              }
+            },
+            {
+              "frameMs": 183.0999999642372,
+              "cpuMs": 32.39999997615814,
+              "prepare": 0.20000004768371582,
+              "encode": 1.7999999523162842,
+              "wait": 141.60000002384186,
+              "total": 143.60000002384186,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 62,
+                  "truncated": false,
+                  "totalMs": 43.45036800000002
+                }
+              }
+            },
+            {
+              "frameMs": 143,
+              "cpuMs": 29.900000035762787,
+              "prepare": 0.19999998807907104,
+              "encode": 1.699999988079071,
+              "wait": 103.30000001192093,
+              "total": 105.19999998807907,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 63,
+                  "truncated": false,
+                  "totalMs": 44.10572800000001
+                }
+              }
+            },
+            {
+              "frameMs": 180.5999999642372,
+              "cpuMs": 38.80000001192093,
+              "prepare": 0.19999998807907104,
+              "encode": 2.600000023841858,
+              "wait": 129.29999995231628,
+              "total": 132.0999999642372,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 64,
+                  "truncated": false,
+                  "totalMs": 44.56448000000002
+                }
+              }
+            },
+            {
+              "frameMs": 152.80000001192093,
+              "cpuMs": 33.10000002384186,
+              "prepare": 0.2999999523162842,
+              "encode": 2.100000023841858,
+              "wait": 110.10000002384186,
+              "total": 112.5,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 65,
+                  "truncated": false,
+                  "totalMs": 43.646976000000016
+                }
+              }
+            },
+            {
+              "frameMs": 188.60000002384186,
+              "cpuMs": 35.700000047683716,
+              "prepare": 0.19999998807907104,
+              "encode": 2,
+              "wait": 143.60000002384186,
+              "total": 145.80000001192093,
+              "renderPasses": 42,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 66,
+                  "truncated": false,
+                  "totalMs": 44.17126400000002
+                }
+              }
+            },
+            {
+              "frameMs": 121.19999998807907,
+              "cpuMs": 30.19999998807907,
+              "prepare": 0.19999998807907104,
+              "encode": 1.800000011920929,
+              "wait": 82.19999998807907,
+              "total": 84.19999998807907,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 67,
+                  "truncated": false,
+                  "totalMs": 44.10572800000001
+                }
+              }
+            },
+            {
+              "frameMs": 161.70000004768372,
+              "cpuMs": 31.600000023841858,
+              "prepare": 0.09999996423721313,
+              "encode": 2,
+              "wait": 121.30000001192093,
+              "total": 123.39999997615814,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 68,
+                  "truncated": false,
+                  "totalMs": 43.581440000000015
+                }
+              }
+            },
+            {
+              "frameMs": 129.5,
+              "cpuMs": 32.40000003576279,
+              "prepare": 0.20000004768371582,
+              "encode": 1.7999999523162842,
+              "wait": 87.40000003576279,
+              "total": 89.40000003576279,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 69,
+                  "truncated": false,
+                  "totalMs": 44.17126400000002
+                }
+              }
+            },
+            {
+              "frameMs": 149.89999997615814,
+              "cpuMs": 32.19999998807907,
+              "prepare": 0.2999999523162842,
+              "encode": 2,
+              "wait": 108,
+              "total": 110.29999995231628,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 70,
+                  "truncated": false,
+                  "totalMs": 44.17126400000002
+                }
+              }
+            },
+            {
+              "frameMs": 112.5,
+              "cpuMs": 30.399999976158142,
+              "prepare": 0.09999996423721313,
+              "encode": 1.9000000357627869,
+              "wait": 73.19999998807907,
+              "total": 75.19999998807907,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 71,
+                  "truncated": false,
+                  "totalMs": 44.56448000000001
+                }
+              }
+            },
+            {
+              "frameMs": 126,
+              "cpuMs": 33.5,
+              "prepare": 0.19999998807907104,
+              "encode": 2.199999988079071,
+              "wait": 82.60000002384186,
+              "total": 85,
+              "renderPasses": 42,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 72,
+                  "truncated": false,
+                  "totalMs": 44.36787200000001
+                }
+              }
+            },
+            {
+              "frameMs": 110.69999998807907,
+              "cpuMs": 29.899999976158142,
+              "prepare": 0.19999998807907104,
+              "encode": 1.899999976158142,
+              "wait": 72,
+              "total": 74.09999996423721,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 73,
+                  "truncated": false,
+                  "totalMs": 44.23680000000002
+                }
+              }
+            },
+            {
+              "frameMs": 105.70000004768372,
+              "cpuMs": 31,
+              "prepare": 0.19999998807907104,
+              "encode": 2,
+              "wait": 65.60000002384186,
+              "total": 67.80000001192093,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 74,
+                  "truncated": false,
+                  "totalMs": 43.843584000000014
+                }
+              }
+            }
+          ],
+          "lastPassTiming": {
+            "supported": true,
+            "enabled": true,
+            "skipped": 0,
+            "error": null,
+            "sample": {
+              "sequence": 74,
+              "truncated": false,
+              "totalMs": 43.843584000000014,
+              "passes": [
+                {
+                  "name": "live-projected-air-resample",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "fine water flow field",
+                  "ms": 0.917504
+                },
+                {
+                  "name": "fine water transport",
+                  "ms": 3.6044799999999997
+                },
+                {
+                  "name": "sand grain transport",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "spray shadows",
+                  "ms": 1.835008
+                },
+                {
+                  "name": "spray-shadow-atlas",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "density",
+                  "ms": 2.097152
+                },
+                {
+                  "name": "density",
+                  "ms": 4.980735999999999
+                },
+                {
+                  "name": "density",
+                  "ms": 0.065536
+                },
+                {
+                  "name": "medium lighting",
+                  "ms": 4.653055999999999
+                },
+                {
+                  "name": "water front",
+                  "ms": 2.883584
+                },
+                {
+                  "name": "opaque-hit-record",
+                  "ms": 7.405568
+                },
+                {
+                  "name": "opaque-reflection-hit",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "opaque-reflection-lighting",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "opaque-lighting",
+                  "ms": 2.4903679999999997
+                },
+                {
+                  "name": "water-hit-record",
+                  "ms": 2.6214399999999998
+                },
+                {
+                  "name": "water-reflection-hit",
+                  "ms": 1.9660799999999998
+                },
+                {
+                  "name": "water-reflection-lighting",
+                  "ms": 0.589824
+                },
+                {
+                  "name": "water-transmission-hit",
+                  "ms": 1.3107199999999999
+                },
+                {
+                  "name": "water-transmission-lighting",
+                  "ms": 1.835008
+                },
+                {
+                  "name": "water-lighting",
+                  "ms": 0.32767999999999997
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "water merge",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "image copy",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "fine-water-visible-lighting",
+                  "ms": 0.851968
+                },
+                {
+                  "name": "fine-water-visible-Gaussians",
+                  "ms": 0.720896
+                },
+                {
+                  "name": "fine water composite + visible-sand-grains",
+                  "ms": 0.32767999999999997
+                },
+                {
+                  "name": "glass-hit-record",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "glass-lighting",
+                  "ms": 0.393216
+                },
+                {
+                  "name": "image copy + Gaussian stars + Gaussian stars",
+                  "ms": 0.32767999999999997
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0.065536
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0.065536
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0.065536
+                },
+                {
+                  "name": "exposure adaptation",
+                  "ms": 0
+                },
+                {
+                  "name": "display",
+                  "ms": 0.131072
+                }
+              ],
+              "byName": {
+                "live-projected-air-resample": 0.131072,
+                "clear": 0,
+                "fine water flow field": 0.917504,
+                "fine water transport": 3.6044799999999997,
+                "sand grain transport": 0.196608,
+                "spray shadows": 1.835008,
+                "spray-shadow-atlas": 0.196608,
+                "density": 7.1434239999999996,
+                "medium lighting": 4.653055999999999,
+                "water front": 2.883584,
+                "opaque-hit-record": 7.405568,
+                "opaque-reflection-hit": 0.131072,
+                "opaque-reflection-lighting": 0.131072,
+                "opaque-lighting": 2.4903679999999997,
+                "water-hit-record": 2.6214399999999998,
+                "water-reflection-hit": 1.9660799999999998,
+                "water-reflection-lighting": 0.589824,
+                "water-transmission-hit": 1.3107199999999999,
+                "water-transmission-lighting": 1.835008,
+                "water-lighting": 0.32767999999999997,
+                "water merge": 0.131072,
+                "image copy": 0.196608,
+                "fine-water-visible-lighting": 0.851968,
+                "fine-water-visible-Gaussians": 0.720896,
+                "fine water composite + visible-sand-grains": 0.32767999999999997,
+                "glass-hit-record": 0.196608,
+                "glass-lighting": 0.393216,
+                "image copy + Gaussian stars + Gaussian stars": 0.32767999999999997,
+                "exposure reduction": 0.196608,
+                "exposure adaptation": 0,
+                "display": 0.131072
+              }
+            }
+          }
+        },
+        {
+          "optimized": true,
+          "frames": 24,
+          "wall": 3.1636999999880793,
+          "fps": 7.586054303533973,
+          "realtime": 0.5057369535689316,
+          "medianMs": 133.19999998807907,
+          "p95Ms": 161.80000001192093,
+          "bytes": 53489200,
+          "rows": [
+            {
+              "frameMs": 115.59999996423721,
+              "cpuMs": 28,
+              "prepare": 0.10000002384185791,
+              "encode": 1.899999976158142,
+              "wait": 78.70000004768372,
+              "total": 80.70000004768372,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 83,
+                  "truncated": false,
+                  "totalMs": 39.32160000000001
+                }
+              }
+            },
+            {
+              "frameMs": 117,
+              "cpuMs": 27.399999976158142,
+              "prepare": 0.10000002384185791,
+              "encode": 1.800000011920929,
+              "wait": 80.59999996423721,
+              "total": 82.5,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 84,
+                  "truncated": false,
+                  "totalMs": 40.173568
+                }
+              }
+            },
+            {
+              "frameMs": 95.40000003576279,
+              "cpuMs": 26.100000023841858,
+              "prepare": 0.19999998807907104,
+              "encode": 2.100000023841858,
+              "wait": 59.59999996423721,
+              "total": 61.89999997615814,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 85,
+                  "truncated": false,
+                  "totalMs": 41.025536
+                }
+              }
+            },
+            {
+              "frameMs": 126.89999997615814,
+              "cpuMs": 44.30000001192093,
+              "prepare": 0.09999996423721313,
+              "encode": 2,
+              "wait": 72.69999998807907,
+              "total": 74.79999995231628,
+              "renderPasses": 42,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 86,
+                  "truncated": false,
+                  "totalMs": 43.253760000000014
+                }
+              }
+            },
+            {
+              "frameMs": 133.80000001192093,
+              "cpuMs": 40.59999996423721,
+              "prepare": 0.19999998807907104,
+              "encode": 2.300000011920929,
+              "wait": 83.60000002384186,
+              "total": 86.10000002384186,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 87,
+                  "truncated": false,
+                  "totalMs": 42.33625600000001
+                }
+              }
+            },
+            {
+              "frameMs": 134.89999997615814,
+              "cpuMs": 42.89999997615814,
+              "prepare": 0.09999996423721313,
+              "encode": 2.100000023841858,
+              "wait": 82.30000001192093,
+              "total": 84.5,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 88,
+                  "truncated": false,
+                  "totalMs": 42.79500800000001
+                }
+              }
+            },
+            {
+              "frameMs": 134.80000001192093,
+              "cpuMs": 32.80000001192093,
+              "prepare": 0.10000002384185791,
+              "encode": 2,
+              "wait": 94,
+              "total": 96.10000002384186,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 89,
+                  "truncated": false,
+                  "totalMs": 44.105728000000006
+                }
+              }
+            },
+            {
+              "frameMs": 119.30000001192093,
+              "cpuMs": 43,
+              "prepare": 0.19999998807907104,
+              "encode": 1.9000000357627869,
+              "wait": 66.80000001192093,
+              "total": 68.90000003576279,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 90,
+                  "truncated": false,
+                  "totalMs": 43.253760000000014
+                }
+              }
+            },
+            {
+              "frameMs": 141.19999998807907,
+              "cpuMs": 44.69999998807907,
+              "prepare": 0.19999998807907104,
+              "encode": 2,
+              "wait": 87.09999996423721,
+              "total": 89.29999995231628,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 91,
+                  "truncated": false,
+                  "totalMs": 43.319296
+                }
+              }
+            },
+            {
+              "frameMs": 156.30000001192093,
+              "cpuMs": 37.5,
+              "prepare": 0.19999998807907104,
+              "encode": 1.9000000357627869,
+              "wait": 110,
+              "total": 112.10000002384186,
+              "renderPasses": 42,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 92,
+                  "truncated": false,
+                  "totalMs": 43.84358400000001
+                }
+              }
+            },
+            {
+              "frameMs": 141.60000002384186,
+              "cpuMs": 29.30000001192093,
+              "prepare": 0.09999996423721313,
+              "encode": 1.9000000357627869,
+              "wait": 103.30000001192093,
+              "total": 105.30000001192093,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 93,
+                  "truncated": false,
+                  "totalMs": 42.795008
+                }
+              }
+            },
+            {
+              "frameMs": 136,
+              "cpuMs": 30,
+              "prepare": 0.09999996423721313,
+              "encode": 1.9000000357627869,
+              "wait": 97.59999996423721,
+              "total": 99.59999996423721,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 94,
+                  "truncated": false,
+                  "totalMs": 42.20518400000002
+                }
+              }
+            },
+            {
+              "frameMs": 162.5,
+              "cpuMs": 30.80000001192093,
+              "prepare": 0.10000002384185791,
+              "encode": 1.899999976158142,
+              "wait": 122.80000001192093,
+              "total": 124.80000001192093,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 95,
+                  "truncated": false,
+                  "totalMs": 42.926080000000006
+                }
+              }
+            },
+            {
+              "frameMs": 160.20000004768372,
+              "cpuMs": 28.80000001192093,
+              "prepare": 0.09999996423721313,
+              "encode": 2.100000023841858,
+              "wait": 122.69999998807907,
+              "total": 124.89999997615814,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 96,
+                  "truncated": false,
+                  "totalMs": 43.450368
+                }
+              }
+            },
+            {
+              "frameMs": 140.60000002384186,
+              "cpuMs": 27.400000035762787,
+              "prepare": 0.19999998807907104,
+              "encode": 2,
+              "wait": 104.69999998807907,
+              "total": 106.89999997615814,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 97,
+                  "truncated": false,
+                  "totalMs": 42.59840000000001
+                }
+              }
+            },
+            {
+              "frameMs": 161.80000001192093,
+              "cpuMs": 31.5,
+              "prepare": 0.19999998807907104,
+              "encode": 2.100000023841858,
+              "wait": 120.69999998807907,
+              "total": 123,
+              "renderPasses": 42,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 98,
+                  "truncated": false,
+                  "totalMs": 42.13964800000001
+                }
+              }
+            },
+            {
+              "frameMs": 133.19999998807907,
+              "cpuMs": 28.099999964237213,
+              "prepare": 0.19999998807907104,
+              "encode": 1.800000011920929,
+              "wait": 96.79999995231628,
+              "total": 98.79999995231628,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 99,
+                  "truncated": false,
+                  "totalMs": 43.25376000000001
+                }
+              }
+            },
+            {
+              "frameMs": 127.80000001192093,
+              "cpuMs": 28.5,
+              "prepare": 0.19999998807907104,
+              "encode": 1.699999988079071,
+              "wait": 91.30000001192093,
+              "total": 93.19999998807907,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 100,
+                  "truncated": false,
+                  "totalMs": 42.66393599999999
+                }
+              }
+            },
+            {
+              "frameMs": 111.69999998807907,
+              "cpuMs": 30.80000001192093,
+              "prepare": 0.09999996423721313,
+              "encode": 2.100000023841858,
+              "wait": 72.30000001192093,
+              "total": 74.59999996423721,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 101,
+                  "truncated": false,
+                  "totalMs": 44.23680000000002
+                }
+              }
+            },
+            {
+              "frameMs": 128.19999998807907,
+              "cpuMs": 31.599999964237213,
+              "prepare": 0.30000001192092896,
+              "encode": 2.199999988079071,
+              "wait": 86.39999997615814,
+              "total": 88.89999997615814,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 102,
+                  "truncated": false,
+                  "totalMs": 43.18822400000001
+                }
+              }
+            },
+            {
+              "frameMs": 99.80000001192093,
+              "cpuMs": 28.5,
+              "prepare": 0.20000004768371582,
+              "encode": 2,
+              "wait": 61.89999997615814,
+              "total": 64.10000002384186,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 103,
+                  "truncated": false,
+                  "totalMs": 42.40179200000001
+                }
+              }
+            },
+            {
+              "frameMs": 121.20000004768372,
+              "cpuMs": 32.30000001192093,
+              "prepare": 0.19999998807907104,
+              "encode": 2,
+              "wait": 79.70000004768372,
+              "total": 81.90000003576279,
+              "renderPasses": 42,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 104,
+                  "truncated": false,
+                  "totalMs": 45.41644800000001
+                }
+              }
+            },
+            {
+              "frameMs": 104.60000002384186,
+              "cpuMs": 28,
+              "prepare": 0.09999996423721313,
+              "encode": 1.7000000476837158,
+              "wait": 67.89999997615814,
+              "total": 69.69999998807907,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 105,
+                  "truncated": false,
+                  "totalMs": 43.581440000000015
+                }
+              }
+            },
+            {
+              "frameMs": 129.5999999642372,
+              "cpuMs": 31.399999976158142,
+              "prepare": 0.09999996423721313,
+              "encode": 2.100000023841858,
+              "wait": 89.10000002384186,
+              "total": 91.30000001192093,
+              "renderPasses": 40,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 106,
+                  "truncated": false,
+                  "totalMs": 43.646976000000016
+                }
+              }
+            }
+          ],
+          "lastPassTiming": {
+            "supported": true,
+            "enabled": true,
+            "skipped": 0,
+            "error": null,
+            "sample": {
+              "sequence": 106,
+              "truncated": false,
+              "totalMs": 43.646976000000016,
+              "passes": [
+                {
+                  "name": "live-projected-air-resample",
+                  "ms": 0.065536
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "fine water flow field",
+                  "ms": 0.917504
+                },
+                {
+                  "name": "fine water transport",
+                  "ms": 3.538944
+                },
+                {
+                  "name": "sand grain transport",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "spray shadows",
+                  "ms": 1.835008
+                },
+                {
+                  "name": "spray-shadow-atlas",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "density",
+                  "ms": 2.031616
+                },
+                {
+                  "name": "density",
+                  "ms": 4.9152
+                },
+                {
+                  "name": "density",
+                  "ms": 0
+                },
+                {
+                  "name": "medium lighting",
+                  "ms": 4.9152
+                },
+                {
+                  "name": "water front",
+                  "ms": 2.883584
+                },
+                {
+                  "name": "opaque-hit-record",
+                  "ms": 7.274496
+                },
+                {
+                  "name": "opaque-reflection-hit",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "opaque-reflection-lighting",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "opaque-lighting",
+                  "ms": 2.686976
+                },
+                {
+                  "name": "water-hit-record",
+                  "ms": 2.686976
+                },
+                {
+                  "name": "water-reflection-hit",
+                  "ms": 1.769472
+                },
+                {
+                  "name": "water-reflection-lighting",
+                  "ms": 0.524288
+                },
+                {
+                  "name": "water-transmission-hit",
+                  "ms": 1.3107199999999999
+                },
+                {
+                  "name": "water-transmission-lighting",
+                  "ms": 1.835008
+                },
+                {
+                  "name": "water-lighting",
+                  "ms": 0.32767999999999997
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "water merge",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "image copy",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "fine-water-visible-lighting",
+                  "ms": 0.851968
+                },
+                {
+                  "name": "fine-water-visible-Gaussians",
+                  "ms": 0.786432
+                },
+                {
+                  "name": "fine water composite + visible-sand-grains",
+                  "ms": 0.32767999999999997
+                },
+                {
+                  "name": "glass-hit-record",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "glass-lighting",
+                  "ms": 0.32767999999999997
+                },
+                {
+                  "name": "image copy + Gaussian stars + Gaussian stars",
+                  "ms": 0.32767999999999997
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0.065536
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0.065536
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0
+                },
+                {
+                  "name": "exposure adaptation",
+                  "ms": 0
+                },
+                {
+                  "name": "display",
+                  "ms": 0.131072
+                }
+              ],
+              "byName": {
+                "live-projected-air-resample": 0.065536,
+                "clear": 0,
+                "fine water flow field": 0.917504,
+                "fine water transport": 3.538944,
+                "sand grain transport": 0.196608,
+                "spray shadows": 1.835008,
+                "spray-shadow-atlas": 0.196608,
+                "density": 6.946816,
+                "medium lighting": 4.9152,
+                "water front": 2.883584,
+                "opaque-hit-record": 7.274496,
+                "opaque-reflection-hit": 0.196608,
+                "opaque-reflection-lighting": 0.196608,
+                "opaque-lighting": 2.686976,
+                "water-hit-record": 2.686976,
+                "water-reflection-hit": 1.769472,
+                "water-reflection-lighting": 0.524288,
+                "water-transmission-hit": 1.3107199999999999,
+                "water-transmission-lighting": 1.835008,
+                "water-lighting": 0.32767999999999997,
+                "water merge": 0.131072,
+                "image copy": 0.131072,
+                "fine-water-visible-lighting": 0.851968,
+                "fine-water-visible-Gaussians": 0.786432,
+                "fine water composite + visible-sand-grains": 0.32767999999999997,
+                "glass-hit-record": 0.196608,
+                "glass-lighting": 0.32767999999999997,
+                "image copy + Gaussian stars + Gaussian stars": 0.32767999999999997,
+                "exposure reduction": 0.131072,
+                "exposure adaptation": 0,
+                "display": 0.131072
+              }
+            }
+          }
+        },
+        {
+          "optimized": false,
+          "frames": 24,
+          "wall": 3.255800000011921,
+          "fps": 7.37146016337371,
+          "realtime": 0.4914306775582474,
+          "medianMs": 138,
+          "p95Ms": 157.60000002384186,
+          "bytes": 53489200,
+          "rows": [
+            {
+              "frameMs": 119,
+              "cpuMs": 27.600000023841858,
+              "prepare": 0.19999998807907104,
+              "encode": 2.199999988079071,
+              "wait": 80.89999997615814,
+              "total": 83.29999995231628,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 115,
+                  "truncated": false,
+                  "totalMs": 38.99392000000002
+                }
+              }
+            },
+            {
+              "frameMs": 126.60000002384186,
+              "cpuMs": 27,
+              "prepare": 0.19999998807907104,
+              "encode": 1.899999976158142,
+              "wait": 91.10000002384186,
+              "total": 93.19999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 116,
+                  "truncated": false,
+                  "totalMs": 40.239104000000026
+                }
+              }
+            },
+            {
+              "frameMs": 125,
+              "cpuMs": 25.099999964237213,
+              "prepare": 0.19999998807907104,
+              "encode": 1.9000000357627869,
+              "wait": 91.19999998807907,
+              "total": 93.30000001192093,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 117,
+                  "truncated": false,
+                  "totalMs": 40.63232000000002
+                }
+              }
+            },
+            {
+              "frameMs": 151.79999995231628,
+              "cpuMs": 40.19999998807907,
+              "prepare": 0.09999996423721313,
+              "encode": 2,
+              "wait": 101.60000002384186,
+              "total": 103.69999998807907,
+              "renderPasses": 52,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 118,
+                  "truncated": false,
+                  "totalMs": 42.467328000000016
+                }
+              }
+            },
+            {
+              "frameMs": 147.30000001192093,
+              "cpuMs": 38.09999996423721,
+              "prepare": 0.19999998807907104,
+              "encode": 1.800000011920929,
+              "wait": 100.69999998807907,
+              "total": 102.69999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 119,
+                  "truncated": false,
+                  "totalMs": 41.484288000000014
+                }
+              }
+            },
+            {
+              "frameMs": 119.10000002384186,
+              "cpuMs": 41.5,
+              "prepare": 0.19999998807907104,
+              "encode": 2.199999988079071,
+              "wait": 68.30000001192093,
+              "total": 70.69999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 120,
+                  "truncated": false,
+                  "totalMs": 42.72947200000003
+                }
+              }
+            },
+            {
+              "frameMs": 117.5,
+              "cpuMs": 36.19999998807907,
+              "prepare": 0.09999996423721313,
+              "encode": 1.7000000476837158,
+              "wait": 73.39999997615814,
+              "total": 75.19999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 121,
+                  "truncated": false,
+                  "totalMs": 43.45036800000002
+                }
+              }
+            },
+            {
+              "frameMs": 148.19999998807907,
+              "cpuMs": 35.799999952316284,
+              "prepare": 0.10000002384185791,
+              "encode": 2,
+              "wait": 103.69999998807907,
+              "total": 105.80000001192093,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 122,
+                  "truncated": false,
+                  "totalMs": 42.467328000000016
+                }
+              }
+            },
+            {
+              "frameMs": 124.79999995231628,
+              "cpuMs": 35.69999998807907,
+              "prepare": 0.19999998807907104,
+              "encode": 1.9000000357627869,
+              "wait": 80.5,
+              "total": 82.60000002384186,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 123,
+                  "truncated": false,
+                  "totalMs": 43.12268800000002
+                }
+              }
+            },
+            {
+              "frameMs": 146.4000000357628,
+              "cpuMs": 41.30000001192093,
+              "prepare": 0.30000001192092896,
+              "encode": 2.400000035762787,
+              "wait": 94.39999997615814,
+              "total": 97.10000002384186,
+              "renderPasses": 52,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 124,
+                  "truncated": false,
+                  "totalMs": 43.77804800000001
+                }
+              }
+            },
+            {
+              "frameMs": 159.5,
+              "cpuMs": 32.09999996423721,
+              "prepare": 0.09999996423721313,
+              "encode": 2.5,
+              "wait": 117.20000004768372,
+              "total": 119.80000001192093,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 125,
+                  "truncated": false,
+                  "totalMs": 43.05715200000002
+                }
+              }
+            },
+            {
+              "frameMs": 156.80000001192093,
+              "cpuMs": 28.399999976158142,
+              "prepare": 0.19999998807907104,
+              "encode": 2.699999988079071,
+              "wait": 118.80000001192093,
+              "total": 121.69999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 126,
+                  "truncated": false,
+                  "totalMs": 42.729472000000015
+                }
+              }
+            },
+            {
+              "frameMs": 157.60000002384186,
+              "cpuMs": 30.69999998807907,
+              "prepare": 0.20000004768371582,
+              "encode": 1.899999976158142,
+              "wait": 118,
+              "total": 120.10000002384186,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 127,
+                  "truncated": false,
+                  "totalMs": 41.353216000000025
+                }
+              }
+            },
+            {
+              "frameMs": 157,
+              "cpuMs": 28,
+              "prepare": 0.10000002384185791,
+              "encode": 2.399999976158142,
+              "wait": 119.69999998807907,
+              "total": 122.19999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 128,
+                  "truncated": false,
+                  "totalMs": 42.40179200000002
+                }
+              }
+            },
+            {
+              "frameMs": 130.80000001192093,
+              "cpuMs": 27.600000023841858,
+              "prepare": 0.19999998807907104,
+              "encode": 1.899999976158142,
+              "wait": 94.60000002384186,
+              "total": 96.69999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 129,
+                  "truncated": false,
+                  "totalMs": 42.336256000000006
+                }
+              }
+            },
+            {
+              "frameMs": 142.89999997615814,
+              "cpuMs": 32.30000001192093,
+              "prepare": 0.20000004768371582,
+              "encode": 2.099999964237213,
+              "wait": 101.40000003576279,
+              "total": 103.70000004768372,
+              "renderPasses": 52,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 130,
+                  "truncated": false,
+                  "totalMs": 43.12268800000003
+                }
+              }
+            },
+            {
+              "frameMs": 138,
+              "cpuMs": 28.30000001192093,
+              "prepare": 0.19999998807907104,
+              "encode": 1.899999976158142,
+              "wait": 101.5,
+              "total": 103.59999996423721,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 131,
+                  "truncated": false,
+                  "totalMs": 43.450368000000026
+                }
+              }
+            },
+            {
+              "frameMs": 145.0999999642372,
+              "cpuMs": 28.399999976158142,
+              "prepare": 0.19999998807907104,
+              "encode": 2,
+              "wait": 107.80000001192093,
+              "total": 110,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 132,
+                  "truncated": false,
+                  "totalMs": 43.18822400000003
+                }
+              }
+            },
+            {
+              "frameMs": 105.80000001192093,
+              "cpuMs": 29,
+              "prepare": 0.19999998807907104,
+              "encode": 2.300000011920929,
+              "wait": 68.19999998807907,
+              "total": 70.69999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 133,
+                  "truncated": false,
+                  "totalMs": 42.27072000000001
+                }
+              }
+            },
+            {
+              "frameMs": 149.4000000357628,
+              "cpuMs": 27.600000023841858,
+              "prepare": 0.19999998807907104,
+              "encode": 2.5,
+              "wait": 112.5,
+              "total": 115.19999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 134,
+                  "truncated": false,
+                  "totalMs": 43.38483200000001
+                }
+              }
+            },
+            {
+              "frameMs": 109,
+              "cpuMs": 27.600000023841858,
+              "prepare": 0.10000002384185791,
+              "encode": 1.899999976158142,
+              "wait": 72.40000003576279,
+              "total": 74.40000003576279,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 135,
+                  "truncated": false,
+                  "totalMs": 43.712512000000025
+                }
+              }
+            },
+            {
+              "frameMs": 122.90000003576279,
+              "cpuMs": 31.5,
+              "prepare": 0.19999998807907104,
+              "encode": 2.100000023841858,
+              "wait": 82.39999997615814,
+              "total": 84.69999998807907,
+              "renderPasses": 52,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 136,
+                  "truncated": false,
+                  "totalMs": 44.76108800000001
+                }
+              }
+            },
+            {
+              "frameMs": 108.09999996423721,
+              "cpuMs": 27.80000001192093,
+              "prepare": 0.19999998807907104,
+              "encode": 1.899999976158142,
+              "wait": 72.10000002384186,
+              "total": 74.19999998807907,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 137,
+                  "truncated": false,
+                  "totalMs": 43.25376000000002
+                }
+              }
+            },
+            {
+              "frameMs": 135.10000002384186,
+              "cpuMs": 28.80000001192093,
+              "prepare": 0.19999998807907104,
+              "encode": 1.899999976158142,
+              "wait": 97.80000001192093,
+              "total": 99.89999997615814,
+              "renderPasses": 49,
+              "gpu": {
+                "supported": true,
+                "enabled": true,
+                "skipped": 0,
+                "error": null,
+                "sample": {
+                  "sequence": 138,
+                  "truncated": false,
+                  "totalMs": 43.77804800000003
+                }
+              }
+            }
+          ],
+          "lastPassTiming": {
+            "supported": true,
+            "enabled": true,
+            "skipped": 0,
+            "error": null,
+            "sample": {
+              "sequence": 138,
+              "truncated": false,
+              "totalMs": 43.77804800000003,
+              "passes": [
+                {
+                  "name": "live-projected-air-resample",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "fine water flow field",
+                  "ms": 0.917504
+                },
+                {
+                  "name": "fine water transport",
+                  "ms": 3.473408
+                },
+                {
+                  "name": "sand grain transport",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "spray shadows",
+                  "ms": 1.769472
+                },
+                {
+                  "name": "spray-shadow-atlas",
+                  "ms": 0.262144
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "density",
+                  "ms": 2.097152
+                },
+                {
+                  "name": "density",
+                  "ms": 4.9152
+                },
+                {
+                  "name": "density",
+                  "ms": 0
+                },
+                {
+                  "name": "medium lighting",
+                  "ms": 5.111808
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "water front",
+                  "ms": 2.9491199999999997
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "opaque-hit-record",
+                  "ms": 7.274496
+                },
+                {
+                  "name": "opaque-reflection-hit",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "opaque-reflection-lighting",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "opaque-lighting",
+                  "ms": 2.6214399999999998
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "water-hit-record",
+                  "ms": 2.686976
+                },
+                {
+                  "name": "water-reflection-hit",
+                  "ms": 1.835008
+                },
+                {
+                  "name": "water-reflection-lighting",
+                  "ms": 0.589824
+                },
+                {
+                  "name": "water-transmission-hit",
+                  "ms": 1.3107199999999999
+                },
+                {
+                  "name": "water-transmission-lighting",
+                  "ms": 1.769472
+                },
+                {
+                  "name": "water-lighting",
+                  "ms": 0.32767999999999997
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "water merge",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "image copy",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "fine-water-visible-lighting",
+                  "ms": 0.917504
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "fine-water-visible-Gaussians",
+                  "ms": 0.720896
+                },
+                {
+                  "name": "fine water composite",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "visible-sand-grains",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "clear",
+                  "ms": 0
+                },
+                {
+                  "name": "glass-hit-record",
+                  "ms": 0.196608
+                },
+                {
+                  "name": "glass-lighting",
+                  "ms": 0.32767999999999997
+                },
+                {
+                  "name": "image copy",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "Gaussian stars",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "Gaussian stars",
+                  "ms": 0.131072
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0.065536
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0.065536
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0
+                },
+                {
+                  "name": "exposure reduction",
+                  "ms": 0
+                },
+                {
+                  "name": "exposure adaptation",
+                  "ms": 0
+                },
+                {
+                  "name": "display",
+                  "ms": 0.065536
+                }
+              ],
+              "byName": {
+                "live-projected-air-resample": 0.131072,
+                "clear": 0,
+                "fine water flow field": 0.917504,
+                "fine water transport": 3.473408,
+                "sand grain transport": 0.131072,
+                "spray shadows": 1.769472,
+                "spray-shadow-atlas": 0.262144,
+                "density": 7.012352,
+                "medium lighting": 5.111808,
+                "water front": 2.9491199999999997,
+                "opaque-hit-record": 7.274496,
+                "opaque-reflection-hit": 0.131072,
+                "opaque-reflection-lighting": 0.131072,
+                "opaque-lighting": 2.6214399999999998,
+                "water-hit-record": 2.686976,
+                "water-reflection-hit": 1.835008,
+                "water-reflection-lighting": 0.589824,
+                "water-transmission-hit": 1.3107199999999999,
+                "water-transmission-lighting": 1.769472,
+                "water-lighting": 0.32767999999999997,
+                "water merge": 0.131072,
+                "image copy": 0.262144,
+                "fine-water-visible-lighting": 0.917504,
+                "fine-water-visible-Gaussians": 0.720896,
+                "fine water composite": 0.131072,
+                "visible-sand-grains": 0.196608,
+                "glass-hit-record": 0.196608,
+                "glass-lighting": 0.32767999999999997,
+                "Gaussian stars": 0.262144,
+                "exposure reduction": 0.131072,
+                "exposure adaptation": 0,
+                "display": 0.065536
+              }
+            }
+          }
+        }
+      ],
+      "timingMode": "both"
+    }
+  ],
+  "images": [
+    {
+      "variant": "beach",
+      "pass": true,
+      "diff": {
+        "max": 0,
+        "mean": 0
+      },
+      "repeat": {
+        "max": 0,
+        "mean": 0
+      },
+      "stats": [
+        {
+          "optimized": false,
+          "frame": {
+            "prepare": 0.30000001192092896,
+            "encode": 4.099999964237213,
+            "wait": 49.40000003576279,
+            "total": 53.80000001192093,
+            "renderPasses": 30,
+            "gpu": {
+              "supported": true,
+              "enabled": true,
+              "skipped": 0,
+              "error": null,
+              "sample": {
+                "sequence": 4,
+                "truncated": false,
+                "totalMs": 93.97862399999998,
+                "passes": [
+                  {
+                    "name": "clear",
+                    "ms": 0
+                  },
+                  {
+                    "name": "water front",
+                    "ms": 7.274496
+                  },
+                  {
+                    "name": "clear",
+                    "ms": 0
+                  },
+                  {
+                    "name": "opaque-hit-record",
+                    "ms": 28.18048
+                  },
+                  {
+                    "name": "opaque-reflection-hit",
+                    "ms": 0.589824
+                  },
+                  {
+                    "name": "opaque-reflection-lighting",
+                    "ms": 0.720896
+                  },
+                  {
+                    "name": "opaque-lighting",
+                    "ms": 6.881279999999999
+                  },
+                  {
+                    "name": "clear",
+                    "ms": 0
+                  },
+                  {
+                    "name": "water-hit-record",
+                    "ms": 14.548992
+                  },
+                  {
+                    "name": "water-reflection-hit",
+                    "ms": 14.876672
+                  },
+                  {
+                    "name": "water-reflection-lighting",
+                    "ms": 2.1626879999999997
+                  },
+                  {
+                    "name": "water-transmission-hit",
+                    "ms": 4.456448
+                  },
+                  {
+                    "name": "water-transmission-lighting",
+                    "ms": 8.51968
+                  },
+                  {
+                    "name": "water-lighting",
+                    "ms": 1.114112
+                  },
+                  {
+                    "name": "clear",
+                    "ms": 0
+                  },
+                  {
+                    "name": "water merge",
+                    "ms": 0.393216
+                  },
+                  {
+                    "name": "image copy",
+                    "ms": 0.32767999999999997
+                  },
+                  {
+                    "name": "clear",
+                    "ms": 0
+                  },
+                  {
+                    "name": "glass-hit-record",
+                    "ms": 0.589824
+                  },
+                  {
+                    "name": "glass-lighting",
+                    "ms": 0.917504
+                  },
+                  {
+                    "name": "image copy",
+                    "ms": 0.393216
+                  },
+                  {
+                    "name": "Gaussian stars",
+                    "ms": 0.32767999999999997
+                  },
+                  {
+                    "name": "Gaussian stars",
+                    "ms": 0.720896
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.262144
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "exposure adaptation",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "display",
+                    "ms": 0.262144
+                  }
+                ],
+                "byName": {
+                  "clear": 0,
+                  "water front": 7.274496,
+                  "opaque-hit-record": 28.18048,
+                  "opaque-reflection-hit": 0.589824,
+                  "opaque-reflection-lighting": 0.720896,
+                  "opaque-lighting": 6.881279999999999,
+                  "water-hit-record": 14.548992,
+                  "water-reflection-hit": 14.876672,
+                  "water-reflection-lighting": 2.1626879999999997,
+                  "water-transmission-hit": 4.456448,
+                  "water-transmission-lighting": 8.51968,
+                  "water-lighting": 1.114112,
+                  "water merge": 0.393216,
+                  "image copy": 0.720896,
+                  "glass-hit-record": 0.589824,
+                  "glass-lighting": 0.917504,
+                  "Gaussian stars": 1.048576,
+                  "exposure reduction": 0.65536,
+                  "exposure adaptation": 0.065536,
+                  "display": 0.262144
+                }
+              }
+            }
+          },
+          "bytes": 34130628
+        },
+        {
+          "optimized": true,
+          "frame": {
+            "prepare": 0.19999998807907104,
+            "encode": 2.399999976158142,
+            "wait": 51.30000001192093,
+            "total": 53.89999997615814,
+            "renderPasses": 25,
+            "gpu": {
+              "supported": true,
+              "enabled": true,
+              "skipped": 0,
+              "error": null,
+              "sample": {
+                "sequence": 7,
+                "truncated": false,
+                "totalMs": 74.05568,
+                "passes": [
+                  {
+                    "name": "water front",
+                    "ms": 5.701632
+                  },
+                  {
+                    "name": "clear",
+                    "ms": 0
+                  },
+                  {
+                    "name": "opaque-hit-record",
+                    "ms": 22.151168
+                  },
+                  {
+                    "name": "opaque-reflection-hit",
+                    "ms": 0.393216
+                  },
+                  {
+                    "name": "opaque-reflection-lighting",
+                    "ms": 0.524288
+                  },
+                  {
+                    "name": "opaque-lighting",
+                    "ms": 5.373952
+                  },
+                  {
+                    "name": "water-hit-record",
+                    "ms": 11.796479999999999
+                  },
+                  {
+                    "name": "water-reflection-hit",
+                    "ms": 11.4688
+                  },
+                  {
+                    "name": "water-reflection-lighting",
+                    "ms": 1.6383999999999999
+                  },
+                  {
+                    "name": "water-transmission-hit",
+                    "ms": 3.473408
+                  },
+                  {
+                    "name": "water-transmission-lighting",
+                    "ms": 6.881279999999999
+                  },
+                  {
+                    "name": "water-lighting",
+                    "ms": 0.851968
+                  },
+                  {
+                    "name": "clear",
+                    "ms": 0
+                  },
+                  {
+                    "name": "water merge",
+                    "ms": 0.32767999999999997
+                  },
+                  {
+                    "name": "image copy",
+                    "ms": 0.32767999999999997
+                  },
+                  {
+                    "name": "glass-hit-record",
+                    "ms": 0.458752
+                  },
+                  {
+                    "name": "glass-lighting",
+                    "ms": 0.720896
+                  },
+                  {
+                    "name": "image copy + Gaussian stars + Gaussian stars",
+                    "ms": 1.048576
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.262144
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.131072
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "exposure adaptation",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "display",
+                    "ms": 0.262144
+                  }
+                ],
+                "byName": {
+                  "water front": 5.701632,
+                  "clear": 0,
+                  "opaque-hit-record": 22.151168,
+                  "opaque-reflection-hit": 0.393216,
+                  "opaque-reflection-lighting": 0.524288,
+                  "opaque-lighting": 5.373952,
+                  "water-hit-record": 11.796479999999999,
+                  "water-reflection-hit": 11.4688,
+                  "water-reflection-lighting": 1.6383999999999999,
+                  "water-transmission-hit": 3.473408,
+                  "water-transmission-lighting": 6.881279999999999,
+                  "water-lighting": 0.851968,
+                  "water merge": 0.32767999999999997,
+                  "image copy": 0.32767999999999997,
+                  "glass-hit-record": 0.458752,
+                  "glass-lighting": 0.720896,
+                  "image copy + Gaussian stars + Gaussian stars": 1.048576,
+                  "exposure reduction": 0.589824,
+                  "exposure adaptation": 0.065536,
+                  "display": 0.262144
+                }
+              }
+            }
+          },
+          "bytes": 34130628
+        },
+        {
+          "optimized": false,
+          "frame": {
+            "prepare": 0.19999998807907104,
+            "encode": 3,
+            "wait": 49.80000001192093,
+            "total": 53,
+            "renderPasses": 30,
+            "gpu": {
+              "supported": true,
+              "enabled": true,
+              "skipped": 0,
+              "error": null,
+              "sample": {
+                "sequence": 10,
+                "truncated": false,
+                "totalMs": 58.32703999999999,
+                "passes": [
+                  {
+                    "name": "clear",
+                    "ms": 0
+                  },
+                  {
+                    "name": "water front",
+                    "ms": 4.456448
+                  },
+                  {
+                    "name": "clear",
+                    "ms": 0
+                  },
+                  {
+                    "name": "opaque-hit-record",
+                    "ms": 17.170431999999998
+                  },
+                  {
+                    "name": "opaque-reflection-hit",
+                    "ms": 0.32767999999999997
+                  },
+                  {
+                    "name": "opaque-reflection-lighting",
+                    "ms": 0.458752
+                  },
+                  {
+                    "name": "opaque-lighting",
+                    "ms": 4.194304
+                  },
+                  {
+                    "name": "clear",
+                    "ms": 0
+                  },
+                  {
+                    "name": "water-hit-record",
+                    "ms": 9.8304
+                  },
+                  {
+                    "name": "water-reflection-hit",
+                    "ms": 8.978432
+                  },
+                  {
+                    "name": "water-reflection-lighting",
+                    "ms": 1.3107199999999999
+                  },
+                  {
+                    "name": "water-transmission-hit",
+                    "ms": 2.752512
+                  },
+                  {
+                    "name": "water-transmission-lighting",
+                    "ms": 5.2428799999999995
+                  },
+                  {
+                    "name": "water-lighting",
+                    "ms": 0.6553599999999999
+                  },
+                  {
+                    "name": "clear",
+                    "ms": 0
+                  },
+                  {
+                    "name": "water merge",
+                    "ms": 0.262144
+                  },
+                  {
+                    "name": "image copy",
+                    "ms": 0.262144
+                  },
+                  {
+                    "name": "clear",
+                    "ms": 0
+                  },
+                  {
+                    "name": "glass-hit-record",
+                    "ms": 0.32767999999999997
+                  },
+                  {
+                    "name": "glass-lighting",
+                    "ms": 0.589824
+                  },
+                  {
+                    "name": "image copy",
+                    "ms": 0.262144
+                  },
+                  {
+                    "name": "Gaussian stars",
+                    "ms": 0.196608
+                  },
+                  {
+                    "name": "Gaussian stars",
+                    "ms": 0.458752
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.196608
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0.065536
+                  },
+                  {
+                    "name": "exposure reduction",
+                    "ms": 0
+                  },
+                  {
+                    "name": "exposure adaptation",
+                    "ms": 0
+                  },
+                  {
+                    "name": "display",
+                    "ms": 0.196608
+                  }
+                ],
+                "byName": {
+                  "clear": 0,
+                  "water front": 4.456448,
+                  "opaque-hit-record": 17.170431999999998,
+                  "opaque-reflection-hit": 0.32767999999999997,
+                  "opaque-reflection-lighting": 0.458752,
+                  "opaque-lighting": 4.194304,
+                  "water-hit-record": 9.8304,
+                  "water-reflection-hit": 8.978432,
+                  "water-reflection-lighting": 1.3107199999999999,
+                  "water-transmission-hit": 2.752512,
+                  "water-transmission-lighting": 5.2428799999999995,
+                  "water-lighting": 0.6553599999999999,
+                  "water merge": 0.262144,
+                  "image copy": 0.524288,
+                  "glass-hit-record": 0.32767999999999997,
+                  "glass-lighting": 0.589824,
+                  "Gaussian stars": 0.6553599999999999,
+                  "exposure reduction": 0.39321599999999995,
+                  "exposure adaptation": 0,
+                  "display": 0.196608
+                }
+              }
+            }
+          },
+          "bytes": 34130628
+        }
+      ]
+    }
+  ],
+  "captureNote": "Early capture. Physics/images are final. Timestamp diagnostics were subsequently corrected to distinguish summed pass costs from enclosing span; do not interpret totalMs as GPU frame duration."
+}

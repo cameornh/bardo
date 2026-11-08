@@ -25,14 +25,14 @@ export class ConnectedFields {
   this.packed=packed;this.prepareMs=performance.now()-start;this.extraBytes=grid.faces.reduce((n,f)=>n+f.velocity.length,0)*16+(grid.count*8+4)*4;
   return packed;
  }
- encode(encoder,buffers){
+ encode(encoder,buffers,timingBatch){
   const p=this.particles,d=p.device,U=GPUBufferUsage,x=this.packed;
   const cfg=p.buffer('connectedConfig',128,U.UNIFORM|U.COPY_DST),meta=p.buffer('connectedFaces',14000*64+32768*68,U.STORAGE|U.COPY_DST),bins=p.buffer('connectedBins',(32768+4097)*4,U.STORAGE|U.COPY_DST),topo=p.buffer('connectedTopology',200000*4,U.STORAGE|U.COPY_DST),tmp=p.buffer('connectedWork',(14000*4+4096*8+4+24576)*4,U.STORAGE|U.COPY_SRC);
   if(x.faceMeta.length>14000*16||this.topology.length>200000)throw Error('Connected field storage budget exceeded');
   d.queue.writeBuffer(cfg,0,x.fieldConfig);d.queue.writeBuffer(meta,0,x.faceMeta);d.queue.writeBuffer(meta,x.faceMeta.byteLength,x.input);d.queue.writeBuffer(bins,0,x.bins);
   if(this.dirty){d.queue.writeBuffer(topo,0,this.topology);this.dirty=false;this.uploads++;}
   const bind=d.createBindGroup({layout:this.layout,entries:[cfg,buffers[1],buffers[2],meta,bins,topo,tmp].map((buffer,binding)=>({binding,resource:{buffer}}))});this.tmp=tmp;
-  const dispatch=(key,n)=>{const pass=encoder.beginComputePass();pass.setPipeline(this.pipelines[key]);pass.setBindGroup(0,bind);pass.dispatchWorkgroups(key==='pressure'?1:Math.ceil(n/64));pass.end();};
+  const dispatch=(key,n)=>{const pass=encoder.beginComputePass({timestampWrites:p.timing?.writes(timingBatch,'field-'+key)});pass.setPipeline(this.pipelines[key]);pass.setBindGroup(0,bind);pass.dispatchWorkgroups(key==='pressure'?1:Math.ceil(n/64));pass.end();};
   const faces=x.faceMeta.length/16;dispatch('stencils',x.n);dispatch('deposit',faces);for(let i=0;i<3;i++){dispatch('extend',faces);dispatch('extended',faces);}dispatch('advect',faces);dispatch('viscosity',faces);dispatch('rhs',this.grid.count);dispatch('compatible',this.grid.count);dispatch('pressure',this.grid.count);dispatch('project',faces);
  }
  copy(encoder,buffers,read,offset){const faces=this.packed.faceMeta.length/16;encoder.copyBufferToBuffer(buffers[2],0,read,offset,faces*16);encoder.copyBufferToBuffer(this.tmp,faces*16,read,offset+faces*16,(this.grid.count*8+4)*4);}

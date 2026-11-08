@@ -17,6 +17,7 @@ export function installWebGPUQA({lab,draw,field,renderer,camera,controls,results
   try{await waitForIdle();await action();}catch(e){results.textContent=e.stack;}finally{lab.qaRunning=false;button.disabled=false;choices.setBusy(false);lockAsync();}
  };};
  const read=async target=>{const pixels=new Float32Array(target.width*target.height*4);await renderer.readRenderTargetPixelsAsync(target,0,0,target.width,target.height,pixels);return pixels;};
+ add('Show GPU pass timings',async()=>{results.textContent=JSON.stringify({rendering:renderer.timing.snapshot(),compute:lab.bulkFields?.connected?.timing?.snapshot()||lab.bulkFields?.particles?.timing?.snapshot()||null,frame:renderer.frameTimes,note:'Pass costs can overlap: use spanMs for the enclosing GPU interval, sumMs only for summed pass costs. CPU preparation and queue waits are separate. Samples arrive asynchronously; inspect sequence and lastRejected. Unsupported devices report unavailable.'},null,2);});
  add('Compare selected rendering',async()=>{
   const saved={...lab.optimizations},images=[],fixed=draw.fixedLoadScale;
   try{draw.fixedLoadScale=.5;for(const flags of [optimizationPreset(defaults,'baseline'),saved]){

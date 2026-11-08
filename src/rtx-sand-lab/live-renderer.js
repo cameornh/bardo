@@ -21,8 +21,8 @@ export class LiveWaterRenderer extends WaterLabRenderer {
   // Submission measurements are separate from GPU elapsed-time queries:
   // CPU reconstruction between draws can otherwise look like GPU cost.
   this.cpuStages={};const begin=this.timers.begin.bind(this.timers),end=this.timers.end.bind(this.timers);
-  this.timers.begin=name=>{this.cpuStage={name,start:performance.now()};begin(name);};
-  this.timers.end=()=>{if(this.cpuStage){const {name,start}=this.cpuStage;this.cpuStages[name]=performance.now()-start;this.cpuStage=null;}end();};
+  this.timers.begin=name=>{this.cpuStage={name,start:performance.now()};if(this.renderer.isSharedSceneWebGPU)this.renderer.timingStage=name;begin(name);};
+  this.timers.end=()=>{if(this.cpuStage){const {name,start}=this.cpuStage;this.cpuStages[name]=performance.now()-start;this.cpuStage=null;}if(this.renderer.isSharedSceneWebGPU)this.renderer.timingStage=null;end();};
   this.density.enabled=this.nestedWaterFields;
   const seen=new Set(),materials=new Set(),worldMaterials=new Set();
   for(const scene of [this.mediumShadows.scene,this.photonScene,this.photonGather])scene.traverse(o=>{if(o.material)worldMaterials.add(o.material);});
