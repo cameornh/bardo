@@ -44,7 +44,7 @@ export function unpackParticles(data,n){
  for(let i=0;i<n;i++){const at=i*20,o=i*4;for(let k=0;k<4;k++){positions[o+k]=data[at+k];velocities[o+k]=data[at+4+k];chem[o+k]=data[at+8+k];metrics[o+k]=data[at+12+k];}counts[i]=data[at+16];activity[i*2]=data[at+17];activity[i*2+1]=data[at+18];breakup[i]=data[at+19];}
  return {positions,transport:{velocities,chem,metrics,counts,activity,breakup}};
 }
-const wait=(promise,ms,label)=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(label+' exceeded time budget')),ms);})]).finally(()=>clearTimeout(timer));};
+export const wait=(promise,ms,label)=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(label+' exceeded time budget')),ms);})]).finally(()=>clearTimeout(timer));};
 export class ParticlePipeline {
  constructor(){this.buffers={};this.validated=false;this.disabled=false;this.busy=false;}
  async initialize(gpu=globalThis.navigator?.gpu){
@@ -70,26 +70,26 @@ export class ParticlePipeline {
   const size=32+lab.sand.n**2+lab.balls.length*16+1024+extra;if(size>PARTICLE_LIMITS.geometryFloats)throw Error('Geometry budget exceeded');
   const kernel=this.geometryKernel??=new NativeDensity();kernel.allocate(1,size);kernel.prepareGeometry(lab,parcels.length>0);return Float32Array.from(kernel.geometry.subarray(0,size));
  }
- async solve(context,lab,grid,{geometry=null,debug=false}={}){
+ async solve(context,lab,grid,{geometry=null,debug=false,connected=null}={}){
   if(this.disabled||!this.device)throw Error(this.failure||'Particle GPU is unavailable');if(this.busy)throw Error('Only one particle job may be in flight');
   if(!this.warmed&&context.old.length/4>64)throw Error('Run the small verification fixture before particle playback');
   this.busy=true;const start=performance.now();let submitted=false;
   try{
-   const packed=packParticles(context,lab,grid,geometry||this.geometry(lab)),{n,input,config,field}=packed,d=this.device,U=GPUBufferUsage,capacity=PARTICLE_LIMITS.particles;
+   const packed=connected?connected.pack(context,lab,grid,geometry||this.geometry(lab)):packParticles(context,lab,grid,geometry||this.geometry(lab)),{n,input,config,field}=packed,d=this.device,U=GPUBufferUsage,capacity=PARTICLE_LIMITS.particles;
    // Stable binding sizes keep rain, tides and resets from reallocating shader
    // storage during playback. Storage is bounded (35.5 MiB plus readback).
    if(field.length>PARTICLE_LIMITS.geometryFloats+65536)throw Error('Field upload exceeds GPU capacity');
-   const buffers=[this.buffer('config',128,U.UNIFORM|U.COPY_DST),this.buffer('input',capacity*68*4,U.STORAGE|U.COPY_DST),this.buffer('field',(PARTICLE_LIMITS.geometryFloats+65536)*4,U.STORAGE|U.COPY_DST),this.buffer('work',capacity*64,U.STORAGE|U.COPY_SRC),this.buffer('counts',8193*4,U.STORAGE|U.COPY_DST|U.COPY_SRC),this.buffer('buckets',8192*64*4,U.STORAGE),this.buffer('neighbors',capacity*129*4,U.STORAGE|U.COPY_SRC),this.buffer('output',capacity*80,U.STORAGE|U.COPY_SRC)];
-   if(debug&&n>1024)throw Error('Debug readback budget exceeded');const read=this.buffer('readback',n*80+16+(debug?n*(64+516):0),U.COPY_DST|U.MAP_READ);d.queue.writeBuffer(buffers[0],0,config);d.queue.writeBuffer(buffers[1],0,input);d.queue.writeBuffer(buffers[2],0,field);
-   const bind=d.createBindGroup({layout:this.layout,entries:buffers.map((buffer,binding)=>({binding,resource:{buffer}}))});const encoder=d.createCommandEncoder();encoder.clearBuffer(buffers[4]);
+   const buffers=[this.buffer('config',128,U.UNIFORM|U.COPY_DST),this.buffer('input',capacity*68*4,U.STORAGE|U.COPY_DST),this.buffer('field',(PARTICLE_LIMITS.geometryFloats+65536)*4,U.STORAGE|U.COPY_DST|U.COPY_SRC),this.buffer('work',capacity*64,U.STORAGE|U.COPY_SRC),this.buffer('counts',8193*4,U.STORAGE|U.COPY_DST|U.COPY_SRC),this.buffer('buckets',8192*64*4,U.STORAGE),this.buffer('neighbors',capacity*129*4,U.STORAGE|U.COPY_SRC),this.buffer('output',capacity*80,U.STORAGE|U.COPY_SRC)];
+   if(debug&&n>1024)throw Error('Debug readback budget exceeded');const extraOffset=n*80+16+(debug?n*(64+516):0),read=this.buffer('readback',extraOffset+(connected?.extraBytes||0),U.COPY_DST|U.MAP_READ);d.queue.writeBuffer(buffers[0],0,config);if(!connected)d.queue.writeBuffer(buffers[1],0,input);d.queue.writeBuffer(buffers[2],0,field);
+   const bind=d.createBindGroup({layout:this.layout,entries:buffers.map((buffer,binding)=>({binding,resource:{buffer}}))});const encoder=d.createCommandEncoder();encoder.clearBuffer(buffers[4]);if(connected)connected.encode(encoder,buffers);
    for(const pipeline of this.pipelines){const pass=encoder.beginComputePass();pass.setPipeline(pipeline);pass.setBindGroup(0,bind);pass.dispatchWorkgroups(Math.ceil(n/64));pass.end();}
-   encoder.copyBufferToBuffer(buffers[7],0,read,16,n*80);encoder.copyBufferToBuffer(buffers[4],8192*4,read,0,4);if(debug){encoder.copyBufferToBuffer(buffers[3],0,read,16+n*80,n*64);encoder.copyBufferToBuffer(buffers[6],0,read,16+n*144,n*516);}const dispatch=performance.now();d.queue.submit([encoder.finish()]);submitted=true;
-   await wait(read.mapAsync(GPUMapMode.READ),PARTICLE_LIMITS.waitMs,'Particle pipeline');const mapped=read.getMappedRange(),overflow=new Uint32Array(mapped,0,1)[0],data=new Float32Array(mapped,16,n*20).slice();const intermediate=debug?{work:new Float32Array(mapped,16+n*80,n*16).slice(),neighbors:new Uint32Array(mapped,16+n*144,n*129).slice()}:null;read.unmap();
-   this.stats={backend:'WebGPU particle transfer / neighbors / contacts / transport',adapter:this.adapter,packMs:dispatch-start,waitMs:performance.now()-dispatch,totalMs:performance.now()-start,readbackBytes:n*80+4,particles:n,warmup:!this.warmed};
+   encoder.copyBufferToBuffer(buffers[7],0,read,16,n*80);encoder.copyBufferToBuffer(buffers[4],8192*4,read,0,4);if(debug){encoder.copyBufferToBuffer(buffers[3],0,read,16+n*80,n*64);encoder.copyBufferToBuffer(buffers[6],0,read,16+n*144,n*516);}if(connected)connected.copy(encoder,buffers,read,extraOffset);const dispatch=performance.now();d.queue.submit([encoder.finish()]);submitted=true;
+   await wait(read.mapAsync(GPUMapMode.READ),PARTICLE_LIMITS.waitMs,'Particle pipeline');const mapped=read.getMappedRange(),overflow=new Uint32Array(mapped,0,1)[0],data=new Float32Array(mapped,16,n*20).slice();const intermediate=debug?{work:new Float32Array(mapped,16+n*80,n*16).slice(),neighbors:new Uint32Array(mapped,16+n*144,n*129).slice()}:null;let fieldResult;try{fieldResult=connected?.result(mapped,extraOffset);}finally{read.unmap();}
+   this.stats={backend:'WebGPU particle transfer / neighbors / contacts / transport',adapter:this.adapter,packMs:dispatch-start,waitMs:performance.now()-dispatch,totalMs:performance.now()-start,readbackBytes:n*80+4+(connected?.extraBytes||0),particles:n,warmup:!this.warmed};
    if(overflow)throw Error(overflow===1?'GPU spatial bucket full; exact CPU fallback':'GPU neighbor list full; exact CPU fallback');
    if(this.disabled)throw Error(this.failure||'GPU particle device failed');const unpackStart=performance.now(),result=unpackParticles(data,n);this.stats.unpackMs=performance.now()-unpackStart;this.stats.totalMs=performance.now()-start;this.stats.storageBytes=buffers.reduce((s,b)=>s+b.size,0);this.slowJobs=this.warmed&&this.stats.waitMs>PARTICLE_LIMITS.stepMs?(this.slowJobs||0)+1:0;if(this.slowJobs>=3){this.disabled=true;this.failure='GPU particle jobs exceeded the throughput budget';}
-   this.warmed=true;return {...result,intermediate,stats:this.stats};
-  }catch(e){if(submitted&&!/bucket full|neighbor list full/.test(e.message)){this.failure=e.message;this.dispose();}throw e;}finally{this.busy=false;}
+   this.warmed=true;return {...result,intermediate,fieldResult,stats:this.stats};
+  }catch(e){if(submitted&&!/bucket full|neighbor list full|requires CPU fallback/.test(e.message)){this.failure=e.message;this.dispose();}throw e;}finally{this.busy=false;}
  }
  dispose(){this.disabled=true;for(const b of Object.values(this.buffers))b.destroy();this.buffers={};this.device?.destroy();this.device=null;}
 }
