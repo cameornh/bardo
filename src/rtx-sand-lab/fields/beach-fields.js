@@ -1,3 +1,4 @@
+import {FieldTransfer} from './native-transfer.js';
 import {BeachFieldGrid,AIR,WATER} from './grid.js';
 import {MATERIAL,relativeHumidity} from '../../fluid-fields/model.js';
 import {norm} from './multigrid.js';
@@ -45,11 +46,12 @@ export class BeachFields {
  }
  prepare(context){
   this.ensure();const lab=this.lab,g=this.grid,scale=lab.spec.scale,dt=context.dt,start=performance.now(),{solid,wind,wall}=this.environment();
+  g.nativeTransfer=lab.optimizations?.nativeFieldTransfer===true?(this.nativeTransfer??=new FieldTransfer()):null;
   this.rhs=g.deposit(context.old,context.predicted,dt,scale,lab.spacing,solid,wind,wall);this.before=norm(g.divergence());this.prepareMs=performance.now()-start;
   return this.rhs;
  }
  solveCPU(rhs){return (this.cpuPressure??=new FieldPressure()).solve(this.grid.levels,rhs);}
- solve(context){const rhs=this.prepare(context),result=this.solveCPU(rhs);return this.finish(context,result);}
+ solve(context,{deferConsumers=false}={}){const rhs=this.prepare(context),result=this.solveCPU(rhs);return this.finish(context,result,false,null,deferConsumers);}
  async solveAsync(context){
   if(this.particleBackend==='connected'){
    if(this.connected?.validated&&!this.connected.disabled){
@@ -84,7 +86,7 @@ export class BeachFields {
   const lab=this.lab,g=this.grid,start=performance.now();if(!projected)g.project(result.potential,context.dt);g.buildAirVelocity();g.transport(context.dt);this.thermal(context.dt);
   this.scalarMs=performance.now()-start;
  }
- finish(context,result,prepared=false,particles=null){
+ finish(context,result,prepared=false,particles=null,deferConsumers=false){
   if(!prepared)this.finishFields(context,result);
   const lab=this.lab,g=this.grid,start=performance.now(),scalarDone=start;let surface;
   if(particles){
@@ -105,9 +107,12 @@ export class BeachFields {
   context.transport=(this.transport??=new FieldTransport()).solve(shiftedOld,surface.positions,lab.velocities,lab.chem,neighbors.data,context.s,context.scale,context.dt,shiftedPrediction,!neighbors.overflow);
   context.cpuTransport=true;this.stats.transportBackend=this.transport.backend;this.stats.transportMs=performance.now()-transportStart;this.stats.particleCompute=null;
   }
+  this.stats.transferBackend=g.nativeTransfer?.scattered===context.old?'WebAssembly CPU':'JavaScript CPU reference';
   lab.gpu.contactArithmetic=this.stats.backend+' / '+this.stats.surfaceBackend+' surface / '+this.stats.transportBackend;
-  if(!lab.gpu.cpu)(this.airTexture??=new AirFieldTexture(lab.renderer,lab.air)).update(g,lab.spec.scale);else lab.air.u.uAirEnabled.value=false;
+  if(!deferConsumers)this.publishAir();
   lab.air.grid=g;return surface.positions;
+ }
+ publishAir(){const lab=this.lab;if(!lab.gpu.cpu)(this.airTexture??=new AirFieldTexture(lab.renderer,lab.air)).update(this.grid,lab.spec.scale);else lab.air.u.uAirEnabled.value=false;
  }
  thermal(dt){
   const lab=this.lab,g=this.grid,water=MATERIAL[WATER],air=MATERIAL[AIR],waterCapacity=water.density*water.heatCapacity*g.volume,airCapacity=air.density*air.heatCapacity*g.volume;

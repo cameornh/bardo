@@ -9,6 +9,7 @@ export class FrameCompletion {
   const render=renderer.render.bind(renderer);
   renderer.render=(scene,...args)=>{
    if(this.failed)throw this.failed;
+   if(this.cpuActive)throw Error('CPU overlap attempted a graphics submission');
    const names=[];
    if(this.active){scene.traverse?.(o=>{for(const m of Array.isArray(o.material)?o.material:[o.material])if(m)names.push(m.name||'unnamed');});this.submitting=names.join(', ')||'scene';}
    const result=render(scene,...args);
@@ -46,7 +47,7 @@ export class FrameCompletion {
    await this.wait();
   }
  }
- run(submit,{completionTimeoutMs=this.timeoutMs}={}){
+ run(submit,{completionTimeoutMs=this.timeoutMs,cpuWork=null}={}){
   if(this.failed)return Promise.reject(this.failed);
   if(this.pending)return Promise.reject(Error('A graphics frame is already pending'));
   // Install the guard before executing user code; all GL submission remains
@@ -54,7 +55,10 @@ export class FrameCompletion {
   this.pending=Promise.resolve().then(async()=>{
    this.checkpoint('work queued before frame');await this.finish();
    this.active=true;try{submit();}finally{this.active=false;}
-   await this.finish(completionTimeoutMs);
+   const cpuStart=this.now();
+   if(cpuWork){this.gl.flush();this.cpuActive=true;try{const result=cpuWork();if(result?.then)throw Error('CPU frame work must be synchronous');}finally{this.cpuActive=false;}}
+   // CPU overlap does not extend the GPU watchdog budget.
+   await this.finish(Math.max(0,completionTimeoutMs-(this.now()-cpuStart)));
   }).catch(error=>{
    // Preserve evidence before cleanup, including synchronous draw failures.
    // The first unconfirmed pass is a lower bound, not proof of the culprit.

@@ -336,7 +336,8 @@ export class SandBed{
     connected.push(group);
    }
   }
-  const grouped=performance.now();for(const group of connected){
+  const grouped=performance.now();wind.beginMoving?.();for(const group of connected){
+   this.refreshContactQueries?.();
    let mass=0;const velocity=[0,0,0],nextVelocity=new Map();
    // All force samples in this group see identical geometry. Refresh again
    // after its motion/contact, before evaluating the next group.
@@ -375,7 +376,9 @@ export class SandBed{
    for(let i=1;!hit&&!escaping&&i<=steps;i++){const t=i/steps;if(distance(t)<=.0005){let lo=previous,hi=t;for(let j=0;j<9;j++){const mid=(lo+hi)*.5;if(distance(mid)>.0005)lo=mid;else hi=mid;}travel=hi;hit=true;}previous=t;}
    for(const p of group){for(let k=0;k<3;k++)p.position[k]+=(delta[k]+offsets.get(p)[k])*travel;const spin=cross(omega,p.position.map((v,k)=>v-center[k]-delta[k]*travel));p.velocity=velocity.map((v,k)=>v+spin[k]);p.angularVelocity=omega.slice();}
    if(hit)for(const p of group)this.deposit(p,p.mass);
+   wind.moved?.(group);
   }
+  wind.endMoving?.();
   this.parcelTimes={supportAndSettling:supported-begin,stress:stressed-supported,wettingSamples:sampled-stressed,grouping:grouped-sampled,moving:performance.now()-grouped};
   // Depositing dry stock can consume its old supporting parcel. Do not leave
   // an attached wet selection anchored to that parcel until a later edit.

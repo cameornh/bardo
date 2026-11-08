@@ -1,4 +1,6 @@
+import {CPUFrameStep} from './cpu-frame-step.js';
 import {SandLab} from '../sand-lab/lab.js';
+import {WaterLab} from '../sand-lab/water-lab.js';
 import {StepReadback} from '../sand-lab/gpu-step-readback.js';
 import {EmitterProbes} from '../sand-lab/emitter-probes.js';
 import {SandEditPolicy} from './sand-edit-policy.js';
@@ -8,13 +10,15 @@ import {LIVE_WIND_BRUSH,windBrushErosion} from './wind-brush.js';
 import {IncrementalSand} from './incremental-sand.js';
 import {SandDistanceCache} from './sand-distance-cache.js';
 import {LiveRigidPhysics} from './rigid-physics.js';
+import {createSandWind} from '../sand-lab/sand-air.js';
+import {LiveSandAirGeometry,installSandContactQueries} from './sand-cpu-queries.js';
 import {BeachFields} from './fields/beach-fields.js';
 export {LIVE_WIND_BRUSH} from './wind-brush.js';
 
 // Shared live experience. Historical fixtures still instantiate SandLab.
 // Only one physics step may be in flight; fixed dt, mass and forces are unchanged.
 export class LiveSandLab extends SandLab{
- constructor(...args){super(...args);this.windStrength=LIVE_WIND_BRUSH.initial;this.rigidContacts=new LiveRigidPhysics();Object.assign(this.optimizations,{collisionMesh:true,rigidReuse:true,rigidSleep:true,rigidBroadphase:true,fineParticleResolution:true});if(args[1]?.bulkFields)this.bulkFields=new BeachFields(this);}
+ constructor(...args){super(...args);this.windStrength=LIVE_WIND_BRUSH.initial;this.rigidContacts=new LiveRigidPhysics();Object.assign(this.optimizations,{collisionMesh:true,rigidReuse:true,rigidSleep:true,rigidBroadphase:true,fineParticleResolution:true,cpuSandQueries:true,cpuFrameOverlap:true,cpuCatchup:true,nativeFieldTransfer:true});if(args[1]?.bulkFields)this.bulkFields=new BeachFields(this);}
  syncSandUniforms(){
   if(!this.sand)return;
   if(this.optimizations?.sandCache===false||this.optimizations?.compactSand===false){this.incrementalSand=null;this.distanceCache?.reset();return super.syncSandUniforms();}
@@ -23,8 +27,24 @@ export class LiveSandLab extends SandLab{
   this.incrementalSand.update(this);
   (this.distanceCache??=new SandDistanceCache()).refresh(this.sandRenderParcels);
  }
- configure(...args){super.configure(...args);this.bulkFields?.reset();if(this.sand){this.sand.editPolicy=new SandEditPolicy();this.sand.windBrushErosion=windBrushErosion;}}
+ configure(...args){this.cpuFrameStep?.cancel();super.configure(...args);this.bulkFields?.reset();if(this.sand){this.sand.editPolicy=new SandEditPolicy();this.sand.windBrushErosion=windBrushErosion;installSandContactQueries(this.sand,()=>this.optimizations.cpuSandQueries!==false);}}
+ createSandWind(){
+  if(this.optimizations.cpuSandQueries===false||!this.optimizations.windGeometry)return createSandWind(this);
+  if(this.sandAirGeometry?.bed!==this.sand)this.sandAirGeometry=new LiveSandAirGeometry(this.sand,this.balls);
+  const geometry=this.sandAirGeometry;geometry.bodies=this.balls;geometry.endMoving();const wind=createSandWind(this,geometry);
+  wind.beginMoving=()=>geometry.beginMoving();wind.endMoving=()=>geometry.endMoving();wind.moved=group=>geometry.moved(group);return wind;
+ }
  prepareStep(dt){if(this.bulkFields?.enabled)this.bulkFields.ensure();return super.prepareStep(dt);}
+ finishCPUFieldStep(context,next){
+  // Bulk physics retains its fixed step. Fine visual consumers are published
+  // once after the immutable drawing frame completes, as in the synchronous
+  // solver's deferred-detail path. No graphics submission inside CPU overlap.
+  WaterLab.prototype.finishStep.call(this,context,next,true);this.fluidIndex=null;
+ }
+ publishCPUFieldSteps(dt){
+  this.bulkFields.publishAir();this.detail.advance(dt,this,this.detailJet);
+  this.grains?.advance(dt);this.seaFoam?.advance(dt,this);
+ }
  step(dt,deferDetail=false){
   if(this.graphicsStopped)return;
   if(!this.bulkFields?.enabled||!this.count)return super.step(dt,deferDetail);
@@ -42,6 +62,7 @@ export class LiveSandLab extends SandLab{
   super.moveHeld(origin,direction);
  }
  startAsyncStep(){
+  if(this.deferFieldSolve&&(this.cpuFrameStep??=new CPUFrameStep(this)).eligible()){this.cpuFrameStep.begin();return;}
   const dt=this.timestep,generation=this.generation;
   if(this.graphicsStopped||this.renderPending||!this.asyncSimulation||!this.enabled||this.paused||this.qaRunning||this.gpu.cpu||this.asyncPending||this.accumulator+1e-12<dt)return;
   if(this.windHeld)this.jet=this.windRay||this.simulationRay;
@@ -94,7 +115,7 @@ export class LiveSandLab extends SandLab{
  }
  stopGraphicsWork(error){
   if(this.graphicsStopped)return;
-  this.graphicsStopped=true;this.generation++;
+  this.graphicsStopped=true;this.generation++;this.cpuFrameStep?.cancel();
   this.enabled=false;this.paused=true;this.asyncSimulation=false;this.accumulator=0;
   if(this.asyncTimer){clearTimeout(this.asyncTimer);this.asyncTimer=null;}
   // Existing awaited steps check generation before publishing or finishing.

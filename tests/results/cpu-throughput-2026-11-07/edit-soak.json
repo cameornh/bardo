@@ -1,0 +1,89 @@
+{
+  "pass": true,
+  "edits": 5000,
+  "scope": "Repeated grounded matching-material grab/place, exact stock conservation; raised/cut sculptures tested separately",
+  "massError": 0,
+  "returned": 5000,
+  "chunks": [
+    {
+      "edits": 500,
+      "medianMs": 0.1553130000000067,
+      "p95Ms": 0.4656750000000045,
+      "maxParcels": 0,
+      "maxTreeNodes": 0,
+      "maxCuts": 0
+    },
+    {
+      "edits": 1000,
+      "medianMs": 0.14314199999998323,
+      "p95Ms": 0.3210679999999968,
+      "maxParcels": 0,
+      "maxTreeNodes": 0,
+      "maxCuts": 0
+    },
+    {
+      "edits": 1500,
+      "medianMs": 0.1200799999999731,
+      "p95Ms": 0.23532699999998385,
+      "maxParcels": 0,
+      "maxTreeNodes": 0,
+      "maxCuts": 0
+    },
+    {
+      "edits": 2000,
+      "medianMs": 0.11238600000001497,
+      "p95Ms": 0.20275200000003224,
+      "maxParcels": 0,
+      "maxTreeNodes": 0,
+      "maxCuts": 0
+    },
+    {
+      "edits": 2500,
+      "medianMs": 0.12632100000001856,
+      "p95Ms": 0.24685599999997976,
+      "maxParcels": 0,
+      "maxTreeNodes": 0,
+      "maxCuts": 0
+    },
+    {
+      "edits": 3000,
+      "medianMs": 0.1346570000000611,
+      "p95Ms": 0.28592499999996335,
+      "maxParcels": 0,
+      "maxTreeNodes": 0,
+      "maxCuts": 0
+    },
+    {
+      "edits": 3500,
+      "medianMs": 0.12949300000002495,
+      "p95Ms": 0.2518039999999928,
+      "maxParcels": 0,
+      "maxTreeNodes": 0,
+      "maxCuts": 0
+    },
+    {
+      "edits": 4000,
+      "medianMs": 0.13498900000001868,
+      "p95Ms": 0.273262999999929,
+      "maxParcels": 0,
+      "maxTreeNodes": 0,
+      "maxCuts": 0
+    },
+    {
+      "edits": 4500,
+      "medianMs": 0.13293399999997746,
+      "p95Ms": 0.2808749999999236,
+      "maxParcels": 0,
+      "maxTreeNodes": 0,
+      "maxCuts": 0
+    },
+    {
+      "edits": 5000,
+      "medianMs": 0.1338309999999865,
+      "p95Ms": 0.2907599999999775,
+      "maxParcels": 0,
+      "maxTreeNodes": 0,
+      "maxCuts": 0
+    }
+  ]
+}

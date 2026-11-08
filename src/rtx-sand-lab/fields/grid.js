@@ -114,7 +114,7 @@ export class BeachFieldGrid {
   for(const f of this.faces){f.weight.fill(0);f.before.fill(0);}
   // Cache each particle's 24 MAC interpolation weights once. Scatter and
   // gather use the identical stencil, with no callbacks/vectors per sample.
-  for(let i=0;i<n;i++){
+  if(!this.nativeTransfer?.scatter(this,positions,predicted,dt,scale))for(let i=0;i<n;i++){
    const o=i*4;if(positions[o+3]||cells[i]<0||phase[cells[i]]!==WATER)continue;
    const x=(positions[o]*scale-this.origin[0])/this.cellSize[0],y=(positions[o+1]*scale-this.origin[1])/this.cellSize[1],z=(positions[o+2]*scale-this.origin[2])/this.cellSize[2];
    for(const f of this.faces){
@@ -168,6 +168,7 @@ export class BeachFieldGrid {
  }
  solve(rhs,dt){const r=solveMultigrid(this.levels,rhs);this.project(r.potential,dt);return r;}
  transfer(positions,predicted,dt,scale,spacing){
+  const accelerated=this.nativeTransfer?.gather(this,positions,predicted,dt,scale,spacing);if(accelerated)return accelerated;
   const result=predicted.slice();let coupled=0;const limit=spacing*.45,pic=1-Math.exp(-dt*1.5);
   const indices=this.stencilIndices,weights=this.stencilWeights;
   for(let i=0;i<positions.length/4;i++){

@@ -51,3 +51,8 @@ test('asynchronous physics cannot submit another step while a frame is pending',
  const lab=Object.assign(Object.create(LiveSandLab.prototype),{renderPending:true,asyncSimulation:true,enabled:true,paused:false,gpu:{cpu:false},accumulator:1});
  Object.defineProperty(lab,'timestep',{value:1/15});lab.startAsyncStep();assert.equal(lab.asyncPending,undefined);assert.equal(lab.accumulator,1);
 });
+
+test('CPU overlap cannot submit graphics or leak an asynchronous job into another frame',async()=>{
+ const f=fixture();await assert.rejects(f.gate.run(()=>f.draw('frame'),{cpuWork:()=>f.draw('illegal compute draw')}),/CPU overlap attempted/);assert.deepEqual(f.submitted,['frame']);
+ const g=fixture();await assert.rejects(g.gate.run(()=>g.draw('frame'),{cpuWork:()=>Promise.resolve()}),/must be synchronous/);
+});

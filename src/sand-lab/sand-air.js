@@ -8,12 +8,12 @@ import {solidRayHit} from './interaction.js';
 // Sand needs the velocity at its actual surface. Interpolating the coarse air
 // lattice mixes buried zero-velocity nodes into it and can miss a whole brush.
 // Evaluate the same forcing/obstacle model locally; the grain GPU uses it too.
-export function createSandWind(lab){
+export function createSandWind(lab,preparedGeometry=null){
  const solid=p=>{let d=lab.sand.distance(p);for(const b of lab.balls||[])d=Math.min(d,bodyDistance(p,b));return d;};
  const jet=lab.jet,hit=jet?solidRayHit(lab.sand,lab.balls||[],jet.origin,jet.direction,30):null;
  const brush=hit?{...hit,normal:normalAt(hit.point,solid),radius:lab.radius}:null;
  const forcing={spec:lab.spec,time:lab.time,wind:lab.wind,windTurbulence:lab.windTurbulence,windStrength:lab.windStrength,radius:lab.radius,jet};
- const geometry=lab.optimizations?.windGeometry?new SandAirGeometry(lab.sand,lab.balls||[]):null;
+ const geometry=lab.optimizations?.windGeometry?(preparedGeometry||new SandAirGeometry(lab.sand,lab.balls||[])):null;
  let batched=false;
  const sample=p=>{if(geometry&&!batched)geometry.refresh();return sandAirVelocity(p,forcing,geometry?geometry.solid:solid,brush);};
  if(geometry){sample.beginBatch=(spatial=true)=>{geometry.refresh(spatial);batched=true;};sample.endBatch=()=>{batched=false;};}
