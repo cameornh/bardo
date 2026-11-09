@@ -1,0 +1,603 @@
+{
+  "runtime": "browser WebGPU",
+  "started": "2026-11-09T00:14:16.503Z",
+  "readySeconds": 13.13730000001192,
+  "samples": 1164,
+  "adapter": {},
+  "frames": [
+    {
+      "wall": 14437.200000047684,
+      "simulation": 0,
+      "frameMs": 24
+    },
+    {
+      "wall": 14557,
+      "simulation": 0.06666666666666667,
+      "frameMs": 108
+    },
+    {
+      "wall": 14707.200000047684,
+      "simulation": 0.2,
+      "frameMs": 109.40000003576279
+    },
+    {
+      "wall": 15180.600000023842,
+      "simulation": 0.3333333333333333,
+      "frameMs": 141.60000002384186
+    },
+    {
+      "wall": 15310.900000035763,
+      "simulation": 0.4666666666666666,
+      "frameMs": 91.60000002384186
+    },
+    {
+      "wall": 15588.300000011921,
+      "simulation": 0.5333333333333333,
+      "frameMs": 224.30000001192093
+    },
+    {
+      "wall": 15696.5,
+      "simulation": 0.6666666666666666,
+      "frameMs": 78.59999996423721
+    },
+    {
+      "wall": 15813.5,
+      "simulation": 0.7999999999999999,
+      "frameMs": 87.5
+    },
+    {
+      "wall": 15948.300000011921,
+      "simulation": 0.9333333333333332,
+      "frameMs": 89.39999997615814
+    },
+    {
+      "wall": 16043.700000047684,
+      "simulation": 0.9999999999999999,
+      "frameMs": 51.200000047683716
+    },
+    {
+      "wall": 16153.5,
+      "simulation": 1.1333333333333333,
+      "frameMs": 84.29999995231628
+    },
+    {
+      "wall": 16253.600000023842,
+      "simulation": 1.2,
+      "frameMs": 65.69999998807907
+    },
+    {
+      "wall": 16345.900000035763,
+      "simulation": 1.3333333333333333,
+      "frameMs": 65.60000002384186
+    },
+    {
+      "wall": 16435.80000001192,
+      "simulation": 1.4,
+      "frameMs": 51.39999997615814
+    },
+    {
+      "wall": 16550,
+      "simulation": 1.5333333333333332,
+      "frameMs": 72.29999995231628
+    },
+    {
+      "wall": 16641.600000023842,
+      "simulation": 1.5999999999999999,
+      "frameMs": 50.60000002384186
+    },
+    {
+      "wall": 16740.200000047684,
+      "simulation": 1.7333333333333332,
+      "frameMs": 70.10000002384186
+    },
+    {
+      "wall": 16830.30000001192,
+      "simulation": 1.7999999999999998,
+      "frameMs": 55.59999996423721
+    },
+    {
+      "wall": 16894.900000035763,
+      "simulation": 1.8666666666666665,
+      "frameMs": 39.80000001192093
+    },
+    {
+      "wall": 16958.30000001192,
+      "simulation": 1.9333333333333331,
+      "frameMs": 36
+    },
+    {
+      "wall": 17025.100000023842,
+      "simulation": 1.9999999999999998,
+      "frameMs": 42.60000002384186
+    },
+    {
+      "wall": 17116.30000001192,
+      "simulation": 2.1333333333333333,
+      "frameMs": 66.69999998807907
+    },
+    {
+      "wall": 17206.80000001192,
+      "simulation": 2.2,
+      "frameMs": 51
+    },
+    {
+      "wall": 17287.80000001192,
+      "simulation": 2.266666666666667,
+      "frameMs": 43.39999997615814
+    },
+    {
+      "wall": 17360.600000023842,
+      "simulation": 2.333333333333334,
+      "frameMs": 33.60000002384186
+    },
+    {
+      "wall": 17419.900000035763,
+      "simulation": 2.400000000000001,
+      "frameMs": 38.30000001192093
+    },
+    {
+      "wall": 17482.900000035763,
+      "simulation": 2.4666666666666677,
+      "frameMs": 34.80000001192093
+    },
+    {
+      "wall": 17553,
+      "simulation": 2.5333333333333345,
+      "frameMs": 35.69999998807907
+    },
+    {
+      "wall": 17627.900000035763,
+      "simulation": 2.6000000000000014,
+      "frameMs": 39.60000002384186
+    },
+    {
+      "wall": 17685.600000023842,
+      "simulation": 2.6666666666666683,
+      "frameMs": 34.60000002384186
+    },
+    {
+      "wall": 17749.600000023842,
+      "simulation": 2.733333333333335,
+      "frameMs": 32.89999997615814
+    },
+    {
+      "wall": 17822.700000047684,
+      "simulation": 2.800000000000002,
+      "frameMs": 39.10000002384186
+    },
+    {
+      "wall": 17884.400000035763,
+      "simulation": 2.866666666666669,
+      "frameMs": 33.90000003576279
+    },
+    {
+      "wall": 17956.80000001192,
+      "simulation": 2.933333333333336,
+      "frameMs": 37.30000001192093
+    },
+    {
+      "wall": 18026.200000047684,
+      "simulation": 3.0000000000000027,
+      "frameMs": 41.5
+    },
+    {
+      "wall": 18083.200000047684,
+      "simulation": 3.0666666666666695,
+      "frameMs": 33.5
+    },
+    {
+      "wall": 18148.30000001192,
+      "simulation": 3.1333333333333364,
+      "frameMs": 32.69999998807907
+    },
+    {
+      "wall": 18230.100000023842,
+      "simulation": 3.2000000000000033,
+      "frameMs": 36.60000002384186
+    },
+    {
+      "wall": 18295.5,
+      "simulation": 3.26666666666667,
+      "frameMs": 32.299999952316284
+    },
+    {
+      "wall": 18350.30000001192,
+      "simulation": 3.333333333333337,
+      "frameMs": 33.30000001192093
+    },
+    {
+      "wall": 18420.600000023842,
+      "simulation": 3.400000000000004,
+      "frameMs": 37.80000001192093
+    },
+    {
+      "wall": 18486.80000001192,
+      "simulation": 3.466666666666671,
+      "frameMs": 38
+    },
+    {
+      "wall": 18554.30000001192,
+      "simulation": 3.5333333333333377,
+      "frameMs": 36.69999998807907
+    },
+    {
+      "wall": 18625.80000001192,
+      "simulation": 3.6000000000000045,
+      "frameMs": 41.59999996423721
+    },
+    {
+      "wall": 18699.5,
+      "simulation": 3.6666666666666714,
+      "frameMs": 40.39999997615814
+    },
+    {
+      "wall": 18819,
+      "simulation": 3.800000000000005,
+      "frameMs": 75.19999998807907
+    },
+    {
+      "wall": 18904.80000001192,
+      "simulation": 3.866666666666672,
+      "frameMs": 53.69999998807907
+    },
+    {
+      "wall": 19005.100000023842,
+      "simulation": 4.000000000000005,
+      "frameMs": 74.5
+    },
+    {
+      "wall": 19102.100000023842,
+      "simulation": 4.066666666666672,
+      "frameMs": 53.89999997615814
+    },
+    {
+      "wall": 19209.30000001192,
+      "simulation": 4.200000000000005,
+      "frameMs": 66.19999998807907
+    },
+    {
+      "wall": 19266.30000001192,
+      "simulation": 4.266666666666671,
+      "frameMs": 33.80000001192093
+    },
+    {
+      "wall": 19330.400000035763,
+      "simulation": 4.3333333333333375,
+      "frameMs": 33.40000003576279
+    },
+    {
+      "wall": 19403.200000047684,
+      "simulation": 4.400000000000004,
+      "frameMs": 38.60000002384186
+    },
+    {
+      "wall": 19466.30000001192,
+      "simulation": 4.46666666666667,
+      "frameMs": 35.59999996423721
+    },
+    {
+      "wall": 19536.600000023842,
+      "simulation": 4.533333333333337,
+      "frameMs": 39.5
+    },
+    {
+      "wall": 19603.400000035763,
+      "simulation": 4.600000000000003,
+      "frameMs": 39.90000003576279
+    },
+    {
+      "wall": 19671,
+      "simulation": 4.66666666666667,
+      "frameMs": 38.69999998807907
+    },
+    {
+      "wall": 19727.400000035763,
+      "simulation": 4.733333333333336,
+      "frameMs": 31.5
+    },
+    {
+      "wall": 19799.600000023842,
+      "simulation": 4.8000000000000025,
+      "frameMs": 55.60000002384186
+    },
+    {
+      "wall": 19892.100000023842,
+      "simulation": 4.866666666666669,
+      "frameMs": 54.10000002384186
+    },
+    {
+      "wall": 19956.100000023842,
+      "simulation": 4.933333333333335,
+      "frameMs": 41.39999997615814
+    },
+    {
+      "wall": 20039.30000001192,
+      "simulation": 5.000000000000002,
+      "frameMs": 41.5
+    },
+    {
+      "wall": 20151.100000023842,
+      "simulation": 5.133333333333335,
+      "frameMs": 69.19999998807907
+    },
+    {
+      "wall": 20233.600000023842,
+      "simulation": 5.200000000000001,
+      "frameMs": 50.5
+    },
+    {
+      "wall": 20339.30000001192,
+      "simulation": 5.333333333333334,
+      "frameMs": 72.39999997615814
+    },
+    {
+      "wall": 20430.30000001192,
+      "simulation": 5.4,
+      "frameMs": 53.80000001192093
+    },
+    {
+      "wall": 20500.700000047684,
+      "simulation": 5.466666666666667,
+      "frameMs": 46.200000047683716
+    },
+    {
+      "wall": 20613.900000035763,
+      "simulation": 5.6,
+      "frameMs": 78.69999998807907
+    },
+    {
+      "wall": 20713.5,
+      "simulation": 5.666666666666666,
+      "frameMs": 54.09999996423721
+    },
+    {
+      "wall": 20808.600000023842,
+      "simulation": 5.799999999999999,
+      "frameMs": 72.10000002384186
+    },
+    {
+      "wall": 20915.400000035763,
+      "simulation": 5.866666666666665,
+      "frameMs": 58.40000003576279
+    },
+    {
+      "wall": 21033.30000001192,
+      "simulation": 5.999999999999998,
+      "frameMs": 70.59999996423721
+    },
+    {
+      "wall": 21139.200000047684,
+      "simulation": 6.133333333333331,
+      "frameMs": 66.5
+    },
+    {
+      "wall": 21208.400000035763,
+      "simulation": 6.1999999999999975,
+      "frameMs": 38.40000003576279
+    },
+    {
+      "wall": 21261.400000035763,
+      "simulation": 6.266666666666664,
+      "frameMs": 32.40000003576279
+    },
+    {
+      "wall": 21314.80000001192,
+      "simulation": 6.33333333333333,
+      "frameMs": 30
+    },
+    {
+      "wall": 21383.80000001192,
+      "simulation": 6.399999999999997,
+      "frameMs": 34.80000001192093
+    },
+    {
+      "wall": 21443.700000047684,
+      "simulation": 6.466666666666663,
+      "frameMs": 31.400000035762787
+    },
+    {
+      "wall": 21493.5,
+      "simulation": 6.53333333333333,
+      "frameMs": 31.399999976158142
+    },
+    {
+      "wall": 21547.5,
+      "simulation": 6.53333333333333,
+      "frameMs": 29
+    }
+  ],
+  "contextLost": false,
+  "diagnostics": "10.7 fps · 0.93× realtime\nWebAssembly CPU multigrid-PCG · WebAssembly CPU transport · WebAssembly CPU transfer · GPU air / fine\nCPU: sand stock / bonds / rigid bodies / player / rain mass / surface beads / tides / sky SH\nPipeline: CPU / draw overlap · 1 fixed steps last frame · compatible GPU\nSubmit: 28.5 ms · transfer latency: 0.0 ms\nNeighbors: WebAssembly CPU\nExposure: GPU (extremes only)\nSky: GPU atmosphere (cached)\n1165 bulk · 32768 fine\nWater drawing kernels: 1302 · CPU grouping / GPU reconstruction\nWater fields: GPU reference · 100% of reference field samples\nSand updates: 0 shapes / 0 bins · 2 settled / 0 moving\nSand distance: CPU worker / exact CSG bricks · 0 caches prepared\n4.20 m water spacing\n110 × 98 m basin · 16.5 m depth\n16 sand aggregates\nPressure passes: multigrid bulk / 1165 surface particles\nSea foam: GPU surface transport · fixed 96 × 96 coverage field · CPU surface sampling\nWind grains: GPU · 8,192 cap\nBond load: 0% · 0 breaks\nSand mass error: 1.26e-13%\n3 objects · held: none\nRain object contacts: GPU\nRain added: 0.00 m³\nGPU render span: 19.9 ms (latest timestamp sample)\n50% image · 6.3 s simulated",
+  "validation": "{\n  \"selectedBackend\": \"cpu\",\n  \"validation\": \"CPU reference physics selected\"\n}",
+  "render": {
+    "prepare": 0.30000001192092896,
+    "encode": 2.199999988079071,
+    "wait": 26.5,
+    "total": 29,
+    "renderPasses": 34,
+    "gpu": {
+      "supported": true,
+      "enabled": true,
+      "skipped": 0,
+      "rejected": 0,
+      "lastRejected": null,
+      "error": null,
+      "sample": {
+        "sequence": 201,
+        "truncated": false,
+        "sumMs": 19.136511999999996,
+        "spanMs": 19.595264,
+        "elapsedMs": 26.19999998807907,
+        "passes": [
+          {
+            "name": "render-sprayShadows-material",
+            "ms": 0.524288
+          },
+          {
+            "name": "spray-shadow-atlas",
+            "ms": 0.065536
+          },
+          {
+            "name": "clear",
+            "ms": 0
+          },
+          {
+            "name": "rtx-program-e3a1ab65",
+            "ms": 0.524288
+          },
+          {
+            "name": "rtx-program-963052fe",
+            "ms": 1.179648
+          },
+          {
+            "name": "rtx-program-ea8fde1e",
+            "ms": 0
+          },
+          {
+            "name": "render-mediumShadows-material",
+            "ms": 1.376256
+          },
+          {
+            "name": "render-splatScene-0",
+            "ms": 2.1626879999999997
+          },
+          {
+            "name": "opaque-hit-record",
+            "ms": 2.4903679999999997
+          },
+          {
+            "name": "opaque-reflection-hit",
+            "ms": 0.196608
+          },
+          {
+            "name": "opaque-reflection-lighting",
+            "ms": 0.131072
+          },
+          {
+            "name": "opaque-lighting",
+            "ms": 0.9830399999999999
+          },
+          {
+            "name": "water-hit-record",
+            "ms": 0.6553599999999999
+          },
+          {
+            "name": "water-reflection-hit",
+            "ms": 2.686976
+          },
+          {
+            "name": "water-reflection-lighting",
+            "ms": 0.589824
+          },
+          {
+            "name": "water-transmission-hit",
+            "ms": 0.786432
+          },
+          {
+            "name": "water-transmission-lighting",
+            "ms": 1.376256
+          },
+          {
+            "name": "water-lighting",
+            "ms": 0.393216
+          },
+          {
+            "name": "clear",
+            "ms": 0
+          },
+          {
+            "name": "render-mergeScene-0",
+            "ms": 0.196608
+          },
+          {
+            "name": "render-copyScene-0",
+            "ms": 0.131072
+          },
+          {
+            "name": "fine-water-visible-lighting",
+            "ms": 0.6553599999999999
+          },
+          {
+            "name": "fine-water-visible-Gaussians",
+            "ms": 0.6553599999999999
+          },
+          {
+            "name": "render-detailRenderer-reconstruct + visible-sand-grains",
+            "ms": 0.393216
+          },
+          {
+            "name": "glass-hit-record",
+            "ms": 0.131072
+          },
+          {
+            "name": "glass-lighting",
+            "ms": 0.262144
+          },
+          {
+            "name": "render-copyScene-0 + render-stars-scene-0 + render-stars-material",
+            "ms": 0.262144
+          },
+          {
+            "name": "exposure reduction",
+            "ms": 0.131072
+          },
+          {
+            "name": "exposure reduction",
+            "ms": 0
+          },
+          {
+            "name": "exposure reduction",
+            "ms": 0
+          },
+          {
+            "name": "exposure reduction",
+            "ms": 0.065536
+          },
+          {
+            "name": "exposure reduction",
+            "ms": 0
+          },
+          {
+            "name": "exposure adaptation",
+            "ms": 0
+          },
+          {
+            "name": "display",
+            "ms": 0.131072
+          }
+        ],
+        "byName": {
+          "render-sprayShadows-material": 0.524288,
+          "spray-shadow-atlas": 0.065536,
+          "clear": 0,
+          "rtx-program-e3a1ab65": 0.524288,
+          "rtx-program-963052fe": 1.179648,
+          "rtx-program-ea8fde1e": 0,
+          "render-mediumShadows-material": 1.376256,
+          "render-splatScene-0": 2.1626879999999997,
+          "opaque-hit-record": 2.4903679999999997,
+          "opaque-reflection-hit": 0.196608,
+          "opaque-reflection-lighting": 0.131072,
+          "opaque-lighting": 0.9830399999999999,
+          "water-hit-record": 0.6553599999999999,
+          "water-reflection-hit": 2.686976,
+          "water-reflection-lighting": 0.589824,
+          "water-transmission-hit": 0.786432,
+          "water-transmission-lighting": 1.376256,
+          "water-lighting": 0.393216,
+          "render-mergeScene-0": 0.196608,
+          "render-copyScene-0": 0.131072,
+          "fine-water-visible-lighting": 0.6553599999999999,
+          "fine-water-visible-Gaussians": 0.6553599999999999,
+          "render-detailRenderer-reconstruct + visible-sand-grains": 0.393216,
+          "glass-hit-record": 0.131072,
+          "glass-lighting": 0.262144,
+          "render-copyScene-0 + render-stars-scene-0 + render-stars-material": 0.262144,
+          "exposure reduction": 0.196608,
+          "exposure adaptation": 0,
+          "display": 0.131072
+        }
+      }
+    }
+  }
+}

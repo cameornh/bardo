@@ -1,0 +1,52 @@
+{
+  "settings": {
+    "viewport": [
+      640,
+      400
+    ],
+    "render": [
+      320,
+      200
+    ],
+    "resolution": 1,
+    "initialWaterMarkers": 1164,
+    "beachMeters": [
+      110,
+      98
+    ],
+    "physics": "CPU reference plus existing GPU visual/air work",
+    "warmupFrames": 12,
+    "presentationCap": 60,
+    "hostGPU": "AMD Radeon Pro 560X",
+    "runtime": "Deno 2.9.8 / native wgpu / Metal"
+  },
+  "rows": [
+    {
+      "name": "native",
+      "frames": 80,
+      "sampledSeconds": 12.065965342000002,
+      "fps": 5.552808921701607,
+      "realtime": 0.7403745228935462,
+      "p95FrameMs": 203.60777799999778,
+      "contextLost": false,
+      "error": null
+    },
+    {
+      "name": "browser",
+      "frames": 80,
+      "sampledSeconds": 5.2015999999642375,
+      "fps": 12.880652107132544,
+      "realtime": 0.9996924023446148,
+      "p95FrameMs": 113.19999998807907,
+      "contextLost": false,
+      "error": null
+    }
+  ],
+  "parity": {
+    "pixels": 64000,
+    "meanAbsoluteRGB": 0.00009570739895328492,
+    "maxAbsoluteRGB": 0.5956405997276306,
+    "fractionOverPoint01": 0.00075,
+    "nonfinite": 0
+  }
+}

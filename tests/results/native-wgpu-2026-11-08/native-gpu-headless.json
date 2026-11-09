@@ -1,0 +1,647 @@
+{
+  "runtime": {
+    "deno": "2.9.8",
+    "v8": "15.0.245.2-rusty",
+    "typescript": "6.0.3"
+  },
+  "frames": [
+    {
+      "wall": 10232.749392,
+      "simulation": 0.06666666666666667,
+      "frameMs": 293.8295419999995,
+      "physics": {
+        "pump": 0.27141000000119675,
+        "rain": 1.2733939999998256,
+        "wetting": 0.18065000000024156,
+        "predict": 3.325537999999142,
+        "emission": 3.325739000001704
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 18613.865943,
+      "simulation": 0.13333333333333333,
+      "frameMs": 993.5769650000002,
+      "physics": {
+        "pump": 0.008246000001236098,
+        "rain": 0.024041999999099062,
+        "wetting": 0.007967999999891617,
+        "predict": 1.6753220000009605,
+        "emission": 0.8626520000016171
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 19041.801731,
+      "simulation": 0.2,
+      "frameMs": 297.0551659999983,
+      "physics": {
+        "pump": 0.008449000000837259,
+        "rain": 0.022621000000071945,
+        "wetting": 0.00743499999953201,
+        "predict": 1.8093469999985246,
+        "emission": 0.46456299999772455
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 19494.24916,
+      "simulation": 0.26666666666666666,
+      "frameMs": 337.6336569999985,
+      "physics": {
+        "pump": 0.010908000000199536,
+        "rain": 0.020530000001599547,
+        "wetting": 0.006362000000081025,
+        "predict": 1.3589159999974072,
+        "emission": 0.1832490000015241
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 19672.315607,
+      "simulation": 0.3333333333333333,
+      "frameMs": 81.9575470000018,
+      "physics": {
+        "pump": 0.021810999998706393,
+        "rain": 0.02331400000184658,
+        "wetting": 0.008135000000038417,
+        "predict": 1.5530909999979485,
+        "emission": 0.227363999998488
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 22122.71116,
+      "simulation": 0.39999999999999997,
+      "frameMs": 2308.553240999998,
+      "physics": {
+        "pump": 0.007143999999243533,
+        "rain": 0.02404999999998836,
+        "wetting": 0.00761899999997695,
+        "predict": 1.5360950000031153,
+        "emission": 7.913269000000582
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 22560.955299,
+      "simulation": 0.4666666666666666,
+      "frameMs": 294.70884600000136,
+      "physics": {
+        "pump": 0.00732600000264938,
+        "rain": 0.026320999997551553,
+        "wetting": 1.9640639999997802,
+        "predict": 0.6865319999997155,
+        "emission": 8.072478999998566
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 23008.446723,
+      "simulation": 0.5333333333333333,
+      "frameMs": 307.04968799999915,
+      "physics": {
+        "pump": 0.008969999998953426,
+        "rain": 0.03387300000031246,
+        "wetting": 2.6455129999994824,
+        "predict": 0.9055690000022878,
+        "emission": 7.585786999999982
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 23443.558572,
+      "simulation": 0.6,
+      "frameMs": 302.6847020000023,
+      "physics": {
+        "pump": 0.013592999999673339,
+        "rain": 0.04600200000277255,
+        "wetting": 1.2575829999987036,
+        "predict": 0.8513820000007399,
+        "emission": 4.923234999998385
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 23872.416229,
+      "simulation": 0.6666666666666666,
+      "frameMs": 303.9854070000001,
+      "physics": {
+        "pump": 0.014117000002443092,
+        "rain": 0.03351699999984703,
+        "wetting": 0.555540999997902,
+        "predict": 0.8480020000024524,
+        "emission": 5.283034000000043
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 24297.930091,
+      "simulation": 0.7333333333333333,
+      "frameMs": 296.6543559999991,
+      "physics": {
+        "pump": 0.004553999999188818,
+        "rain": 0.014884000000165543,
+        "wetting": 0.8624259999996866,
+        "predict": 0.751113999998779,
+        "emission": 9.44568100000106
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 24742.983412,
+      "simulation": 0.7999999999999999,
+      "frameMs": 297.55397500000254,
+      "physics": {
+        "pump": 0.004461000000446802,
+        "rain": 0.011537999998836312,
+        "wetting": 1.9923359999993409,
+        "predict": 0.8070580000021437,
+        "emission": 4.006263999999646
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 25205.841762,
+      "simulation": 0.8666666666666666,
+      "frameMs": 333.3071200000013,
+      "physics": {
+        "pump": 0.003832000002148561,
+        "rain": 0.010837999998329906,
+        "wetting": 1.8352750000012747,
+        "predict": 0.8319230000015523,
+        "emission": 3.4954129999969155
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 25677.607665,
+      "simulation": 0.9333333333333332,
+      "frameMs": 337.4339970000001,
+      "physics": {
+        "pump": 0.0033589999984542374,
+        "rain": 0.010125000000698492,
+        "wetting": 1.3390899999976682,
+        "predict": 1.0049750000034692,
+        "emission": 3.7438569999976608
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 26145.858467,
+      "simulation": 0.9999999999999999,
+      "frameMs": 296.9993669999967,
+      "physics": {
+        "pump": 0.00473499999861815,
+        "rain": 0.013151000002835644,
+        "wetting": 1.8859669999983453,
+        "predict": 0.9512529999992694,
+        "emission": 10.730535000002419
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 26579.288245,
+      "simulation": 1.0666666666666667,
+      "frameMs": 298.90333100000134,
+      "physics": {
+        "pump": 0.003946999997424427,
+        "rain": 0.010976000001392094,
+        "wetting": 1.4101730000002135,
+        "predict": 0.7988989999976184,
+        "emission": 4.881777999999031
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 27014.399161,
+      "simulation": 1.1333333333333333,
+      "frameMs": 300.36057300000175,
+      "physics": {
+        "pump": 0.0038210000020626467,
+        "rain": 0.01182399999743211,
+        "wetting": 1.4372020000009798,
+        "predict": 1.5204290000001492,
+        "emission": 8.791025999998965
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 27486.553434,
+      "simulation": 1.2,
+      "frameMs": 293.342523000003,
+      "physics": {
+        "pump": 0.004155000002356246,
+        "rain": 0.010985999997501494,
+        "wetting": 1.6591050000024552,
+        "predict": 1.1386050000000978,
+        "emission": 38.500231999998505
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 27921.051336,
+      "simulation": 1.2666666666666666,
+      "frameMs": 305.4598110000006,
+      "physics": {
+        "pump": 0.005569000000832602,
+        "rain": 0.013942999998107553,
+        "wetting": 1.6453130000008969,
+        "predict": 0.8926590000010037,
+        "emission": 4.46267699999953
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 28365.917774,
+      "simulation": 1.3333333333333333,
+      "frameMs": 302.26905500000066,
+      "physics": {
+        "pump": 0.005823999999847729,
+        "rain": 0.014181999998982064,
+        "wetting": 1.5860800000009476,
+        "predict": 0.9159429999999702,
+        "emission": 4.372475000000122
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 28823.542458,
+      "simulation": 1.4,
+      "frameMs": 313.51007200000095,
+      "physics": {
+        "pump": 0.004464000001462409,
+        "rain": 0.010508999999728985,
+        "wetting": 1.5534140000017942,
+        "predict": 0.895184999997582,
+        "emission": 4.809999000000971
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 29256.190567,
+      "simulation": 1.4666666666666666,
+      "frameMs": 302.64116000000286,
+      "physics": {
+        "pump": 0.004933000000164611,
+        "rain": 0.012437999997928273,
+        "wetting": 1.3656169999994745,
+        "predict": 0.8254290000004403,
+        "emission": 4.574071000002732
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 29685.500691,
+      "simulation": 1.5333333333333332,
+      "frameMs": 299.7220040000029,
+      "physics": {
+        "pump": 0.005477999999129679,
+        "rain": 0.011765000002924353,
+        "wetting": 1.5905789999997069,
+        "predict": 0.8946309999992081,
+        "emission": 4.509844000000157
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 30128.768892,
+      "simulation": 1.5999999999999999,
+      "frameMs": 304.7312749999983,
+      "physics": {
+        "pump": 0.004222999999910826,
+        "rain": 0.011583000003156485,
+        "wetting": 1.9848859999983688,
+        "predict": 0.9607619999987946,
+        "emission": 4.558852000001934
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 30553.824803,
+      "simulation": 1.6666666666666665,
+      "frameMs": 298.838713000001,
+      "physics": {
+        "pump": 0.0039639999995415565,
+        "rain": 0.009227000002283603,
+        "wetting": 0.9163379999990866,
+        "predict": 0.8102949999993143,
+        "emission": 4.298377999999502
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 31018.364514,
+      "simulation": 1.7333333333333332,
+      "frameMs": 327.9159299999992,
+      "physics": {
+        "pump": 0.0038449999992735684,
+        "rain": 0.010788999999931548,
+        "wetting": 1.0033360000015819,
+        "predict": 0.8366280000009283,
+        "emission": 9.1168039999975
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 31444.621286,
+      "simulation": 1.7999999999999998,
+      "frameMs": 299.01626600000236,
+      "physics": {
+        "pump": 0.00411800000074436,
+        "rain": 0.014047000000573462,
+        "wetting": 1.0399489999981597,
+        "predict": 0.75205300000016,
+        "emission": 8.769286999999167
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 31897.247379,
+      "simulation": 1.8666666666666665,
+      "frameMs": 325.3060770000011,
+      "physics": {
+        "pump": 0.0035360000001674052,
+        "rain": 0.010646000002452638,
+        "wetting": 1.009751999998116,
+        "predict": 0.9285850000014761,
+        "emission": 3.8386480000008305
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 32321.664718,
+      "simulation": 1.9333333333333331,
+      "frameMs": 305.5772020000004,
+      "physics": {
+        "pump": 0.0037119999979040585,
+        "rain": 0.009642000000894768,
+        "wetting": 1.5152630000011413,
+        "predict": 0.812646999998833,
+        "emission": 4.1059170000007725
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 32773.778598,
+      "simulation": 1.9999999999999998,
+      "frameMs": 321.8579649999956,
+      "physics": {
+        "pump": 0.0037439999978232663,
+        "rain": 0.010283999999955995,
+        "wetting": 2.114983999999822,
+        "predict": 1.165344000000914,
+        "emission": 3.3144680000004882
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 33180.440771,
+      "simulation": 2.0666666666666664,
+      "frameMs": 290.8451350000032,
+      "physics": {
+        "pump": 0.004098999997950159,
+        "rain": 0.00923299999703886,
+        "wetting": 1.1957529999999679,
+        "predict": 0.792247999997926,
+        "emission": 3.669380999999703
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 33606.639755,
+      "simulation": 2.1333333333333333,
+      "frameMs": 311.00835799999913,
+      "physics": {
+        "pump": 0.003713000005518552,
+        "rain": 0.009007000000565313,
+        "wetting": 1.055553999998665,
+        "predict": 0.6884629999985918,
+        "emission": 3.53659499999776
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 34036.088904,
+      "simulation": 2.2,
+      "frameMs": 302.834096999999,
+      "physics": {
+        "pump": 0.0036869999967166223,
+        "rain": 0.010477000003447756,
+        "wetting": 1.5395920000009937,
+        "predict": 0.8131389999980456,
+        "emission": 3.535502999999153
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 34483.860959,
+      "simulation": 2.266666666666667,
+      "frameMs": 298.9055939999962,
+      "physics": {
+        "pump": 0.004490999999688938,
+        "rain": 0.011836999998195097,
+        "wetting": 2.3828120000034687,
+        "predict": 0.980941999994684,
+        "emission": 3.8191359999982524
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 34908.593845,
+      "simulation": 2.333333333333334,
+      "frameMs": 308.7825940000039,
+      "physics": {
+        "pump": 0.0037569999985862523,
+        "rain": 0.010020999994594604,
+        "wetting": 1.5276790000061737,
+        "predict": 0.7659359999961453,
+        "emission": 2.970609999996668
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 35413.799421,
+      "simulation": 2.400000000000001,
+      "frameMs": 372.79540600000473,
+      "physics": {
+        "pump": 0.007048999999824446,
+        "rain": 0.014793999995163176,
+        "wetting": 2.407171999999264,
+        "predict": 1.091658000004827,
+        "emission": 7.483720999996876
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 35893.84174,
+      "simulation": 2.4666666666666677,
+      "frameMs": 357.4440600000016,
+      "physics": {
+        "pump": 0.00409399999625748,
+        "rain": 0.012419000006048009,
+        "wetting": 2.041834999996354,
+        "predict": 1.0510189999986324,
+        "emission": 4.075050999999803
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 36328.10697,
+      "simulation": 2.5333333333333345,
+      "frameMs": 310.2952970000042,
+      "physics": {
+        "pump": 0.004748000006657094,
+        "rain": 0.011702999996487051,
+        "wetting": 1.7889540000032866,
+        "predict": 0.907469999998284,
+        "emission": 3.4288699999960954
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 36775.271437,
+      "simulation": 2.6000000000000014,
+      "frameMs": 329.1290990000052,
+      "physics": {
+        "pump": 0.0034519999971962534,
+        "rain": 0.009992999999667518,
+        "wetting": 1.9296250000043074,
+        "predict": 0.7567409999974188,
+        "emission": 3.345900000000256
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 37219.610551,
+      "simulation": 2.6666666666666683,
+      "frameMs": 318.952271999995,
+      "physics": {
+        "pump": 0.0036630000031436794,
+        "rain": 0.010616999999911059,
+        "wetting": 1.5466229999947245,
+        "predict": 0.7614390000017011,
+        "emission": 3.8290630000046804
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 37651.8086,
+      "simulation": 2.733333333333335,
+      "frameMs": 314.8971479999964,
+      "physics": {
+        "pump": 0.0045339999996940605,
+        "rain": 0.01229099999909522,
+        "wetting": 1.7007319999975152,
+        "predict": 0.8329630000007455,
+        "emission": 3.228110000003653
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 38111.610754,
+      "simulation": 2.800000000000002,
+      "frameMs": 335.4171980000028,
+      "physics": {
+        "pump": 0.0041229999987990595,
+        "rain": 0.011273999996774364,
+        "wetting": 1.8697300000058021,
+        "predict": 0.7565179999946849,
+        "emission": 3.4224130000002333
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 38555.741916,
+      "simulation": 2.866666666666669,
+      "frameMs": 325.8557179999989,
+      "physics": {
+        "pump": 0.0040470000021741726,
+        "rain": 0.012382999993860722,
+        "wetting": 1.5238779999999679,
+        "predict": 0.8814920000004349,
+        "emission": 3.7198159999970812
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 39009.192628,
+      "simulation": 2.933333333333336,
+      "frameMs": 328.9678389999972,
+      "physics": {
+        "pump": 0.0039550000001327135,
+        "rain": 0.010658999999577645,
+        "wetting": 1.0053490000063903,
+        "predict": 0.6959479999932228,
+        "emission": 3.516727999995055
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 39454.324363,
+      "simulation": 3.0000000000000027,
+      "frameMs": 323.29460400000244,
+      "physics": {
+        "pump": 0.004375000004074536,
+        "rain": 0.011963999997533392,
+        "wetting": 1.0659820000000764,
+        "predict": 0.7889740000027814,
+        "emission": 3.1268940000009025
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 39905.563494,
+      "simulation": 3.0666666666666695,
+      "frameMs": 319.67837000000145,
+      "physics": {
+        "pump": 0.004421999998157844,
+        "rain": 0.015027000001282431,
+        "wetting": 1.2727190000005066,
+        "predict": 1.0145140000022366,
+        "emission": 8.398205000004964
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 40353.385153,
+      "simulation": 3.1333333333333364,
+      "frameMs": 311.7141269999993,
+      "physics": {
+        "pump": 0.005162000001291744,
+        "rain": 0.012734000003547408,
+        "wetting": 1.4776209999981802,
+        "predict": 0.9245149999987916,
+        "emission": 8.701811999999336
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    },
+    {
+      "wall": 40798.363634,
+      "simulation": 3.2000000000000033,
+      "frameMs": 310.30654700000014,
+      "physics": {
+        "pump": 0.004374999996798579,
+        "rain": 0.010024000002886169,
+        "wetting": 1.3626919999951497,
+        "predict": 0.7078480000054697,
+        "emission": 3.938453999995545
+      },
+      "field": "WebGPU connected deposition / multigrid-PCG / projection"
+    }
+  ],
+  "events": [],
+  "started": "2026-11-08T23:42:16.220Z",
+  "adapter": {
+    "vendor": "0",
+    "architecture": "",
+    "device": "0",
+    "description": "AMD Radeon Pro 560X",
+    "isFallbackAdapter": false
+  },
+  "samples": 1164,
+  "backend": "native wgpu",
+  "readySeconds": 9.365153206999999,
+  "contextLost": false,
+  "finished": "2026-11-08T23:42:56.589Z"
+}

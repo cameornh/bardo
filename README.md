@@ -11,6 +11,14 @@ Local SDF/Gaussian sandbox experiments. The interface is a viewport and collapsi
 
 Run **npm install**, then **npm run dev**. Open the local Vite URL. A desktop browser with accelerated WebGL 2 and floating-point render targets is required. **npm test** runs numerical and streaming checks; **npm run build** builds the harness. No account or backend is involved. Earlier mesh_to_splats.py, synthetic_splats.json, and test_cube.obj files remain untouched and are not runtime inputs.
 
+The live sand lab also has an experimental **native wgpu desktop host**:
+`npm run start:native`, or `Start-Native.command` on Mac / `Start-Native.cmd` on
+Windows. It shares the live scene, shaders and physics; it does not use a browser
+window. macOS/Metal is tested; Windows source support awaits validation. This
+first native host is slower on the measured Mac, so the browser remains available.
+See [native setup, scope and limitations](native/README.md) and the
+[native comparison](tests/results/native-wgpu-2026-11-08/report.html).
+
 ## Gaussian renderer and motion detail
 
 The old renderer used Gaussian-weighted attributes but reconstructed an opaque surface through a hard depth prepass. It did not contain spherical harmonics. That path has been replaced.

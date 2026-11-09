@@ -71,7 +71,7 @@ window.addEventListener('error',e=>showGraphicsError(e.error||new Error(e.messag
 if(document.hidden){await boot.step('Waiting for visible preview');await waitForVisible(document);}
 const useWebGPU=new URLSearchParams(location.search).get('renderer')==='webgpu';
 await boot.step(useWebGPU?'Creating WebGPU device':'Creating WebGL 2 context');
-const canvas=$('view'),renderer=useWebGPU?await(await import('../webgpu-sand-lab/renderer.js')).SharedSceneWebGPU.create(canvas):createLabRenderer(THREE.WebGLRenderer,{canvas,antialias:false,powerPreference:'high-performance'},showGraphicsError);
+const canvas=$('view'),renderer=useWebGPU?await(await import('../webgpu-sand-lab/renderer.js')).SharedSceneWebGPU.create(canvas,boot.rendererOptions||{}):createLabRenderer(THREE.WebGLRenderer,{canvas,antialias:false,powerPreference:'high-performance'},showGraphicsError);
 const graphics=installRTXGraphicsGuard(renderer,showGraphicsError,boot.pass);
 if(useWebGPU)renderer.pipelineProgress=name=>boot.pass({stage:'WebGPU pipeline',programs:[name]});
 const Completion=useWebGPU?(await import('../webgpu-sand-lab/completion.js')).WebGPUFrameCompletion:FrameCompletion;
@@ -90,6 +90,7 @@ const lab=new SandLab(renderer,{boulders:true,physicalResolution:true,bulkFields
 stopSimulation=error=>lab.stopGraphicsWork(error);
 lab.onGraphicsFailure=error=>graphics.stop(error);
 configureRTXLab(lab,rendererInfo(renderer));
+boot.configureLab?.(lab,renderer);
 installFieldLocality(lab);
 installResidentWater(lab);
 installCollisionDiagnostics(lab,$('diagnostics'));
@@ -237,5 +238,6 @@ for(const node of [...$('panel').children])if(!qaExisting.has(node))$('qa-panel'
 $('qa-panel').append($('verify'),$('qa-results'));
 
 if(!useWebGPU)installHorizonAudit({lab,draw,renderer,camera,panel:$('qa-panel'),output:$('qa-results')});
+boot.attach?.({lab,renderer,draw,field,camera,controls,waitForSceneIdle});
 await startRTX().catch(graphics.stop);
 }

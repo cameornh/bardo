@@ -1,0 +1,10 @@
+// Worker is shared with the browser translator; only local asset loading differs.
+export class NativeCompiler{
+ constructor(){this.worker=new Worker(new URL('../.native/generated/compiler-worker.mjs',import.meta.url),{type:'module'});this.pending=new Map();this.serial=0;this.cache=new Map();this.worker.onmessage=({data})=>{const p=this.pending.get(data.id);if(!p)return;clearTimeout(p.timer);this.pending.delete(data.id);data.error?p.reject(Error(data.error)):p.resolve(data);};this.worker.onerror=e=>this.stop(Error(e.message));}
+ compile(vertex,fragment,defines={},samplerGroups={}){const key=JSON.stringify([vertex,fragment,defines,samplerGroups]);if(this.cache.has(key))return this.cache.get(key);const promise=this.cached(key,{vertex,fragment,defines,samplerGroups});this.cache.set(key,promise);return promise;}
+ async version(){return this.versionPromise??=Promise.all(['../.native/generated/compiler-worker.mjs','../public/vendor/twgsl/twgsl.js','../public/vendor/twgsl/twgsl.wasm'].map(async path=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await Deno.readFile(new URL(path,import.meta.url))))).join(','))).then(parts=>parts.join(':'));}
+ async cached(key,source){const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(key+await this.version())),hash=Array.from(new Uint8Array(digest)).map(v=>v.toString(16).padStart(2,'0')).join(''),dir=new URL('../.native/shader-cache/',import.meta.url),file=new URL(hash+'.json',dir);try{return JSON.parse(await Deno.readTextFile(file));}catch{}
+  const id=++this.serial,result=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>this.stop(Error('Native shader translation timed out')),30000);this.pending.set(id,{resolve,reject,timer});this.worker.postMessage({id,...source});});await Deno.mkdir(dir,{recursive:true});await Deno.writeTextFile(file,JSON.stringify(result));return result;
+ }
+ stop(error=Error('Native shader compiler stopped')){this.worker.terminate();for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(error);}this.pending.clear();}
+}

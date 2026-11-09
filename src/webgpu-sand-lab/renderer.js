@@ -6,6 +6,7 @@ import {wait} from '../rtx-sand-lab/fields/particles/pipeline.js';
 import {renderPassPlan} from './pass-plan.js';
 import {sceneTextureFormat,textureBytes,packTextureRows} from './formats.js';
 import {PassTimestamps} from './timestamps.js';
+import {splitWideAttachments} from './attachment-limits.js';
 
 const align=(n,a)=>Math.ceil(n/a)*a;
 const usage=()=>GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.COPY_SRC|GPUTextureUsage.COPY_DST;
@@ -49,7 +50,7 @@ export class SharedSceneWebGPU {
  constructor(canvas,adapter,device,options={}){
   this.options={mergePasses:true,compactFormats:true,timestamps:true,...options};
   this.isSharedSceneWebGPU=true;this.domElement=canvas;this.adapter=adapter;this.device=device;this.context=canvas.getContext('webgpu');this.format=navigator.gpu.getPreferredCanvasFormat();this.context.configure({device,format:this.format,alphaMode:'opaque'});
-  this.compiler=new SceneShaderCompiler();window.addEventListener('pagehide',()=>this.dispose(),{once:true});this.programs=new Map();this.materialPrograms=new WeakMap();this.pipelines=new Map();this.textures=new WeakMap();this.targets=new WeakMap();this.attributes=new WeakMap();this.geometryResources=new WeakMap();this.attributeOwners=new WeakMap();this.samplers=new Map();this.commands=[];this.temporary=[];this.uniformBuffers=[];this.uniformIndex=0;this.allocationBytes=0;this.allocations=new WeakMap();this.resourceBudget=512*1024*1024;
+  this.compiler=options.compiler||new SceneShaderCompiler();window.addEventListener('pagehide',()=>this.dispose(),{once:true});this.programs=new Map();this.materialPrograms=new WeakMap();this.pipelines=new Map();this.textures=new WeakMap();this.targets=new WeakMap();this.attributes=new WeakMap();this.geometryResources=new WeakMap();this.attributeOwners=new WeakMap();this.samplers=new Map();this.commands=[];this.temporary=[];this.uniformBuffers=[];this.uniformIndex=0;this.allocationBytes=0;this.allocations=new WeakMap();this.resourceBudget=512*1024*1024;
   this.timing=this.createPassTiming();
   this.info={programs:[],render:{calls:0,triangles:0},memory:{textures:0}};this.debug={};this.properties=new WeakMap();this.autoClear=true;this.clearColor=new THREE.Color(0);this.clearAlpha=0;this.target=null;this.viewport=new THREE.Vector4(0,0,canvas.width,canvas.height);this.scissor=this.viewport.clone();this.scissorTest=false;
   this.capabilities={maxTextureSize:device.limits.maxTextureDimension2D};this.extensions={has:name=>['EXT_color_buffer_float','KHR_parallel_shader_compile'].includes(name)||(name==='OES_texture_float_linear'&&device.features.has('float32-filterable'))};
@@ -152,20 +153,21 @@ export class SharedSceneWebGPU {
  uniform(data){let buffer=this.uniformBuffers[this.uniformIndex];if(!buffer||buffer.size<data.byteLength){if(buffer)this.destroyResource(buffer);buffer=this.createBuffer({size:align(data.byteLength,256),usage:GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST});this.uniformBuffers[this.uniformIndex]=buffer;}this.uniformIndex++;this.device.queue.writeBuffer(buffer,0,data);return buffer;}
  async pipeline(c,p){
   const activeAttributes=p.activeAttributes??=Object.entries(p.attributes).filter(([name])=>new RegExp('@location\\('+p.attributes[name]+'\\)').test(p.vertex));const vertexBuffers=activeAttributes.map(([name,location])=>{const a=c.attributes[name];if(!a)throw Error('Missing active attribute '+name+' in '+c.name);return {arrayStride:a.stride*4,stepMode:a.stepMode,attributes:[{shaderLocation:location,offset:a.offset*4,format:a.itemSize===1?'float32':'float32x'+a.itemSize}]};});
-  const formats=c.state?.colors.map(t=>t.format)||[this.format],key=p.key+JSON.stringify([vertexBuffers,formats,c.blend,!!c.state?.depth,c.depthTest,c.depthWrite,c.depthFunc,c.side]);let result=this.pipelines.get(key);if(result)return result;
+  const formats=c.state?.colors.map(t=>t?.format||null)||[this.format],key=p.key+JSON.stringify([vertexBuffers,formats,c.blend,!!c.state?.depth,c.depthTest,c.depthWrite,c.depthFunc,c.side]);let result=this.pipelines.get(key);if(result)return result;
   for(const f of formats)if(f==='rgba32float'&&c.blend&&!this.device.features.has('float32-blendable'))throw Error('This device cannot blend the full precision scene attachment; a validated half precision path is required');
-  const descriptor={label:c.name,layout:p.layout,vertex:{module:p.vs,entryPoint:'main',buffers:vertexBuffers},fragment:{module:p.fs,entryPoint:'main',targets:formats.map(format=>({format,blend:c.blend}))},primitive:{topology:'triangle-list',cullMode:'none'}};
+  const descriptor={label:c.name,layout:p.layout,vertex:{module:p.vs,entryPoint:'main',buffers:vertexBuffers},fragment:{module:p.fs,entryPoint:'main',targets:formats.map(format=>format?{format,blend:c.blend}:null)},primitive:{topology:'triangle-list',cullMode:'none'}};
   if(c.state?.depth)descriptor.depthStencil={format:'depth32float',depthWriteEnabled:!!c.depthWrite,depthCompare:!c.depthTest?'always':c.depthFunc===THREE.GreaterDepth?'greater':c.depthFunc===THREE.LessDepth?'less':'less-equal'};
   result=wait(this.device.createRenderPipelineAsync(descriptor),30000,c.name+' pipeline').then(pipeline=>({pipeline,activeAttributes}));this.pipelines.set(key,result);return result;
  }
  attachments(state,clear=null,depthClear=false){
   const colors=state?.colors||[{view:this.context.getCurrentTexture().createView()}];
-  return {colorAttachments:colors.map(t=>({view:t.view,loadOp:clear?'clear':'load',storeOp:'store',...(clear?{clearValue:clear}:{} )})),...(state?.depth?{depthStencilAttachment:{view:state.depthView,depthLoadOp:depthClear?'clear':'load',depthStoreOp:'store',depthClearValue:1}}:{})};
+  return {colorAttachments:colors.map(t=>t?{view:t.view,loadOp:clear?'clear':'load',storeOp:'store',...(clear?{clearValue:clear}:{} )}:null),...(state?.depth?{depthStencilAttachment:{view:state.depthView,depthLoadOp:depthClear?'clear':'load',depthStoreOp:'store',depthClearValue:1}}:{})};
  }
  async flush({timeoutMs=2000,cpuWork=null}={}){
-  this.assertHealthy();if(!this.commands.length&&!this.temporary.length&&!this.flushing){cpuWork?.();return;}if(this.flushing)throw Error('A WebGPU scene frame is already outstanding');this.flushing=true;const commands=this.commands.splice(0),retired=this.temporary.splice(0);this.uniformIndex=0;const d=this.device;
+  this.assertHealthy();if(!this.commands.length&&!this.temporary.length&&!this.flushing){cpuWork?.();return;}if(this.flushing)throw Error('A WebGPU scene frame is already outstanding');this.flushing=true;const rawCommands=this.commands.splice(0),retired=this.temporary.splice(0);this.uniformIndex=0;const d=this.device;
   const began=performance.now();let prepared,encoded,timingBatch,scope=false;
   try{
+   const commands=this.options?.splitWideTargets?splitWideAttachments(rawCommands,d.limits.maxColorAttachmentBytesPerSample):rawCommands;
    // Compile sequentially before submitting any draw. A failed shader cannot
    // leave a partially queued heavy frame behind it.
    for(const c of commands)if(c.type==='draw'){this.pipelineProgress?.(c.name);c.p=await c.program;c.pipeline=await this.pipeline(c,c.p);}
@@ -179,7 +181,7 @@ export class SharedSceneWebGPU {
     for(const c of group.draws){
     const p=c.p,resources=new Map(),uniform=this.uniform(packUniforms(p.uniforms,c.uniforms)),internals=this.uniform(new Float32Array([c.uniforms.yFactor_,c.uniforms.textureOutputHeight_,0,0]));
     for(const [name,b] of Object.entries(p.buffers))resources.set(b.binding.groupIndex+':'+b.binding.bindingIndex,{buffer:name==='LeftOver'?uniform:internals});
-    for(const [name,t] of Object.entries(p.textures)){const b=t.textures[0],image=c.textures[name]||this.texture(this.empty);if(p.resources.has(b.groupIndex+':'+b.bindingIndex)&&c.state?.colors.some(t=>t.texture===image.texture))throw Error('Texture feedback in '+c.name+': '+name);resources.set(b.groupIndex+':'+b.bindingIndex,image.view);}
+    for(const [name,t] of Object.entries(p.textures)){const b=t.textures[0],image=c.textures[name]||this.texture(this.empty);if(p.resources.has(b.groupIndex+':'+b.bindingIndex)&&c.state?.colors.some(t=>t?.texture===image.texture))throw Error('Texture feedback in '+c.name+': '+name);resources.set(b.groupIndex+':'+b.bindingIndex,image.view);}
     for(const [name,s] of Object.entries(p.samplers))resources.set(s.binding.groupIndex+':'+s.binding.bindingIndex,c.samplers[s.sourceTexture||name.replace(/Sampler$/,'')]||this.sampler(this.empty));
     const groups=p.layouts.map((layout,g)=>d.createBindGroup({layout,entries:[...p.resources.values()].filter(r=>r.group===g).map(r=>({binding:r.binding,resource:resources.get(g+':'+r.binding)}))}));
     pass.setPipeline(c.pipeline.pipeline);groups.forEach((group,g)=>pass.setBindGroup(g,group));c.pipeline.activeAttributes.forEach(([name],i)=>pass.setVertexBuffer(i,c.attributes[name].buffer));
