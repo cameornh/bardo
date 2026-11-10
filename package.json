@@ -13,7 +13,7 @@
     "setup:native": "node native/setup.mjs",
     "build:native": "node native/build.mjs",
     "start:native": "node native/start.mjs",
-    "test:native": "node --test tests/native-host.test.js"
+    "test:native": "node --test tests/native-host.test.js tests/native-completion.test.js"
   },
   "dependencies": {
     "@babylonjs/core": "9.35.0",

@@ -190,7 +190,12 @@ export class SharedSceneWebGPU {
     }
     pass.end();
    }
-   this.timing?.resolve(encoder,timingBatch);d.queue.submit([encoder.finish()]);this.timing?.submitted(timingBatch);encoded=performance.now();const completion=wait(d.queue.onSubmittedWorkDone(),timeoutMs,'Shared WebGPU frame');cpuWork?.();await completion;const error=await d.popErrorScope();scope=false;if(error)throw Error(error.message);this.info.render.calls=calls;this.info.render.passes=renderPasses;this.frameTimes={prepare:prepared-began,encode:encoded-prepared,wait:performance.now()-encoded,total:performance.now()-began,renderPasses,gpu:this.timing?.snapshot()||null};this.assertHealthy();
+   this.timing?.resolve(encoder,timingBatch);d.queue.submit([encoder.finish()]);this.timing?.submitted(timingBatch);encoded=performance.now();
+   // Native runtimes may block inside the promise-producing API itself. A host
+   // policy can defer entering it until CPU-only overlap work has run. The
+   // submitted frame, completion timeout and one-frame guard are unchanged.
+   const completion=wait(this.options?.queueCompletion?this.options.queueCompletion(d.queue):d.queue.onSubmittedWorkDone(),timeoutMs,'Shared WebGPU frame');
+   cpuWork?.();await completion;const error=await d.popErrorScope();scope=false;if(error)throw Error(error.message);this.info.render.calls=calls;this.info.render.passes=renderPasses;this.frameTimes={prepare:prepared-began,encode:encoded-prepared,wait:performance.now()-encoded,total:performance.now()-began,renderPasses,gpu:this.timing?.snapshot()||null};this.assertHealthy();
   }catch(error){this.timing?.cancel(timingBatch);this.failure=error;throw error;}finally{if(scope)await d.popErrorScope();for(const resource of retired)this.destroyResource(resource);this.flushing=false;}
  }
  copyTextureToTexture(source,destination,region=null,position={x:0,y:0}){const a=this.texture(source),b=this.texture(destination);this.commands.push({type:'copy',source:{texture:a.texture},destination:{texture:b.texture,origin:[position.x,position.y]},size:[a.width,a.height]});}

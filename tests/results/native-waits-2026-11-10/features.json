@@ -1,0 +1,651 @@
+{
+  "checks": [
+    {
+      "name": "beach",
+      "water": 1164,
+      "objects": 3,
+      "finite": true,
+      "meanRGB": 0.3747282306438016,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "name": "panel, wind, first-person mouse capture and orbit input",
+      "pass": true
+    },
+    {
+      "name": "objects-rain-carving",
+      "water": 1164,
+      "objects": 7,
+      "finite": true,
+      "meanRGB": 0.3943858003692052,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "name": "field slices rendered",
+      "pass": true
+    },
+    {
+      "name": "underwater-day",
+      "water": 1164,
+      "objects": 7,
+      "finite": true,
+      "meanRGB": 0.07885715106814056,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "name": "underwater-night",
+      "water": 1164,
+      "objects": 7,
+      "finite": true,
+      "meanRGB": 0.0001325847498083791,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "name": "reset",
+      "water": 1164,
+      "objects": 3,
+      "finite": true,
+      "meanRGB": 0.3681050600283658,
+      "size": [
+        320,
+        200
+      ]
+    }
+  ],
+  "validation": {
+    "selectedBackend": "connected",
+    "validation": {
+      "pass": true,
+      "overflowGuard": true,
+      "rows": [
+        {
+          "case": "open field",
+          "closedComponents": 0,
+          "particles": 48,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 0,
+            "shift": 1.1920928955078125e-7,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 1.1920928955078125e-7,
+            "velocities": 8.903443813323975e-7,
+            "chem": 7.450580596923828e-9,
+            "metrics": 0.0000027865171432495117,
+            "counts": 0,
+            "activity": 0.00245092436671257,
+            "breakup": 8.493661880493164e-7
+          },
+          "faceError": 2.5813541931762884e-7,
+          "beforeError": 3.112790720877223e-7,
+          "rhsError": 0.000004552170211002959,
+          "relativeResidual": 0.000004891457778149463,
+          "cpuMs": 41.038454999999885,
+          "gpu": {
+            "backend": "WebGPU resident water / connected pressure / contacts; CPU feature mirrors",
+            "adapter": {
+              "vendor": "0",
+              "architecture": ""
+            },
+            "packMs": 15.340769999999793,
+            "waitMs": 40.509438000000046,
+            "totalMs": 56.06778099999974,
+            "readbackBytes": 117396,
+            "particles": 48,
+            "warmup": true,
+            "gpuTiming": {
+              "supported": false,
+              "enabled": false,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": null
+            },
+            "unpackMs": 0.16913100000056147,
+            "storageBytes": 47091120,
+            "resident": true,
+            "gpuPrediction": false,
+            "reset": true,
+            "patchedParticles": 48,
+            "particleUploadBytes": 4032,
+            "airUploadBytes": 21504,
+            "cpuMirrors": true
+          }
+        },
+        {
+          "case": "open field",
+          "closedComponents": 0,
+          "particles": 140,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 1.4901161193847656e-8,
+            "shift": 1.7508864402770996e-7,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 0.0000016689300537109375,
+            "velocities": 0.000049591064453125,
+            "chem": 0.0000011771917343139648,
+            "metrics": 0.0001163482666015625,
+            "counts": 0,
+            "activity": 0.0005501634441316128,
+            "breakup": 0.00011354684829711914
+          },
+          "faceError": 2.6279235951220947e-7,
+          "beforeError": 3.4663509843047e-7,
+          "rhsError": 0.000004552170211002959,
+          "relativeResidual": 0.000004946377523375018,
+          "cpuMs": 21.97551199999998,
+          "gpu": {
+            "backend": "WebGPU resident water / connected pressure / contacts; CPU feature mirrors",
+            "adapter": {
+              "vendor": "0",
+              "architecture": ""
+            },
+            "packMs": 15.114088999999694,
+            "waitMs": 37.5372269999998,
+            "totalMs": 52.75039800000013,
+            "readbackBytes": 124756,
+            "particles": 140,
+            "warmup": false,
+            "gpuTiming": {
+              "supported": false,
+              "enabled": false,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": null
+            },
+            "unpackMs": 0.08663500000056956,
+            "storageBytes": 47091120,
+            "resident": true,
+            "gpuPrediction": false,
+            "reset": true,
+            "patchedParticles": 140,
+            "particleUploadBytes": 11760,
+            "airUploadBytes": 21504,
+            "cpuMirrors": true
+          }
+        },
+        {
+          "case": "open field",
+          "closedComponents": 0,
+          "particles": 540,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 1.1920928955078125e-7,
+            "shift": 3.781169652938843e-7,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 0.0000013113021850585938,
+            "velocities": 0.00003409385681152344,
+            "chem": 0.0000013113021850585938,
+            "metrics": 0.00013113021850585938,
+            "counts": 0,
+            "activity": 0.0006103515625,
+            "breakup": 0.00004875659942626953
+          },
+          "faceError": 2.662696575450596e-7,
+          "beforeError": 3.359570155958558e-7,
+          "rhsError": 0.000004552170211002959,
+          "relativeResidual": 0.000018051424084151714,
+          "cpuMs": 38.07213000000047,
+          "gpu": {
+            "backend": "WebGPU resident water / connected pressure / contacts; CPU feature mirrors",
+            "adapter": {
+              "vendor": "0",
+              "architecture": ""
+            },
+            "packMs": 11.444021999999677,
+            "waitMs": 39.391373000000385,
+            "totalMs": 51.021639999999934,
+            "readbackBytes": 156756,
+            "particles": 540,
+            "warmup": false,
+            "gpuTiming": {
+              "supported": false,
+              "enabled": false,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": null
+            },
+            "unpackMs": 0.17562700000053155,
+            "storageBytes": 47091120,
+            "resident": true,
+            "gpuPrediction": false,
+            "reset": true,
+            "patchedParticles": 540,
+            "particleUploadBytes": 45360,
+            "airUploadBytes": 21504,
+            "cpuMirrors": true
+          }
+        },
+        {
+          "case": "carved terrain",
+          "closedComponents": 0,
+          "particles": 140,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 1.4901161193847656e-8,
+            "shift": 9.78820025920868e-7,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 0.000004112720489501953,
+            "velocities": 0.00012540817260742188,
+            "chem": 0.0000033229589462280273,
+            "metrics": 0.00033132731914520264,
+            "counts": 0,
+            "activity": 0.0017108917236328125,
+            "breakup": 0.00022113323211669922
+          },
+          "faceError": 2.6279235951220947e-7,
+          "beforeError": 3.4663509843047e-7,
+          "rhsError": 0.000004552170211002959,
+          "relativeResidual": 0.000004946377523375018,
+          "cpuMs": 20.314778999999362,
+          "gpu": {
+            "backend": "WebGPU resident water / connected pressure / contacts; CPU feature mirrors",
+            "adapter": {
+              "vendor": "0",
+              "architecture": ""
+            },
+            "packMs": 11.399645000000419,
+            "waitMs": 38.65636799999993,
+            "totalMs": 50.13407900000038,
+            "readbackBytes": 124756,
+            "particles": 140,
+            "warmup": false,
+            "gpuTiming": {
+              "supported": false,
+              "enabled": false,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": null
+            },
+            "unpackMs": 0.06086400000094727,
+            "storageBytes": 47091120,
+            "resident": true,
+            "gpuPrediction": false,
+            "reset": true,
+            "patchedParticles": 140,
+            "particleUploadBytes": 11760,
+            "airUploadBytes": 21504,
+            "cpuMirrors": true
+          }
+        },
+        {
+          "case": "boundary",
+          "closedComponents": 0,
+          "particles": 48,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 0,
+            "shift": 8.475035429000854e-7,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 0.000005245208740234375,
+            "velocities": 0.00015592575073242188,
+            "chem": 0.0000024884939193725586,
+            "metrics": 0.00024890899658203125,
+            "counts": 0,
+            "activity": 0.0020294189453125,
+            "breakup": 0.0000030919909477233887
+          },
+          "faceError": 2.6264718350210714e-7,
+          "beforeError": 9.757046465219688e-7,
+          "rhsError": 0.000004552170211002959,
+          "relativeResidual": 0.0000052834155212989145,
+          "cpuMs": 10.358083000000079,
+          "gpu": {
+            "backend": "WebGPU resident water / connected pressure / contacts; CPU feature mirrors",
+            "adapter": {
+              "vendor": "0",
+              "architecture": ""
+            },
+            "packMs": 10.833174999999756,
+            "waitMs": 34.62354899999991,
+            "totalMs": 45.49737399999958,
+            "readbackBytes": 117396,
+            "particles": 48,
+            "warmup": false,
+            "gpuTiming": {
+              "supported": false,
+              "enabled": false,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": null
+            },
+            "unpackMs": 0.03424300000006042,
+            "storageBytes": 47091120,
+            "resident": true,
+            "gpuPrediction": false,
+            "reset": true,
+            "patchedParticles": 48,
+            "particleUploadBytes": 4032,
+            "airUploadBytes": 21504,
+            "cpuMirrors": true
+          }
+        },
+        {
+          "case": "player contact",
+          "closedComponents": 0,
+          "particles": 140,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 1.4901161193847656e-8,
+            "shift": 1.601874828338623e-7,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 7.152557373046875e-7,
+            "velocities": 0.000020503997802734375,
+            "chem": 3.129243850708008e-7,
+            "metrics": 0.00006151199340820312,
+            "counts": 0,
+            "activity": 0.00143140135332942,
+            "breakup": 0.00002002716064453125
+          },
+          "faceError": 2.6279235951220947e-7,
+          "beforeError": 3.4663509843047e-7,
+          "rhsError": 0.000004552170211002959,
+          "relativeResidual": 0.000004946377523375018,
+          "cpuMs": 13.501483999999436,
+          "gpu": {
+            "backend": "WebGPU resident water / connected pressure / contacts; CPU feature mirrors",
+            "adapter": {
+              "vendor": "0",
+              "architecture": ""
+            },
+            "packMs": 11.022052000000258,
+            "waitMs": 38.36409800000001,
+            "totalMs": 49.45057700000052,
+            "readbackBytes": 124756,
+            "particles": 140,
+            "warmup": false,
+            "gpuTiming": {
+              "supported": false,
+              "enabled": false,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": null
+            },
+            "unpackMs": 0.05907699999988836,
+            "storageBytes": 47091120,
+            "resident": true,
+            "gpuPrediction": false,
+            "reset": true,
+            "patchedParticles": 140,
+            "particleUploadBytes": 11760,
+            "airUploadBytes": 21504,
+            "cpuMirrors": true
+          }
+        },
+        {
+          "case": "sealed field",
+          "closedComponents": 1,
+          "particles": 540,
+          "diagnostics": [],
+          "intermediate": {
+            "position": 5.960464477539063e-8,
+            "shift": 1.816079020500183e-7,
+            "neighbors": 0
+          },
+          "worst": [],
+          "pass": true,
+          "errors": {
+            "positions": 1.7881393432617188e-7,
+            "velocities": 0.000001776963472366333,
+            "chem": 1.4901161193847656e-8,
+            "metrics": 0.00011090189218521118,
+            "counts": 0,
+            "activity": 0.004103255923837423,
+            "breakup": 4.842877388000488e-8
+          },
+          "faceError": 1.5354460342065224e-7,
+          "beforeError": 3.359570155958558e-7,
+          "rhsError": 0.0000013552321505017062,
+          "relativeResidual": 0.00000575210483725058,
+          "cpuMs": 12.283721000000696,
+          "gpu": {
+            "backend": "WebGPU resident water / connected pressure / contacts; CPU feature mirrors",
+            "adapter": {
+              "vendor": "0",
+              "architecture": ""
+            },
+            "packMs": 5.375250000000051,
+            "waitMs": 33.74630900000011,
+            "totalMs": 39.30514299999959,
+            "readbackBytes": 156756,
+            "particles": 540,
+            "warmup": false,
+            "gpuTiming": {
+              "supported": false,
+              "enabled": false,
+              "skipped": 0,
+              "rejected": 0,
+              "lastRejected": null,
+              "error": null,
+              "sample": null
+            },
+            "unpackMs": 0.17987600000014936,
+            "storageBytes": 47091120,
+            "resident": true,
+            "gpuPrediction": false,
+            "reset": true,
+            "patchedParticles": 540,
+            "particleUploadBytes": 45360,
+            "airUploadBytes": 21504,
+            "cpuMirrors": true
+          }
+        }
+      ],
+      "resident": {
+        "pass": true,
+        "rows": [
+          {
+            "step": 0,
+            "positions": 7.450580596923828e-9,
+            "velocities": 2.2165477275848389e-7,
+            "chem": 0,
+            "counts": 0,
+            "residual": 0.000004465496667034188,
+            "patched": 60,
+            "reset": true,
+            "pass": true
+          },
+          {
+            "step": 1,
+            "positions": 2.384185791015625e-7,
+            "velocities": 0.0000017881393432617188,
+            "chem": 2.9802322387695312e-8,
+            "counts": 0,
+            "residual": 0.000003871899601850253,
+            "patched": 0,
+            "reset": false,
+            "pass": true
+          },
+          {
+            "step": 2,
+            "positions": 1.7881393432617188e-7,
+            "velocities": 0.00000712275505065918,
+            "chem": 3.8743019104003906e-7,
+            "counts": 0,
+            "residual": 0.000008057324660104164,
+            "patched": 0,
+            "reset": false,
+            "pass": true
+          },
+          {
+            "step": 3,
+            "positions": 5.960464477539063e-8,
+            "velocities": 7.227063179016113e-7,
+            "chem": 1.4901161193847656e-8,
+            "counts": 0,
+            "residual": 0.000014588152603709117,
+            "patched": 3,
+            "reset": false,
+            "pass": true
+          },
+          {
+            "step": 4,
+            "positions": 2.9802322387695312e-8,
+            "velocities": 8.903443813323975e-7,
+            "chem": 1.4901161193847656e-8,
+            "counts": 0,
+            "residual": 0.00001928026682939878,
+            "patched": 0,
+            "reset": false,
+            "pass": true
+          },
+          {
+            "step": 5,
+            "positions": 2.9802322387695312e-8,
+            "velocities": 9.5367431640625e-7,
+            "chem": 2.9802322387695312e-8,
+            "counts": 0,
+            "residual": 0.000019927150665589475,
+            "patched": 1,
+            "reset": false,
+            "pass": true
+          },
+          {
+            "step": 6,
+            "positions": 2.9802322387695312e-8,
+            "velocities": 8.940696716308594e-7,
+            "chem": 2.9802322387695312e-8,
+            "counts": 0,
+            "residual": 0.0000043952210941675935,
+            "patched": 0,
+            "reset": false,
+            "pass": true
+          },
+          {
+            "step": 7,
+            "positions": 2.9802322387695312e-8,
+            "velocities": 8.344650268554688e-7,
+            "chem": 1.4901161193847656e-8,
+            "counts": 0,
+            "residual": 0.000007851274477431352,
+            "patched": 0,
+            "reset": false,
+            "pass": true
+          },
+          {
+            "step": 8,
+            "positions": 2.9802322387695312e-8,
+            "velocities": 8.903443813323975e-7,
+            "chem": 1.4901161193847656e-8,
+            "counts": 0,
+            "residual": 0.00001651271737238065,
+            "patched": 60,
+            "reset": true,
+            "pass": true
+          },
+          {
+            "step": 9,
+            "positions": 5.960464477539063e-8,
+            "velocities": 8.940696716308594e-7,
+            "chem": 2.9802322387695312e-8,
+            "counts": 0,
+            "residual": 0.00000824099323554794,
+            "patched": 0,
+            "reset": false,
+            "pass": true
+          },
+          {
+            "step": 10,
+            "positions": 1.862645149230957e-9,
+            "velocities": 5.960464477539063e-8,
+            "chem": 0,
+            "counts": 0,
+            "residual": 0.000018501044337496573,
+            "patched": 60,
+            "reset": true,
+            "pass": true
+          },
+          {
+            "step": 11,
+            "positions": 3.725290298461914e-8,
+            "velocities": 8.940696716308594e-7,
+            "chem": 2.9802322387695312e-8,
+            "counts": 0,
+            "residual": 0.000006855013252169738,
+            "patched": 0,
+            "reset": false,
+            "pass": true
+          }
+        ]
+      },
+      "sceneWarmup": {
+        "backend": "WebGPU resident water / connected pressure / contacts; CPU feature mirrors",
+        "adapter": {
+          "vendor": "0",
+          "architecture": ""
+        },
+        "packMs": 29.45599999999922,
+        "waitMs": 44.88040600000022,
+        "totalMs": 74.70844999999917,
+        "readbackBytes": 262324,
+        "particles": 1164,
+        "warmup": false,
+        "gpuTiming": {
+          "supported": false,
+          "enabled": false,
+          "skipped": 0,
+          "rejected": 0,
+          "lastRejected": null,
+          "error": null,
+          "sample": null
+        },
+        "unpackMs": 0.3543049999998402,
+        "storageBytes": 47091120,
+        "resident": true,
+        "gpuPrediction": false,
+        "reset": true,
+        "patchedParticles": 1164,
+        "particleUploadBytes": 97776,
+        "airUploadBytes": 32256,
+        "cpuMirrors": true
+      }
+    }
+  },
+  "pass": true
+}

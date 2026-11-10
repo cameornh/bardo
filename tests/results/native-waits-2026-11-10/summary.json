@@ -1,0 +1,123 @@
+{
+  "date": "2026-11-10",
+  "adapter": "AMD Radeon Pro 560X",
+  "runtime": "Deno 2.9.8 / native wgpu / Metal",
+  "settings": {
+    "viewport": [
+      640,
+      400
+    ],
+    "render": [
+      320,
+      200
+    ],
+    "resolution": 1,
+    "initialWaterMarkers": 1164,
+    "physics": "CPU/WebAssembly reference",
+    "simulationSpeed": 1,
+    "presentationCap": 60
+  },
+  "method": "Native window, actual shared live-loop timestamps, 80 submitted frames per run, discard first 12. FPS and realtime from elapsed wall/simulation differences; p95 over 67 frame intervals. GPU workloads run serially with no browser scene concurrently. Initialization and final screenshot excluded.",
+  "runs": [
+    {
+      "label": "Original host",
+      "source": "before-original.json",
+      "frames": 80,
+      "warmupDiscard": 12,
+      "measuredIntervals": 67,
+      "wallSeconds": 12.601165941000001,
+      "simulatedSeconds": 8.933333333333316,
+      "fps": 5.316968311797584,
+      "realtime": 0.7089291082396766,
+      "p95FrameIntervalMs": 215.0385580000002,
+      "contextLost": false,
+      "error": null
+    },
+    {
+      "label": "Original host repeat (final code, immediate policy)",
+      "source": "before-repeat.json",
+      "frames": 80,
+      "warmupDiscard": 12,
+      "measuredIntervals": 67,
+      "wallSeconds": 12.773676552999998,
+      "simulatedSeconds": 8.933333333333316,
+      "fps": 5.245161776408416,
+      "realtime": 0.6993549035211207,
+      "p95FrameIntervalMs": 214.34080100000028,
+      "contextLost": false,
+      "error": null
+    },
+    {
+      "label": "Deferred native completion (final implementation)",
+      "source": "after.json",
+      "frames": 80,
+      "warmupDiscard": 12,
+      "measuredIntervals": 67,
+      "wallSeconds": 8.792578909999998,
+      "simulatedSeconds": 8.599999999999984,
+      "fps": 7.620062405558782,
+      "realtime": 0.9780975625045583,
+      "p95FrameIntervalMs": 152.1866229999996,
+      "contextLost": false,
+      "error": null
+    },
+    {
+      "label": "Deferred completion exploratory run",
+      "source": "after-exploratory.json",
+      "frames": 80,
+      "warmupDiscard": 12,
+      "measuredIntervals": 67,
+      "wallSeconds": 8.736129866999999,
+      "simulatedSeconds": 8.533333333333317,
+      "fps": 7.669299909687344,
+      "realtime": 0.9767864561591822,
+      "p95FrameIntervalMs": 154.25818099999924,
+      "contextLost": false,
+      "error": null
+    },
+    {
+      "label": "Rejected worker/RPC prototype",
+      "source": "rejected-worker.json",
+      "frames": 80,
+      "warmupDiscard": 12,
+      "measuredIntervals": 67,
+      "wallSeconds": 9.903826497999999,
+      "simulatedSeconds": 8.799999999999983,
+      "fps": 6.765061970091068,
+      "realtime": 0.888545452788079,
+      "p95FrameIntervalMs": 169.7416260000009,
+      "contextLost": false,
+      "error": null
+    }
+  ],
+  "gains": {
+    "fpsPercent": 45.277929078034276,
+    "realtimePercent": 39.857110828853926,
+    "p95ReductionPercent": 28.99782855621623
+  },
+  "parity": {
+    "pass": true,
+    "width": 320,
+    "height": 200,
+    "meanAbsoluteRGB": 0,
+    "maxAbsoluteRGB": 0,
+    "nonfinite": 0,
+    "simulationTime": 0
+  },
+  "validation": {
+    "unitTestsPassed": 67,
+    "nativeFeatureChecks": 7,
+    "gpuCpuOracleCases": 7,
+    "residentOracleSteps": 12,
+    "pass": true,
+    "webBuild": true,
+    "nativeBuild": true
+  },
+  "limits": [
+    "Bounded AMD Mac runs; Windows/RTX, larger/busier and long-run performance are unmeasured.",
+    "Native GPU timestamps unavailable; completion time is not shader execution time.",
+    "Underlying Deno completion/map bindings still synchronously poll and sleep; this change only restores overlap with already available CPU-only physics.",
+    "Earlier browser result (12.88 FPS / 1.000x) still exceeds this native result; browser not rebenchmarked here.",
+    "Rejected direct worker surface probe hit AppKit main-thread requirement; corrected CPU-worker/RPC design passed but was slower and is not shipped."
+  ]
+}

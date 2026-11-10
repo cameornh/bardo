@@ -44,7 +44,8 @@ These protections do not guarantee immunity to driver/runtime bugs.
 
 ## Reproducible checks
 
-- `npm run test:native` — controls, input, surface lifetime and MRT planning.
+- `npm run test:native` — controls, input, surface lifetime, MRT planning and
+  completion ordering/failure guards.
 - `npm run build:native` — bundle the shared scene and compile the window helper.
 - `.native/tools/deno run --config native/deno.json --allow-read --allow-ffi native/probe.js`
   — tiny native-window graphics check.
@@ -54,6 +55,11 @@ These protections do not guarantee immunity to driver/runtime bugs.
 - `npm run start:native -- --width=640 --height=400 --resolution=1 --backend=safe --play --frames=80 --report=.native/run.json --screenshot=.native/run.png`
   — bounded real-loop performance check. `--backend=gpu` selects validated GPU
   water; `--headless` omits the window. Compare only equal image/physics settings.
+  `--completion=immediate` restores the old serialized wait for comparison;
+  deferred native completion is now the default.
+- `.native/tools/deno run --config native/deno.json --allow-read --allow-write=.native --allow-env --allow-sys --allow-ffi native/completion-parity.js`
+  — frozen full-renderer image comparison of immediate and deferred completion;
+  results in `.native/waits-parity.json` and `.native/waits-parity.png`.
 - `tests/native-host-browser.html?renderer=webgpu&backend=safe&paused=1` — matching
   browser live-loop comparison; the button runs 48 frames then pauses.
 
@@ -62,9 +68,15 @@ Do not run native and browser GPU benchmarks concurrently.
 
 ## Known work remaining
 
-Native does not yet establish a performance win on this Mac. Deno's completion
-operations block the JS thread while waiting and add a polling delay, reducing
-CPU/GPU overlap. The native adapter also exposes a smaller color-attachment byte
+Native does not yet establish a performance win over the browser on this Mac.
+Deno's completion operations block the JS thread inside the call that returns a
+Promise and add a polling delay. The native host now defers entering that binding
+by one microtask: submit the immutable frame, advance the existing CPU-only physics
+work while the GPU renders, then wait before retiring resources or submitting
+another frame. The browser's existing asynchronous completion order is unchanged.
+This restores useful CPU/GPU overlap; it does not make Deno's binding nonblocking
+or remove its polling delay. Native input can still wait for the remaining fence.
+The native adapter also exposes a smaller color-attachment byte
 limit; depth-free wide MRT passes are split without reducing precision. GPU
 pass timestamps are unavailable on this runtime/adapter, despite being available
 in Chrome. Keep the browser path available while profiling these costs.
@@ -73,9 +85,15 @@ This is a source-based development application, not a signed distributable.
 Standalone packaging, hot reload, broader platform tests, accessibility and a
 native asynchronous completion bridge remain follow-up work.
 
-The matched 80-frame comparison measured **5.55 FPS / 0.740× realtime** natively
-versus **12.88 FPS / 1.000×** in browser WebGPU at 640 × 400 / resolution 1.
-See the [measurement and image report](../tests/results/native-wgpu-2026-11-08/report.html).
+The original matched 80-frame comparison measured **5.55 FPS / 0.740× realtime**
+natively versus **12.88 FPS / 1.000×** in browser WebGPU at 640 × 400 / resolution 1
+([original report](../tests/results/native-wgpu-2026-11-08/report.html)).
+The November 10 completion-order comparison measured **5.25 → 7.62 FPS** and
+**0.699 → 0.978× realtime**, with p95 frame intervals **214 → 152 ms**. The frozen
+linear RGB image comparison was exact. These are bounded 80-frame runs on the AMD
+560X, not Windows/RTX results or a long-run stability guarantee. A worker/RPC
+alternative measured slower than the simpler scheduling change and was rejected.
+See the [completion measurements](../tests/results/native-waits-2026-11-10/report.html).
 Diagnostics are saved to `.native/last-run.json` when the window closes. The
 in-memory frame history is bounded. Historical browser saves are never modified;
 cross-host import/export is not implemented.

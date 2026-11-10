@@ -1,0 +1,17 @@
+
+> bardo-material-field@0.1.0 build:native
+> node native/build.mjs
+
+
+  .native/generated/scene.mjs  2.5mb ⚠️
+
+⚡ Done in 276ms
+
+  .native/generated/compiler-worker.mjs  1.3mb ⚠️
+
+⚡ Done in 53ms
+
+  .native/generated/collision-mesh.worker.js  6.2kb
+  .native/generated/sand-bricks.worker.js     1.4kb
+
+⚡ Done in 15ms

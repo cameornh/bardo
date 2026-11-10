@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Native completion scheduling — 2026-11-10</title>
+<style>body{font:16px/1.55 system-ui,sans-serif;color:#dce5e8;background:#18232a;max-width:1050px;margin:32px auto;padding:0 20px}h1{font-size:26px}h2{font-size:20px}a{color:#afe2ff}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th,td{padding:9px;border-bottom:1px solid #52616a;text-align:left}figure{margin:0}img{max-width:100%;width:320px;height:auto}figcaption{font-size:14px}section.images{display:flex;flex-wrap:wrap;gap:20px}pre{overflow:auto;background:#101920;padding:12px;font-size:13px}code{font-size:14px}</style>
+<h1>Native GPU completion scheduling</h1>
+<p>November 10, 2026 · AMD Radeon Pro 560X · Deno 2.9.8 / wgpu / Metal</p>
+<p><strong>Actual native FPS: 5.25 → 7.62 (+45.3%). Simulation: 0.699 → 0.978× realtime (+39.9%).</strong> P95 frame intervals fall 214 → 152 ms. This restores useful CPU/GPU overlap without changing physics, image quality or frame limits.</p>
+<h2>What changed</h2>
+<p>Deno's completion call blocks before returning its Promise. The host now defers entering that binding by one microtask. The renderer submits the immutable frame, runs the existing CPU-only physics callback while the GPU renders, then awaits completion. Browser completion ordering is unchanged. The one-outstanding-frame guard, failure handling, resource retirement and timeout remain.</p>
+<p>The underlying wait still blocks and adds a polling delay; this is not a fully asynchronous native bridge. A worker/RPC prototype passed bounded checks but measured slower than this smaller change, so it is not shipped.</p>
+<h2>Matched live-loop measurements</h2>
+<p>640 × 400 native window, 320 × 200 scene render, resolution 1, 1,164 initial water markers, CPU/WebAssembly reference physics, simulation speed 1. 80 frames per run; discard 12 warmup frames. FPS and simulated time are measured across 67 complete wall-clock frame intervals. Startup and screenshot readback excluded. No concurrent graphics benchmarks.</p>
+<table><thead><tr><th>Run / raw evidence</th><th>FPS</th><th>Realtime</th><th>P95 frame interval</th></tr></thead><tbody><tr><td><a href="before-original.json">Original host</a></td><td>5.32</td><td>0.709×</td><td>215.0 ms</td></tr>
+<tr><td><a href="before-repeat.json">Original host repeat (final code, immediate policy)</a></td><td>5.25</td><td>0.699×</td><td>214.3 ms</td></tr>
+<tr><td><a href="after.json">Deferred native completion (final implementation)</a></td><td>7.62</td><td>0.978×</td><td>152.2 ms</td></tr>
+<tr><td><a href="after-exploratory.json">Deferred completion exploratory run</a></td><td>7.67</td><td>0.977×</td><td>154.3 ms</td></tr>
+<tr><td><a href="rejected-worker.json">Rejected worker/RPC prototype</a></td><td>6.77</td><td>0.889×</td><td>169.7 ms</td></tr></tbody></table>
+<p>The repeat baseline uses the final code with <code>--completion=immediate</code>. The final deferred run is the selected comparison. Earlier runs support the direction of the gain; these are not statistical confidence intervals. Native still trails the earlier browser result of 12.88 FPS / 1.000×; no browser rerun is claimed.</p>
+<h2>Image and behavior checks</h2>
+<p>Frozen 320 × 200 full-renderer linear RGB comparison: <strong>mean error 0, maximum error 0</strong>, no nonfinite values. Only the completion policy changes between those images. Playback screenshots are illustrative, not matched simulation-state comparisons.</p>
+<section class="images"><figure><img src="frozen.png" alt="Frozen beach image used for exact before/after comparison"><figcaption>Frozen image: exact RGB match</figcaption></figure><figure><img src="playback.png" alt="Water and shoreline after native playback"><figcaption>Final bounded native playback</figcaption></figure><figure><img src="features.png" alt="Native objects, rain and carved sand feature check"><figcaption>Objects, rain and carving check</figcaption></figure></section>
+<p><a href="features.json">Native validation</a>: 7 feature checks, 7 connected GPU/CPU oracle cases plus 12 resident-state steps passed. Controls, wind, first-person look, orbit, glass/mirror/rock/light spawning, carving, rain, field debug, underwater day/night and reset were exercised. No device loss in completed scene runs.</p>
+<p><a href="unit-tests.txt">67 focused unit/numerical tests passed</a>, including submission/physics/wait ordering, unmodified browser order, frame guard, failed completion, timeout, resource retirement and exact CPU overlap. <a href="build.txt">Web build</a> and <a href="native-build.txt">native build</a> passed. Larger bundle warnings remain.</p>
+<h2>Reproduce</h2>
+<pre>npm run build:native
+npm run start:native -- --width=640 --height=400 --resolution=1 --backend=safe --play --frames=80 --report=.native/after.json
+npm run start:native -- --width=640 --height=400 --resolution=1 --backend=safe --play --frames=80 --completion=immediate --report=.native/before.json
+npm run test:native</pre>
+<p>The native README includes the frozen-image and bounded GPU feature-check commands. Reports use completed frame timestamps, not an average of the on-screen FPS label.</p>
+<h2>Remaining work</h2>
+<p>SIMD is queued separately. Next native leads are genuinely asynchronous completion/map operations, the remaining full-precision MRT split cost, and native GPU timestamps. Keep completion/workload guards. Windows/RTX and long/busy-scene performance need independent measurements. An early direct-worker surface probe was rejected by AppKit's main-thread requirement; the corrected main-thread GPU / CPU-worker trial ran successfully but lost on throughput.</p>
+<p><a href="summary.json">Machine-readable summary</a> · <a href="https://github.com/denoland/deno/blob/v2.9.8/ext/webgpu/queue.rs">Deno completion source</a> · <a href="../native-wgpu-2026-11-08/report.html">Previous native/browser comparison</a></p>
+</html>

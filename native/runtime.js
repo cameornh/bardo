@@ -3,13 +3,14 @@ import {NativeUI} from './ui.js';
 import {NativeCompiler} from './compiler.js';
 import {openWindow} from './window.js';
 import {nativeSurfaceContext} from './surface.js';
+import {deferredQueueCompletion} from './completion.js';
 
 // Run the shared application unchanged against native wgpu. No Chromium canvas,
 // scene-command IPC, or CPU pixel readback is used for normal presentation.
 export async function runNative(options={}){
  const width=Math.max(160,Math.min(1920,options.width||960)),height=Math.max(100,Math.min(1080,options.height||600)),root=new URL('../',import.meta.url),started=performance.now();
  let app,win,surface,context,ui,dom,stopped=false,suspended=false,nativeBusy=false,pendingSize,ready=false,frames=0,buttons=0,lastFrame=0,lastProgress=0;
- const reports={runtime:Deno.version,frames:[],events:[],started:new Date().toISOString()};
+ const reports={runtime:Deno.version,completion:options.completion==='immediate'?'immediate':'deferred',frames:[],events:[],started:new Date().toISOString()};
  const originalFetch=globalThis.fetch;
  globalThis.fetch=async(input,init)=>{const url=String(input?.url||input);if(url.startsWith('/')||url.startsWith('file:')){const file=url.startsWith('file:')?new URL(url):new URL(url.startsWith('/vendor/')?'public'+url:url.slice(1),root);const bytes=await Deno.readFile(file);return new Response(bytes,{headers:{'content-type':url.endsWith('.wasm')?'application/wasm':'application/octet-stream'}});}return originalFetch(input,init);};
  const adapter=await navigator.gpu.requestAdapter({powerPreference:'high-performance'});if(!adapter)throw Error('No native wgpu adapter. No scene was submitted.');
@@ -35,7 +36,7 @@ export async function runNative(options={}){
   if(!document.pointerLockElement&&ui.pointer(['','move','down','up','wheel'][kind],x,y,dy,props))return;
   if(document.pointerLockElement&&kind===1)dom.emit(document,'mousemove',props);else dom.emit(canvas,['','pointermove','pointerdown','pointerup','wheel'][kind],props);
  });if(win&&!stopped){const status=win.status(),hidden=!status[0]||!(win.mac?status[1]&2:status[1]);if(hidden!==suspended){suspended=hidden;document.hidden=hidden;document.visibilityState=hidden?'hidden':'visible';dom.emit(document,'visibilitychange');}}},8);
- const boot={rendererOptions:{compiler,timestamps:true,splitWideTargets:true},
+ const boot={rendererOptions:{compiler,timestamps:true,splitWideTargets:true,queueCompletion:options.completion==='immediate'?undefined:deferredQueueCompletion},
   configureLab(lab,renderer){lab.resolutions.ocean=options.resolution||1.4;lab.configure('ocean');document.getElementById('quality').value=lab.resolutions.ocean;
    if(surface){surface.width=width;surface.height=height;}
    ui.ready=ui.init(renderer.device,renderer.format);
