@@ -1,0 +1,224 @@
+{
+  "machine": "Intel Mac / AMD Radeon Pro 560X",
+  "baseCommit": "0146654",
+  "runtime": {
+    "deno": "2.9.8",
+    "v8": "15.0.245.2-rusty",
+    "typescript": "6.0.3"
+  },
+  "rows": [
+    {
+      "workload": "calm",
+      "mode": "scalar",
+      "tag": "a",
+      "valid": true,
+      "fps": 6.568343743444517,
+      "realtime": 0.8757791657926001,
+      "p95FrameMs": 183.0078109999995,
+      "frameIntervals": 79,
+      "wallSeconds": 12.02738515,
+      "simulatedSeconds": 10.533333333333307,
+      "waterSamples": 3024,
+      "renderSize": [
+        320,
+        200
+      ],
+      "initialSandParcels": 0,
+      "fieldMs": 29.978862955974815,
+      "pressureMs": 4.236165830188838,
+      "surfaceMs": 5.599530396226351,
+      "raw": "simd-calm-scalar-a.json",
+      "error": null
+    },
+    {
+      "workload": "calm",
+      "mode": "both",
+      "tag": "a",
+      "valid": true,
+      "fps": 6.630936015116819,
+      "realtime": 0.8785290754205384,
+      "p95FrameMs": 179.62310199999956,
+      "frameIntervals": 79,
+      "wallSeconds": 11.913853462,
+      "simulatedSeconds": 10.46666666666664,
+      "waterSamples": 3024,
+      "renderSize": [
+        320,
+        200
+      ],
+      "initialSandParcels": 0,
+      "fieldMs": 29.408806044303777,
+      "pressureMs": 4.111935398734192,
+      "surfaceMs": 5.481555582278412,
+      "raw": "simd-calm-both-a.json",
+      "error": null
+    },
+    {
+      "workload": "calm",
+      "mode": "both",
+      "tag": "b",
+      "valid": true,
+      "fps": 5.612728837523909,
+      "realtime": 0.7483638450031859,
+      "p95FrameMs": 212.64319800000158,
+      "frameIntervals": 79,
+      "wallSeconds": 14.075149946999998,
+      "simulatedSeconds": 10.533333333333307,
+      "waterSamples": 3024,
+      "renderSize": [
+        320,
+        200
+      ],
+      "initialSandParcels": 0,
+      "fieldMs": 35.49222338993704,
+      "pressureMs": 4.751379289308104,
+      "surfaceMs": 6.547223999999823,
+      "raw": "simd-calm-both-b.json",
+      "error": null
+    },
+    {
+      "workload": "calm",
+      "mode": "scalar",
+      "tag": "b",
+      "valid": false,
+      "fps": 5.903626265831305,
+      "realtime": 0.7871501687775057,
+      "p95FrameMs": 196.06052100000124,
+      "frameIntervals": 59,
+      "wallSeconds": 9.993857561999999,
+      "simulatedSeconds": 7.86666666666665,
+      "waterSamples": 3024,
+      "renderSize": [
+        320,
+        200
+      ],
+      "initialSandParcels": 0,
+      "fieldMs": 33.113257747899105,
+      "pressureMs": 4.52954326890757,
+      "surfaceMs": 6.124982924369807,
+      "raw": "simd-calm-scalar-b.json",
+      "error": "Error: Invalid Surface Status\n    at Object.getCurrentTexture (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/native/surface.js:13:76)\n    at _SharedSceneWebGPU.attachments (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/.native/generated/scene.mjs:28180:63)\n    at _SharedSceneWebGPU.flush (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/.native/generated/scene.mjs:28219:61)\n    at async _SharedSceneWebGPU.app.renderer.flush (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/native/runtime.js:45:201)\n    at async file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/.native/generated/scene.mjs:28328:11\n    at async tick (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/.native/generated/scene.mjs:47658:7)"
+    },
+    {
+      "workload": "edited",
+      "mode": "scalar",
+      "tag": "a",
+      "valid": true,
+      "fps": 5.19692827370865,
+      "realtime": 0.6929237698278183,
+      "p95FrameMs": 222.17191099999945,
+      "frameIntervals": 79,
+      "wallSeconds": 15.201287345,
+      "simulatedSeconds": 10.533333333333308,
+      "waterSamples": 3024,
+      "renderSize": [
+        320,
+        200
+      ],
+      "initialSandParcels": 8,
+      "fieldMs": 35.104935980891774,
+      "pressureMs": 4.693192636942715,
+      "surfaceMs": 6.781526273885415,
+      "raw": "simd-edited-scalar-a.json",
+      "error": null
+    },
+    {
+      "workload": "edited",
+      "mode": "both",
+      "tag": "a",
+      "valid": true,
+      "fps": 5.369709351131185,
+      "realtime": 0.7159612468174894,
+      "p95FrameMs": 214.18525099999897,
+      "frameIntervals": 79,
+      "wallSeconds": 14.712155693000001,
+      "simulatedSeconds": 10.533333333333307,
+      "waterSamples": 3024,
+      "renderSize": [
+        320,
+        200
+      ],
+      "initialSandParcels": 8,
+      "fieldMs": 34.19568021383665,
+      "pressureMs": 4.530130899371067,
+      "surfaceMs": 6.429756647798768,
+      "raw": "simd-edited-both-a.json",
+      "error": null
+    },
+    {
+      "workload": "edited",
+      "mode": "both",
+      "tag": "b",
+      "valid": true,
+      "fps": 5.393722647544453,
+      "realtime": 0.719163019672592,
+      "p95FrameMs": 215.12894900000174,
+      "frameIntervals": 79,
+      "wallSeconds": 14.646655967,
+      "simulatedSeconds": 10.533333333333307,
+      "waterSamples": 3024,
+      "renderSize": [
+        320,
+        200
+      ],
+      "initialSandParcels": 8,
+      "fieldMs": 34.088245704402375,
+      "pressureMs": 4.388264182390099,
+      "surfaceMs": 6.35687330188667,
+      "raw": "simd-edited-both-b.json",
+      "error": null
+    },
+    {
+      "workload": "edited",
+      "mode": "scalar",
+      "tag": "b",
+      "valid": true,
+      "fps": 5.39401217105234,
+      "realtime": 0.7192016228069771,
+      "p95FrameMs": 219.6175490000005,
+      "frameIntervals": 79,
+      "wallSeconds": 14.645869807999999,
+      "simulatedSeconds": 10.533333333333308,
+      "waterSamples": 3024,
+      "renderSize": [
+        320,
+        200
+      ],
+      "initialSandParcels": 8,
+      "fieldMs": 33.477035420382336,
+      "pressureMs": 4.5108042929937,
+      "surfaceMs": 6.4975666815286095,
+      "raw": "simd-edited-scalar-b.json",
+      "error": null
+    }
+  ],
+  "editedAggregate": {
+    "scalar": {
+      "fps": 5.293636482364924,
+      "realtime": 0.7058181976486549,
+      "p95FrameMs": 220.23255599999902
+    },
+    "both": {
+      "fps": 5.381689212416849,
+      "realtime": 0.717558561655578,
+      "p95FrameMs": 214.18525099999897
+    }
+  },
+  "numericalTests": 55,
+  "image": {
+    "pass": true,
+    "backend": {
+      "pressure": "WebAssembly SIMD CPU multigrid-PCG",
+      "surface": "WebAssembly SIMD CPU"
+    },
+    "width": 320,
+    "height": 200,
+    "meanAbsoluteRGB": 0,
+    "maxAbsoluteRGB": 0,
+    "nonfinite": 0,
+    "steps": 12,
+    "simulatedSeconds": 0.7999999999999999,
+    "objects": 4,
+    "sandParcels": 22
+  }
+}

@@ -11,6 +11,7 @@ import {pointVelocity} from '../../sand-lab/rigid-contacts.js';
 import {FieldTransport} from './native-transport.js';
 import {FieldNeighbors} from './neighbors.js';
 import {FieldPressure} from './native-pressure.js';
+import {simdKernel} from '../simd/kernels.js';
 import {ParticlePipeline} from './particles/pipeline.js';
 import {verifyParticles} from './particles/verify.js';
 import {ConnectedPipeline} from './connected/pipeline.js';
@@ -51,7 +52,11 @@ export class BeachFields {
   this.rhs=g.deposit(context.old,context.predicted,dt,scale,lab.spacing,solid,wind,wall);this.before=norm(g.divergence());this.prepareMs=performance.now()-start;
   return this.rhs;
  }
- solveCPU(rhs){return (this.cpuPressure??=new FieldPressure()).solve(this.grid.levels,rhs);}
+ solveCPU(rhs){
+  const kernel=this.lab.optimizations?.simdPressure&&simdKernel('pressure');
+  const solver=kernel?(this.simdPressure??=new FieldPressure(kernel,'WebAssembly SIMD CPU multigrid-PCG')):(this.cpuPressure??=new FieldPressure());
+  return solver.solve(this.grid.levels,rhs);
+ }
  solve(context,{deferConsumers=false}={}){const rhs=this.prepare(context),result=this.solveCPU(rhs);return this.finish(context,result,false,null,deferConsumers);}
  async solveAsync(context){
   if(this.particleBackend==='connected'){

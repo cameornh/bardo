@@ -1,11 +1,13 @@
 import {NEIGHBORS,boundaryMetric,boundaryKernel,WATER_CONTACT_SKIN} from '../../sand-lab/water-lab-model.js';
 import {WATER} from './grid.js';
 import {NativeDensity,nativeDensityAvailable} from '../../sand-lab/native-density.js';
+import {simdKernel} from '../simd/kernels.js';
 // Only the narrow surface/contact band needs local density work after the
 // bulk projection. No artificial attraction and no change to parcel volumes.
 export function surfaceConstraints(lab,positions,neighbors,grid,{native=true}={}){
  const n=positions.length/4,s=lab.spacing,h=2*s,volume=s**3,W=315/(64*Math.PI*h**3),G=-45/(Math.PI*h**6),lambda=new Float32Array(n),wall=new Float32Array(n*4),active=[];
- const kernel=native&&nativeDensityAvailable()?(lab.fieldSurfaceKernel??=new NativeDensity()):null;
+ const simd=native&&lab.optimizations?.simdParticles&&simdKernel('density');
+ const kernel=simd?(lab.simdSurfaceKernel??=new NativeDensity(simd)):native&&nativeDensityAvailable()?(lab.fieldSurfaceKernel??=new NativeDensity()):null;
  const next=positions.slice(),shift=new Float32Array(positions.length),point=[0,0,0];
  const band=new Uint8Array(grid.count);for(let i=0;i<grid.count;i++)if(grid.phase[i]!==WATER)band[i]=1;
  for(const face of grid.faces)for(let k=0;k<face.a.length;k++){const a=face.a[k],b=face.b[k];if(grid.phase[a]!==WATER&&b>=0)band[b]=1;if(grid.phase[b]!==WATER&&a>=0)band[a]=1;}
@@ -53,5 +55,5 @@ export function surfaceConstraints(lab,positions,neighbors,grid,{native=true}={}
  if(geometry){const o=kernel.offsets,count=kernel.instance.exports.contactBatch(n,o.positions,o.delta,o.geometry,o.metric,o.missing,s*WATER_CONTACT_SKIN);
   for(let at=0;at<count;at++){const i=kernel.missing[at];if(positions[i*4+3])continue;kernel.positions.set(lab.collide(Array.from(kernel.delta.subarray(i*3,i*3+3))),i*4);}next.set(kernel.positions.subarray(0,n*4));
  }
- return {positions:next,shift,lambda,wall,active:active.length,backend:kernel?'WebAssembly CPU':'JavaScript CPU reference'};
+ return {positions:next,shift,lambda,wall,active:active.length,backend:simd?'WebAssembly SIMD CPU':kernel?'WebAssembly CPU':'JavaScript CPU reference'};
 }

@@ -8,7 +8,7 @@ export const nativeDensityAvailable=()=>!!module;
 // actual sand, player and rigid-body geometry, including thin tilted cups.
 // No object constraint shader is compiled or submitted to the GPU.
 export class NativeDensity {
- constructor(){this.instance=new WebAssembly.Instance(module,{});this.capacity=0;}
+ constructor(kernel=module){this.instance=new WebAssembly.Instance(kernel,{});this.capacity=0;}
  allocate(n,geometrySize=0){
   if(n<=this.capacity&&geometrySize<=this.geometryCapacity)return;this.capacity=Math.max(this.capacity,2**Math.ceil(Math.log2(Math.max(64,n))));this.geometryCapacity=Math.max(this.geometryCapacity||0,geometrySize);
   // Reserve the first page for compiler tables (notably double-precision pow).

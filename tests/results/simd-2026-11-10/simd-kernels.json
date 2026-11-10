@@ -1,0 +1,187 @@
+{
+  "runtime": "v24.13.0",
+  "summary": {
+    "pressure-1287": {
+      "scalarMs": 1.1167235450000002,
+      "simdMs": 1.1801192650000003,
+      "speedup": 0.9462802431244098
+    },
+    "pressure-3135": {
+      "scalarMs": 3.1473255749999987,
+      "simdMs": 2.9213568500000004,
+      "speedup": 1.077350606790813
+    },
+    "density-1164": {
+      "scalarMs": 1.5235728600000027,
+      "simdMs": 1.4782149499999968,
+      "speedup": 1.0306842452107563
+    },
+    "density-3024": {
+      "scalarMs": 4.123196665,
+      "simdMs": 4.080231507500001,
+      "speedup": 1.0105300783597753
+    }
+  },
+  "rows": [
+    {
+      "name": "pressure-1287",
+      "mode": "scalar",
+      "milliseconds": 1.0642034700000003
+    },
+    {
+      "name": "pressure-1287",
+      "mode": "simd",
+      "milliseconds": 1.0356535400000002
+    },
+    {
+      "name": "pressure-1287",
+      "mode": "simd",
+      "milliseconds": 1.0418078200000003
+    },
+    {
+      "name": "pressure-1287",
+      "mode": "scalar",
+      "milliseconds": 1.0650970499999994
+    },
+    {
+      "name": "pressure-1287",
+      "mode": "simd",
+      "milliseconds": 1.1108696599999996
+    },
+    {
+      "name": "pressure-1287",
+      "mode": "scalar",
+      "milliseconds": 1.1666212400000007
+    },
+    {
+      "name": "pressure-1287",
+      "mode": "scalar",
+      "milliseconds": 1.1709724200000005
+    },
+    {
+      "name": "pressure-1287",
+      "mode": "simd",
+      "milliseconds": 1.5321460400000013
+    },
+    {
+      "name": "pressure-3135",
+      "mode": "scalar",
+      "milliseconds": 3.374957650000001
+    },
+    {
+      "name": "pressure-3135",
+      "mode": "simd",
+      "milliseconds": 2.82871756
+    },
+    {
+      "name": "pressure-3135",
+      "mode": "simd",
+      "milliseconds": 2.8936319700000013
+    },
+    {
+      "name": "pressure-3135",
+      "mode": "scalar",
+      "milliseconds": 3.058641699999998
+    },
+    {
+      "name": "pressure-3135",
+      "mode": "simd",
+      "milliseconds": 3.1115840200000005
+    },
+    {
+      "name": "pressure-3135",
+      "mode": "scalar",
+      "milliseconds": 3.233934129999998
+    },
+    {
+      "name": "pressure-3135",
+      "mode": "scalar",
+      "milliseconds": 2.9217688199999974
+    },
+    {
+      "name": "pressure-3135",
+      "mode": "simd",
+      "milliseconds": 2.8514938500000016
+    },
+    {
+      "name": "density-1164",
+      "mode": "scalar",
+      "milliseconds": 1.3588013999999975
+    },
+    {
+      "name": "density-1164",
+      "mode": "simd",
+      "milliseconds": 1.476785119999995
+    },
+    {
+      "name": "density-1164",
+      "mode": "simd",
+      "milliseconds": 1.4735980199999994
+    },
+    {
+      "name": "density-1164",
+      "mode": "scalar",
+      "milliseconds": 1.5364722000000075
+    },
+    {
+      "name": "density-1164",
+      "mode": "simd",
+      "milliseconds": 1.4433282599999984
+    },
+    {
+      "name": "density-1164",
+      "mode": "scalar",
+      "milliseconds": 1.5984151500000008
+    },
+    {
+      "name": "density-1164",
+      "mode": "scalar",
+      "milliseconds": 1.6006026900000052
+    },
+    {
+      "name": "density-1164",
+      "mode": "simd",
+      "milliseconds": 1.5191483999999946
+    },
+    {
+      "name": "density-3024",
+      "mode": "scalar",
+      "milliseconds": 4.2791991799999956
+    },
+    {
+      "name": "density-3024",
+      "mode": "simd",
+      "milliseconds": 3.9700447299999997
+    },
+    {
+      "name": "density-3024",
+      "mode": "simd",
+      "milliseconds": 4.231807610000005
+    },
+    {
+      "name": "density-3024",
+      "mode": "scalar",
+      "milliseconds": 3.8982011200000035
+    },
+    {
+      "name": "density-3024",
+      "mode": "simd",
+      "milliseconds": 3.857583199999999
+    },
+    {
+      "name": "density-3024",
+      "mode": "scalar",
+      "milliseconds": 3.826029559999997
+    },
+    {
+      "name": "density-3024",
+      "mode": "scalar",
+      "milliseconds": 4.489356800000005
+    },
+    {
+      "name": "density-3024",
+      "mode": "simd",
+      "milliseconds": 4.261490489999996
+    }
+  ]
+}

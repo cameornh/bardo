@@ -4,6 +4,7 @@ import {installResidentWater} from './fields/resident/install.js';
 import {installFieldLocality} from './fields/locality.js';
 import {installParticleVisibility} from './particle-visibility.js';
 import {FramePacer} from './frame-pacing.js';
+import {prepareSIMDKernels} from './simd/kernels.js';
 import {installOrbitToolInput} from './orbit-tool-input.js';
 import {verifyRTXPressure,getRTXPressure} from './verify.js';
 import {installRTXGraphicsGuard} from './graphics.js';
@@ -83,6 +84,7 @@ if(requiresOpenGLWindow(rendererInfo(renderer))&&new URLSearchParams(location.se
  showGraphicsError(Error('This Chrome window uses Direct3D 11, which stalled this test on the RTX machine. Scene startup has been stopped before submitting scene shaders. Use Start-Windows-OpenGL.cmd or npm run start:windows:opengl to open the separate OpenGL Chrome window.'));return;
 }
 await boot.step('Building sand and water state',rendererInfo(renderer));
+await prepareSIMDKernels();
 const camera=new THREE.PerspectiveCamera(55,1,.025,150),controls=new OrbitControls(camera,canvas);controls.enableDamping=true;controls.maxDistance=65;controls.minDistance=.15;
 const target=new THREE.WebGLRenderTarget(1,1,{type:THREE.FloatType,depthBuffer:false}),output=new THREE.Scene(),quadCamera=new THREE.Camera();output.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({glslVersion:THREE.GLSL3,vertexShader:QUAD_VERTEX,fragmentShader:TONEMAP_FRAGMENT,uniforms:{uImage:{value:target.texture}},depthTest:false,depthWrite:false})));
 const field={renderer,camera,target,output,quadCamera,resolution:new THREE.Vector2(),motion:new MotionDetail(),minPixelSigma:2,uniforms:{uView:{value:0},uSHDegree:{value:3}},water:{count:0,uniforms:{uWaterRoughness:{value:.14},uTurbidity:{value:0}}}};for(const name of ['beach','grass','grains','soft','optics','lightTest'])field[name]={count:0};
@@ -90,6 +92,8 @@ const lab=new SandLab(renderer,{boulders:true,physicalResolution:true,bulkFields
 stopSimulation=error=>lab.stopGraphicsWork(error);
 lab.onGraphicsFailure=error=>graphics.stop(error);
 configureRTXLab(lab,rendererInfo(renderer));
+// Trials remain opt-in until complete-scene measurements establish a win.
+Object.assign(lab.optimizations,{simdPressure:false,simdParticles:false});
 boot.configureLab?.(lab,renderer);
 installFieldLocality(lab);
 installResidentWater(lab);

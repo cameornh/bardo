@@ -1,0 +1,16 @@
+{
+  "pass": true,
+  "backend": {
+    "pressure": "WebAssembly SIMD CPU multigrid-PCG",
+    "surface": "WebAssembly SIMD CPU"
+  },
+  "width": 320,
+  "height": 200,
+  "meanAbsoluteRGB": 0,
+  "maxAbsoluteRGB": 0,
+  "nonfinite": 0,
+  "steps": 12,
+  "simulatedSeconds": 0.7999999999999999,
+  "objects": 4,
+  "sandParcels": 22
+}

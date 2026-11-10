@@ -66,6 +66,32 @@ These protections do not guarantee immunity to driver/runtime bugs.
 On Windows use `.native/tools/deno.exe` in place of `.native/tools/deno`.
 Do not run native and browser GPU benchmarks concurrently.
 
+### CPU SIMD trials
+
+The live QA optimization controls include independent **SIMD CPU pressure** and
+**SIMD CPU particle forces** checkboxes. Both start off: the current Mac results
+do not establish a repeatable whole-scene improvement. These are CPU WebAssembly
+instructions, not extra GPU passes. Unsupported SIMD falls back to the existing
+scalar kernel, and field diagnostics report the backend actually used. Historical
+test scenes do not enable or load these trial binaries.
+
+- `node --test tests/live-simd.test.js` — exact numerical comparisons, held
+  markers, carved contacts, moving bodies, toggling and reset.
+- `node tests/live-simd-bench.mjs .native/simd-kernels.json` — CPU-only kernel
+  timings in alternating order; these are not FPS measurements.
+- `node src/rtx-sand-lab/simd/build.mjs` — rebuild only the isolated SIMD binaries
+  with AssemblyScript 0.28.9. An existing compiler can be selected with
+  `BARDO_ASC=/absolute/path/to/assemblyscript/bin/asc.js`.
+- After `npm run build:native`, run
+  `.native/tools/deno run --config native/deno.json --allow-read --allow-write=.native --allow-env --allow-sys --allow-ffi native/simd-bench.js scalar calm trial`
+  for 96 normal application frames. Replace `scalar` with `both`, `pressure` or
+  `particles`, and `calm` with `edited` for 144 grab/place edits. Run sequentially;
+  discard the first 16 frames, reject any failed run, and compare wall-clock FPS,
+  simulation/wall time and frame intervals. The edited fixture consolidates most
+  stock back into the terrain; it does not represent unlimited raised sculptures.
+- The same Deno command ending in `native/simd-parity.js` runs 12 bounded SIMD
+  steps with edits and a cup, then compares frozen rendered images.
+
 ## Known work remaining
 
 Native does not yet establish a performance win over the browser on this Mac.
