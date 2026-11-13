@@ -1,0 +1,121 @@
+{
+  "machine": {
+    "vendor": "0",
+    "architecture": "",
+    "device": "0",
+    "description": "AMD Radeon Pro 560X",
+    "isFallbackAdapter": false
+  },
+  "runtime": {
+    "deno": "2.9.8",
+    "v8": "15.0.245.2-rusty",
+    "typescript": "6.0.3"
+  },
+  "window": [
+    640,
+    400
+  ],
+  "renderSize": [
+    320,
+    200
+  ],
+  "resolution": 1.4,
+  "waterSamples": 3024,
+  "physics": "CPU/WebAssembly multigrid-PCG; no simulation model changes",
+  "framesPerRun": 96,
+  "discardFrames": 16,
+  "runs": [
+    {
+      "name": "reference-a",
+      "fps": 5.730911276095404,
+      "realtime": 0.7641215034793852,
+      "p95ms": 197.67750299999898,
+      "p99ms": 205.2065040000016,
+      "frameStddevMs": 11.265171797207215,
+      "measuredSeconds": 13.784893221,
+      "intervals": 79,
+      "allocationMiB": 49.8195686340332,
+      "simulatedSeconds": 10.533333333333307
+    },
+    {
+      "name": "terrain-a",
+      "fps": 5.6905644352903,
+      "realtime": 0.7587419247053714,
+      "p95ms": 203.46445999999924,
+      "p99ms": 212.53197799999907,
+      "frameStddevMs": 13.241121114887019,
+      "measuredSeconds": 13.882629904000002,
+      "intervals": 79,
+      "allocationMiB": 49.9302978515625,
+      "simulatedSeconds": 10.533333333333307
+    },
+    {
+      "name": "foam-a",
+      "fps": 5.6852790950584025,
+      "realtime": 0.7580372126744518,
+      "p95ms": 200.74504399999933,
+      "p99ms": 207.273819,
+      "frameStddevMs": 11.87147406801221,
+      "measuredSeconds": 13.895535941000002,
+      "intervals": 79,
+      "allocationMiB": 50.2449951171875,
+      "simulatedSeconds": 10.533333333333307
+    },
+    {
+      "name": "both-a",
+      "fps": 5.719428722640462,
+      "realtime": 0.7625904963520597,
+      "p95ms": 200.26212499999747,
+      "p99ms": 218.59755500000028,
+      "frameStddevMs": 13.839812779604635,
+      "measuredSeconds": 13.812568323,
+      "intervals": 79,
+      "allocationMiB": 50.3554801940918,
+      "simulatedSeconds": 10.533333333333307
+    },
+    {
+      "name": "both-b",
+      "fps": 5.46281076908695,
+      "realtime": 0.7283747692115914,
+      "p95ms": 219.46058900000025,
+      "p99ms": 263.52178800000183,
+      "frameStddevMs": 18.88502916526383,
+      "measuredSeconds": 14.461419833,
+      "intervals": 79,
+      "allocationMiB": 50.3554801940918,
+      "simulatedSeconds": 10.533333333333307
+    },
+    {
+      "name": "lighting-a",
+      "fps": 5.630789733028407,
+      "realtime": 0.7507719644037857,
+      "p95ms": 203.4173269999992,
+      "p99ms": 213.1226540000025,
+      "frameStddevMs": 12.1086848113519,
+      "measuredSeconds": 14.03000356,
+      "intervals": 79,
+      "allocationMiB": 50.2449951171875,
+      "simulatedSeconds": 10.533333333333307
+    },
+    {
+      "name": "reference-b",
+      "fps": 6.079508536174562,
+      "realtime": 0.8106011381566064,
+      "p95ms": 188.1693209999994,
+      "p99ms": 210.00311899999906,
+      "frameStddevMs": 12.640800243105705,
+      "measuredSeconds": 12.994471433000001,
+      "intervals": 79,
+      "allocationMiB": 49.8195686340332,
+      "simulatedSeconds": 10.533333333333308
+    }
+  ],
+  "decision": "No variant enabled in the live scene. No demonstrated whole-scene throughput gain; terrain also fails grazing-view parity.",
+  "contextLosses": 0,
+  "limitations": [
+    "One Mac/AMD GPU, bounded edited/foam workload, no RTX data or large-world benchmark.",
+    "No shader GPU timestamps on this adapter; full-loop wall time is measured.",
+    "Reference range reflects run-to-run drift, not a confidence interval.",
+    "Terrain cache is a polynomial representation, not a full CLOD or sparse 3D hierarchy."
+  ]
+}

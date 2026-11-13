@@ -1,0 +1,274 @@
+TAP version 13
+# Subtest: opaque-depth footprints are conservative at silhouettes and odd-sized image borders
+ok 1 - opaque-depth footprints are conservative at silhouettes and odd-sized image borders
+  ---
+  duration_ms: 69.252874
+  type: 'test'
+  ...
+# Subtest: live particle optimization is explicit, keeps SH/covariance and warms every new pass
+ok 2 - live particle optimization is explicit, keeps SH/covariance and warms every new pass
+  ---
+  duration_ms: 589.812419
+  type: 'test'
+  ...
+# Subtest: cached sky irradiance matches the original directional SH sum at every degree
+ok 3 - cached sky irradiance matches the original directional SH sum at every degree
+  ---
+  duration_ms: 7.020209
+  type: 'test'
+  ...
+# Subtest: 400 partial grab/drop edits have bounded cut history and preserve all material ledgers
+ok 4 - 400 partial grab/drop edits have bounded cut history and preserve all material ledgers
+  ---
+  duration_ms: 3111.401387
+  type: 'test'
+  ...
+# Subtest: old cut detail is resampled only inside occupied source stock; held stock is unchanged
+ok 5 - old cut detail is resampled only inside occupied source stock; held stock is unchanged
+  ---
+  duration_ms: 14.26025
+  type: 'test'
+  ...
+# Subtest: continuous carving preserves removed-stock accounting without a growing operation log
+ok 6 - continuous carving preserves removed-stock accounting without a growing operation log
+  ---
+  duration_ms: 777.403274
+  type: 'test'
+  ...
+# Subtest: a partial cut exhausting the remaining stock still drops inherited history
+ok 7 - a partial cut exhausting the remaining stock still drops inherited history
+  ---
+  duration_ms: 3.390631
+  type: 'test'
+  ...
+# Subtest: tiny settled deposits merge conservatively but unlike layers and raised sand remain explicit
+ok 8 - tiny settled deposits merge conservatively but unlike layers and raised sand remain explicit
+  ---
+  duration_ms: 4.412936
+  type: 'test'
+  ...
+# Subtest: live editing retains dry settling and wet support during a repeated pickup soak
+ok 9 - live editing retains dry settling and wet support during a repeated pickup soak
+  ---
+  duration_ms: 1706.619516
+  type: 'test'
+  ...
+# Subtest: a stationary held handful does not invalidate terrain; moving it still does
+ok 10 - a stationary held handful does not invalidate terrain; moving it still does
+  ---
+  duration_ms: 1.606839
+  type: 'test'
+  ...
+# Subtest: live primary tracing is isolated from shading and scheduled before its consumer
+ok 11 - live primary tracing is isolated from shading and scheduled before its consumer
+  ---
+  duration_ms: 604.170902
+  type: 'test'
+  ...
+# Subtest: split surface shaders and program keys remain stable across first erosion, objects and their removal
+ok 12 - split surface shaders and program keys remain stable across first erosion, objects and their removal
+  ---
+  duration_ms: 467.058008
+  type: 'test'
+  ...
+# Subtest: split draw restores target and clear state even after a rejected shader
+ok 13 - split draw restores target and clear state even after a rejected shader
+  ---
+  duration_ms: 322.066732
+  type: 'test'
+  ...
+# Subtest: stage extraction fails explicitly if the source contract changes
+ok 14 - stage extraction fails explicitly if the source contract changes
+  ---
+  duration_ms: 0.502892
+  type: 'test'
+  ...
+# Subtest: playback preparation binds real beach geometry without advancing or dispatching physics
+ok 15 - playback preparation binds real beach geometry without advancing or dispatching physics
+  ---
+  duration_ms: 273.358217
+  type: 'test'
+  ...
+# Subtest: kernel width changes smoothly without modifying physics or advancing during redraws
+ok 16 - kernel width changes smoothly without modifying physics or advancing during redraws
+  ---
+  duration_ms: 6.293399
+  type: 'test'
+  ...
+# Subtest: water filtering is independent of redraw count and camera and survives appended rain water
+ok 17 - water filtering is independent of redraw count and camera and survives appended rain water
+  ---
+  duration_ms: 2.037067
+  type: 'test'
+  ...
+# Subtest: a momentarily sparse sheet never changes rendering families; sustained detached water does
+ok 18 - a momentarily sparse sheet never changes rendering families; sustained detached water does
+  ---
+  duration_ms: 13.357272
+  type: 'test'
+  ...
+# Subtest: grazing artifacts are actual iteration exhaustion, with every distance sample accounted for
+ok 19 - grazing artifacts are actual iteration exhaustion, with every distance sample accounted for
+  ---
+  duration_ms: 1.608364
+  type: 'test'
+  ...
+# Subtest: live mirage changes primary visibility only; physics, secondary rays, and historical renderers stay intact
+ok 20 - live mirage changes primary visibility only; physics, secondary rays, and historical renderers stay intact
+  ---
+  duration_ms: 578.797116
+  type: 'test'
+  ...
+# Subtest: native frame submits first, runs CPU work before entering the blocking binding, and still waits for completion
+ok 21 - native frame submits first, runs CPU work before entering the blocking binding, and still waits for completion
+  ---
+  duration_ms: 9.158106
+  type: 'test'
+  ...
+# Subtest: browser completion order is unchanged without the native execution policy
+ok 22 - browser completion order is unchanged without the native execution policy
+  ---
+  duration_ms: 0.990373
+  type: 'test'
+  ...
+# Subtest: failed native completion stops the renderer before any subsequent GPU submission
+ok 23 - failed native completion stops the renderer before any subsequent GPU submission
+  ---
+  duration_ms: 0.784335
+  type: 'test'
+  ...
+# Subtest: native scheduling preserves the frame completion timeout
+ok 24 - native scheduling preserves the frame completion timeout
+  ---
+  duration_ms: 12.323747
+  type: 'test'
+  ...
+# Subtest: synchronous runtime exceptions become rejected completion promises
+ok 25 - synchronous runtime exceptions become rejected completion promises
+  ---
+  duration_ms: 0.493838
+  type: 'test'
+  ...
+# Subtest: native MRT splitting preserves every output, order and full precision
+ok 26 - native MRT splitting preserves every output, order and full precision
+  ---
+  duration_ms: 3.563763
+  type: 'test'
+  ...
+# Subtest: native controls emit the existing browser input/change handlers once
+ok 27 - native controls emit the existing browser input/change handlers once
+  ---
+  duration_ms: 48.634693
+  type: 'test'
+  ...
+# Subtest: native canvas, mouse lock and resizing keep shared control semantics
+ok 28 - native canvas, mouse lock and resizing keep shared control semantics
+  ---
+  duration_ms: 1.344673
+  type: 'test'
+  ...
+# Subtest: native presentation explicitly retires swapchain images once per frame
+ok 29 - native presentation explicitly retires swapchain images once per frame
+  ---
+  duration_ms: 1.517727
+  type: 'test'
+  ...
+# Subtest: outdated native surfaces retry once; other errors and repeated failures propagate
+ok 30 - outdated native surfaces retry once; other errors and repeated failures propagate
+  ---
+  duration_ms: 0.961161
+  type: 'test'
+  ...
+# Subtest: cached cubic polynomials reproduce the ground and its gradient, including boundaries
+ok 31 - cached cubic polynomials reproduce the ground and its gradient, including boundaries
+  ---
+  duration_ms: 106.623389
+  type: 'test'
+  ...
+# Subtest: gradient cache insertion works without an opaque-normal consumer
+ok 32 - gradient cache insertion works without an opaque-normal consumer
+  ---
+  duration_ms: 0.566987
+  type: 'test'
+  ...
+# Subtest: foam geometry preparation retains projection, lighting and alpha code and clears empty records
+ok 33 - foam geometry preparation retains projection, lighting and alpha code and clears empty records
+  ---
+  duration_ms: 9.701568
+  type: 'test'
+  ...
+# Subtest: local changes invalidate all cubic support, but moisture and camera changes do not rebuild
+ok 34 - local changes invalidate all cubic support, but moisture and camera changes do not rebuild
+  ---
+  duration_ms: 30.665012
+  type: 'test'
+  ...
+# Subtest: repeated edits retain fixed cache storage and restore the original surface
+ok 35 - repeated edits retain fixed cache storage and restore the original surface
+  ---
+  duration_ms: 95.741763
+  type: 'test'
+  ...
+# Subtest: shader transformation leaves parcels, cuts and the historical shader untouched
+ok 36 - shader transformation leaves parcels, cuts and the historical shader untouched
+  ---
+  duration_ms: 0.489351
+  type: 'test'
+  ...
+# Subtest: terrain proxies immediately cover unbuilt chunks, stay bounded, and reuse unaffected chunks after edits
+ok 37 - terrain proxies immediately cover unbuilt chunks, stay bounded, and reuse unaffected chunks after edits
+  ---
+  duration_ms: 341.298965
+  type: 'test'
+  ...
+# Subtest: coarse proxy samples follow the upper edited field and fade continuously before their boundary
+ok 38 - coarse proxy samples follow the upper edited field and fade continuously before their boundary
+  ---
+  duration_ms: 2.966678
+  type: 'test'
+  ...
+# Subtest: terrain edits compose in order, undo, persist, and reject invalid saves atomically
+ok 39 - terrain edits compose in order, undo, persist, and reject invalid saves atomically
+  ---
+  duration_ms: 4.96519
+  type: 'test'
+  ...
+# Subtest: chunk selection stays bounded across negative coordinates and long travel
+ok 40 - chunk selection stays bounded across negative coordinates and long travel
+  ---
+  duration_ms: 0.754863
+  type: 'test'
+  ...
+# Subtest: both sides of a chunk boundary receive the same cut and samples follow its surface
+ok 41 - both sides of a chunk boundary receive the same cut and samples follow its surface
+  ---
+  duration_ms: 106.995485
+  type: 'test'
+  ...
+# Subtest: streaming evicts geometry, preserves edits, and regenerates the same region
+ok 42 - streaming evicts geometry, preserves edits, and regenerates the same region
+  ---
+  duration_ms: 4.80046
+  type: 'test'
+  ...
+# Subtest: late worker results cannot resurrect evicted or superseded geometry
+ok 43 - late worker results cannot resurrect evicted or superseded geometry
+  ---
+  duration_ms: 1.4172
+  type: 'test'
+  ...
+# Subtest: terrain contact converts distance bounds to contact distance and works beyond origin
+ok 44 - terrain contact converts distance bounds to contact distance and works beyond origin
+  ---
+  duration_ms: 58.204346
+  type: 'test'
+  ...
+1..44
+# tests 44
+# suites 0
+# pass 44
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6031.429584

@@ -1,0 +1,118 @@
+{
+  "checks": [
+    {
+      "label": "initial ground",
+      "maxError": 2.682209012672132e-7,
+      "pass": true,
+      "stats": {
+        "tiles": 16,
+        "texels": 3844,
+        "updates": 1
+      }
+    },
+    {
+      "label": "local edit with cubic halo",
+      "maxError": 2.682209012672132e-7,
+      "pass": true,
+      "stats": {
+        "tiles": 4,
+        "texels": 1024,
+        "updates": 2
+      }
+    },
+    {
+      "label": "wetness-only change",
+      "maxError": 2.682209012672132e-7,
+      "pass": true,
+      "stats": {
+        "tiles": 0,
+        "texels": 0,
+        "updates": 2
+      }
+    }
+  ],
+  "images": [
+    {
+      "label": "beach",
+      "terrain": true,
+      "foam": false,
+      "meanAbsoluteRGB": 0.00004237549146394789,
+      "maxAbsoluteRGB": 0.3521507978439331,
+      "componentsOver001": 59,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "carves-objects",
+      "terrain": true,
+      "foam": false,
+      "meanAbsoluteRGB": 0.0001219039378678038,
+      "maxAbsoluteRGB": 0.5837197601795197,
+      "componentsOver001": 121,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "foam",
+      "terrain": false,
+      "foam": true,
+      "meanAbsoluteRGB": 5.269356867453704e-7,
+      "maxAbsoluteRGB": 0.000015974044799804688,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "combined",
+      "terrain": true,
+      "foam": true,
+      "meanAbsoluteRGB": 0.00008351952605242255,
+      "maxAbsoluteRGB": 0.5823397934436798,
+      "componentsOver001": 114,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "underwater",
+      "terrain": true,
+      "foam": true,
+      "meanAbsoluteRGB": 7.349457367430053e-9,
+      "maxAbsoluteRGB": 4.805624485015869e-7,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "night",
+      "terrain": true,
+      "foam": true,
+      "meanAbsoluteRGB": 2.7398817589729953e-14,
+      "maxAbsoluteRGB": 2.2595258997171186e-12,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    }
+  ],
+  "backend": "native wgpu / CPU physics",
+  "contextLost": false,
+  "pass": true,
+  "allocationMiB": 52.055442810058594
+}

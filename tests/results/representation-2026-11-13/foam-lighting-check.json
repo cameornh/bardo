@@ -1,0 +1,180 @@
+{
+  "checks": [
+    {
+      "label": "initial ground",
+      "maxError": 2.682209012672132e-7,
+      "pass": true,
+      "stats": {
+        "tiles": 16,
+        "texels": 3844,
+        "updates": 1
+      }
+    },
+    {
+      "label": "local edit with cubic halo",
+      "maxError": 2.682209012672132e-7,
+      "pass": true,
+      "stats": {
+        "tiles": 4,
+        "texels": 1024,
+        "updates": 2
+      }
+    },
+    {
+      "label": "wetness-only change",
+      "maxError": 2.682209012672132e-7,
+      "pass": true,
+      "stats": {
+        "tiles": 0,
+        "texels": 0,
+        "updates": 2
+      }
+    }
+  ],
+  "images": [
+    {
+      "label": "beach",
+      "terrain": false,
+      "foam": false,
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0,
+      "maxAbsoluteRGB": 0,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "carves-objects",
+      "terrain": false,
+      "foam": false,
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0,
+      "maxAbsoluteRGB": 0,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "foam",
+      "terrain": false,
+      "foam": true,
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 5.248920254719754e-7,
+      "maxAbsoluteRGB": 0.000015974044799804688,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "combined",
+      "terrain": false,
+      "foam": true,
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 5.248920254719754e-7,
+      "maxAbsoluteRGB": 0.000015974044799804688,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "camera-0",
+      "terrain": false,
+      "foam": true,
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 8.129663377379378e-7,
+      "maxAbsoluteRGB": 0.025266647338867188,
+      "componentsOver001": 3,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "camera-1",
+      "terrain": false,
+      "foam": true,
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 5.439734668470919e-7,
+      "maxAbsoluteRGB": 0.000015735626220703125,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "camera-2",
+      "terrain": false,
+      "foam": true,
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 1.734237594064325e-7,
+      "maxAbsoluteRGB": 0.000011980533599853516,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "camera-3",
+      "terrain": false,
+      "foam": true,
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 2.0413127883026997e-7,
+      "maxAbsoluteRGB": 0.000010609626770019531,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "underwater",
+      "terrain": false,
+      "foam": true,
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 7.348716583995459e-9,
+      "maxAbsoluteRGB": 4.805624485015869e-7,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "night",
+      "terrain": false,
+      "foam": true,
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 5.687275138610559e-10,
+      "maxAbsoluteRGB": 0.0000019073486328125,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    }
+  ],
+  "backend": "native wgpu / CPU physics",
+  "contextLost": false,
+  "pass": true,
+  "allocationMiB": 52.036399841308594
+}

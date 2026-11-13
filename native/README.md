@@ -92,6 +92,35 @@ test scenes do not enable or load these trial binaries.
 - The same Deno command ending in `native/simd-parity.js` runs 12 bounded SIMD
   steps with edits and a cup, then compares frozen rendered images.
 
+### Representation experiments (isolated; not enabled in the live app)
+
+The November 13 trials test persistent cubic terrain coefficients and per-cell
+sea-foam geometry/lighting reuse. The Gaussian covariance, SH lighting, physics
+and rendering resolution remain unchanged. These are precursors to a spatial
+representation hierarchy, not a completed CLOD/voxel system. The terrain trial
+fails the grazing-view image gate; the foam trials have not earned a repeatable
+whole-scene speedup. None is enabled by the ordinary launcher.
+
+After `npm run build:native`, run the following sequentially:
+
+```
+node --test tests/representation-cache.test.js
+.native/tools/deno run --config native/deno.json --allow-read --allow-write=.native --allow-env --allow-sys --allow-ffi native/representation-check.js lighting foam-only
+.native/tools/deno run --config native/deno.json --allow-read --allow-write=.native --allow-env --allow-sys --allow-ffi native/representation-bench.js reference busy trial
+```
+
+The image check compares ten frozen views, including a camera sweep, carved
+terrain, objects, foam, underwater and night. Omitting `foam-only` also tests
+the rejected terrain cache and currently returns a failed image-parity result
+(it is not a graphics-context failure). The benchmark runs the ordinary capped
+window loop for 96 frames; discard 16 warmup frames. Replace `reference` with
+`terrain`, `foam`, `both`, or `lighting` to select a trial; `lighting` includes
+foam geometry and lighting reuse but not the terrain cache. `busy` contains
+144 sand edits and seeded sea foam; `calm` is also available. Results and images
+are saved under `.native/representation/`. These short runs do not establish
+large-world or long-session behavior. See the
+[measured report](../tests/results/representation-2026-11-13/report.html).
+
 ## Known work remaining
 
 Native does not yet establish a performance win over the browser on this Mac.
