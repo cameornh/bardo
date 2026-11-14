@@ -1,0 +1,153 @@
+{
+  "adapter": "AMD Radeon Pro 560X",
+  "cases": [
+    {
+      "kind": "sea",
+      "count": 0,
+      "pattern": "none",
+      "active": 0,
+      "pass": true
+    },
+    {
+      "kind": "sea",
+      "count": 1,
+      "pattern": "all",
+      "active": 1,
+      "pass": true
+    },
+    {
+      "kind": "sea",
+      "count": 257,
+      "pattern": "sparse",
+      "active": 38,
+      "pass": true
+    },
+    {
+      "kind": "sea",
+      "count": 1027,
+      "pattern": "sparse",
+      "active": 148,
+      "pass": true
+    },
+    {
+      "kind": "sea",
+      "count": 65536,
+      "pattern": "none",
+      "active": 0,
+      "pass": true
+    },
+    {
+      "kind": "sea",
+      "count": 65536,
+      "pattern": "all",
+      "active": 65536,
+      "pass": true
+    },
+    {
+      "kind": "sea",
+      "count": 65535,
+      "pattern": "sparse",
+      "active": 9363,
+      "pass": true
+    },
+    {
+      "kind": "grain",
+      "count": 0,
+      "pattern": "none",
+      "active": 0,
+      "pass": true
+    },
+    {
+      "kind": "grain",
+      "count": 1,
+      "pattern": "all",
+      "active": 1,
+      "pass": true
+    },
+    {
+      "kind": "grain",
+      "count": 257,
+      "pattern": "sparse",
+      "active": 38,
+      "pass": true
+    },
+    {
+      "kind": "grain",
+      "count": 1027,
+      "pattern": "sparse",
+      "active": 148,
+      "pass": true
+    },
+    {
+      "kind": "grain",
+      "count": 65536,
+      "pattern": "none",
+      "active": 0,
+      "pass": true
+    },
+    {
+      "kind": "grain",
+      "count": 65536,
+      "pattern": "all",
+      "active": 65536,
+      "pass": true
+    },
+    {
+      "kind": "grain",
+      "count": 65535,
+      "pattern": "sparse",
+      "active": 9363,
+      "pass": true
+    },
+    {
+      "kind": "fine",
+      "count": 0,
+      "pattern": "none",
+      "active": 0,
+      "pass": true
+    },
+    {
+      "kind": "fine",
+      "count": 1,
+      "pattern": "all",
+      "active": 1,
+      "pass": true
+    },
+    {
+      "kind": "fine",
+      "count": 257,
+      "pattern": "sparse",
+      "active": 38,
+      "pass": true
+    },
+    {
+      "kind": "fine",
+      "count": 1027,
+      "pattern": "sparse",
+      "active": 148,
+      "pass": true
+    },
+    {
+      "kind": "fine",
+      "count": 65536,
+      "pattern": "none",
+      "active": 0,
+      "pass": true
+    },
+    {
+      "kind": "fine",
+      "count": 65536,
+      "pattern": "all",
+      "active": 65536,
+      "pass": true
+    },
+    {
+      "kind": "fine",
+      "count": 65535,
+      "pattern": "sparse",
+      "active": 9363,
+      "pass": true
+    }
+  ],
+  "pass": true
+}

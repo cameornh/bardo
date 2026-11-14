@@ -176,6 +176,9 @@ export class SharedSceneWebGPU {
    for(const group of renderPassPlan(commands,this.options?.mergePasses!==false)){
     if(group.type==='upload'){encoder.copyBufferToTexture({buffer:group.buffer,bytesPerRow:group.row},{texture:group.texture},[group.width,group.height]);continue;}
     if(group.type==='copy'){encoder.copyTextureToTexture(group.source,group.destination,group.size);continue;}
+    // Opt-in experiments may insert bounded same-device compute between draws.
+    // renderPassPlan treats this as a barrier; ordinary scene commands are unchanged.
+    if(group.type==='compute'){group.encode(encoder,label=>this.timing?.writes(timingBatch,label));continue;}
     const label=group.draws.map(c=>c.name||c.stage||('program '+c.p.key)).join(' + ')||'clear';
     const pass=encoder.beginRenderPass({...this.attachments(group.state,group.color,group.depth),label,timestampWrites:this.timing?.writes(timingBatch,label)});renderPasses++;
     for(const c of group.draws){
@@ -186,7 +189,7 @@ export class SharedSceneWebGPU {
     const groups=p.layouts.map((layout,g)=>d.createBindGroup({layout,entries:[...p.resources.values()].filter(r=>r.group===g).map(r=>({binding:r.binding,resource:resources.get(g+':'+r.binding)}))}));
     pass.setPipeline(c.pipeline.pipeline);groups.forEach((group,g)=>pass.setBindGroup(g,group));c.pipeline.activeAttributes.forEach(([name],i)=>pass.setVertexBuffer(i,c.attributes[name].buffer));
     const [x,y,w,h]=c.viewport;pass.setViewport(x,y,w,h,0,1);const [sx,sy,sw,sh]=c.scissor||[0,0,c.state?.width||this.domElement.width,c.state?.height||this.domElement.height];pass.setScissorRect(sx,sy,sw,sh);
-    const start=c.range.start||0,count=Math.max(0,Math.min(c.range.count,(c.index?.count??c.count)-start));if(c.index){pass.setIndexBuffer(c.index.buffer,c.index.format);pass.drawIndexed(count,c.instances,start);}else pass.draw(count,c.instances,start);calls++;
+    const start=c.range.start||0,count=Math.max(0,Math.min(c.range.count,(c.index?.count??c.count)-start));if(c.index){pass.setIndexBuffer(c.index.buffer,c.index.format);if(c.indirect)pass.drawIndexedIndirect(c.indirect,0);else pass.drawIndexed(count,c.instances,start);}else if(c.indirect)pass.drawIndirect(c.indirect,0);else pass.draw(count,c.instances,start);calls++;
     }
     pass.end();
    }

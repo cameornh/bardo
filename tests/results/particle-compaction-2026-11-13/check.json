@@ -1,0 +1,494 @@
+{
+  "checks": [],
+  "images": [
+    {
+      "label": "beach",
+      "activeLists": [
+        {
+          "kind": "sea",
+          "capacity": 18432,
+          "submitted": 0
+        },
+        {
+          "kind": "grain",
+          "capacity": 8192,
+          "submitted": 0
+        },
+        {
+          "kind": "fine",
+          "capacity": 65536,
+          "submitted": 0
+        }
+      ],
+      "detail": {
+        "enabled": true,
+        "count": 0,
+        "span": 0,
+        "source": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "velocity": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0,
+      "maxAbsoluteRGB": 0,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "carves-objects",
+      "activeLists": [
+        {
+          "kind": "sea",
+          "capacity": 18432,
+          "submitted": 0
+        },
+        {
+          "kind": "grain",
+          "capacity": 8192,
+          "submitted": 0
+        },
+        {
+          "kind": "fine",
+          "capacity": 65536,
+          "submitted": 0
+        }
+      ],
+      "detail": {
+        "enabled": true,
+        "count": 0,
+        "span": 0,
+        "source": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "velocity": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0,
+      "maxAbsoluteRGB": 0,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "foam-grains",
+      "activeLists": [
+        {
+          "kind": "sea",
+          "capacity": 18432,
+          "input": 18432,
+          "submitted": 2359
+        },
+        {
+          "kind": "grain",
+          "capacity": 8192,
+          "input": 8192,
+          "submitted": 222
+        },
+        {
+          "kind": "fine",
+          "capacity": 65536,
+          "input": 4096,
+          "submitted": 360
+        }
+      ],
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          3.8512351512908936,
+          3.2909653186798096,
+          3.855875253677368,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0,
+      "maxAbsoluteRGB": 0,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "combined",
+      "activeLists": [
+        {
+          "kind": "sea",
+          "capacity": 18432,
+          "input": 18432,
+          "submitted": 2359
+        },
+        {
+          "kind": "grain",
+          "capacity": 8192,
+          "input": 8192,
+          "submitted": 222
+        },
+        {
+          "kind": "fine",
+          "capacity": 65536,
+          "input": 4096,
+          "submitted": 360
+        }
+      ],
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          3.8512351512908936,
+          3.2909653186798096,
+          3.855875253677368,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0,
+      "maxAbsoluteRGB": 0,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "camera-0",
+      "activeLists": [
+        {
+          "kind": "sea",
+          "capacity": 18432,
+          "input": 18432,
+          "submitted": 2359
+        },
+        {
+          "kind": "grain",
+          "capacity": 8192,
+          "input": 8192,
+          "submitted": 222
+        },
+        {
+          "kind": "fine",
+          "capacity": 65536,
+          "input": 4096,
+          "submitted": 360
+        }
+      ],
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          2.8709471225738525,
+          1.9646013975143433,
+          3.6914403438568115,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0,
+      "maxAbsoluteRGB": 0,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "camera-1",
+      "activeLists": [
+        {
+          "kind": "sea",
+          "capacity": 18432,
+          "input": 18432,
+          "submitted": 2359
+        },
+        {
+          "kind": "grain",
+          "capacity": 8192,
+          "input": 8192,
+          "submitted": 222
+        },
+        {
+          "kind": "fine",
+          "capacity": 65536,
+          "input": 4096,
+          "submitted": 296
+        }
+      ],
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          2.2430124282836914,
+          1.7761931419372559,
+          3.6003308296203613,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0,
+      "maxAbsoluteRGB": 0,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "camera-2",
+      "activeLists": [
+        {
+          "kind": "sea",
+          "capacity": 18432,
+          "input": 18432,
+          "submitted": 2359
+        },
+        {
+          "kind": "grain",
+          "capacity": 8192,
+          "input": 8192,
+          "submitted": 222
+        },
+        {
+          "kind": "fine",
+          "capacity": 65536,
+          "input": 4096,
+          "submitted": 310
+        }
+      ],
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          1.63731849193573,
+          1.5935988426208496,
+          3.5029492378234863,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0,
+      "maxAbsoluteRGB": 0,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "camera-3",
+      "activeLists": [
+        {
+          "kind": "sea",
+          "capacity": 18432,
+          "input": 18432,
+          "submitted": 2359
+        },
+        {
+          "kind": "grain",
+          "capacity": 8192,
+          "input": 8192,
+          "submitted": 222
+        },
+        {
+          "kind": "fine",
+          "capacity": 65536,
+          "input": 4096,
+          "submitted": 363
+        }
+      ],
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          1.0580790042877197,
+          1.4186164140701294,
+          3.4044854640960693,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0,
+      "maxAbsoluteRGB": 0,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "underwater",
+      "activeLists": [
+        {
+          "kind": "sea",
+          "capacity": 18432,
+          "input": 18432,
+          "submitted": 2359
+        },
+        {
+          "kind": "grain",
+          "capacity": 8192,
+          "input": 8192,
+          "submitted": 222
+        },
+        {
+          "kind": "fine",
+          "capacity": 65536,
+          "input": 4096,
+          "submitted": 361
+        }
+      ],
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          -0.23999999463558197,
+          0.7724087238311768,
+          -1.149391531944275,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0,
+      "maxAbsoluteRGB": 0,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "night",
+      "activeLists": [
+        {
+          "kind": "sea",
+          "capacity": 18432,
+          "input": 18432,
+          "submitted": 2359
+        },
+        {
+          "kind": "grain",
+          "capacity": 8192,
+          "input": 8192,
+          "submitted": 222
+        },
+        {
+          "kind": "fine",
+          "capacity": 65536,
+          "input": 4096,
+          "submitted": 360
+        }
+      ],
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          3.8512351512908936,
+          3.2909653186798096,
+          3.855875253677368,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0,
+      "maxAbsoluteRGB": 0,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    }
+  ],
+  "backend": "native wgpu / CPU physics",
+  "contextLost": false,
+  "pass": true,
+  "visibleKinds": true,
+  "allocationMiB": 52.50288391113281
+}

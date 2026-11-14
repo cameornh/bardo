@@ -1,0 +1,98 @@
+{
+  "rows": [
+    {
+      "run": "busy-reference-a",
+      "fps": 6.244535222953321,
+      "realtime": 0.832604696393774,
+      "wallSeconds": 12.651061637,
+      "simulationSeconds": 10.533333333333307,
+      "intervals": 79,
+      "p95FrameMs": 178.63388999999916,
+      "frameStddevMs": 9.566797687297107,
+      "contextLost": false,
+      "allocationMiB": 49.8195686340332
+    },
+    {
+      "run": "busy-all-a",
+      "fps": 6.2204684172324365,
+      "realtime": 0.8293957889643228,
+      "wallSeconds": 12.700008215000002,
+      "simulationSeconds": 10.533333333333307,
+      "intervals": 79,
+      "p95FrameMs": 179.6446730000007,
+      "frameStddevMs": 9.885454796633077,
+      "contextLost": false,
+      "allocationMiB": 50.388031005859375
+    },
+    {
+      "run": "busy-sea-a",
+      "fps": 6.301810951468962,
+      "realtime": 0.8402414601958594,
+      "wallSeconds": 12.536079011000002,
+      "simulationSeconds": 10.533333333333307,
+      "intervals": 79,
+      "p95FrameMs": 180.3168020000012,
+      "frameStddevMs": 9.423676603381544,
+      "contextLost": false,
+      "allocationMiB": 49.821556091308594
+    },
+    {
+      "run": "busy-fine-a",
+      "fps": 6.28329457547498,
+      "realtime": 0.8377726100633286,
+      "wallSeconds": 12.573021852000002,
+      "simulationSeconds": 10.533333333333307,
+      "intervals": 79,
+      "p95FrameMs": 178.77282800000103,
+      "frameStddevMs": 11.219189111455828,
+      "contextLost": false,
+      "allocationMiB": 50.321556091308594
+    },
+    {
+      "run": "busy-all-b",
+      "fps": 6.225718896907931,
+      "realtime": 0.8300958529210554,
+      "wallSeconds": 12.689297623000002,
+      "simulationSeconds": 10.533333333333307,
+      "intervals": 79,
+      "p95FrameMs": 181.65778599999976,
+      "frameStddevMs": 10.050803147773415,
+      "contextLost": false,
+      "allocationMiB": 50.388031005859375
+    },
+    {
+      "run": "busy-reference-b",
+      "fps": 6.320255316573111,
+      "realtime": 0.8427007088764127,
+      "wallSeconds": 12.499495043,
+      "simulationSeconds": 10.533333333333307,
+      "intervals": 79,
+      "p95FrameMs": 178.77976200000012,
+      "frameStddevMs": 10.355772182412656,
+      "contextLost": false,
+      "allocationMiB": 49.8195686340332
+    },
+    {
+      "run": "busy-all-final",
+      "fps": 6.199150762580205,
+      "realtime": 0.8265534350106919,
+      "wallSeconds": 12.743681034000002,
+      "simulationSeconds": 10.533333333333307,
+      "intervals": 79,
+      "p95FrameMs": 182.3048310000013,
+      "frameStddevMs": 9.888804828678776,
+      "contextLost": false,
+      "allocationMiB": 50.388031005859375
+    }
+  ],
+  "reference": {
+    "fps": 6.282167111062131,
+    "realtime": 0.8376222814749488
+  },
+  "combined": {
+    "fps": 6.215091432400291,
+    "realtime": 0.82867885765337
+  },
+  "imagePass": true,
+  "maxRGBError": 0
+}

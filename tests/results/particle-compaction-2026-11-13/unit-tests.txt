@@ -1,0 +1,340 @@
+TAP version 13
+# Subtest: opaque-depth footprints are conservative at silhouettes and odd-sized image borders
+ok 1 - opaque-depth footprints are conservative at silhouettes and odd-sized image borders
+  ---
+  duration_ms: 37.66455
+  type: 'test'
+  ...
+# Subtest: live particle optimization is explicit, keeps SH/covariance and warms every new pass
+ok 2 - live particle optimization is explicit, keeps SH/covariance and warms every new pass
+  ---
+  duration_ms: 376.199985
+  type: 'test'
+  ...
+# Subtest: cached sky irradiance matches the original directional SH sum at every degree
+ok 3 - cached sky irradiance matches the original directional SH sum at every degree
+  ---
+  duration_ms: 2.77782
+  type: 'test'
+  ...
+# Subtest: 400 partial grab/drop edits have bounded cut history and preserve all material ledgers
+ok 4 - 400 partial grab/drop edits have bounded cut history and preserve all material ledgers
+  ---
+  duration_ms: 2187.964976
+  type: 'test'
+  ...
+# Subtest: old cut detail is resampled only inside occupied source stock; held stock is unchanged
+ok 5 - old cut detail is resampled only inside occupied source stock; held stock is unchanged
+  ---
+  duration_ms: 8.601208
+  type: 'test'
+  ...
+# Subtest: continuous carving preserves removed-stock accounting without a growing operation log
+ok 6 - continuous carving preserves removed-stock accounting without a growing operation log
+  ---
+  duration_ms: 557.846687
+  type: 'test'
+  ...
+# Subtest: a partial cut exhausting the remaining stock still drops inherited history
+ok 7 - a partial cut exhausting the remaining stock still drops inherited history
+  ---
+  duration_ms: 2.494939
+  type: 'test'
+  ...
+# Subtest: tiny settled deposits merge conservatively but unlike layers and raised sand remain explicit
+ok 8 - tiny settled deposits merge conservatively but unlike layers and raised sand remain explicit
+  ---
+  duration_ms: 2.785221
+  type: 'test'
+  ...
+# Subtest: live editing retains dry settling and wet support during a repeated pickup soak
+ok 9 - live editing retains dry settling and wet support during a repeated pickup soak
+  ---
+  duration_ms: 1028.800284
+  type: 'test'
+  ...
+# Subtest: a stationary held handful does not invalidate terrain; moving it still does
+ok 10 - a stationary held handful does not invalidate terrain; moving it still does
+  ---
+  duration_ms: 0.81822
+  type: 'test'
+  ...
+# Subtest: live primary tracing is isolated from shading and scheduled before its consumer
+ok 11 - live primary tracing is isolated from shading and scheduled before its consumer
+  ---
+  duration_ms: 349.770839
+  type: 'test'
+  ...
+# Subtest: split surface shaders and program keys remain stable across first erosion, objects and their removal
+ok 12 - split surface shaders and program keys remain stable across first erosion, objects and their removal
+  ---
+  duration_ms: 265.753509
+  type: 'test'
+  ...
+# Subtest: split draw restores target and clear state even after a rejected shader
+ok 13 - split draw restores target and clear state even after a rejected shader
+  ---
+  duration_ms: 127.408855
+  type: 'test'
+  ...
+# Subtest: stage extraction fails explicitly if the source contract changes
+ok 14 - stage extraction fails explicitly if the source contract changes
+  ---
+  duration_ms: 0.331801
+  type: 'test'
+  ...
+# Subtest: playback preparation binds real beach geometry without advancing or dispatching physics
+ok 15 - playback preparation binds real beach geometry without advancing or dispatching physics
+  ---
+  duration_ms: 174.697427
+  type: 'test'
+  ...
+# Subtest: kernel width changes smoothly without modifying physics or advancing during redraws
+ok 16 - kernel width changes smoothly without modifying physics or advancing during redraws
+  ---
+  duration_ms: 2.181188
+  type: 'test'
+  ...
+# Subtest: water filtering is independent of redraw count and camera and survives appended rain water
+ok 17 - water filtering is independent of redraw count and camera and survives appended rain water
+  ---
+  duration_ms: 1.405086
+  type: 'test'
+  ...
+# Subtest: a momentarily sparse sheet never changes rendering families; sustained detached water does
+ok 18 - a momentarily sparse sheet never changes rendering families; sustained detached water does
+  ---
+  duration_ms: 6.026527
+  type: 'test'
+  ...
+# Subtest: grazing artifacts are actual iteration exhaustion, with every distance sample accounted for
+ok 19 - grazing artifacts are actual iteration exhaustion, with every distance sample accounted for
+  ---
+  duration_ms: 0.604211
+  type: 'test'
+  ...
+# Subtest: live mirage changes primary visibility only; physics, secondary rays, and historical renderers stay intact
+ok 20 - live mirage changes primary visibility only; physics, secondary rays, and historical renderers stay intact
+  ---
+  duration_ms: 386.512611
+  type: 'test'
+  ...
+# Subtest: native frame submits first, runs CPU work before entering the blocking binding, and still waits for completion
+ok 21 - native frame submits first, runs CPU work before entering the blocking binding, and still waits for completion
+  ---
+  duration_ms: 14.625259
+  type: 'test'
+  ...
+# Subtest: browser completion order is unchanged without the native execution policy
+ok 22 - browser completion order is unchanged without the native execution policy
+  ---
+  duration_ms: 0.765659
+  type: 'test'
+  ...
+# Subtest: failed native completion stops the renderer before any subsequent GPU submission
+ok 23 - failed native completion stops the renderer before any subsequent GPU submission
+  ---
+  duration_ms: 0.672963
+  type: 'test'
+  ...
+# Subtest: native scheduling preserves the frame completion timeout
+ok 24 - native scheduling preserves the frame completion timeout
+  ---
+  duration_ms: 10.245481
+  type: 'test'
+  ...
+# Subtest: synchronous runtime exceptions become rejected completion promises
+ok 25 - synchronous runtime exceptions become rejected completion promises
+  ---
+  duration_ms: 0.474225
+  type: 'test'
+  ...
+# Subtest: native MRT splitting preserves every output, order and full precision
+ok 26 - native MRT splitting preserves every output, order and full precision
+  ---
+  duration_ms: 2.188116
+  type: 'test'
+  ...
+# Subtest: native controls emit the existing browser input/change handlers once
+ok 27 - native controls emit the existing browser input/change handlers once
+  ---
+  duration_ms: 22.41223
+  type: 'test'
+  ...
+# Subtest: native canvas, mouse lock and resizing keep shared control semantics
+ok 28 - native canvas, mouse lock and resizing keep shared control semantics
+  ---
+  duration_ms: 1.033418
+  type: 'test'
+  ...
+# Subtest: native presentation explicitly retires swapchain images once per frame
+ok 29 - native presentation explicitly retires swapchain images once per frame
+  ---
+  duration_ms: 1.403995
+  type: 'test'
+  ...
+# Subtest: outdated native surfaces retry once; other errors and repeated failures propagate
+ok 30 - outdated native surfaces retry once; other errors and repeated failures propagate
+  ---
+  duration_ms: 0.595486
+  type: 'test'
+  ...
+# Subtest: stable sea list retains original land/water interleaving and threshold margin
+ok 31 - stable sea list retains original land/water interleaving and threshold margin
+  ---
+  duration_ms: 3.372755
+  type: 'test'
+  ...
+# Subtest: grain list excludes delayed births and dead grains, includes sparse endpoints
+ok 32 - grain list excludes delayed births and dead grains, includes sparse endpoints
+  ---
+  duration_ms: 1.071558
+  type: 'test'
+  ...
+# Subtest: fine visibility can compact empty, full and maximum lists without reordering
+ok 33 - fine visibility can compact empty, full and maximum lists without reordering
+  ---
+  duration_ms: 26.853593
+  type: 'test'
+  ...
+# Subtest: vertex remapping retains original ID for randomness and texture lookup
+ok 34 - vertex remapping retains original ID for randomness and texture lookup
+  ---
+  duration_ms: 0.828817
+  type: 'test'
+  ...
+# Subtest: compute remains an ordering barrier between state writes and indirect draws
+ok 35 - compute remains an ordering barrier between state writes and indirect draws
+  ---
+  duration_ms: 0.455155
+  type: 'test'
+  ...
+# Subtest: unsupported renderer retains reference behavior without allocation
+ok 36 - unsupported renderer retains reference behavior without allocation
+  ---
+  duration_ms: 0.584039
+  type: 'test'
+  ...
+# Subtest: capacity and duplicate-queue guards stop before unsafe indirect work
+ok 37 - capacity and duplicate-queue guards stop before unsafe indirect work
+  ---
+  duration_ms: 2.843794
+  type: 'test'
+  ...
+# Subtest: terrain proxies immediately cover unbuilt chunks, stay bounded, and reuse unaffected chunks after edits
+ok 38 - terrain proxies immediately cover unbuilt chunks, stay bounded, and reuse unaffected chunks after edits
+  ---
+  duration_ms: 223.555646
+  type: 'test'
+  ...
+# Subtest: coarse proxy samples follow the upper edited field and fade continuously before their boundary
+ok 39 - coarse proxy samples follow the upper edited field and fade continuously before their boundary
+  ---
+  duration_ms: 1.52461
+  type: 'test'
+  ...
+# Subtest: terrain edits compose in order, undo, persist, and reject invalid saves atomically
+ok 40 - terrain edits compose in order, undo, persist, and reject invalid saves atomically
+  ---
+  duration_ms: 3.475966
+  type: 'test'
+  ...
+# Subtest: chunk selection stays bounded across negative coordinates and long travel
+ok 41 - chunk selection stays bounded across negative coordinates and long travel
+  ---
+  duration_ms: 0.919109
+  type: 'test'
+  ...
+# Subtest: both sides of a chunk boundary receive the same cut and samples follow its surface
+ok 42 - both sides of a chunk boundary receive the same cut and samples follow its surface
+  ---
+  duration_ms: 81.6522
+  type: 'test'
+  ...
+# Subtest: streaming evicts geometry, preserves edits, and regenerates the same region
+ok 43 - streaming evicts geometry, preserves edits, and regenerates the same region
+  ---
+  duration_ms: 2.958086
+  type: 'test'
+  ...
+# Subtest: late worker results cannot resurrect evicted or superseded geometry
+ok 44 - late worker results cannot resurrect evicted or superseded geometry
+  ---
+  duration_ms: 1.026369
+  type: 'test'
+  ...
+# Subtest: terrain contact converts distance bounds to contact distance and works beyond origin
+ok 45 - terrain contact converts distance bounds to contact distance and works beyond origin
+  ---
+  duration_ms: 29.834568
+  type: 'test'
+  ...
+# Subtest: pass grouping preserves clear order, target changes and transfer barriers
+ok 46 - pass grouping preserves clear order, target changes and transfer barriers
+  ---
+  duration_ms: 2.790233
+  type: 'test'
+  ...
+# Subtest: later depth-only clear cannot discard earlier draws or change color load
+ok 47 - later depth-only clear cannot discard earlier draws or change color load
+  ---
+  duration_ms: 0.249793
+  type: 'test'
+  ...
+# Subtest: native R/RG rows retain exact signed, tiny and large values and padding
+ok 48 - native R/RG rows retain exact signed, tiny and large values and padding
+  ---
+  duration_ms: 3.304432
+  type: 'test'
+  ...
+# Subtest: unavailable timing allocates nothing and leaves execution usable
+ok 49 - unavailable timing allocates nothing and leaves execution usable
+  ---
+  duration_ms: 0.779674
+  type: 'test'
+  ...
+# Subtest: timing reads asynchronously with two slots, never waits for a busy slot
+ok 50 - timing reads asynchronously with two slots, never waits for a busy slot
+  ---
+  duration_ms: 9.754418
+  type: 'test'
+  ...
+# Subtest: counter reset drops the sample; mapping failure disables only diagnostics
+ok 51 - counter reset drops the sample; mapping failure disables only diagnostics
+  ---
+  duration_ms: 0.828946
+  type: 'test'
+  ...
+# Subtest: implausible counter scale is rejected without disabling future samples
+ok 52 - implausible counter scale is rejected without disabling future samples
+  ---
+  duration_ms: 0.646364
+  type: 'test'
+  ...
+# Subtest: query capacity is bounded and partial results are explicitly marked
+ok 53 - query capacity is bounded and partial results are explicitly marked
+  ---
+  duration_ms: 0.654857
+  type: 'test'
+  ...
+# Subtest: overlapping and reordered pass intervals retain per-pass cost without double-counting span
+ok 54 - overlapping and reordered pass intervals retain per-pass cost without double-counting span
+  ---
+  duration_ms: 0.937996
+  type: 'test'
+  ...
+# Subtest: diagnostic allocation failure does not take down rendering
+ok 55 - diagnostic allocation failure does not take down rendering
+  ---
+  duration_ms: 0.651918
+  type: 'test'
+  ...
+1..55
+# tests 55
+# suites 0
+# pass 55
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4100.882621

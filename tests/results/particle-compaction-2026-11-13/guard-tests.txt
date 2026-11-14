@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: stable sea list retains original land/water interleaving and threshold margin
+ok 1 - stable sea list retains original land/water interleaving and threshold margin
+  ---
+  duration_ms: 2.273989
+  type: 'test'
+  ...
+# Subtest: grain list excludes delayed births and dead grains, includes sparse endpoints
+ok 2 - grain list excludes delayed births and dead grains, includes sparse endpoints
+  ---
+  duration_ms: 0.639943
+  type: 'test'
+  ...
+# Subtest: fine visibility can compact empty, full and maximum lists without reordering
+ok 3 - fine visibility can compact empty, full and maximum lists without reordering
+  ---
+  duration_ms: 17.103566
+  type: 'test'
+  ...
+# Subtest: vertex remapping retains original ID for randomness and texture lookup
+ok 4 - vertex remapping retains original ID for randomness and texture lookup
+  ---
+  duration_ms: 0.350579
+  type: 'test'
+  ...
+# Subtest: compute remains an ordering barrier between state writes and indirect draws
+ok 5 - compute remains an ordering barrier between state writes and indirect draws
+  ---
+  duration_ms: 0.346149
+  type: 'test'
+  ...
+# Subtest: unsupported renderer retains reference behavior without allocation
+ok 6 - unsupported renderer retains reference behavior without allocation
+  ---
+  duration_ms: 0.46709
+  type: 'test'
+  ...
+# Subtest: capacity and duplicate-queue guards stop before unsafe indirect work
+ok 7 - capacity and duplicate-queue guards stop before unsafe indirect work
+  ---
+  duration_ms: 2.168525
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 251.928786
