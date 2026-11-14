@@ -16,6 +16,7 @@ await build({entryPoints:['native/compiler-worker.js'],outfile:'.native/generate
 await build({entryPoints:['src/rtx-sand-lab/representation/experiment.js'],outfile:'.native/generated/representation.mjs',bundle:true,format:'esm',platform:'browser',target:'es2022',plugins:[nativeAssets],logLevel:'info'});
 await build({entryPoints:['src/rtx-sand-lab/particle-compaction/experiment.js'],outfile:'.native/generated/particle-compaction.mjs',bundle:true,format:'esm',platform:'browser',target:'es2022',plugins:[nativeAssets],logLevel:'info'});
 await build({entryPoints:['src/rtx-sand-lab/sand-bricks.worker.js','src/rtx-sand-lab/collision-mesh.worker.js'],outdir:'.native/generated',bundle:true,format:'esm',platform:'browser',target:'es2022',plugins:[nativeAssets],logLevel:'info'});
+await build({entryPoints:['src/rtx-sand-lab/empty-space/experiment.js'],outfile:'.native/generated/empty-space.mjs',bundle:true,format:'esm',platform:'browser',target:'es2022',plugins:[nativeAssets],logLevel:'info'});
 let result;if(process.platform==='darwin')result=spawnSync('clang',['-dynamiclib','-fobjc-arc','-framework','Cocoa','-framework','QuartzCore','native/window/macos.m','-o','.native/window.dylib'],{stdio:'inherit'});
 else if(process.platform==='win32'){
  result=spawnSync('clang',['-shared','native/window/windows.c','-o','.native/window.dll','-luser32'],{stdio:'inherit'});

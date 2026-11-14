@@ -1,0 +1,190 @@
+TAP version 13
+# Subtest: positive cubic support stays below each tile, including clamped outer terrain
+ok 1 - positive cubic support stays below each tile, including clamped outer terrain
+  ---
+  duration_ms: 80.366029
+  type: 'test'
+  ...
+# Subtest: empty ray prefix never crosses terrain: downward, horizontal, upward, outside and inside origins
+ok 2 - empty ray prefix never crosses terrain: downward, horizontal, upward, outside and inside origins
+  ---
+  duration_ms: 173.318834
+  type: 'test'
+  ...
+# Subtest: parallel boundary rays and exact corners terminate conservatively
+ok 3 - parallel boundary rays and exact corners terminate conservatively
+  ---
+  duration_ms: 1.234591
+  type: 'test'
+  ...
+# Subtest: new edits and resolution resets immediately change ceiling values
+ok 4 - new edits and resolution resets immediately change ceiling values
+  ---
+  duration_ms: 1.639149
+  type: 'test'
+  ...
+# Subtest: bounds reject unsupported or nonfinite inputs
+ok 5 - bounds reject unsupported or nonfinite inputs
+  ---
+  duration_ms: 1.058643
+  type: 'test'
+  ...
+# Subtest: near-hit logic and intentional mirage stepping remain original
+ok 6 - near-hit logic and intentional mirage stepping remain original
+  ---
+  duration_ms: 0.568672
+  type: 'test'
+  ...
+# Subtest: secondary-only variant leaves primary march untouched and rejects above the shared global ceiling
+ok 7 - secondary-only variant leaves primary march untouched and rejects above the shared global ceiling
+  ---
+  duration_ms: 0.340219
+  type: 'test'
+  ...
+# Subtest: CPU fallback rebuilds only for changed geometry, restores reference and guards queued disposal
+ok 8 - CPU fallback rebuilds only for changed geometry, restores reference and guards queued disposal
+  ---
+  duration_ms: 4.310926
+  type: 'test'
+  ...
+# Subtest: live primary tracing is isolated from shading and scheduled before its consumer
+ok 9 - live primary tracing is isolated from shading and scheduled before its consumer
+  ---
+  duration_ms: 382.068964
+  type: 'test'
+  ...
+# Subtest: split surface shaders and program keys remain stable across first erosion, objects and their removal
+ok 10 - split surface shaders and program keys remain stable across first erosion, objects and their removal
+  ---
+  duration_ms: 247.542493
+  type: 'test'
+  ...
+# Subtest: split draw restores target and clear state even after a rejected shader
+ok 11 - split draw restores target and clear state even after a rejected shader
+  ---
+  duration_ms: 147.266179
+  type: 'test'
+  ...
+# Subtest: stage extraction fails explicitly if the source contract changes
+ok 12 - stage extraction fails explicitly if the source contract changes
+  ---
+  duration_ms: 0.383133
+  type: 'test'
+  ...
+# Subtest: playback preparation binds real beach geometry without advancing or dispatching physics
+ok 13 - playback preparation binds real beach geometry without advancing or dispatching physics
+  ---
+  duration_ms: 221.482873
+  type: 'test'
+  ...
+# Subtest: kernel width changes smoothly without modifying physics or advancing during redraws
+ok 14 - kernel width changes smoothly without modifying physics or advancing during redraws
+  ---
+  duration_ms: 3.543265
+  type: 'test'
+  ...
+# Subtest: water filtering is independent of redraw count and camera and survives appended rain water
+ok 15 - water filtering is independent of redraw count and camera and survives appended rain water
+  ---
+  duration_ms: 1.895233
+  type: 'test'
+  ...
+# Subtest: a momentarily sparse sheet never changes rendering families; sustained detached water does
+ok 16 - a momentarily sparse sheet never changes rendering families; sustained detached water does
+  ---
+  duration_ms: 7.085234
+  type: 'test'
+  ...
+# Subtest: grazing artifacts are actual iteration exhaustion, with every distance sample accounted for
+ok 17 - grazing artifacts are actual iteration exhaustion, with every distance sample accounted for
+  ---
+  duration_ms: 1.095641
+  type: 'test'
+  ...
+# Subtest: live mirage changes primary visibility only; physics, secondary rays, and historical renderers stay intact
+ok 18 - live mirage changes primary visibility only; physics, secondary rays, and historical renderers stay intact
+  ---
+  duration_ms: 363.497107
+  type: 'test'
+  ...
+# Subtest: moving overlapping sand stays on the first surface, including sparse-bin boundaries
+ok 19 - moving overlapping sand stays on the first surface, including sparse-bin boundaries
+  ---
+  duration_ms: 233.504573
+  type: 'test'
+  ...
+# Subtest: flattened wide sand deposits are not missed by spherical bounds
+ok 20 - flattened wide sand deposits are not missed by spherical bounds
+  ---
+  duration_ms: 0.808565
+  type: 'test'
+  ...
+# Subtest: parallel rays and origins inside bounds have finite correct intervals
+ok 21 - parallel rays and origins inside bounds have finite correct intervals
+  ---
+  duration_ms: 2.159136
+  type: 'test'
+  ...
+# Subtest: shallow refracted rays resolve the bank without skipping the contact
+ok 22 - shallow refracted rays resolve the bank without skipping the contact
+  ---
+  duration_ms: 0.373814
+  type: 'test'
+  ...
+# Subtest: terrain proxies immediately cover unbuilt chunks, stay bounded, and reuse unaffected chunks after edits
+ok 23 - terrain proxies immediately cover unbuilt chunks, stay bounded, and reuse unaffected chunks after edits
+  ---
+  duration_ms: 229.956744
+  type: 'test'
+  ...
+# Subtest: coarse proxy samples follow the upper edited field and fade continuously before their boundary
+ok 24 - coarse proxy samples follow the upper edited field and fade continuously before their boundary
+  ---
+  duration_ms: 1.820732
+  type: 'test'
+  ...
+# Subtest: terrain edits compose in order, undo, persist, and reject invalid saves atomically
+ok 25 - terrain edits compose in order, undo, persist, and reject invalid saves atomically
+  ---
+  duration_ms: 3.678956
+  type: 'test'
+  ...
+# Subtest: chunk selection stays bounded across negative coordinates and long travel
+ok 26 - chunk selection stays bounded across negative coordinates and long travel
+  ---
+  duration_ms: 1.177583
+  type: 'test'
+  ...
+# Subtest: both sides of a chunk boundary receive the same cut and samples follow its surface
+ok 27 - both sides of a chunk boundary receive the same cut and samples follow its surface
+  ---
+  duration_ms: 82.933088
+  type: 'test'
+  ...
+# Subtest: streaming evicts geometry, preserves edits, and regenerates the same region
+ok 28 - streaming evicts geometry, preserves edits, and regenerates the same region
+  ---
+  duration_ms: 2.45701
+  type: 'test'
+  ...
+# Subtest: late worker results cannot resurrect evicted or superseded geometry
+ok 29 - late worker results cannot resurrect evicted or superseded geometry
+  ---
+  duration_ms: 0.903375
+  type: 'test'
+  ...
+# Subtest: terrain contact converts distance bounds to contact distance and works beyond origin
+ok 30 - terrain contact converts distance bounds to contact distance and works beyond origin
+  ---
+  duration_ms: 36.910995
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1349.671968

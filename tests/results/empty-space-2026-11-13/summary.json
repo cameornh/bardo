@@ -1,0 +1,74 @@
+[
+  {
+    "name": "reference-a",
+    "fps": 6.2964579883633025,
+    "realtime": 0.8342142651249249,
+    "p95": 185.48690999999963,
+    "stdev": 13.503330803780832,
+    "intervals": 79,
+    "wallMs": 12546.736616999999,
+    "simulation": 10.46666666666664,
+    "allocatedMiB": 49.8195686340332,
+    "contextLost": false
+  },
+  {
+    "name": "reject-a",
+    "fps": 6.150261156437498,
+    "realtime": 0.8200348208583309,
+    "p95": 188.33860999999888,
+    "stdev": 12.001146667034638,
+    "intervals": 79,
+    "wallMs": 12844.983,
+    "simulation": 10.533333333333307,
+    "allocatedMiB": 49.8198127746582,
+    "contextLost": false
+  },
+  {
+    "name": "advance-a",
+    "fps": 6.20405005226571,
+    "realtime": 0.8272066736354259,
+    "p95": 183.54140700000062,
+    "stdev": 11.022678147142994,
+    "intervals": 79,
+    "wallMs": 12733.617449,
+    "simulation": 10.533333333333307,
+    "allocatedMiB": 49.8198127746582,
+    "contextLost": false
+  },
+  {
+    "name": "secondary-a",
+    "fps": 6.249773630627988,
+    "realtime": 0.8333031507503963,
+    "p95": 185.5351410000003,
+    "stdev": 12.037676395293843,
+    "intervals": 79,
+    "wallMs": 12640.457826000002,
+    "simulation": 10.533333333333307,
+    "allocatedMiB": 49.8198127746582,
+    "contextLost": false
+  },
+  {
+    "name": "reference-b",
+    "fps": 6.259016240154003,
+    "realtime": 0.8345354986871983,
+    "p95": 179.86641299999974,
+    "stdev": 11.042927566676413,
+    "intervals": 79,
+    "wallMs": 12621.791823,
+    "simulation": 10.533333333333307,
+    "allocatedMiB": 49.8195686340332,
+    "contextLost": false
+  },
+  {
+    "name": "secondary-b",
+    "fps": 6.2144861380152845,
+    "realtime": 0.8285981517353692,
+    "p95": 185.10293399999864,
+    "stdev": 10.667827988153242,
+    "intervals": 79,
+    "wallMs": 12712.233682,
+    "simulation": 10.533333333333307,
+    "allocatedMiB": 49.8198127746582,
+    "contextLost": false
+  }
+]

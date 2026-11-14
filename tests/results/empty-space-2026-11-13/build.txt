@@ -1,0 +1,41 @@
+
+> bardo-material-field@0.1.0 build
+> vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 324 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/sand-bricks.worker-B4nQlQm4.js         0.84 kB
+dist/assets/compiler-worker-Dq0JZ5sV.js            1.09 kB
+dist/assets/collision-mesh.worker-Dm5d5Gxo.js      3.62 kB
+dist/assets/subsurface-worker-Ox2MoJBl.js          3.92 kB
+dist/assets/transport-CSXshbO4.wasm                5.32 kB │ gzip:   3.72 kB
+dist/assets/terrain-worker-C2AkgCrF.js             8.71 kB
+dist/assets/photon-worker-DxPHK6Su.js             11.72 kB
+dist/assets/density-Dc2uBeTP.wasm                 12.95 kB │ gzip:   8.08 kB
+dist/assets/density-BM9g0XNV.wasm                 12.95 kB │ gzip:   8.04 kB
+dist/index.html                                   35.83 kB │ gzip:   8.22 kB
+dist/assets/translate-CixeFf2-.js                 36.22 kB
+dist/assets/glslang-DxEq9BlL.js                1,273.24 kB
+dist/assets/main-RwWsbYdc.css                      1.83 kB │ gzip:   0.79 kB
+dist/assets/main-Qh2TCdY9.css                      1.84 kB │ gzip:   0.85 kB
+dist/assets/main-Dd7oI3dg.css                      2.96 kB │ gzip:   1.17 kB
+dist/assets/completion-DBTGXy9w.js                 0.61 kB │ gzip:   0.34 kB
+dist/assets/index-DnHkwMpt.js                      3.18 kB │ gzip:   1.55 kB
+dist/assets/qa-Bqw40l-2.js                         4.27 kB │ gzip:   2.06 kB
+dist/assets/view-DYwLXAb5.js                      13.03 kB │ gzip:   5.31 kB
+dist/assets/main-BiV7Lz9D.js                      18.63 kB │ gzip:   7.50 kB
+dist/assets/renderer-THBwEmMn.js                  30.16 kB │ gzip:  11.08 kB
+dist/assets/main-Drk4eoWU.js                      45.13 kB │ gzip:  16.35 kB
+dist/assets/main-DQXs4d_m.js                     312.62 kB │ gzip: 110.72 kB
+dist/assets/gpu-timing-CyuZuP_M.js               527.82 kB │ gzip: 136.60 kB
+dist/assets/main-BTXLdmFJ.js                     581.43 kB │ gzip: 190.71 kB
+dist/assets/water-lab-renderer-DSzRlubf.js       710.23 kB │ gzip: 251.62 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.13s

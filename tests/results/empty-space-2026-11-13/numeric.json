@@ -1,0 +1,78 @@
+{
+  "backend": "AMD Radeon Pro 560X",
+  "cases": [
+    {
+      "n": 2,
+      "edited": false,
+      "maxError": 0,
+      "pass": true
+    },
+    {
+      "n": 2,
+      "edited": true,
+      "maxError": 0,
+      "pass": true
+    },
+    {
+      "n": 17,
+      "edited": false,
+      "maxError": 0,
+      "pass": true
+    },
+    {
+      "n": 17,
+      "edited": true,
+      "maxError": 0,
+      "pass": true
+    },
+    {
+      "n": 31,
+      "edited": false,
+      "maxError": 0,
+      "pass": true
+    },
+    {
+      "n": 31,
+      "edited": true,
+      "maxError": 0,
+      "pass": true
+    },
+    {
+      "n": 42,
+      "edited": false,
+      "maxError": 0,
+      "pass": true
+    },
+    {
+      "n": 42,
+      "edited": true,
+      "maxError": 0,
+      "pass": true
+    },
+    {
+      "n": 128,
+      "edited": false,
+      "maxError": 0,
+      "pass": true
+    },
+    {
+      "n": 128,
+      "edited": true,
+      "maxError": 0,
+      "pass": true
+    },
+    {
+      "n": 256,
+      "edited": false,
+      "maxError": 0,
+      "pass": true
+    },
+    {
+      "n": 256,
+      "edited": true,
+      "maxError": 0,
+      "pass": true
+    }
+  ],
+  "pass": true
+}

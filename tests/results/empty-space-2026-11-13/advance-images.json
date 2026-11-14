@@ -1,0 +1,368 @@
+{
+  "images": [
+    {
+      "label": "beach",
+      "boundsUpdates": 1,
+      "detail": {
+        "enabled": true,
+        "count": 0,
+        "span": 0,
+        "source": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "velocity": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0.00006013948935530304,
+      "maxAbsoluteRGB": 0.3316076099872589,
+      "componentsOver001": 69,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "carves-objects",
+      "boundsUpdates": 2,
+      "detail": {
+        "enabled": true,
+        "count": 0,
+        "span": 0,
+        "source": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "velocity": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0.00005772755768218,
+      "maxAbsoluteRGB": 0.3316192328929901,
+      "componentsOver001": 67,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "foam-grains",
+      "boundsUpdates": 2,
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          3.8512351512908936,
+          3.2909653186798096,
+          3.855875253677368,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0.000051983562104150376,
+      "maxAbsoluteRGB": 0.3316193222999573,
+      "componentsOver001": 64,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "combined",
+      "boundsUpdates": 2,
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          3.8512351512908936,
+          3.2909653186798096,
+          3.855875253677368,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0.000051983562104150376,
+      "maxAbsoluteRGB": 0.3316193222999573,
+      "componentsOver001": 64,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "camera-0",
+      "boundsUpdates": 2,
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          2.8709471225738525,
+          1.9646013975143433,
+          3.6914403438568115,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0.0004557235722205701,
+      "maxAbsoluteRGB": 0.49701640009880066,
+      "componentsOver001": 347,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "camera-1",
+      "boundsUpdates": 2,
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          2.2430124282836914,
+          1.7761931419372559,
+          3.6003308296203613,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0.00021306134255085377,
+      "maxAbsoluteRGB": 0.47142601013183594,
+      "componentsOver001": 166,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "camera-2",
+      "boundsUpdates": 2,
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          1.63731849193573,
+          1.5935988426208496,
+          3.5029492378234863,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0.00007281642062783552,
+      "maxAbsoluteRGB": 0.4360382556915283,
+      "componentsOver001": 67,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "camera-3",
+      "boundsUpdates": 2,
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          1.0580790042877197,
+          1.4186164140701294,
+          3.4044854640960693,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0.00004156183293798676,
+      "maxAbsoluteRGB": 0.4128061532974243,
+      "componentsOver001": 39,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "underwater",
+      "boundsUpdates": 2,
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          -0.23999999463558197,
+          0.7724087238311768,
+          -1.149391531944275,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 4.958617220533294e-13,
+      "maxAbsoluteRGB": 2.62516550719738e-8,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "night",
+      "boundsUpdates": 2,
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          3.8512351512908936,
+          3.2909653186798096,
+          3.855875253677368,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 1.8896614441994153e-9,
+      "maxAbsoluteRGB": 0.000019550787015987225,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "sky",
+      "boundsUpdates": 2,
+      "detail": {
+        "enabled": true,
+        "count": 512,
+        "span": 4096,
+        "source": [
+          -0.23999999463558197,
+          4.721249103546143,
+          -0.8485281467437744,
+          0.30000001192092896
+        ],
+        "velocity": [
+          0,
+          0.20000000298023224,
+          0,
+          1
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0,
+      "maxAbsoluteRGB": 0,
+      "componentsOver001": 0,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    },
+    {
+      "label": "larger-reset",
+      "boundsUpdates": 3,
+      "detail": {
+        "enabled": true,
+        "count": 0,
+        "span": 0,
+        "source": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "velocity": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "referenceRepeatMean": 0,
+      "meanAbsoluteRGB": 0.00002730820364589211,
+      "maxAbsoluteRGB": 0.2752341628074646,
+      "componentsOver001": 81,
+      "nonfinite": 0,
+      "size": [
+        320,
+        200
+      ]
+    }
+  ],
+  "backend": "native wgpu / CPU physics",
+  "contextLost": false,
+  "pass": true,
+  "allocationMiB": 58.171939849853516
+}
