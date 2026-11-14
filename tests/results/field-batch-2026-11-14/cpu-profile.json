@@ -1,0 +1,92 @@
+{
+  "samples": 3024,
+  "cells": 3553,
+  "stages": {
+    "occupancy": {
+      "calls": 40,
+      "ms": 115.05989300000147,
+      "meanMs": 2.8764973250000367
+    },
+    "topology": {
+      "calls": 40,
+      "ms": 104.49886999999808,
+      "meanMs": 2.612471749999952
+    },
+    "scatter": {
+      "calls": 40,
+      "ms": 38.15423800000178,
+      "meanMs": 0.9538559500000445
+    },
+    "extrapolation": {
+      "calls": 40,
+      "ms": 22.229510999999093,
+      "meanMs": 0.5557377749999773
+    },
+    "air/walls": {
+      "calls": 40,
+      "ms": 153.06316099999992,
+      "meanMs": 3.8265790249999982
+    },
+    "viscosity": {
+      "calls": 40,
+      "ms": 94.67432799999904,
+      "meanMs": 2.366858199999976
+    },
+    "prepareMs": {
+      "calls": 40,
+      "ms": 544.2775050000006,
+      "meanMs": 13.606937625000015
+    },
+    "scalarMs": {
+      "calls": 40,
+      "ms": 119.59059200000183,
+      "meanMs": 2.989764800000046
+    },
+    "gatherMs": {
+      "calls": 40,
+      "ms": 20.381341000000816,
+      "meanMs": 0.5095335250000204
+    },
+    "neighborMs": {
+      "calls": 40,
+      "ms": 117.81819200000018,
+      "meanMs": 2.9454548000000047
+    },
+    "surfaceMs": {
+      "calls": 40,
+      "ms": 279.87660399999857,
+      "meanMs": 6.996915099999964
+    },
+    "transportMs": {
+      "calls": 40,
+      "ms": 119.52426000000037,
+      "meanMs": 2.988106500000009
+    }
+  },
+  "last": {
+    "backend": "WebAssembly CPU multigrid-PCG",
+    "absoluteResidual": 0.000034249767816196335,
+    "relativeResidual": 0.000012685352882345291,
+    "iterations": 8,
+    "levels": 4,
+    "milliseconds": 3.2895269999999073,
+    "cells": 3553,
+    "waterCells": 648,
+    "divergence": 9.944377671504382e-7,
+    "coupled": 3012,
+    "before": 0.07839259785472803,
+    "prepareMs": 12.99601500000017,
+    "transferMs": 3.2952869999999166,
+    "scalarMs": 3.603280000000268,
+    "gatherMs": 0.46154299999989234,
+    "neighborMs": 2.8330219999998008,
+    "surfaceMs": 6.634394000000157,
+    "surfaceParticles": 2515,
+    "surfaceBackend": "WebAssembly CPU",
+    "totalParticles": 3024,
+    "transportBackend": "WebAssembly CPU transport",
+    "transportMs": 2.958662000000004,
+    "particleCompute": null,
+    "transferBackend": "WebAssembly CPU"
+  }
+}

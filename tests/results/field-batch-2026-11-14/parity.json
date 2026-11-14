@@ -1,0 +1,9 @@
+{
+  "pass": true,
+  "steps": 24,
+  "comparisons": 24,
+  "maximumStateError": 0,
+  "frozenImageError": 0,
+  "backend": "WebAssembly CPU multigrid-PCG",
+  "batchBytes": 2951520
+}

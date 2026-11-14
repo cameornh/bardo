@@ -1,0 +1,1607 @@
+{
+  "runtime": {
+    "deno": "2.9.8",
+    "v8": "15.0.245.2-rusty",
+    "typescript": "6.0.3"
+  },
+  "completion": "deferred",
+  "frames": [
+    {
+      "wall": 4822.059516,
+      "simulation": 0.06666666666666667,
+      "frameMs": 192.52241800000047,
+      "renderMs": 192.10818300000028,
+      "physics": {
+        "pump": 0.22986600000058388,
+        "rain": 1.1076709999997547,
+        "wetting": 0.20072700000037003,
+        "predict": 10.761379999999917,
+        "emission": 6.092977000000246
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 5060.527237,
+      "simulation": 0.2,
+      "frameMs": 176.04564300000038,
+      "renderMs": 175.47880900000018,
+      "physics": {
+        "pump": 0.010554000000411179,
+        "rain": 0.028035999999701744,
+        "wetting": 0.008359999999811407,
+        "predict": 6.750488000000587,
+        "emission": 1.1176409999998214
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 5358.989393,
+      "simulation": 0.3333333333333333,
+      "frameMs": 155.89147799999955,
+      "renderMs": 132.26682100000016,
+      "physics": {
+        "pump": 0.01987600000029488,
+        "rain": 0.026942999999846506,
+        "wetting": 0.0085479999997915,
+        "predict": 5.879233000000568,
+        "emission": 2.4492749999999432
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 5624.558968,
+      "simulation": 0.4666666666666666,
+      "frameMs": 185.32628600000044,
+      "renderMs": 184.62421900000027,
+      "physics": {
+        "pump": 0.012036000000080094,
+        "rain": 0.04065900000023248,
+        "wetting": 0.7187009999997827,
+        "predict": 3.323844000000463,
+        "emission": 7.3573340000002645
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 5844.774717,
+      "simulation": 0.6,
+      "frameMs": 150.28662200000053,
+      "renderMs": 149.72065800000018,
+      "physics": {
+        "pump": 0.013192999999773747,
+        "rain": 0.04615699999976641,
+        "wetting": 1.9394720000000234,
+        "predict": 2.841903000000457,
+        "emission": 8.46540499999901
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 6053.49445,
+      "simulation": 0.7333333333333333,
+      "frameMs": 139.49623599999995,
+      "renderMs": 138.89954300000045,
+      "physics": {
+        "pump": 0.0037990000000718283,
+        "rain": 0.019543999999768857,
+        "wetting": 2.003153000000566,
+        "predict": 2.426499999999578,
+        "emission": 8.945397999999841
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 6279.571826,
+      "simulation": 0.8666666666666666,
+      "frameMs": 158.492569,
+      "renderMs": 134.2257129999998,
+      "physics": {
+        "pump": 0.004100000000107684,
+        "rain": 0.01391200000034587,
+        "wetting": 1.7801989999998113,
+        "predict": 2.4669590000003154,
+        "emission": 7.987008999999489
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 6481.4887770000005,
+      "simulation": 0.9999999999999999,
+      "frameMs": 136.73193100000026,
+      "renderMs": 136.03441899999962,
+      "physics": {
+        "pump": 0.0044899999993504025,
+        "rain": 0.014435000000048603,
+        "wetting": 1.4739900000004127,
+        "predict": 2.713944000000083,
+        "emission": 3.590991000000031
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 6676.177694,
+      "simulation": 1.1333333333333333,
+      "frameMs": 128.45179699999971,
+      "renderMs": 127.83611199999996,
+      "physics": {
+        "pump": 0.004681000000346103,
+        "rain": 0.014615999999477935,
+        "wetting": 1.1635370000003604,
+        "predict": 2.8321200000000317,
+        "emission": 9.178583000000799
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 6859.764745,
+      "simulation": 1.2666666666666666,
+      "frameMs": 117.47867700000006,
+      "renderMs": 117.0117250000003,
+      "physics": {
+        "pump": 0.0043769999992946396,
+        "rain": 0.01604700000007142,
+        "wetting": 1.193304000000353,
+        "predict": 3.718184999999721,
+        "emission": 3.878544000000147
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 7089.470281,
+      "simulation": 1.4,
+      "frameMs": 149.5431319999998,
+      "renderMs": 121.80286299999989,
+      "physics": {
+        "pump": 0.004941000000144413,
+        "rain": 0.017115999999987253,
+        "wetting": 1.156782000000021,
+        "predict": 3.0909959999999046,
+        "emission": 4.559406000000308
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 7267.436204,
+      "simulation": 1.5333333333333332,
+      "frameMs": 104.95873599999959,
+      "renderMs": 104.39738699999998,
+      "physics": {
+        "pump": 0.005605000000286964,
+        "rain": 0.015007999999397725,
+        "wetting": 0.9512810000005629,
+        "predict": 3.210059000000001,
+        "emission": 4.829681999999593
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 7447.983174,
+      "simulation": 1.6666666666666665,
+      "frameMs": 108.19134599999961,
+      "renderMs": 107.46926800000074,
+      "physics": {
+        "pump": 0.004582000000482367,
+        "rain": 0.013426999999865075,
+        "wetting": 0.9664849999999205,
+        "predict": 2.5555279999998675,
+        "emission": 2.8026190000000497
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 7619.3561979999995,
+      "simulation": 1.7999999999999998,
+      "frameMs": 104.19258099999934,
+      "renderMs": 103.63867500000015,
+      "physics": {
+        "pump": 0.004920999999740161,
+        "rain": 0.0158369999999195,
+        "wetting": 1.0709230000002208,
+        "predict": 2.727498999999625,
+        "emission": 2.662763000000268
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 7784.896809,
+      "simulation": 1.9333333333333331,
+      "frameMs": 100.00570799999969,
+      "renderMs": 99.00452499999938,
+      "physics": {
+        "pump": 0.004575999999360647,
+        "rain": 0.010599000000183878,
+        "wetting": 0.9986600000001999,
+        "predict": 3.588818000000174,
+        "emission": 2.3918350000003556
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 7974.947406,
+      "simulation": 2.0666666666666664,
+      "frameMs": 132.5019570000004,
+      "renderMs": 105.5482979999997,
+      "physics": {
+        "pump": 0.0052770000002055895,
+        "rain": 0.015239999999721476,
+        "wetting": 0.9770109999999477,
+        "predict": 2.55818200000067,
+        "emission": 2.3893070000003718
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 8146.368583,
+      "simulation": 2.2,
+      "frameMs": 102.70074000000022,
+      "renderMs": 101.54534899999999,
+      "physics": {
+        "pump": 0.005578999999670486,
+        "rain": 0.014474999999947613,
+        "wetting": 1.0587860000005094,
+        "predict": 2.4295539999993707,
+        "emission": 2.42658400000073
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 8314.86542,
+      "simulation": 2.333333333333334,
+      "frameMs": 100.77338600000076,
+      "renderMs": 99.65605700000015,
+      "physics": {
+        "pump": 0.004581000001053326,
+        "rain": 0.012907999998788,
+        "wetting": 1.8378060000013647,
+        "predict": 2.337573999999222,
+        "emission": 1.9490330000007816
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 8492.642775,
+      "simulation": 2.4666666666666677,
+      "frameMs": 104.4267689999997,
+      "renderMs": 103.60841400000027,
+      "physics": {
+        "pump": 0.004097999999430613,
+        "rain": 0.011731000000509084,
+        "wetting": 0.9893219999994471,
+        "predict": 2.105043999999907,
+        "emission": 2.254252999999153
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 8655.634013,
+      "simulation": 2.6000000000000014,
+      "frameMs": 100.52781200000027,
+      "renderMs": 99.83082400000058,
+      "physics": {
+        "pump": 0.00528900000063004,
+        "rain": 0.013602000000901171,
+        "wetting": 1.0958799999989424,
+        "predict": 2.234089000001404,
+        "emission": 1.8414189999984956
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 8841.021089,
+      "simulation": 2.733333333333335,
+      "frameMs": 122.43844600000011,
+      "renderMs": 96.37311699999918,
+      "physics": {
+        "pump": 0.00425100000029488,
+        "rain": 0.013793000000077882,
+        "wetting": 1.9477029999998194,
+        "predict": 2.332135999999082,
+        "emission": 1.9166999999997643
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 9007.087013,
+      "simulation": 2.866666666666669,
+      "frameMs": 104.2763640000012,
+      "renderMs": 103.31192300000112,
+      "physics": {
+        "pump": 0.004678999999669031,
+        "rain": 0.011234999999942374,
+        "wetting": 1.054826999999932,
+        "predict": 2.3082009999998263,
+        "emission": 2.029239999999845
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 9169.501816,
+      "simulation": 3.0000000000000027,
+      "frameMs": 102.43629999999939,
+      "renderMs": 101.93474199999946,
+      "physics": {
+        "pump": 0.004034999999930733,
+        "rain": 0.010712999999668682,
+        "wetting": 1.0424030000012863,
+        "predict": 2.094192999998995,
+        "emission": 2.1406930000011926
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 9325.815192,
+      "simulation": 3.1333333333333364,
+      "frameMs": 100.50061300000016,
+      "renderMs": 99.83404500000142,
+      "physics": {
+        "pump": 0.004136999999900581,
+        "rain": 0.010286000000633067,
+        "wetting": 0.9521889999996347,
+        "predict": 2.4454750000004424,
+        "emission": 2.1039459999992687
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 9485.418053,
+      "simulation": 3.26666666666667,
+      "frameMs": 102.7471370000003,
+      "renderMs": 101.89859600000091,
+      "physics": {
+        "pump": 0.0043599999989965,
+        "rain": 0.01130600000033155,
+        "wetting": 0.9679489999998623,
+        "predict": 2.249080999999933,
+        "emission": 2.1732070000016392
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 9676.135635,
+      "simulation": 3.400000000000004,
+      "frameMs": 128.40233600000101,
+      "renderMs": 103.30471100000068,
+      "physics": {
+        "pump": 0.0047480000012001256,
+        "rain": 0.012939999998707208,
+        "wetting": 1.1606310000006488,
+        "predict": 3.158047999999326,
+        "emission": 2.117082999999184
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 9838.313258,
+      "simulation": 3.5333333333333377,
+      "frameMs": 97.9347770000004,
+      "renderMs": 97.24160900000061,
+      "physics": {
+        "pump": 0.004026999999041436,
+        "rain": 0.014227000001483248,
+        "wetting": 0.921026999998503,
+        "predict": 2.388613000000987,
+        "emission": 2.1290979999994306
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 10002.273815,
+      "simulation": 3.6666666666666714,
+      "frameMs": 100.63257700000031,
+      "renderMs": 99.34586300000046,
+      "physics": {
+        "pump": 0.004177999999228632,
+        "rain": 0.010317000000213739,
+        "wetting": 0.8975599999994301,
+        "predict": 2.20567100000153,
+        "emission": 1.9616210000003775
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 10165.575525,
+      "simulation": 3.800000000000005,
+      "frameMs": 106.37429599999996,
+      "renderMs": 105.84614800000054,
+      "physics": {
+        "pump": 0.004229999998642597,
+        "rain": 0.011347000001478591,
+        "wetting": 0.9684139999990293,
+        "predict": 2.301327000001038,
+        "emission": 3.66468199999872
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 10331.182998,
+      "simulation": 3.933333333333339,
+      "frameMs": 102.53826900000058,
+      "renderMs": 101.39193300000079,
+      "physics": {
+        "pump": 0.004723000000012689,
+        "rain": 0.011361000000761123,
+        "wetting": 0.9846969999998691,
+        "predict": 2.4278400000002875,
+        "emission": 2.5024040000007517
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 10526.032053,
+      "simulation": 4.066666666666672,
+      "frameMs": 128.0037110000012,
+      "renderMs": 103.6361450000004,
+      "physics": {
+        "pump": 0.004420000001118751,
+        "rain": 0.012945000000399887,
+        "wetting": 0.937458999998853,
+        "predict": 2.371316000000661,
+        "emission": 2.4737699999986944
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 10692.159397,
+      "simulation": 4.200000000000005,
+      "frameMs": 102.9744529999989,
+      "renderMs": 102.37508400000115,
+      "physics": {
+        "pump": 0.004258000000845641,
+        "rain": 0.011109999999462161,
+        "wetting": 1.1466810000001715,
+        "predict": 2.147313999999824,
+        "emission": 2.1513230000000476
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 10850.677262,
+      "simulation": 4.3333333333333375,
+      "frameMs": 97.3377279999986,
+      "renderMs": 96.55889000000025,
+      "physics": {
+        "pump": 0.005788999998912914,
+        "rain": 0.010917000001427368,
+        "wetting": 0.8270219999994879,
+        "predict": 3.164068000000043,
+        "emission": 2.063904000000548
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 11014.902923,
+      "simulation": 4.46666666666667,
+      "frameMs": 104.85806799999955,
+      "renderMs": 103.83169300000009,
+      "physics": {
+        "pump": 0.004141000001254724,
+        "rain": 0.01261299999896437,
+        "wetting": 0.9728360000008252,
+        "predict": 2.456871999998839,
+        "emission": 2.038191999999981
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 11181.672954,
+      "simulation": 4.600000000000003,
+      "frameMs": 103.1627669999998,
+      "renderMs": 102.03594300000077,
+      "physics": {
+        "pump": 0.004603999999744701,
+        "rain": 0.014680000000225846,
+        "wetting": 1.0501469999999244,
+        "predict": 2.2949229999994714,
+        "emission": 1.843925000001036
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 11364.48663,
+      "simulation": 4.733333333333336,
+      "frameMs": 122.70388999999886,
+      "renderMs": 99.35020299999996,
+      "physics": {
+        "pump": 0.0045869999994465616,
+        "rain": 0.011152000000947737,
+        "wetting": 0.8351370000000315,
+        "predict": 2.303396999999677,
+        "emission": 2.1419500000010885
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 11546.873839,
+      "simulation": 4.866666666666669,
+      "frameMs": 117.05872699999964,
+      "renderMs": 115.91090099999928,
+      "physics": {
+        "pump": 0.005983999999443768,
+        "rain": 0.011421000001064385,
+        "wetting": 0.7932569999993575,
+        "predict": 2.7212839999992866,
+        "emission": 2.207603000000745
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 11720.382317,
+      "simulation": 5.000000000000002,
+      "frameMs": 108.07008099999985,
+      "renderMs": 107.45531499999925,
+      "physics": {
+        "pump": 0.024632000000565313,
+        "rain": 0.018579999999928987,
+        "wetting": 0.9883309999986523,
+        "predict": 2.5522820000005595,
+        "emission": 2.2124129999992874
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 11880.831487,
+      "simulation": 5.133333333333335,
+      "frameMs": 98.74539399999958,
+      "renderMs": 97.63561599999957,
+      "physics": {
+        "pump": 0.004402000000482076,
+        "rain": 0.010870000000068103,
+        "wetting": 0.9053560000011203,
+        "predict": 2.309148999998797,
+        "emission": 1.9783379999989847
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 12042.214084,
+      "simulation": 5.2666666666666675,
+      "frameMs": 104.545963999999,
+      "renderMs": 103.63927499999954,
+      "physics": {
+        "pump": 0.0051599999987956835,
+        "rain": 0.011527000000569387,
+        "wetting": 0.9296549999999115,
+        "predict": 2.3929449999995995,
+        "emission": 2.1564049999997223
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 12226.531662,
+      "simulation": 5.4,
+      "frameMs": 128.3006150000001,
+      "renderMs": 101.84283999999934,
+      "physics": {
+        "pump": 0.005103999999846565,
+        "rain": 0.012572999999974854,
+        "wetting": 1.0795490000000427,
+        "predict": 2.303899000000456,
+        "emission": 1.9586770000005345
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 12385.568206,
+      "simulation": 5.533333333333333,
+      "frameMs": 96.85661900000014,
+      "renderMs": 95.7419489999993,
+      "physics": {
+        "pump": 0.004517999999734457,
+        "rain": 0.011825999999928172,
+        "wetting": 0.8889909999998054,
+        "predict": 2.274666999999681,
+        "emission": 2.032000999999582
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 12546.833824,
+      "simulation": 5.666666666666666,
+      "frameMs": 100.80863999999929,
+      "renderMs": 99.69635000000017,
+      "physics": {
+        "pump": 0.004048999999213265,
+        "rain": 0.011275000000750879,
+        "wetting": 0.8650949999992008,
+        "predict": 2.4198300000007293,
+        "emission": 2.084589000000051
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 12707.362713,
+      "simulation": 5.799999999999999,
+      "frameMs": 100.72220700000071,
+      "renderMs": 100.12932199999887,
+      "physics": {
+        "pump": 0.004650000000765431,
+        "rain": 0.013874000000214437,
+        "wetting": 1.8011459999997896,
+        "predict": 2.3767429999988963,
+        "emission": 2.0481890000010026
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 12860.825107,
+      "simulation": 5.933333333333332,
+      "frameMs": 96.9106499999998,
+      "renderMs": 96.09153400000105,
+      "physics": {
+        "pump": 0.004300000000512227,
+        "rain": 0.011617000000114786,
+        "wetting": 0.869260999999824,
+        "predict": 2.387752000000546,
+        "emission": 1.973068000001149
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 13044.205358,
+      "simulation": 6.066666666666665,
+      "frameMs": 127.15491099999963,
+      "renderMs": 103.52376399999957,
+      "physics": {
+        "pump": 0.004979999999704887,
+        "rain": 0.012231999999130494,
+        "wetting": 1.8884780000007595,
+        "predict": 2.369684999999663,
+        "emission": 2.158241999999518
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 13209.410184,
+      "simulation": 6.1999999999999975,
+      "frameMs": 101.95797700000003,
+      "renderMs": 101.33233999999902,
+      "physics": {
+        "pump": 0.004754999999931897,
+        "rain": 0.012076999999408145,
+        "wetting": 1.0864070000006905,
+        "predict": 2.4485330000006797,
+        "emission": 1.6388559999995778
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 13366.41197,
+      "simulation": 6.33333333333333,
+      "frameMs": 98.70775599999979,
+      "renderMs": 97.83058100000017,
+      "physics": {
+        "pump": 0.004366999999547261,
+        "rain": 0.01246499999979278,
+        "wetting": 1.2270840000001044,
+        "predict": 3.4468640000013693,
+        "emission": 1.573899999999412
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 13529.737586,
+      "simulation": 6.466666666666663,
+      "frameMs": 103.33166699999856,
+      "renderMs": 102.04608700000063,
+      "physics": {
+        "pump": 0.0042180000000371365,
+        "rain": 0.01043500000014319,
+        "wetting": 1.0413730000000214,
+        "predict": 2.534428000000844,
+        "emission": 1.3848809999999503
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 13698.020054,
+      "simulation": 6.599999999999996,
+      "frameMs": 104.27312300000085,
+      "renderMs": 103.73690499999975,
+      "physics": {
+        "pump": 0.005234000000200467,
+        "rain": 0.011175999999977648,
+        "wetting": 1.844665000000532,
+        "predict": 2.4272469999996247,
+        "emission": 2.244742999999289
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 13881.042227,
+      "simulation": 6.733333333333329,
+      "frameMs": 122.92582199999924,
+      "renderMs": 98.48241099999905,
+      "physics": {
+        "pump": 0.0052390000000741566,
+        "rain": 0.013178000001062173,
+        "wetting": 1.0233769999995275,
+        "predict": 2.512591999999131,
+        "emission": 2.182858000000124
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 14041.340107,
+      "simulation": 6.866666666666662,
+      "frameMs": 100.28390199999922,
+      "renderMs": 99.64918800000123,
+      "physics": {
+        "pump": 0.004842000000280677,
+        "rain": 0.010807000000568223,
+        "wetting": 0.9534339999991062,
+        "predict": 2.1958510000004026,
+        "emission": 2.103777000000264
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 14204.07027,
+      "simulation": 6.999999999999995,
+      "frameMs": 105.05649300000005,
+      "renderMs": 104.36581800000022,
+      "physics": {
+        "pump": 0.0059380000002420275,
+        "rain": 0.01418799999919429,
+        "wetting": 1.2187530000010156,
+        "predict": 2.50873700000011,
+        "emission": 3.192731000001004
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 14365.615402,
+      "simulation": 7.1333333333333275,
+      "frameMs": 98.59758399999919,
+      "renderMs": 97.73867699999937,
+      "physics": {
+        "pump": 0.006002000000080443,
+        "rain": 0.010395999999673222,
+        "wetting": 0.9424290000006295,
+        "predict": 3.495335999999952,
+        "emission": 2.1510159999997995
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 14524.371377,
+      "simulation": 7.26666666666666,
+      "frameMs": 100.4402570000002,
+      "renderMs": 99.54221499999949,
+      "physics": {
+        "pump": 0.00568099999873084,
+        "rain": 0.013117000000420376,
+        "wetting": 1.2635129999998753,
+        "predict": 2.4200830000008864,
+        "emission": 1.630355999999665
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 14706.950964,
+      "simulation": 7.399999999999993,
+      "frameMs": 124.56362499999886,
+      "renderMs": 99.00292300000001,
+      "physics": {
+        "pump": 0.0065770000001066364,
+        "rain": 0.012072000001353445,
+        "wetting": 1.0175249999992957,
+        "predict": 3.3772509999998874,
+        "emission": 2.083448999999746
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 14867.978529,
+      "simulation": 7.533333333333326,
+      "frameMs": 97.84385800000018,
+      "renderMs": 97.2472719999987,
+      "physics": {
+        "pump": 0.0055489999995188555,
+        "rain": 0.010583999999653315,
+        "wetting": 0.9336290000010194,
+        "predict": 2.497229000000516,
+        "emission": 2.0633099999995466
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 15029.94529,
+      "simulation": 7.666666666666659,
+      "frameMs": 101.59067200000027,
+      "renderMs": 100.43553199999951,
+      "physics": {
+        "pump": 0.005390000000261352,
+        "rain": 0.01089499999943655,
+        "wetting": 1.0137859999995271,
+        "predict": 3.0686600000008184,
+        "emission": 2.0387190000001283
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 15211.957372,
+      "simulation": 7.799999999999992,
+      "frameMs": 104.72418199999993,
+      "renderMs": 103.80310099999951,
+      "physics": {
+        "pump": 0.004893999999694643,
+        "rain": 0.009931000000506174,
+        "wetting": 1.3054690000008122,
+        "predict": 3.281816999999137,
+        "emission": 1.7785759999987931
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 15382.028904,
+      "simulation": 7.933333333333325,
+      "frameMs": 103.798823000001,
+      "renderMs": 102.64899799999876,
+      "physics": {
+        "pump": 0.006303000000116299,
+        "rain": 0.016944000000876258,
+        "wetting": 1.1578840000001946,
+        "predict": 2.4533749999991414,
+        "emission": 3.0120010000009643
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 15576.107179,
+      "simulation": 8.066666666666658,
+      "frameMs": 127.06517900000108,
+      "renderMs": 103.63225899999998,
+      "physics": {
+        "pump": 0.004654000000300584,
+        "rain": 0.012124999999286956,
+        "wetting": 1.187051999999312,
+        "predict": 2.387962000000698,
+        "emission": 2.1461269999999786
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 15739.985087000001,
+      "simulation": 8.19999999999999,
+      "frameMs": 104.03183700000045,
+      "renderMs": 103.45975200000066,
+      "physics": {
+        "pump": 0.007349999999860302,
+        "rain": 0.01443199999994249,
+        "wetting": 1.233291000000463,
+        "predict": 2.4748359999994136,
+        "emission": 2.1303660000012314
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 15899.683346,
+      "simulation": 8.333333333333323,
+      "frameMs": 99.6882229999992,
+      "renderMs": 98.76412100000016,
+      "physics": {
+        "pump": 0.00492599999961385,
+        "rain": 0.01206599999932223,
+        "wetting": 1.0452629999999772,
+        "predict": 2.4626880000014353,
+        "emission": 2.185574999999517
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 16072.545289,
+      "simulation": 8.466666666666656,
+      "frameMs": 108.44358800000009,
+      "renderMs": 107.86376000000018,
+      "physics": {
+        "pump": 0.0049059999983001035,
+        "rain": 0.01243100000101549,
+        "wetting": 1.111468999999488,
+        "predict": 2.5408120000010967,
+        "emission": 2.2053169999999227
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 16237.203853,
+      "simulation": 8.599999999999989,
+      "frameMs": 101.95750700000099,
+      "renderMs": 101.34769000000051,
+      "physics": {
+        "pump": 0.004232000001138658,
+        "rain": 0.010675999999875785,
+        "wetting": 1.167617999999493,
+        "predict": 2.256327000000965,
+        "emission": 2.068106999999145
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 16425.554287,
+      "simulation": 8.733333333333322,
+      "frameMs": 127.97127699999874,
+      "renderMs": 100.27444400000059,
+      "physics": {
+        "pump": 0.004302999999708845,
+        "rain": 0.010627000001477427,
+        "wetting": 1.2987169999996695,
+        "predict": 2.379895000000033,
+        "emission": 2.0242289999987406
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 16598.16144,
+      "simulation": 8.866666666666655,
+      "frameMs": 107.13001200000144,
+      "renderMs": 106.20553199999995,
+      "physics": {
+        "pump": 0.004477999998925952,
+        "rain": 0.010616999999911059,
+        "wetting": 1.3674460000002,
+        "predict": 2.5047909999993863,
+        "emission": 1.5885180000004766
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 16773.56499,
+      "simulation": 8.999999999999988,
+      "frameMs": 112.26329599999735,
+      "renderMs": 111.66766799999823,
+      "physics": {
+        "pump": 0.0070850000010977965,
+        "rain": 0.012805999998818152,
+        "wetting": 1.9823509999987436,
+        "predict": 2.9170370000028925,
+        "emission": 1.2826839999979711
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 16940.63341,
+      "simulation": 9.13333333333332,
+      "frameMs": 104.35118799999691,
+      "renderMs": 103.62614200000098,
+      "physics": {
+        "pump": 0.0049490000019432046,
+        "rain": 0.011135999997350154,
+        "wetting": 1.499855000001844,
+        "predict": 3.2806859999982407,
+        "emission": 1.6355660000008356
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 17106.987352,
+      "simulation": 9.266666666666653,
+      "frameMs": 108.70632200000182,
+      "renderMs": 108.11860299999898,
+      "physics": {
+        "pump": 0.005984000003081746,
+        "rain": 0.010443999999552034,
+        "wetting": 1.424775999999838,
+        "predict": 2.667729999997391,
+        "emission": 2.207596000000194
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 17292.187845,
+      "simulation": 9.399999999999986,
+      "frameMs": 124.55219900000156,
+      "renderMs": 101.35993100000269,
+      "physics": {
+        "pump": 0.00426800000059302,
+        "rain": 0.01107899999988149,
+        "wetting": 1.0693209999990358,
+        "predict": 2.46588999999949,
+        "emission": 2.156920999997965
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 17457.197502,
+      "simulation": 9.533333333333319,
+      "frameMs": 102.91299399999843,
+      "renderMs": 102.2039270000023,
+      "physics": {
+        "pump": 0.0050159999991592485,
+        "rain": 0.010850999999092892,
+        "wetting": 0.9394680000004882,
+        "predict": 2.601564000000508,
+        "emission": 2.1405530000010913
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 17630.718636,
+      "simulation": 9.666666666666652,
+      "frameMs": 114.47390799999994,
+      "renderMs": 113.26851600000009,
+      "physics": {
+        "pump": 0.004619999999704305,
+        "rain": 0.011210000000573928,
+        "wetting": 0.924312999999529,
+        "predict": 2.9308119999986957,
+        "emission": 2.1312399999987974
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 17802.508071,
+      "simulation": 9.799999999999985,
+      "frameMs": 108.18439800000124,
+      "renderMs": 107.5605429999996,
+      "physics": {
+        "pump": 0.004731999997602543,
+        "rain": 0.011167000000568805,
+        "wetting": 1.0642460000017309,
+        "predict": 2.5360839999993914,
+        "emission": 2.0885830000006536
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 17968.914386,
+      "simulation": 9.933333333333318,
+      "frameMs": 105.30028400000083,
+      "renderMs": 104.61341899999752,
+      "physics": {
+        "pump": 0.012236999999004183,
+        "rain": 0.011964000001171371,
+        "wetting": 1.8321990000004007,
+        "predict": 3.1630179999992833,
+        "emission": 2.1990980000009586
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 18168.112289,
+      "simulation": 10.06666666666665,
+      "frameMs": 135.40725200000088,
+      "renderMs": 111.13344000000143,
+      "physics": {
+        "pump": 0.0044410000009520445,
+        "rain": 0.010912999998254236,
+        "wetting": 1.2946580000025278,
+        "predict": 2.590545999999449,
+        "emission": 2.143059000001813
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 18337.060743000002,
+      "simulation": 10.199999999999983,
+      "frameMs": 108.70993500000259,
+      "renderMs": 108.13462000000072,
+      "physics": {
+        "pump": 0.005548000000999309,
+        "rain": 0.01431600000069011,
+        "wetting": 1.792579000000842,
+        "predict": 2.6590719999985595,
+        "emission": 1.949413000002096
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 18498.88664,
+      "simulation": 10.333333333333316,
+      "frameMs": 100.77184599999964,
+      "renderMs": 99.75190099999963,
+      "physics": {
+        "pump": 0.0054400000008172356,
+        "rain": 0.01089499999943655,
+        "wetting": 0.8461779999997816,
+        "predict": 2.7837670000008075,
+        "emission": 1.211989999999787
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 18671.371783,
+      "simulation": 10.466666666666649,
+      "frameMs": 110.6073499999984,
+      "renderMs": 110.04191799999899,
+      "physics": {
+        "pump": 0.006260999998630723,
+        "rain": 0.011667000002489658,
+        "wetting": 2.45379099999991,
+        "predict": 2.678163999997196,
+        "emission": 0.9160630000005767
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 18864.434568,
+      "simulation": 10.599999999999982,
+      "frameMs": 123.37853399999949,
+      "renderMs": 122.77577300000121,
+      "physics": {
+        "pump": 0.008275000000139698,
+        "rain": 0.01659799999833922,
+        "wetting": 2.1068860000013956,
+        "predict": 4.109968999997363,
+        "emission": 2.048419999999169
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 19048.053891,
+      "simulation": 10.733333333333315,
+      "frameMs": 123.34947900000043,
+      "renderMs": 99.66149199999927,
+      "physics": {
+        "pump": 0.00553099999888218,
+        "rain": 0.01083900000230642,
+        "wetting": 1.2712789999968663,
+        "predict": 2.7236730000004172,
+        "emission": 1.7130029999971157
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 19217.358973,
+      "simulation": 10.866666666666648,
+      "frameMs": 102.62860699999874,
+      "renderMs": 101.95151400000032,
+      "physics": {
+        "pump": 0.007508999999117805,
+        "rain": 0.011129999998956919,
+        "wetting": 1.2791480000014417,
+        "predict": 2.6918040000018664,
+        "emission": 1.0923949999996694
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 19382.88015,
+      "simulation": 10.99999999999998,
+      "frameMs": 102.58046200000172,
+      "renderMs": 101.56785899999886,
+      "physics": {
+        "pump": 0.0047770000019227155,
+        "rain": 0.012079000000085216,
+        "wetting": 0.9830579999979818,
+        "predict": 2.401709000001574,
+        "emission": 0.5133679999999003
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 19548.845255,
+      "simulation": 11.133333333333313,
+      "frameMs": 100.89579500000036,
+      "renderMs": 99.97503099999813,
+      "physics": {
+        "pump": 0.004859000000578817,
+        "rain": 0.011692000000039116,
+        "wetting": 0.840066000000661,
+        "predict": 2.57783500000005,
+        "emission": 0.9674550000017916
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 19712.419117,
+      "simulation": 11.266666666666646,
+      "frameMs": 104.41354499999943,
+      "renderMs": 103.25944700000036,
+      "physics": {
+        "pump": 0.0057630000010249205,
+        "rain": 0.012129999999160646,
+        "wetting": 0.8412779999998747,
+        "predict": 2.519090000001597,
+        "emission": 1.9960050000008778
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 19904.804519,
+      "simulation": 11.399999999999979,
+      "frameMs": 128.23679000000266,
+      "renderMs": 104.61492899999939,
+      "physics": {
+        "pump": 0.011653999998088693,
+        "rain": 0.011775999999372289,
+        "wetting": 0.9552509999994072,
+        "predict": 2.8753130000004603,
+        "emission": 2.023266000000149
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 20065.147155,
+      "simulation": 11.533333333333312,
+      "frameMs": 100.51827199999752,
+      "renderMs": 99.26843600000211,
+      "physics": {
+        "pump": 0.008284999999887077,
+        "rain": 0.02038900000115973,
+        "wetting": 0.869353999998566,
+        "predict": 2.767988999999943,
+        "emission": 1.0036590000017895
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 20228.278403,
+      "simulation": 11.666666666666645,
+      "frameMs": 104.7691679999989,
+      "renderMs": 103.75208300000304,
+      "physics": {
+        "pump": 0.0044410000009520445,
+        "rain": 0.011740000001736917,
+        "wetting": 0.9059939999970084,
+        "predict": 2.6337430000021413,
+        "emission": 2.092014999998355
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 20386.21953,
+      "simulation": 11.799999999999978,
+      "frameMs": 102.08100899999772,
+      "renderMs": 101.4767439999996,
+      "physics": {
+        "pump": 0.005806000001030043,
+        "rain": 0.014094999998633284,
+        "wetting": 0.944963000001735,
+        "predict": 2.5277989999995043,
+        "emission": 1.7816989999992074
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 20547.982349,
+      "simulation": 11.93333333333331,
+      "frameMs": 105.22331400000257,
+      "renderMs": 104.09642499999973,
+      "physics": {
+        "pump": 0.004634000000805827,
+        "rain": 0.010602999998809537,
+        "wetting": 1.2939900000019406,
+        "predict": 2.6737769999999728,
+        "emission": 2.0014660000015283
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 20747.22602,
+      "simulation": 12.066666666666643,
+      "frameMs": 129.97887899999841,
+      "renderMs": 107.16059300000052,
+      "physics": {
+        "pump": 0.005678999998053769,
+        "rain": 0.010964000000967644,
+        "wetting": 1.3169879999986733,
+        "predict": 2.654183999999077,
+        "emission": 1.973814000000857
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 20909.299949,
+      "simulation": 12.199999999999976,
+      "frameMs": 103.6004580000008,
+      "renderMs": 103.0369040000005,
+      "physics": {
+        "pump": 0.006095000000641448,
+        "rain": 0.010948999999527587,
+        "wetting": 1.7950250000030792,
+        "predict": 3.349817999998777,
+        "emission": 1.3759759999993548
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 21071.230981,
+      "simulation": 12.333333333333309,
+      "frameMs": 101.31698899999901,
+      "renderMs": 100.74156200000289,
+      "physics": {
+        "pump": 0.005195000001549488,
+        "rain": 0.011162999999214662,
+        "wetting": 1.2803139999996347,
+        "predict": 2.6043620000018564,
+        "emission": 0.9566000000013446
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 21230.160212,
+      "simulation": 12.466666666666642,
+      "frameMs": 101.00571299999865,
+      "renderMs": 99.82185400000162,
+      "physics": {
+        "pump": 0.005127000000356929,
+        "rain": 0.011796999999205582,
+        "wetting": 0.7067539999989094,
+        "predict": 3.429433000001154,
+        "emission": 0.6187250000002678
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 21388.334079,
+      "simulation": 12.599999999999975,
+      "frameMs": 103.21549600000071,
+      "renderMs": 102.01441299999715,
+      "physics": {
+        "pump": 0.005342000000382541,
+        "rain": 0.012208000000100583,
+        "wetting": 0.8294090000017604,
+        "predict": 2.72160299999814,
+        "emission": 0.5291190000025381
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    },
+    {
+      "wall": 21573.814706,
+      "simulation": 12.733333333333308,
+      "frameMs": 120.87199300000066,
+      "renderMs": 96.543361,
+      "physics": {
+        "pump": 0.005107000000862172,
+        "rain": 0.012188000000605825,
+        "wetting": 0.7803989999993064,
+        "predict": 3.3875670000015816,
+        "emission": 0.4399039999989327
+      },
+      "field": "WebAssembly CPU multigrid-PCG"
+    }
+  ],
+  "events": [],
+  "started": "2026-11-14T22:22:47.745Z",
+  "adapter": {
+    "vendor": "0",
+    "architecture": "",
+    "device": "0",
+    "description": "AMD Radeon Pro 560X",
+    "isFallbackAdapter": false
+  },
+  "deviceLoss": null,
+  "samples": 3024,
+  "backend": "native wgpu",
+  "readySeconds": 4.004678243,
+  "totalFrames": 96,
+  "experiment": {
+    "mode": "reference",
+    "workload": "busy",
+    "edits": 144,
+    "sandParcels": 8,
+    "waterSamples": 3024,
+    "discardFrames": 16,
+    "renderSize": [
+      320,
+      200
+    ],
+    "allocationMiB": 54.765018463134766,
+    "backend": "cpu",
+    "batchBytes": 0
+  },
+  "profile": {
+    "uniforms": {
+      "calls": 287,
+      "ms": 13.38103200000296,
+      "max": 1.0175600000002305
+    },
+    "rain": {
+      "calls": 191,
+      "ms": 3.5187010000108785,
+      "max": 1.1046440000000075
+    },
+    "wetting": {
+      "calls": 191,
+      "ms": 226.997599000013,
+      "max": 3.7419550000004165
+    },
+    "rigid bodies": {
+      "calls": 191,
+      "ms": 131.27952900001492,
+      "max": 2.260142999999516
+    },
+    "prepare": {
+      "calls": 191,
+      "ms": 1687.5998769999915,
+      "max": 53.73087099999975
+    },
+    "deposit": {
+      "calls": 191,
+      "ms": 2276.2571040000066,
+      "max": 58.91245699999945
+    },
+    "pressure": {
+      "calls": 191,
+      "ms": 792.7492679999987,
+      "max": 8.123273000000154
+    },
+    "scalars": {
+      "calls": 191,
+      "ms": 385.220589000015,
+      "max": 8.429548999999497
+    },
+    "transfer+surface+transport": {
+      "calls": 191,
+      "ms": 2793.771762999986,
+      "max": 42.07342599999902
+    },
+    "emission": {
+      "calls": 191,
+      "ms": 464.37892900001134,
+      "max": 9.92737599999964
+    },
+    "finish": {
+      "calls": 191,
+      "ms": 467.2595639999845,
+      "max": 9.980005999999776
+    },
+    "fine contact": {
+      "calls": 95,
+      "ms": 7.58841100000609,
+      "max": 0.6840069999998377
+    },
+    "detail": {
+      "calls": 95,
+      "ms": 1020.5012340000003,
+      "max": 12.893441000000166
+    },
+    "foam input": {
+      "calls": 95,
+      "ms": 271.83832100000564,
+      "max": 6.906070999999429
+    },
+    "publish": {
+      "calls": 95,
+      "ms": 1728.7272520000015,
+      "max": 23.60305799999969
+    },
+    "daughter geometry": {
+      "calls": 95,
+      "ms": 78.04673100000491,
+      "max": 1.5266289999999572
+    },
+    "optical reconstruct": {
+      "calls": 95,
+      "ms": 262.800630999991,
+      "max": 9.82574300000033
+    },
+    "optical particles": {
+      "calls": 95,
+      "ms": 862.792283000017,
+      "max": 20.029759999999442
+    },
+    "flow reconstruct": {
+      "calls": 94,
+      "ms": 117.52535900001112,
+      "max": 7.315072999999757
+    },
+    "prepareMs": {
+      "calls": 160,
+      "ms": 1711.972993999987,
+      "max": 13.516782999999123
+    },
+    "scalarMs": {
+      "calls": 160,
+      "ms": 305.7057519999971,
+      "max": 3.3873770000009245
+    },
+    "gatherMs": {
+      "calls": 160,
+      "ms": 86.94110200002888,
+      "max": 0.6882149999983085
+    },
+    "neighborMs": {
+      "calls": 160,
+      "ms": 549.9486880000131,
+      "max": 4.169734999999491
+    },
+    "surfaceMs": {
+      "calls": 160,
+      "ms": 882.6003510000064,
+      "max": 8.88667500000156
+    },
+    "transportMs": {
+      "calls": 160,
+      "ms": 479.7005810000155,
+      "max": 3.833879000001616
+    }
+  },
+  "ownership": {
+    "cpuPhysics": false,
+    "fieldBackend": "cpu",
+    "flowCPU": false,
+    "renderCPU": false
+  },
+  "stages": {
+    "atmosphere": 0.03977900000245427,
+    "spray shadows": 0.5141250000015134,
+    "density": 7.93276600000172,
+    "medium shadows": 0.5397980000016105,
+    "photons": 0.5153680000003078,
+    "front": 1.0389400000021851,
+    "background": 1.284273999997822,
+    "water": 1.764205999999831,
+    "blobs": 0.2909480000016629,
+    "sea foam": 0.3190759999997681,
+    "sand grains": 0.3139420000006794,
+    "rain / lens": 1.5445529999997234,
+    "particle visibility": 0.013591999999334803,
+    "foam lighting": 0.22452100000009523,
+    "foam splats": 0.49583500000153435
+  },
+  "fieldStats": {
+    "backend": "WebAssembly CPU multigrid-PCG",
+    "absoluteResidual": 0.00003295757083950585,
+    "relativeResidual": 0.000014590278520146893,
+    "iterations": 8,
+    "levels": 4,
+    "milliseconds": 4.030288999998447,
+    "cells": 3553,
+    "waterCells": 672,
+    "divergence": 9.569189879580898e-7,
+    "coupled": 3017,
+    "before": 0.06558606723191637,
+    "prepareMs": 10.669584000002942,
+    "transferMs": 4.139675000002171,
+    "scalarMs": 1.7517799999986892,
+    "gatherMs": 0.5910140000014508,
+    "neighborMs": 3.5480920000009064,
+    "surfaceMs": 5.817086999999447,
+    "surfaceParticles": 2435,
+    "surfaceBackend": "WebAssembly CPU",
+    "totalParticles": 3024,
+    "transportBackend": "WebAssembly CPU transport",
+    "transportMs": 3.833879000001616,
+    "particleCompute": null,
+    "transferBackend": "WebAssembly CPU"
+  },
+  "diagnostics": "5.9 fps · 0.83× realtime\nWebAssembly CPU multigrid-PCG · WebAssembly CPU transport · WebAssembly CPU transfer · GPU air / fine\nCPU: sand stock / bonds / rigid bodies / player / rain mass / surface beads / tides / sky SH\nPipeline: CPU / draw overlap · 2 fixed steps last frame · compatible GPU\nSubmit: 97.5 ms · transfer latency: 0.0 ms\nNeighbors: WebAssembly CPU\nExposure: GPU (extremes only)\nSky: GPU atmosphere (cached)\n3024 bulk · 32768 fine\nWater drawing kernels: 3275 · CPU grouping / GPU reconstruction\nWater fields: GPU reference · 100% of reference field samples\nSand updates: 0 shapes / 0 bins · 1 settled / 0 moving\nSand distance: CPU worker / exact CSG bricks · 0 caches prepared\n3.00 m water spacing\n110 × 98 m basin · 16.5 m depth\n13 sand aggregates\nPressure passes: multigrid bulk / 2437 surface particles\nSea foam: GPU surface transport · fixed 96 × 96 coverage field · shared GPU surface sampling (bounded CPU fallback)\nWind grains: GPU · 8,192 cap\nBond load: 0% · 0 breaks\nSand mass error: -2.07e-12%\n3 objects · held: none\nRain object contacts: GPU\nRain added: 0.00 m³\nGPU render span: timing unavailable / pending\n50% image · 12.2 s simulated",
+  "validation": "{\n  \"selectedBackend\": \"cpu\",\n  \"validation\": \"CPU reference physics selected\"\n}",
+  "field": {
+    "backend": "WebAssembly CPU multigrid-PCG",
+    "absoluteResidual": 0.000028096646970224295,
+    "relativeResidual": 0.000012185229385645447,
+    "iterations": 8,
+    "levels": 4,
+    "milliseconds": 4.177906000000803,
+    "cells": 3553,
+    "waterCells": 675,
+    "divergence": 8.157826653703424e-7,
+    "coupled": 3019,
+    "before": 0.06694848652861041,
+    "prepareMs": 10.48578599999746,
+    "transferMs": 3.974993000003451,
+    "scalarMs": 1.7997020000002522,
+    "gatherMs": 0.5520880000003672,
+    "neighborMs": 3.4222240000017337,
+    "surfaceMs": 5.183601999997336,
+    "surfaceParticles": 2436,
+    "surfaceBackend": "WebAssembly CPU",
+    "totalParticles": 3024,
+    "transportBackend": "WebAssembly CPU transport",
+    "transportMs": 2.8672960000003513,
+    "particleCompute": null,
+    "transferBackend": "WebAssembly CPU"
+  },
+  "render": {
+    "prepare": 0.2134619999997085,
+    "encode": 9.020430000000488,
+    "wait": 87.30900800000018,
+    "total": 96.543361,
+    "renderPasses": 34,
+    "gpu": {
+      "supported": false,
+      "enabled": false,
+      "skipped": 0,
+      "rejected": 0,
+      "lastRejected": null,
+      "error": null,
+      "sample": null
+    }
+  },
+  "rendererFailed": false,
+  "contextLost": false,
+  "presentation": null,
+  "finished": "2026-11-14T22:23:08.931Z"
+}

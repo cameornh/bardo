@@ -2,6 +2,7 @@
 import {configureRTXLab,applyRTXBackend,RTX_FRAME_HZ,rendererInfo,requiresOpenGLWindow} from './profile.js';
 import {installResidentWater} from './fields/resident/install.js';
 import {installFieldLocality} from './fields/locality.js';
+import {installFieldBatch} from './fields/batch/grid.js';
 import {installParticleVisibility} from './particle-visibility.js';
 import {FramePacer} from './frame-pacing.js';
 import {prepareSIMDKernels} from './simd/kernels.js';
@@ -97,6 +98,7 @@ Object.assign(lab.optimizations,{simdPressure:false,simdParticles:false});
 if(useWebGPU)lab.optimizations.sharedWaterInputs=true;
 boot.configureLab?.(lab,renderer);
 installFieldLocality(lab);
+installFieldBatch(lab);
 installResidentWater(lab);
 installCollisionDiagnostics(lab,$('diagnostics'));
 installBeachFieldControls(lab,$('diagnostics'));

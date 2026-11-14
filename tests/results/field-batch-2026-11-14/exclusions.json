@@ -1,0 +1,6 @@
+{
+  "preliminary": "The face-only trial preceded the final scalar/air batch; its runs are not included in final aggregates.",
+  "windowed": "A final optimized window run stopped making progress without a logged graphics error and was manually interrupted. Visibility suspension was suspected but not independently verified. No completed report exists; it is excluded.",
+  "overlap": "A preliminary final-a optimized process started 249 ms before its reference process finished. Both are excluded from final aggregates.",
+  "finalMethod": "All retained runs are sequential complete native application loops with offscreen presentation, unchanged physics/render detail, and warm-up discarded. No retained run reports device loss or a renderer failure."
+}
