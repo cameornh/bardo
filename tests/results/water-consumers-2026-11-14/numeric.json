@@ -1,0 +1,91 @@
+{
+  "backend": "AMD Radeon Pro 560X",
+  "cases": [
+    {
+      "scenario": "calm",
+      "flowInputMaxError": 3.304484774702132e-8,
+      "seaMaxError": 0.000040531158447265625,
+      "flowMaxError": 0.000005669891834259033,
+      "rainMaxError": 0,
+      "pass": true
+    },
+    {
+      "scenario": "wind",
+      "flowInputMaxError": 3.304484774702132e-8,
+      "seaMaxError": 0.000040531158447265625,
+      "flowMaxError": 0.000005669891834259033,
+      "rainMaxError": 0,
+      "pass": true
+    },
+    {
+      "scenario": "held",
+      "flowInputMaxError": 3.304484774702132e-8,
+      "seaMaxError": 0.000052481889724731445,
+      "flowMaxError": 0.000023752450942993164,
+      "rainMaxError": 0,
+      "pass": true
+    },
+    {
+      "scenario": "sparse",
+      "flowInputMaxError": 5.7101497030753734e-8,
+      "seaMaxError": 0.000030487775802612305,
+      "flowMaxError": 0.000011086463928222656,
+      "rainMaxError": 0,
+      "pass": true
+    },
+    {
+      "scenario": "clean",
+      "flowInputMaxError": 3.304484774702132e-8,
+      "seaMaxError": 0.000040531158447265625,
+      "flowMaxError": 0.000005669891834259033,
+      "rainMaxError": 0,
+      "pass": true
+    },
+    {
+      "scenario": "bodies",
+      "flowInputMaxError": 3.304484774702132e-8,
+      "seaMaxError": 0.000040531158447265625,
+      "flowMaxError": 0.000005669891834259033,
+      "rainMaxError": 0,
+      "pass": true
+    },
+    {
+      "scenario": "shore",
+      "flowInputMaxError": 3.304484774702132e-8,
+      "seaMaxError": 0.00005340576171875,
+      "flowMaxError": 0.000005669891834259033,
+      "rainMaxError": 0,
+      "pass": true
+    },
+    {
+      "scenario": "empty",
+      "pass": true,
+      "fallback": true
+    },
+    {
+      "scenario": "reset",
+      "flowInputMaxError": 1.8143686608684817e-8,
+      "seaMaxError": 0.00003693997859954834,
+      "flowMaxError": 0.00006428360939025879,
+      "rainMaxError": 0,
+      "pass": true
+    },
+    {
+      "scenario": "missing",
+      "flowInputMaxError": 5.7101497030753734e-8,
+      "seaMaxError": 0.0000011920928955078125,
+      "flowMaxError": 0.000005669891834259033,
+      "rainMaxError": 0,
+      "pass": true
+    },
+    {
+      "scenario": "partial",
+      "flowInputMaxError": 5.7101497030753734e-8,
+      "seaMaxError": 0.0000011920928955078125,
+      "flowMaxError": 0.000005669891834259033,
+      "rainMaxError": 0,
+      "pass": true
+    }
+  ],
+  "pass": true
+}

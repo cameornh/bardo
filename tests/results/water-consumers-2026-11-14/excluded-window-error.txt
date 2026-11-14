@@ -1,0 +1,137 @@
+Creating WebGPU device
+Building sand and water state
+Preparing scene renderer
+Compiling atmosphere
+Preparing first draw: atmosphere
+Compiling spray shadows
+Preparing first draw: spray shadows
+Compiling spray shadow atlas
+Preparing first draw: spray shadow atlas
+Compiling Gaussian water reconstruction
+Preparing first draw: Gaussian water reconstruction
+Compiling water field maxima
+Preparing first draw: water field maxima
+Compiling water field copy
+Preparing first draw: water field copy
+Compiling medium lighting
+Preparing first draw: medium lighting
+Compiling caustic photons
+Preparing first draw: caustic photons
+Compiling caustic gather
+Preparing first draw: caustic gather
+Compiling water front
+Preparing first draw: water front
+Compiling opaque-hit-record
+Preparing first draw: opaque-hit-record
+Compiling opaque-reflection-hit
+Preparing first draw: opaque-reflection-hit
+Compiling opaque-reflection-lighting
+Preparing first draw: opaque-reflection-lighting
+Compiling opaque-lighting
+Preparing first draw: opaque-lighting
+Compiling water-hit-record
+Preparing first draw: water-hit-record
+Compiling water-reflection-hit
+Preparing first draw: water-reflection-hit
+Compiling water-reflection-lighting
+Preparing first draw: water-reflection-lighting
+Compiling water-transmission-hit
+Preparing first draw: water-transmission-hit
+Compiling water-transmission-lighting
+Preparing first draw: water-transmission-lighting
+Compiling water-lighting
+Preparing first draw: water-lighting
+Compiling submerged-hit-record
+Preparing first draw: submerged-hit-record
+Compiling submerged-reflection-hit
+Preparing first draw: submerged-reflection-hit
+Compiling submerged-reflection-lighting
+Preparing first draw: submerged-reflection-lighting
+Compiling submerged-transmission-hit
+Preparing first draw: submerged-transmission-hit
+Compiling submerged-transmission-lighting
+Preparing first draw: submerged-transmission-lighting
+Compiling submerged-lighting
+Preparing first draw: submerged-lighting
+Compiling detached water tracing
+Preparing first draw: detached water tracing
+Compiling detached water shading
+Preparing first draw: detached water shading
+Compiling water merge
+Preparing first draw: water merge
+Compiling image copy
+Preparing first draw: image copy
+Compiling fine water lighting
+Preparing first draw: fine water lighting
+Compiling fine water Gaussians
+Preparing first draw: fine water Gaussians
+Compiling fine water composite
+Preparing first draw: fine water composite
+Compiling glass-hit-record
+Preparing first draw: glass-hit-record
+Compiling glass-lighting
+Preparing first draw: glass-lighting
+Compiling fine water transport
+Preparing first draw: fine water transport
+Compiling fine water flow field
+Preparing first draw: fine water flow field
+Compiling foam contact field
+Preparing first draw: foam contact field
+Compiling sand grain transport
+Preparing first draw: sand grain transport
+Compiling sand grain drawing
+Preparing first draw: sand grain drawing
+Compiling water transport
+Preparing first draw: water transport
+Compiling physics transfer
+Preparing first draw: physics transfer
+Compiling projected air transfer
+Preparing first draw: projected air transfer
+Compiling visible sand grains
+Preparing first draw: visible sand grains
+Compiling occluded sand grains
+Preparing first draw: occluded sand grains
+Compiling reference sand grains
+Preparing first draw: reference sand grains
+Compiling occluded fine lighting
+Preparing first draw: occluded fine lighting
+Compiling reference fine lighting
+Preparing first draw: reference fine lighting
+Compiling reference fine drawing
+Preparing first draw: reference fine drawing
+Compiling visible sea foam
+Preparing first draw: visible sea foam
+Compiling occluded sea foam
+Preparing first draw: occluded sea foam
+Compiling reference sea foam
+Preparing first draw: reference sea foam
+Compiling Gaussian stars
+Preparing first draw: Gaussian stars
+Compiling exposure reduction
+Preparing first draw: exposure reduction
+Compiling exposure adaptation
+Preparing first draw: exposure adaptation
+Compiling display
+Preparing first draw: display
+Drawing first scene frame
+Preparing shared water inputs
+Native scene ready
+Native window reconfigure [
+    1, 8192,   0,
+    1,  640, 400,
+  927,  640
+]
+Error: Invalid Surface Status
+    at Object.getCurrentTexture (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/native/surface.js:13:76)
+    at _SharedSceneWebGPU.attachments (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/.native/generated/scene.mjs:28370:63)
+    at _SharedSceneWebGPU.flush (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/.native/generated/scene.mjs:28413:61)
+    at async _SharedSceneWebGPU.app.renderer.flush (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/native/runtime.js:45:201)
+    at async file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/.native/generated/scene.mjs:28524:11
+    at async tick (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/.native/generated/scene.mjs:48033:7)
+Error: Invalid Surface Status
+    at Object.getCurrentTexture (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/native/surface.js:13:76)
+    at _SharedSceneWebGPU.attachments (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/.native/generated/scene.mjs:28370:63)
+    at _SharedSceneWebGPU.flush (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/.native/generated/scene.mjs:28413:61)
+    at async _SharedSceneWebGPU.app.renderer.flush (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/native/runtime.js:45:201)
+    at async file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/.native/generated/scene.mjs:28524:11
+    at async tick (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/.native/generated/scene.mjs:48033:7)

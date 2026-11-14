@@ -1,0 +1,563 @@
+TAP version 13
+# Subtest: variable-density pressure is symmetric positive definite across the real air/water interface
+ok 1 - variable-density pressure is symmetric positive definite across the real air/water interface
+  ---
+  duration_ms: 43.707753
+  type: 'test'
+  ...
+# Subtest: multigrid recovers manufactured pressure on an irregular two-density domain
+ok 2 - multigrid recovers manufactured pressure on an irregular two-density domain
+  ---
+  duration_ms: 74.456669
+  type: 'test'
+  ...
+# Subtest: projection removes divergence and respects solids while sharing interface flux
+ok 3 - projection removes divergence and respects solids while sharing interface flux
+  ---
+  duration_ms: 36.954755
+  type: 'test'
+  ...
+# Subtest: sealed disconnected water regions receive independent pressure gauges
+ok 4 - sealed disconnected water regions receive independent pressure gauges
+  ---
+  duration_ms: 18.991107
+  type: 'test'
+  ...
+# Subtest: heat exchange conserves energy across density contrast and keeps humidity out of water
+ok 5 - heat exchange conserves energy across density contrast and keeps humidity out of water
+  ---
+  duration_ms: 112.122895
+  type: 'test'
+  ...
+# Subtest: moving mask accounts for displaced heat and vapour rather than silently losing them
+ok 6 - moving mask accounts for displaced heat and vapour rather than silently losing them
+  ---
+  duration_ms: 28.126059
+  type: 'test'
+  ...
+# Subtest: open-air scalar transport balances the boundary ledger
+ok 7 - open-air scalar transport balances the boundary ledger
+  ---
+  duration_ms: 20.6593
+  type: 'test'
+  ...
+# Subtest: diagonal high-speed advection keeps scalars bounded and preserves a uniform field
+ok 8 - diagonal high-speed advection keeps scalars bounded and preserves a uniform field
+  ---
+  duration_ms: 19.176065
+  type: 'test'
+  ...
+# Subtest: particle transfer leaves held and out-of-grid spray untouched, changes velocity without changing mass
+ok 9 - particle transfer leaves held and out-of-grid spray untouched, changes velocity without changing mass
+  ---
+  duration_ms: 10.426328
+  type: 'test'
+  ...
+# Subtest: snapshots and previous live fixtures do not opt into the new solver
+ok 10 - snapshots and previous live fixtures do not opt into the new solver
+  ---
+  duration_ms: 417.606835
+  type: 'test'
+  ...
+# Subtest: full beach CPU pipeline advances with coupled pressure and preserves water parcels
+ok 11 - full beach CPU pipeline advances with coupled pressure and preserves water parcels
+  ---
+  duration_ms: 575.844762
+  type: 'test'
+  ...
+# Subtest: rain and existing capillary drops share field temperatures without enabling sand condensation
+ok 12 - rain and existing capillary drops share field temperatures without enabling sand condensation
+  ---
+  duration_ms: 180.372036
+  type: 'test'
+  ...
+# Subtest: native surface band matches the JS reference including held parcels and reciprocal interior forces
+ok 13 - native surface band matches the JS reference including held parcels and reciprocal interior forces
+  ---
+  duration_ms: 36.090814
+  type: 'test'
+  ...
+# Subtest: batched beach terrain and boulder contacts match the surface reference
+ok 14 - batched beach terrain and boulder contacts match the surface reference
+  ---
+  duration_ms: 187.13166
+  type: 'test'
+  ...
+# Subtest: live spatial wind queries match ordered exact SDF after movement, carving and deletion
+ok 15 - live spatial wind queries match ordered exact SDF after movement, carving and deletion
+  ---
+  duration_ms: 401.569493
+  type: 'test'
+  ...
+# Subtest: indexed swept sand contacts match all-parcel scan including exclusions and loose supports
+ok 16 - indexed swept sand contacts match all-parcel scan including exclusions and loose supports
+  ---
+  duration_ms: 231.42865
+  type: 'test'
+  ...
+# Subtest: query cache is bounded by current geometry and only refits changed branches
+ok 17 - query cache is bounded by current geometry and only refits changed branches
+  ---
+  duration_ms: 72.811193
+  type: 'test'
+  ...
+# Subtest: CPU frame overlap preserves one step and publishes graphics only after explicit completion
+ok 18 - CPU frame overlap preserves one step and publishes graphics only after explicit completion
+  ---
+  duration_ms: 2.101374
+  type: 'test'
+  ...
+# Subtest: reset/context failure never publishes a deferred CPU solve or consumes extra dt
+ok 19 - reset/context failure never publishes a deferred CPU solve or consumes extra dt
+  ---
+  duration_ms: 0.3257
+  type: 'test'
+  ...
+# Subtest: catch-up uses at most two earned steps and keeps graphics consumers outside compute
+ok 20 - catch-up uses at most two earned steps and keeps graphics consumers outside compute
+  ---
+  duration_ms: 0.41999
+  type: 'test'
+  ...
+# Subtest: two overlapped CPU steps preserve the exact bulk, terrain, object and scalar state
+ok 21 - two overlapped CPU steps preserve the exact bulk, terrain, object and scalar state
+  ---
+  duration_ms: 947.16788
+  type: 'test'
+  ...
+# Subtest: moving-group refits preserve exact wind shelter without rescanning unrelated edits
+ok 22 - moving-group refits preserve exact wind shelter without rescanning unrelated edits
+  ---
+  duration_ms: 102.177283
+  type: 'test'
+  ...
+# Subtest: native MRT splitting preserves every output, order and full precision
+ok 23 - native MRT splitting preserves every output, order and full precision
+  ---
+  duration_ms: 3.299215
+  type: 'test'
+  ...
+# Subtest: native controls emit the existing browser input/change handlers once
+ok 24 - native controls emit the existing browser input/change handlers once
+  ---
+  duration_ms: 47.239164
+  type: 'test'
+  ...
+# Subtest: native canvas, mouse lock and resizing keep shared control semantics
+ok 25 - native canvas, mouse lock and resizing keep shared control semantics
+  ---
+  duration_ms: 1.625749
+  type: 'test'
+  ...
+# Subtest: native presentation explicitly retires swapchain images once per frame
+ok 26 - native presentation explicitly retires swapchain images once per frame
+  ---
+  duration_ms: 1.395979
+  type: 'test'
+  ...
+# Subtest: outdated native surfaces retry once; other errors and repeated failures propagate
+ok 27 - outdated native surfaces retry once; other errors and repeated failures propagate
+  ---
+  duration_ms: 0.720808
+  type: 'test'
+  ...
+# Subtest: high rainfall gets many independent visual drops while keeping a bounded budget and narrow minimum sizes
+ok 28 - high rainfall gets many independent visual drops while keeping a bounded budget and narrow minimum sizes
+  ---
+  duration_ms: 40.885801
+  type: 'test'
+  ...
+# Subtest: periodic rain sweeps split at edges, preserve travel, and never cut across the middle
+ok 29 - periodic rain sweeps split at edges, preserve travel, and never cut across the middle
+  ---
+  duration_ms: 1.403905
+  type: 'test'
+  ...
+# Subtest: rain covers the complete ground footprint and conserves its physical precipitation flux
+ok 30 - rain covers the complete ground footprint and conserves its physical precipitation flux
+  ---
+  duration_ms: 16.387029
+  type: 'test'
+  ...
+# Subtest: physical rain wraps without hitting confinement walls or changing the packet volume
+ok 31 - physical rain wraps without hitting confinement walls or changing the packet volume
+  ---
+  duration_ms: 1.049155
+  type: 'test'
+  ...
+# Subtest: hard wet receivers generate more impact mist at ordinary terminal rain speed
+ok 32 - hard wet receivers generate more impact mist at ordinary terminal rain speed
+  ---
+  duration_ms: 7.115753
+  type: 'test'
+  ...
+# Subtest: a thin illuminated horizon limits dark adaptation even when almost all pixels are black sky
+ok 33 - a thin illuminated horizon limits dark adaptation even when almost all pixels are black sky
+  ---
+  duration_ms: 1.496919
+  type: 'test'
+  ...
+# Subtest: rain impacts start on the first step and stop without an airborne queue; mass remains accounted for
+ok 34 - rain impacts start on the first step and stop without an airborne queue; mass remains accounted for
+  ---
+  duration_ms: 1.262746
+  type: 'test'
+  ...
+# Subtest: existing water gets no stationary rain kernels and inserted volume stays beneath the surface
+ok 35 - existing water gets no stationary rain kernels and inserted volume stays beneath the surface
+  ---
+  duration_ms: 4.679698
+  type: 'test'
+  ...
+# Subtest: rain impacts gain 50% opacity while broader mist lingers and expires
+ok 36 - rain impacts gain 50% opacity while broader mist lingers and expires
+  ---
+  duration_ms: 10.947526
+  type: 'test'
+  ...
+# Subtest: caustic flux stays on its receiving surface and filters continuously between photon footprints
+ok 37 - caustic flux stays on its receiving surface and filters continuously between photon footprints
+  ---
+  duration_ms: 2.032069
+  type: 'test'
+  ...
+# Subtest: rain mist uses the same airborne covariance for its light transmission and visible footprint
+ok 38 - rain mist uses the same airborne covariance for its light transmission and visible footprint
+  ---
+  duration_ms: 1.037753
+  type: 'test'
+  ...
+# Subtest: terrain slopes match the cubic surface and stay exactly flat beyond its clamped edges
+ok 39 - terrain slopes match the cubic surface and stay exactly flat beyond its clamped edges
+  ---
+  duration_ms: 16.311227
+  type: 'test'
+  ...
+# Subtest: rain contact dips, rebounds and fades in a short bounded interval at every scale
+ok 40 - rain contact dips, rebounds and fades in a short bounded interval at every scale
+  ---
+  duration_ms: 0.846689
+  type: 'test'
+  ...
+# Subtest: rain surface map follows moved water and excludes held water without camera inputs
+ok 41 - rain surface map follows moved water and excludes held water without camera inputs
+  ---
+  duration_ms: 3.280571
+  type: 'test'
+  ...
+# Subtest: rain traces real sphere and cup surfaces before emitting mist
+ok 42 - rain traces real sphere and cup surfaces before emitting mist
+  ---
+  duration_ms: 1.283529
+  type: 'test'
+  ...
+# Subtest: rain mist drifts more slowly than free spray and lifts gently above its receiving surface
+ok 43 - rain mist drifts more slowly than free spray and lifts gently above its receiving surface
+  ---
+  duration_ms: 1.125384
+  type: 'test'
+  ...
+# Water wind response [
+#   { speed: 4, pressureRmsGain: 3.4516315309759253 },
+#   { speed: 8, pressureRmsGain: 4.342106616051035 },
+#   { speed: 12, pressureRmsGain: 3.573829663095825 },
+#   { speed: 30, pressureRmsGain: 2.2740950009300684 },
+#   { speed: 70, pressureRmsGain: 1.7696867036853925 }
+# ]
+# Subtest: pure water produces no sea foam; activation is continuous and monotonic
+ok 44 - pure water produces no sea foam; activation is continuous and monotonic
+  ---
+  duration_ms: 39.068607
+  type: 'test'
+  ...
+# Subtest: surface transport follows current and conserves foam apart from explicit decay
+ok 45 - surface transport follows current and conserves foam apart from explicit decay
+  ---
+  duration_ms: 0.443168
+  type: 'test'
+  ...
+# Subtest: retreat deposits foam that persists on sand and rewets gradually
+ok 46 - retreat deposits foam that persists on sand and rewets gradually
+  ---
+  duration_ms: 48.917072
+  type: 'test'
+  ...
+# Subtest: a long storm stays finite and within the fixed coverage budget
+ok 47 - a long storm stays finite and within the fixed coverage budget
+  ---
+  duration_ms: 106.174993
+  type: 'test'
+  ...
+# Subtest: surface sampling uses the upper liquid layer and caches unchanged sand
+ok 48 - surface sampling uses the upper liquid layer and caches unchanged sand
+  ---
+  duration_ms: 1.798877
+  type: 'test'
+  ...
+# Subtest: zero organics does no surface work; backend and reset never leak old foam
+ok 49 - zero organics does no surface work; backend and reset never leak old foam
+  ---
+  duration_ms: 3.550607
+  type: 'test'
+  ...
+# Subtest: live water wind response is stronger at low speed; snapshot forces and calm remain unchanged
+ok 50 - live water wind response is stronger at low speed; snapshot forces and calm remain unchanged
+  ---
+  duration_ms: 24.911476
+  type: 'test'
+  ...
+# Subtest: fast and reference prediction agree with stronger live waves
+ok 51 - fast and reference prediction agree with stronger live waves
+  ---
+  duration_ms: 957.143968
+  type: 'test'
+  ...
+# Subtest: breakers replenish shallow bands preferentially, with extra focus where currents converge
+ok 52 - breakers replenish shallow bands preferentially, with extra focus where currents converge
+  ---
+  duration_ms: 1.615226
+  type: 'test'
+  ...
+# Subtest: input sampling runs at bounded simulation cadence and never follows camera refreshes
+ok 53 - input sampling runs at bounded simulation cadence and never follows camera refreshes
+  ---
+  duration_ms: 4.946696
+  type: 'test'
+  ...
+# Subtest: column lists visit every particle once, keep ascending IDs and use no camera
+ok 54 - column lists visit every particle once, keep ascending IDs and use no camera
+  ---
+  duration_ms: 4.615763
+  type: 'test'
+  ...
+# Subtest: full support is covered even at domain edges and outside the footprint
+ok 55 - full support is covered even at domain edges and outside the footprint
+  ---
+  duration_ms: 0.734697
+  type: 'test'
+  ...
+# Subtest: crowding and invalid sizes fall back before GPU work
+ok 56 - crowding and invalid sizes fall back before GPU work
+  ---
+  duration_ms: 0.431692
+  type: 'test'
+  ...
+# Subtest: configuration preserves simulation scale, organic load and body count
+ok 57 - configuration preserves simulation scale, organic load and body count
+  ---
+  duration_ms: 0.433664
+  type: 'test'
+  ...
+# Subtest: WebGL reference installation does not touch existing consumers
+ok 58 - WebGL reference installation does not touch existing consumers
+  ---
+  duration_ms: 0.55324
+  type: 'test'
+  ...
+# Subtest: snapshot cannot overwrite data already queued for a different water epoch
+ok 59 - snapshot cannot overwrite data already queued for a different water epoch
+  ---
+  duration_ms: 0.473763
+  type: 'test'
+  ...
+# Subtest: invalid particle records cannot produce incomplete GPU lists
+ok 60 - invalid particle records cannot produce incomplete GPU lists
+  ---
+  duration_ms: 0.48503
+  type: 'test'
+  ...
+# Subtest: same consumer cannot overwrite its pending dispatch
+ok 61 - same consumer cannot overwrite its pending dispatch
+  ---
+  duration_ms: 0.814432
+  type: 'test'
+  ...
+# Subtest: shared installation is idempotent; toggling rain at rest restores the reference texture
+ok 62 - shared installation is idempotent; toggling rain at rest restores the reference texture
+  ---
+  duration_ms: 3.287883
+  type: 'test'
+  ...
+# Subtest: waterfall height changes the ledge, seeded sheet and pump together
+ok 63 - waterfall height changes the ledge, seeded sheet and pump together
+  ---
+  duration_ms: 708.538582
+  type: 'test'
+  ...
+# Subtest: rain appearance grows with physical scale and refinement with a fixed upper bound
+ok 64 - rain appearance grows with physical scale and refinement with a fixed upper bound
+  ---
+  duration_ms: 0.277156
+  type: 'test'
+  ...
+# Subtest: foam decay is fast in air, slow in water, slowest in close foam clusters
+ok 65 - foam decay is fast in air, slow in water, slowest in close foam clusters
+  ---
+  duration_ms: 18.208808
+  type: 'test'
+  ...
+# Subtest: batched rain retains all water while bounded conversion raises pool and pane inventories
+ok 66 - batched rain retains all water while bounded conversion raises pool and pane inventories
+  ---
+  duration_ms: 1925.925636
+  type: 'test'
+  ...
+# Subtest: rain crown redistributes momentum radially without adding a net horizontal force
+ok 67 - rain crown redistributes momentum radially without adding a net horizontal force
+  ---
+  duration_ms: 12.566226
+  type: 'test'
+  ...
+# Subtest: a station reset discards pending GPU results and never launches overlapping solves
+ok 68 - a station reset discards pending GPU results and never launches overlapping solves
+  ---
+  duration_ms: 14.876825
+  type: 'test'
+  ...
+# Subtest: dense foam shadow sampling has a fixed budget and retains its total optical weight
+ok 69 - dense foam shadow sampling has a fixed budget and retains its total optical weight
+  ---
+  duration_ms: 4.819689
+  type: 'test'
+  ...
+# Subtest: backend changes wait for the outstanding solve and paused clicks survive it
+ok 70 - backend changes wait for the outstanding solve and paused clicks survive it
+  ---
+  duration_ms: 11.651385
+  type: 'test'
+  ...
+# Subtest: unchanged water stays resident; mirror mutation becomes exactly one patch
+ok 71 - unchanged water stays resident; mirror mutation becomes exactly one patch
+  ---
+  duration_ms: 2.780562
+  type: 'test'
+  ...
+# Subtest: held positions, rain impulses, dye, same-size reorder all synchronize
+ok 72 - held positions, rain impulses, dye, same-size reorder all synchronize
+  ---
+  duration_ms: 1.421681
+  type: 'test'
+  ...
+# Subtest: new epoch after generation
+ok 73 - new epoch after generation
+  ---
+  duration_ms: 0.562826
+  type: 'test'
+  ...
+# Subtest: new epoch after grid
+ok 74 - new epoch after grid
+  ---
+  duration_ms: 0.292633
+  type: 'test'
+  ...
+# Subtest: new epoch after count
+ok 75 - new epoch after count
+  ---
+  duration_ms: 0.30149
+  type: 'test'
+  ...
+# Subtest: new epoch after cpu-step
+ok 76 - new epoch after cpu-step
+  ---
+  duration_ms: 0.260322
+  type: 'test'
+  ...
+# Subtest: new epoch after invalidate
+ok 77 - new epoch after invalidate
+  ---
+  duration_ms: 0.302047
+  type: 'test'
+  ...
+# Subtest: CPU mirrors are disjoint views, invalid publication is rejected
+ok 78 - CPU mirrors are disjoint views, invalid publication is rejected
+  ---
+  duration_ms: 0.812773
+  type: 'test'
+  ...
+# Subtest: fallback completes deferred prediction with gravity and held marker intact
+ok 79 - fallback completes deferred prediction with gravity and held marker intact
+  ---
+  duration_ms: 1.095085
+  type: 'test'
+  ...
+# Subtest: only validated connected beach physics defers; player and CPU paths keep exact prediction
+ok 80 - only validated connected beach physics defers; player and CPU paths keep exact prediction
+  ---
+  duration_ms: 1.198184
+  type: 'test'
+  ...
+# Subtest: shared uniform layout preserves scalar / vec3 packing, matrix columns and array stride
+ok 81 - shared uniform layout preserves scalar / vec3 packing, matrix columns and array stride
+  ---
+  duration_ms: 3.837284
+  type: 'test'
+  ...
+# Subtest: draw snapshots cannot observe later shared-uniform mutations
+ok 82 - draw snapshots cannot observe later shared-uniform mutations
+  ---
+  duration_ms: 0.474417
+  type: 'test'
+  ...
+# Subtest: translation splits compound varying declarations without overlapping locations
+ok 83 - translation splits compound varying declarations without overlapping locations
+  ---
+  duration_ms: 13.035963
+  type: 'test'
+  ...
+# Subtest: first draw includes loop uniforms introduced by shader compilation hooks
+ok 84 - first draw includes loop uniforms introduced by shader compilation hooks
+  ---
+  duration_ms: 4.784617
+  type: 'test'
+  ...
+# Subtest: translated sampler helper stays at the texture call site
+ok 85 - translated sampler helper stays at the texture call site
+  ---
+  duration_ms: 2.980468
+  type: 'test'
+  ...
+# Subtest: completion rejects overlapping frames and stops on queue failure
+ok 86 - completion rejects overlapping frames and stops on queue failure
+  ---
+  duration_ms: 3.760696
+  type: 'test'
+  ...
+# Subtest: disposing compute fallback never destroys a shared rendering device
+ok 87 - disposing compute fallback never destroys a shared rendering device
+  ---
+  duration_ms: 0.541866
+  type: 'test'
+  ...
+# Subtest: completion retires only resources owned by that submission
+ok 88 - completion retires only resources owned by that submission
+  ---
+  duration_ms: 2.283779
+  type: 'test'
+  ...
+# Subtest: oversized scene allocation is rejected before touching the device
+ok 89 - oversized scene allocation is rejected before touching the device
+  ---
+  duration_ms: 0.758956
+  type: 'test'
+  ...
+# Subtest: replaced geometry releases buffers only after the last shared owner
+ok 90 - replaced geometry releases buffers only after the last shared owner
+  ---
+  duration_ms: 1.330495
+  type: 'test'
+  ...
+# Subtest: unrelated shared texture bindings do not create shader variants
+ok 91 - unrelated shared texture bindings do not create shader variants
+  ---
+  duration_ms: 1.187772
+  type: 'test'
+  ...
+1..91
+# tests 91
+# suites 0
+# pass 91
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2954.708589

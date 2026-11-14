@@ -11,7 +11,7 @@ const labels={fineParticleResolution:"Lower-resolution soft water particles",nat
 };
 const previous=new Set(['gpuBatch','packedNeighbors','broadphase','sandCache','emptySpace','splatBounds','lightingTiles']);
 Object.assign(labels,{simdPressure:'SIMD CPU pressure (experimental)',simdParticles:'SIMD CPU particle forces (experimental)'});
-Object.assign(labels,{residentWater:'Keep water state on GPU (connected WebGPU)',fieldTopology:'Reuse fixed pressure-grid neighbors',fieldLocalPressure:'Fast coarse pressure memory (connected WebGPU)'});
+Object.assign(labels,{sharedWaterInputs:'Share GPU flow / foam / rain inputs',residentWater:'Keep water state on GPU (connected WebGPU)',fieldTopology:'Reuse fixed pressure-grid neighbors',fieldLocalPressure:'Fast coarse pressure memory (connected WebGPU)'});
 // These options are supplied only by the live lab, not historical snapshots.
 Object.assign(labels,{cpuSandQueries:'Local CPU sand queries',nativeFieldTransfer:'Compiled CPU field transfer',cpuFrameOverlap:'Overlap CPU physics with drawing',cpuCatchup:'Bounded extra CPU physics step',particleFrustum:'Cull off-screen particles',particleOcclusion:'Cull hidden particles (optional; may cost more)',particleSparse:'Stable sparse sand / foam drawing',particleShaders:'Reuse foam lighting per particle',collisionMesh:'Cached collision meshes',rigidReuse:'Reuse object contacts',rigidSleep:'Sleep supported objects',rigidBroadphase:'Filter nearby object pairs'});
 export function optimizationPreset(defaults,mode){return Object.fromEntries(Object.keys(defaults).map(k=>[k,mode==='all'?defaults[k]:mode==='baseline'&&previous.has(k)]));}
