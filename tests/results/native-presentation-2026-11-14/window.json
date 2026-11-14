@@ -1,0 +1,274 @@
+{
+  "checks": [
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    }
+  ],
+  "statuses": [
+    {
+      "ms": 1.8384329999998954,
+      "status": [
+        1,
+        8194,
+        1,
+        1,
+        640,
+        400,
+        1099,
+        640
+      ],
+      "visible": true
+    }
+  ],
+  "adapter": {},
+  "interactive": true,
+  "pass": false,
+  "error": "Error: Window hide/restore was not observed\n    at assert (file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/native/surface-lifecycle-check.js:12:34)\n    at file:///Users/cameronhalaby/.codex/worktrees/rtx-5070-ti-gpu/bardo/native/surface-lifecycle-check.js:38:3",
+  "presentation": {
+    "acquired": 637,
+    "presented": 637,
+    "skipped": 12,
+    "reconfigures": 0,
+    "temporaryBytes": 0,
+    "peakTemporaryBytes": 1024000
+  },
+  "deviceLoss": null,
+  "validation": null
+}

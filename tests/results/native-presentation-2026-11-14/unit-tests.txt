@@ -1,0 +1,466 @@
+TAP version 13
+# Subtest: variable-density pressure is symmetric positive definite across the real air/water interface
+ok 1 - variable-density pressure is symmetric positive definite across the real air/water interface
+  ---
+  duration_ms: 27.600353
+  type: 'test'
+  ...
+# Subtest: multigrid recovers manufactured pressure on an irregular two-density domain
+ok 2 - multigrid recovers manufactured pressure on an irregular two-density domain
+  ---
+  duration_ms: 38.377713
+  type: 'test'
+  ...
+# Subtest: projection removes divergence and respects solids while sharing interface flux
+ok 3 - projection removes divergence and respects solids while sharing interface flux
+  ---
+  duration_ms: 17.448878
+  type: 'test'
+  ...
+# Subtest: sealed disconnected water regions receive independent pressure gauges
+ok 4 - sealed disconnected water regions receive independent pressure gauges
+  ---
+  duration_ms: 9.818912
+  type: 'test'
+  ...
+# Subtest: heat exchange conserves energy across density contrast and keeps humidity out of water
+ok 5 - heat exchange conserves energy across density contrast and keeps humidity out of water
+  ---
+  duration_ms: 67.402522
+  type: 'test'
+  ...
+# Subtest: moving mask accounts for displaced heat and vapour rather than silently losing them
+ok 6 - moving mask accounts for displaced heat and vapour rather than silently losing them
+  ---
+  duration_ms: 17.129684
+  type: 'test'
+  ...
+# Subtest: open-air scalar transport balances the boundary ledger
+ok 7 - open-air scalar transport balances the boundary ledger
+  ---
+  duration_ms: 27.53205
+  type: 'test'
+  ...
+# Subtest: diagonal high-speed advection keeps scalars bounded and preserves a uniform field
+ok 8 - diagonal high-speed advection keeps scalars bounded and preserves a uniform field
+  ---
+  duration_ms: 27.761962
+  type: 'test'
+  ...
+# Subtest: particle transfer leaves held and out-of-grid spray untouched, changes velocity without changing mass
+ok 9 - particle transfer leaves held and out-of-grid spray untouched, changes velocity without changing mass
+  ---
+  duration_ms: 14.437204
+  type: 'test'
+  ...
+# Subtest: snapshots and previous live fixtures do not opt into the new solver
+ok 10 - snapshots and previous live fixtures do not opt into the new solver
+  ---
+  duration_ms: 295.76651
+  type: 'test'
+  ...
+# Subtest: full beach CPU pipeline advances with coupled pressure and preserves water parcels
+ok 11 - full beach CPU pipeline advances with coupled pressure and preserves water parcels
+  ---
+  duration_ms: 346.08727
+  type: 'test'
+  ...
+# Subtest: rain and existing capillary drops share field temperatures without enabling sand condensation
+ok 12 - rain and existing capillary drops share field temperatures without enabling sand condensation
+  ---
+  duration_ms: 123.546818
+  type: 'test'
+  ...
+# Subtest: native surface band matches the JS reference including held parcels and reciprocal interior forces
+ok 13 - native surface band matches the JS reference including held parcels and reciprocal interior forces
+  ---
+  duration_ms: 22.46155
+  type: 'test'
+  ...
+# Subtest: batched beach terrain and boulder contacts match the surface reference
+ok 14 - batched beach terrain and boulder contacts match the surface reference
+  ---
+  duration_ms: 126.467435
+  type: 'test'
+  ...
+# Subtest: hydrostatic air and water have their own density and share the interface reference pressure
+ok 15 - hydrostatic air and water have their own density and share the interface reference pressure
+  ---
+  duration_ms: 6.143261
+  type: 'test'
+  ...
+# Subtest: humidity responds to temperature and absolute pressure; water does not contain an air humidity field
+ok 16 - humidity responds to temperature and absolute pressure; water does not contain an air humidity field
+  ---
+  duration_ms: 8.540547
+  type: 'test'
+  ...
+# Subtest: MAC pressure operator is symmetric, positive semidefinite and annihilates constants
+ok 17 - MAC pressure operator is symmetric, positive semidefinite and annihilates constants
+  ---
+  duration_ms: 6.57819
+  type: 'test'
+  ...
+# Subtest: manufactured pressure is recovered up to each disconnected region gauge
+ok 18 - manufactured pressure is recovered up to each disconnected region gauge
+  ---
+  duration_ms: 22.26042
+  type: 'test'
+  ...
+# Subtest: projection removes divergent motion, does not create kinetic energy or wall penetration
+ok 19 - projection removes divergent motion, does not create kinetic energy or wall penetration
+  ---
+  duration_ms: 13.819173
+  type: 'test'
+  ...
+# Subtest: pressure scales with density while projected velocity does not
+ok 20 - pressure scales with density while projected velocity does not
+  ---
+  duration_ms: 5.892326
+  type: 'test'
+  ...
+# Subtest: SOR GPU reference converges on both sides of the fixed interface
+ok 21 - SOR GPU reference converges on both sides of the fixed interface
+  ---
+  duration_ms: 8.449847
+  type: 'test'
+  ...
+# Subtest: heat conduction conserves energy across unequal capacities and moisture cannot enter water
+ok 22 - heat conduction conserves energy across unequal capacities and moisture cannot enter water
+  ---
+  duration_ms: 14.723538
+  type: 'test'
+  ...
+# Subtest: viscosity dissipates energy and strong-viscosity settings lower the stable timestep
+ok 23 - viscosity dissipates energy and strong-viscosity settings lower the stable timestep
+  ---
+  duration_ms: 10.509444
+  type: 'test'
+  ...
+# Subtest: transport stays finite, conserves heat and water vapour, and leaves the mask fixed over sustained stepping
+ok 24 - transport stays finite, conserves heat and water vapour, and leaves the mask fixed over sustained stepping
+  ---
+  duration_ms: 94.936821
+  type: 'test'
+  ...
+# Subtest: still hydrostatic water and uniform air remain at rest
+ok 25 - still hydrostatic water and uniform air remain at rest
+  ---
+  duration_ms: 3.395685
+  type: 'test'
+  ...
+# Subtest: debug fields do not change the simulation and humidity displays exclude water
+ok 26 - debug fields do not change the simulation and humidity displays exclude water
+  ---
+  duration_ms: 3.450574
+  type: 'test'
+  ...
+# Subtest: an invalid compute result stops before scalar transport instead of contaminating fields
+ok 27 - an invalid compute result stops before scalar transport instead of contaminating fields
+  ---
+  duration_ms: 2.618887
+  type: 'test'
+  ...
+# Subtest: field route is isolated from historical scene imports
+ok 28 - field route is isolated from historical scene imports
+  ---
+  duration_ms: 0.305546
+  type: 'test'
+  ...
+# Subtest: 60 FPS pacing stays near 60 on fast displays, including 144 Hz
+ok 29 - 60 FPS pacing stays near 60 on fast displays, including 144 Hz
+  ---
+  duration_ms: 5.298599
+  type: 'test'
+  ...
+# Subtest: hard rendering frames are not slowed further by the FPS limit
+ok 30 - hard rendering frames are not slowed further by the FPS limit
+  ---
+  duration_ms: 0.899489
+  type: 'test'
+  ...
+# Subtest: a stall cannot trigger a burst of catch-up renders
+ok 31 - a stall cannot trigger a burst of catch-up renders
+  ---
+  duration_ms: 0.358054
+  type: 'test'
+  ...
+# Subtest: one frame stays pending until every pass completes, without blocking GL waits
+ok 32 - one frame stays pending until every pass completes, without blocking GL waits
+  ---
+  duration_ms: 3.53082
+  type: 'test'
+  ...
+# Subtest: a stalled earlier pass is identified instead of blaming the last submitted display shader
+ok 33 - a stalled earlier pass is identified instead of blaming the last submitted display shader
+  ---
+  duration_ms: 0.886779
+  type: 'test'
+  ...
+# Subtest: context loss stops polling and submission without querying or deleting lost resources
+ok 34 - context loss stops polling and submission without querying or deleting lost resources
+  ---
+  duration_ms: 0.404625
+  type: 'test'
+  ...
+# Subtest: queued simulation work completes before the frame starts; draw failures are not retried
+ok 35 - queued simulation work completes before the frame starts; draw failures are not retried
+  ---
+  duration_ms: 0.383428
+  type: 'test'
+  ...
+# Subtest: asynchronous physics cannot submit another step while a frame is pending
+ok 36 - asynchronous physics cannot submit another step while a frame is pending
+  ---
+  duration_ms: 0.363315
+  type: 'test'
+  ...
+# Subtest: CPU overlap cannot submit graphics or leak an asynchronous job into another frame
+ok 37 - CPU overlap cannot submit graphics or leak an asynchronous job into another frame
+  ---
+  duration_ms: 0.522477
+  type: 'test'
+  ...
+# Subtest: native frame submits first, runs CPU work before entering the blocking binding, and still waits for completion
+ok 38 - native frame submits first, runs CPU work before entering the blocking binding, and still waits for completion
+  ---
+  duration_ms: 5.16597
+  type: 'test'
+  ...
+# Subtest: browser completion order is unchanged without the native execution policy
+ok 39 - browser completion order is unchanged without the native execution policy
+  ---
+  duration_ms: 0.385126
+  type: 'test'
+  ...
+# Subtest: failed native completion stops the renderer before any subsequent GPU submission
+ok 40 - failed native completion stops the renderer before any subsequent GPU submission
+  ---
+  duration_ms: 0.381051
+  type: 'test'
+  ...
+# Subtest: native scheduling preserves the frame completion timeout
+ok 41 - native scheduling preserves the frame completion timeout
+  ---
+  duration_ms: 11.49009
+  type: 'test'
+  ...
+# Subtest: synchronous runtime exceptions become rejected completion promises
+ok 42 - synchronous runtime exceptions become rejected completion promises
+  ---
+  duration_ms: 0.266676
+  type: 'test'
+  ...
+# Subtest: native MRT splitting preserves every output, order and full precision
+ok 43 - native MRT splitting preserves every output, order and full precision
+  ---
+  duration_ms: 1.888461
+  type: 'test'
+  ...
+# Subtest: native controls emit the existing browser input/change handlers once
+ok 44 - native controls emit the existing browser input/change handlers once
+  ---
+  duration_ms: 20.169657
+  type: 'test'
+  ...
+# Subtest: native canvas, mouse lock and resizing keep shared control semantics
+ok 45 - native canvas, mouse lock and resizing keep shared control semantics
+  ---
+  duration_ms: 0.811096
+  type: 'test'
+  ...
+# Subtest: native presentation explicitly retires swapchain images once per frame
+ok 46 - native presentation explicitly retires swapchain images once per frame
+  ---
+  duration_ms: 2.066422
+  type: 'test'
+  ...
+# Subtest: outdated native surfaces retry once; other errors and repeated failures propagate
+ok 47 - outdated native surfaces retry once; other errors and repeated failures propagate
+  ---
+  duration_ms: 0.449869
+  type: 'test'
+  ...
+# Subtest: macOS visibility ignores unrelated flags and app focus; Windows minimize suspends
+ok 48 - macOS visibility ignores unrelated flags and app focus; Windows minimize suspends
+  ---
+  duration_ms: 1.487023
+  type: 'test'
+  ...
+# Subtest: hidden in-flight frame uses one temporary image, no native acquire or present, then resumes directly
+ok 49 - hidden in-flight frame uses one temporary image, no native acquire or present, then resumes directly
+  ---
+  duration_ms: 1.80295
+  type: 'test'
+  ...
+# Subtest: occlusion during failed acquisition avoids an inappropriate reconfigure retry
+ok 50 - occlusion during failed acquisition avoids an inappropriate reconfigure retry
+  ---
+  duration_ms: 0.331496
+  type: 'test'
+  ...
+# Subtest: occlusion during reconfigure or the single retry is bounded
+ok 51 - occlusion during reconfigure or the single retry is bounded
+  ---
+  duration_ms: 0.418152
+  type: 'test'
+  ...
+# Subtest: visible repeated surface failure and device errors still stop immediately
+ok 52 - visible repeated surface failure and device errors still stop immediately
+  ---
+  duration_ms: 0.754507
+  type: 'test'
+  ...
+# Subtest: present failure retires its image; disposed or outstanding surfaces cannot be reused/reconfigured
+ok 53 - present failure retires its image; disposed or outstanding surfaces cannot be reused/reconfigured
+  ---
+  duration_ms: 0.442116
+  type: 'test'
+  ...
+# Subtest: hidden allocation remains bounded and rejects invalid dimensions
+ok 54 - hidden allocation remains bounded and rejects invalid dimensions
+  ---
+  duration_ms: 0.347167
+  type: 'test'
+  ...
+# Subtest: real scene flush can become occluded while awaiting a pipeline without failing or losing its CPU step
+ok 55 - real scene flush can become occluded while awaiting a pipeline without failing or losing its CPU step
+  ---
+  duration_ms: 2.369946
+  type: 'test'
+  ...
+# Subtest: pass grouping preserves clear order, target changes and transfer barriers
+ok 56 - pass grouping preserves clear order, target changes and transfer barriers
+  ---
+  duration_ms: 2.552273
+  type: 'test'
+  ...
+# Subtest: later depth-only clear cannot discard earlier draws or change color load
+ok 57 - later depth-only clear cannot discard earlier draws or change color load
+  ---
+  duration_ms: 0.225285
+  type: 'test'
+  ...
+# Subtest: native R/RG rows retain exact signed, tiny and large values and padding
+ok 58 - native R/RG rows retain exact signed, tiny and large values and padding
+  ---
+  duration_ms: 2.014017
+  type: 'test'
+  ...
+# Subtest: unavailable timing allocates nothing and leaves execution usable
+ok 59 - unavailable timing allocates nothing and leaves execution usable
+  ---
+  duration_ms: 0.434192
+  type: 'test'
+  ...
+# Subtest: timing reads asynchronously with two slots, never waits for a busy slot
+ok 60 - timing reads asynchronously with two slots, never waits for a busy slot
+  ---
+  duration_ms: 3.338977
+  type: 'test'
+  ...
+# Subtest: counter reset drops the sample; mapping failure disables only diagnostics
+ok 61 - counter reset drops the sample; mapping failure disables only diagnostics
+  ---
+  duration_ms: 0.605813
+  type: 'test'
+  ...
+# Subtest: implausible counter scale is rejected without disabling future samples
+ok 62 - implausible counter scale is rejected without disabling future samples
+  ---
+  duration_ms: 0.382913
+  type: 'test'
+  ...
+# Subtest: query capacity is bounded and partial results are explicitly marked
+ok 63 - query capacity is bounded and partial results are explicitly marked
+  ---
+  duration_ms: 0.399653
+  type: 'test'
+  ...
+# Subtest: overlapping and reordered pass intervals retain per-pass cost without double-counting span
+ok 64 - overlapping and reordered pass intervals retain per-pass cost without double-counting span
+  ---
+  duration_ms: 0.546536
+  type: 'test'
+  ...
+# Subtest: diagnostic allocation failure does not take down rendering
+ok 65 - diagnostic allocation failure does not take down rendering
+  ---
+  duration_ms: 0.453404
+  type: 'test'
+  ...
+# Subtest: shared uniform layout preserves scalar / vec3 packing, matrix columns and array stride
+ok 66 - shared uniform layout preserves scalar / vec3 packing, matrix columns and array stride
+  ---
+  duration_ms: 2.744884
+  type: 'test'
+  ...
+# Subtest: draw snapshots cannot observe later shared-uniform mutations
+ok 67 - draw snapshots cannot observe later shared-uniform mutations
+  ---
+  duration_ms: 0.242378
+  type: 'test'
+  ...
+# Subtest: translation splits compound varying declarations without overlapping locations
+ok 68 - translation splits compound varying declarations without overlapping locations
+  ---
+  duration_ms: 6.709085
+  type: 'test'
+  ...
+# Subtest: first draw includes loop uniforms introduced by shader compilation hooks
+ok 69 - first draw includes loop uniforms introduced by shader compilation hooks
+  ---
+  duration_ms: 3.462525
+  type: 'test'
+  ...
+# Subtest: translated sampler helper stays at the texture call site
+ok 70 - translated sampler helper stays at the texture call site
+  ---
+  duration_ms: 1.672533
+  type: 'test'
+  ...
+# Subtest: completion rejects overlapping frames and stops on queue failure
+ok 71 - completion rejects overlapping frames and stops on queue failure
+  ---
+  duration_ms: 1.875237
+  type: 'test'
+  ...
+# Subtest: disposing compute fallback never destroys a shared rendering device
+ok 72 - disposing compute fallback never destroys a shared rendering device
+  ---
+  duration_ms: 0.308517
+  type: 'test'
+  ...
+# Subtest: completion retires only resources owned by that submission
+ok 73 - completion retires only resources owned by that submission
+  ---
+  duration_ms: 1.401635
+  type: 'test'
+  ...
+# Subtest: oversized scene allocation is rejected before touching the device
+ok 74 - oversized scene allocation is rejected before touching the device
+  ---
+  duration_ms: 0.578949
+  type: 'test'
+  ...
+# Subtest: replaced geometry releases buffers only after the last shared owner
+ok 75 - replaced geometry releases buffers only after the last shared owner
+  ---
+  duration_ms: 0.74282
+  type: 'test'
+  ...
+# Subtest: unrelated shared texture bindings do not create shader variants
+ok 76 - unrelated shared texture bindings do not create shader variants
+  ---
+  duration_ms: 0.898815
+  type: 'test'
+  ...
+1..76
+# tests 76
+# suites 0
+# pass 76
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1452.671742

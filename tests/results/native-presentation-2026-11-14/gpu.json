@@ -1,0 +1,258 @@
+{
+  "checks": [
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    },
+    {
+      "hidden": false,
+      "presented": true,
+      "pixel": [
+        191,
+        128,
+        64,
+        255
+      ]
+    },
+    {
+      "hidden": true,
+      "presented": false,
+      "pixel": [
+        191,
+        127,
+        63,
+        255
+      ]
+    }
+  ],
+  "statuses": [],
+  "adapter": {},
+  "interactive": false,
+  "pass": true,
+  "presentation": {
+    "acquired": 12,
+    "presented": 12,
+    "skipped": 12,
+    "reconfigures": 0,
+    "temporaryBytes": 0,
+    "peakTemporaryBytes": 1024000
+  },
+  "deviceLoss": null,
+  "validation": null
+}

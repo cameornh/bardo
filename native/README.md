@@ -42,6 +42,14 @@ shader preflight and completion guards remain. The Mac bridge drains Cocoa
 objects between event-loop turns and explicitly retires presented textures.
 These protections do not guarantee immunity to driver/runtime bugs.
 
+If a window becomes covered while a frame is already being prepared, that frame
+finishes into a temporary image instead of acquiring an unavailable window image.
+The image is released after completion; subsequent frames pause until the window
+is visible. Visible frames still render directly, without a copy pass. Repeated
+visible-surface failures and device errors still stop rendering. Native reports
+distinguish `rendererFailed` from actual `deviceLoss` / `contextLost`, and record
+bounded visibility events and presentation counts.
+
 ## Reproducible checks
 
 - `npm run test:native` — controls, input, surface lifetime, MRT planning and
@@ -62,6 +70,16 @@ These protections do not guarantee immunity to driver/runtime bugs.
   results in `.native/waits-parity.json` and `.native/waits-parity.png`.
 - `tests/native-host-browser.html?renderer=webgpu&backend=safe&paused=1` — matching
   browser live-loop comparison; the button runs 48 frames then pauses.
+- `.native/tools/deno run --config native/deno.json --allow-read --allow-write=.native --allow-env --allow-sys --allow-ffi native/surface-lifecycle-check.js`
+  — 24 tiny clear/readback frames alternating visible and temporary images on
+  the real device. Optional `--interactive` gives 60 seconds to cover and uncover
+  the test window; an unobserved interaction is reported as incomplete, not a
+  device loss. Results live in `.native/surface-lifecycle/`.
+- The same Deno command ending in `native/presentation-check.js` runs a full-scene
+  frozen-image comparison and 24 fixed physics steps with injected visibility
+  changes, offscreen. Add `--window` for 96 ordinary windowed playback frames,
+  including wind, rain, two objects and a sand carve. That separate run stops
+  after 90 seconds if the window stays hidden. It does not automate OS visibility.
 
 On Windows use `.native/tools/deno.exe` in place of `.native/tools/deno`.
 Do not run native and browser GPU benchmarks concurrently.

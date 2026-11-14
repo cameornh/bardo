@@ -1,0 +1,27 @@
+{
+  "checks": [
+    {
+      "label": "hidden",
+      "maxAbsoluteRGB": 0,
+      "meanAbsoluteRGB": 0
+    },
+    {
+      "label": "restored",
+      "maxAbsoluteRGB": 0,
+      "meanAbsoluteRGB": 0
+    }
+  ],
+  "backend": "native wgpu / CPU physics",
+  "visibility": "injected signal; real GPU textures, not OS hide/restore",
+  "steps": 24,
+  "simulation": 1.5999999999999999,
+  "presentation": {
+    "acquired": 19,
+    "presented": 19,
+    "skipped": 9,
+    "reconfigures": 0,
+    "temporaryBytes": 0,
+    "peakTemporaryBytes": 1024000
+  },
+  "pass": true
+}
