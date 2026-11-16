@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@babylonjs/core": "9.35.0",
+    "@dimforge/rapier3d-compat": "0.21.0",
     "@webgpu/glslang": "0.0.15",
     "three": "^0.180.0"
   },

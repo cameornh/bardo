@@ -1,0 +1,226 @@
+TAP version 13
+# Subtest: old libraries migrate liquidity without changing geometry, pose keys or material references
+ok 1 - old libraries migrate liquidity without changing geometry, pose keys or material references
+  ---
+  duration_ms: 8.909296
+  type: 'test'
+  ...
+# Subtest: joint graph rejects cycles, invalid anchors, dangling parents and invalid forces
+ok 2 - joint graph rejects cycles, invalid anchors, dangling parents and invalid forces
+  ---
+  duration_ms: 3.227806
+  type: 'test'
+  ...
+# Subtest: joint retention decreases continuously to zero with liquidity
+ok 3 - joint retention decreases continuously to zero with liquidity
+  ---
+  duration_ms: 0.788952
+  type: 'test'
+  ...
+# Subtest: force keys interpolate signed loads and loop without reading pose targets
+ok 4 - force keys interpolate signed loads and loop without reading pose targets
+  ---
+  duration_ms: 0.761149
+  type: 'test'
+  ...
+# Subtest: collision proxy uses exact primitives and retains the arch opening independently of render spacing
+ok 5 - collision proxy uses exact primitives and retains the arch opening independently of render spacing
+  ---
+  duration_ms: 46.947946
+  type: 'test'
+  ...
+# Subtest: force magnitude and duration produce expected momentum; pulse ends exactly
+ok 6 - force magnitude and duration produce expected momentum; pulse ends exactly
+  ---
+  duration_ms: 457.239659
+  type: 'test'
+  ...
+# Subtest: off-centre drag forces produce angular response without writing authoring data
+ok 7 - off-centre drag forces produce angular response without writing authoring data
+  ---
+  duration_ms: 12.025586
+  type: 'test'
+  ...
+# Subtest: gravity settles bodies and rigid contacts transfer momentum
+ok 8 - gravity settles bodies and rigid contacts transfer momentum
+  ---
+  duration_ms: 50.614836
+  type: 'test'
+  ...
+# Subtest: all joint types stay finite under gravity and repeated impulses, including rotated rest frames
+ok 9 - all joint types stay finite under gravity and repeated impulses, including rotated rest frames
+  ---
+  duration_ms: 288.084066
+  type: 'test'
+  ...
+# Subtest: elasticity reduces deflection and angular looseness permits more deflection
+ok 10 - elasticity reduces deflection and angular looseness permits more deflection
+  ---
+  duration_ms: 62.202538
+  type: 'test'
+  ...
+# Subtest: animation is open-loop torque: an external nudge persists instead of snapping back to a keyed pose
+ok 11 - animation is open-loop torque: an external nudge persists instead of snapping back to a keyed pose
+  ---
+  duration_ms: 131.341553
+  type: 'test'
+  ...
+# Subtest: freely flowing materials never create a rigid body/joint and zero-strength material cannot attach
+ok 12 - freely flowing materials never create a rigid body/joint and zero-strength material cannot attach
+  ---
+  duration_ms: 3.226927
+  type: 'test'
+  ...
+# Subtest: fixed stepping respects earned wall time and clamps background catchup
+ok 13 - fixed stepping respects earned wall time and clamps background catchup
+  ---
+  duration_ms: 2.602806
+  type: 'test'
+  ...
+# Subtest: joint force animation applies equal and opposite linear loads without a pose motor
+ok 14 - joint force animation applies equal and opposite linear loads without a pose motor
+  ---
+  duration_ms: 10.465563
+  type: 'test'
+  ...
+# Subtest: repeated articulation nudges remain finite in a bounded ten-second soak
+ok 15 - repeated articulation nudges remain finite in a bounded ten-second soak
+  ---
+  duration_ms: 81.984256
+  type: 'test'
+  ...
+# Subtest: starter library round-trips without losing parts, material properties, animation or placements
+ok 16 - starter library round-trips without losing parts, material properties, animation or placements
+  ---
+  duration_ms: 10.78538
+  type: 'test'
+  ...
+# Subtest: import validation rejects unsupported, nonfinite, oversized, and dangling data before save
+ok 17 - import validation rejects unsupported, nonfinite, oversized, and dangling data before save
+  ---
+  duration_ms: 5.325456
+  type: 'test'
+  ...
+# Subtest: CSG carve makes a real opening and paint changes material without changing distances
+ok 18 - CSG carve makes a real opening and paint changes material without changing distances
+  ---
+  duration_ms: 0.611446
+  type: 'test'
+  ...
+# Subtest: ellipsoid, capsule and box distances are finite with correct boundary signs
+ok 19 - ellipsoid, capsule and box distances are finite with correct boundary signs
+  ---
+  duration_ms: 0.300208
+  type: 'test'
+  ...
+# Subtest: grid budgets grow spacing while retaining the full sculpt bounds
+ok 20 - grid budgets grow spacing while retaining the full sculpt bounds
+  ---
+  duration_ms: 0.463412
+  type: 'test'
+  ...
+# Subtest: surface extraction produces bounded outward normals and material tags independent of camera
+ok 21 - surface extraction produces bounded outward normals and material tags independent of camera
+  ---
+  duration_ms: 101.681032
+  type: 'test'
+  ...
+# Subtest: animation interpolates shortest rotation and scales, clamps endpoints, replaces keys
+ok 22 - animation interpolates shortest rotation and scales, clamps endpoints, replaces keys
+  ---
+  duration_ms: 1.036825
+  type: 'test'
+  ...
+# Subtest: undo and redo restore geometry, materials and placements by value
+ok 23 - undo and redo restore geometry, materials and placements by value
+  ---
+  duration_ms: 2.70585
+  type: 'test'
+  ...
+# Subtest: studio dispatch leaves beach and historical startup untouched
+ok 24 - studio dispatch leaves beach and historical startup untouched
+  ---
+  duration_ms: 0.823313
+  type: 'test'
+  ...
+# Subtest: browser fallback preserves old namespace and a previous save
+ok 25 - browser fallback preserves old namespace and a previous save
+  ---
+  duration_ms: 2.626102
+  type: 'test'
+  ...
+# Subtest: disk saves are serialized atomically, validate payloads and reject other origins
+ok 26 - disk saves are serialized atomically, validate payloads and reject other origins
+  ---
+  duration_ms: 41.567309
+  type: 'test'
+  ...
+# Subtest: disk save survives a full or unavailable browser storage quota
+ok 27 - disk save survives a full or unavailable browser storage quota
+  ---
+  duration_ms: 1.943365
+  type: 'test'
+  ...
+# Subtest: editing during backend startup uses CPU until GPU validation completes
+ok 28 - editing during backend startup uses CPU until GPU validation completes
+  ---
+  duration_ms: 10.478813
+  type: 'test'
+  ...
+# Subtest: a sampled endpoint cannot override the time of a newly recorded key
+ok 29 - a sampled endpoint cannot override the time of a newly recorded key
+  ---
+  duration_ms: 0.301138
+  type: 'test'
+  ...
+# Subtest: large imported worlds are rejected before unbounded drawing or baking
+ok 30 - large imported worlds are rejected before unbounded drawing or baking
+  ---
+  duration_ms: 0.949166
+  type: 'test'
+  ...
+# Subtest: module failures and async scene initialization failures reach visible startup diagnostics
+ok 31 - module failures and async scene initialization failures reach visible startup diagnostics
+  ---
+  duration_ms: 5.586057
+  type: 'test'
+  ...
+# Subtest: report mode never imports a scene or requests graphics
+ok 32 - report mode never imports a scene or requests graphics
+  ---
+  duration_ms: 0.980507
+  type: 'test'
+  ...
+# Subtest: root and explicit sand URLs start the RTX app, while safe and snapshot URLs retain their implementations
+ok 33 - root and explicit sand URLs start the RTX app, while safe and snapshot URLs retain their implementations
+  ---
+  duration_ms: 2.926451
+  type: 'test'
+  ...
+# Subtest: classic bootstrap preserves the last operation across a page reload before any module starts
+ok 34 - classic bootstrap preserves the last operation across a page reload before any module starts
+  ---
+  duration_ms: 6.500824
+  type: 'test'
+  ...
+# Subtest: unhandled early promise rejection is shown and preserved even when the scene replaces the body
+ok 35 - unhandled early promise rejection is shown and preserved even when the scene replaces the body
+  ---
+  duration_ms: 1.835631
+  type: 'test'
+  ...
+# Subtest: finished startup stops recording drawing passes and dismisses its panel
+ok 36 - finished startup stops recording drawing passes and dismisses its panel
+  ---
+  duration_ms: 1.634584
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3745.684689
