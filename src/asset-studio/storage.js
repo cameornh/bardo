@@ -1,0 +1,9 @@
+import {STORAGE_KEY,seedLibrary,validateLibrary,clone} from './model.js';
+export class LibraryStore{
+ constructor(storage=globalThis.localStorage,fetcher=globalThis.fetch){this.storage=storage;this.fetch=(...args)=>fetcher(...args);this.disk=false;}
+ async load(){let local=null,warning='';try{const raw=this.storage.getItem(STORAGE_KEY);if(raw)local=validateLibrary(JSON.parse(raw));}catch(e){warning='Browser save could not be read; retained unchanged. '+e.message;}
+ try{const r=await this.fetch('/__asset-studio/library');if(r.ok&&r.headers.get('content-type')?.includes('application/json')){const data=await r.json();if(data.library){const library=validateLibrary(data.library);this.disk=true;return {library,message:'Loaded local library from disk.'};}this.disk=true;}}catch(e){warning+=' Disk save unavailable: '+e.message;}
+ return {library:local||seedLibrary(),message:warning||(local?'Loaded browser library.':'New local library.')};}
+ async save(library){validateLibrary(library);const text=JSON.stringify(library);let browserSaved=false,warning='';try{const old=this.storage.getItem(STORAGE_KEY);if(old)this.storage.setItem(STORAGE_KEY+'.backup',old);this.storage.setItem(STORAGE_KEY,text);browserSaved=true;}catch(e){warning=e.message;}if(this.disk){const r=await this.fetch('/__asset-studio/library',{method:'PUT',headers:{'Content-Type':'application/json'},body:text});if(!r.ok)throw Error((browserSaved?'Browser save kept; ':'')+'disk save failed ('+r.status+')');return browserSaved?'Saved locally to disk and browser.':'Saved locally to disk. Browser backup unavailable: '+warning;}if(!browserSaved)throw Error('Save unavailable: '+warning+'. Export JSON to keep your edits.');return 'Saved in this browser. Export JSON for a portable backup.';}
+ async restoreBackup(){const data=this.storage.getItem(STORAGE_KEY+'.backup');if(!data)throw Error('No browser backup');return clone(validateLibrary(JSON.parse(data)));}
+}

@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: starter library round-trips without losing parts, material properties, animation or placements
+ok 1 - starter library round-trips without losing parts, material properties, animation or placements
+  ---
+  duration_ms: 16.923517
+  type: 'test'
+  ...
+# Subtest: import validation rejects unsupported, nonfinite, oversized, and dangling data before save
+ok 2 - import validation rejects unsupported, nonfinite, oversized, and dangling data before save
+  ---
+  duration_ms: 15.649872
+  type: 'test'
+  ...
+# Subtest: CSG carve makes a real opening and paint changes material without changing distances
+ok 3 - CSG carve makes a real opening and paint changes material without changing distances
+  ---
+  duration_ms: 1.096448
+  type: 'test'
+  ...
+# Subtest: ellipsoid, capsule and box distances are finite with correct boundary signs
+ok 4 - ellipsoid, capsule and box distances are finite with correct boundary signs
+  ---
+  duration_ms: 0.446214
+  type: 'test'
+  ...
+# Subtest: grid budgets grow spacing while retaining the full sculpt bounds
+ok 5 - grid budgets grow spacing while retaining the full sculpt bounds
+  ---
+  duration_ms: 1.48227
+  type: 'test'
+  ...
+# Subtest: surface extraction produces bounded outward normals and material tags independent of camera
+ok 6 - surface extraction produces bounded outward normals and material tags independent of camera
+  ---
+  duration_ms: 188.848312
+  type: 'test'
+  ...
+# Subtest: animation interpolates shortest rotation and scales, clamps endpoints, replaces keys
+ok 7 - animation interpolates shortest rotation and scales, clamps endpoints, replaces keys
+  ---
+  duration_ms: 1.233337
+  type: 'test'
+  ...
+# Subtest: undo and redo restore geometry, materials and placements by value
+ok 8 - undo and redo restore geometry, materials and placements by value
+  ---
+  duration_ms: 1.708295
+  type: 'test'
+  ...
+# Subtest: studio dispatch leaves beach and historical startup untouched
+ok 9 - studio dispatch leaves beach and historical startup untouched
+  ---
+  duration_ms: 1.589104
+  type: 'test'
+  ...
+# Subtest: browser fallback preserves old namespace and a previous save
+ok 10 - browser fallback preserves old namespace and a previous save
+  ---
+  duration_ms: 5.444224
+  type: 'test'
+  ...
+# Subtest: disk saves are serialized atomically, validate payloads and reject other origins
+ok 11 - disk saves are serialized atomically, validate payloads and reject other origins
+  ---
+  duration_ms: 177.98484
+  type: 'test'
+  ...
+# Subtest: disk save survives a full or unavailable browser storage quota
+ok 12 - disk save survives a full or unavailable browser storage quota
+  ---
+  duration_ms: 4.364745
+  type: 'test'
+  ...
+# Subtest: editing during backend startup uses CPU until GPU validation completes
+ok 13 - editing during backend startup uses CPU until GPU validation completes
+  ---
+  duration_ms: 25.028017
+  type: 'test'
+  ...
+# Subtest: a sampled endpoint cannot override the time of a newly recorded key
+ok 14 - a sampled endpoint cannot override the time of a newly recorded key
+  ---
+  duration_ms: 1.02352
+  type: 'test'
+  ...
+# Subtest: large imported worlds are rejected before unbounded drawing or baking
+ok 15 - large imported worlds are rejected before unbounded drawing or baking
+  ---
+  duration_ms: 3.68398
+  type: 'test'
+  ...
+# Subtest: module failures and async scene initialization failures reach visible startup diagnostics
+ok 16 - module failures and async scene initialization failures reach visible startup diagnostics
+  ---
+  duration_ms: 3.924158
+  type: 'test'
+  ...
+# Subtest: report mode never imports a scene or requests graphics
+ok 17 - report mode never imports a scene or requests graphics
+  ---
+  duration_ms: 0.513315
+  type: 'test'
+  ...
+# Subtest: root and explicit sand URLs start the RTX app, while safe and snapshot URLs retain their implementations
+ok 18 - root and explicit sand URLs start the RTX app, while safe and snapshot URLs retain their implementations
+  ---
+  duration_ms: 2.070025
+  type: 'test'
+  ...
+# Subtest: classic bootstrap preserves the last operation across a page reload before any module starts
+ok 19 - classic bootstrap preserves the last operation across a page reload before any module starts
+  ---
+  duration_ms: 15.184573
+  type: 'test'
+  ...
+# Subtest: unhandled early promise rejection is shown and preserved even when the scene replaces the body
+ok 20 - unhandled early promise rejection is shown and preserved even when the scene replaces the body
+  ---
+  duration_ms: 2.772267
+  type: 'test'
+  ...
+# Subtest: finished startup stops recording drawing passes and dismisses its panel
+ok 21 - finished startup stops recording drawing passes and dismisses its panel
+  ---
+  duration_ms: 3.293933
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 700.861734

@@ -3,3 +3,6 @@ dist/
 .DS_Store
 .startup/
 .native/
+
+# Private authoring library; export reviewed assets explicitly.
+.local/asset-studio/

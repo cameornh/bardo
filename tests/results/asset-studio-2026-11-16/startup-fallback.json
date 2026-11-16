@@ -1,0 +1,10 @@
+{
+  "diagnostics": "CPU worker reference\nWebGL 2 Gaussian rendering · 60 FPS cap\nLast bake: 70.3 ms · 988 splats\nSpacing: 0.080 m\nNo physics simulation in this authoring test.\nAnimation transforms: CPU. Sculpt grid: selected backend.",
+  "notice": "Saved locally to disk and browser.",
+  "rates": "16.5 FPS · Asset editor · 2192 Gaussian quads",
+  "validation": {
+    "fallback": true,
+    "pass": false,
+    "reason": "GPU device timed out; compute stopped"
+  }
+}

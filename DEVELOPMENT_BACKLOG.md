@@ -1,6 +1,6 @@
 # Development backlog
 
-Updated: 2026-11-14. This is working memory for future development, not a promise to implement every idea. Read alongside `AGENTS.md`. Keep the highest-value next experiment near the top; record evidence before promoting an optimization. Remove obsolete leads rather than accumulating permanent wish lists.
+Updated: 2026-11-16. This is working memory for future development, not a promise to implement every idea. Read alongside `AGENTS.md`. Keep the highest-value next experiment near the top; record evidence before promoting an optimization. Remove obsolete leads rather than accumulating permanent wish lists.
 
 ## Constraints and preferences to preserve
 
@@ -10,6 +10,14 @@ Updated: 2026-11-14. This is working memory for future development, not a promis
 - Use real covariance-projected Gaussians and SH environment response. Physics must not depend on the camera. World resolution is relative to the constant-size player; enlarging the beach adds cells, not larger cells. Boulders keep their size and spacing.
 - The user likes sparse, noisy rendering and tolerates localized flicker. Avoid full-screen flicker, exposure flashes, abrupt LOD bands, or camera-driven simulation changes. Preserve the cohesive visual appearance.
 - Keep controls functional. Let the user lead feature selection; suggestions below are optional, not authorization for unrelated feature work.
+
+## Current user-directed work — asset / material studio
+
+Performance experiments are temporarily paused at the user's request. The separate `?scene=asset-studio` authoring test now implements constructive sculpting, material painting, named parts/pivots, keyframe transforms, editable material properties, library placements, an unbounded ground material preview, local autosave and portable JSON libraries. See [ASSET_STUDIO_PLAN.md](ASSET_STUDIO_PLAN.md) for the schema, boundaries, inspiration and ordered follow-ups. Physical properties beyond appearance are stored for future coupling, not simulated here. The beach and historical test implementations remain unchanged.
+
+**Studio validation (November 16):** 21 tests and browser/native builds pass. Four real-GPU fixtures match 3,121 CPU samples (max distance error 2.38e-7 m; material IDs exact). Sculpt/paint, part keys, gizmo placement, material-ground changes, undo, export/import and disk reload were checked in the local preview. A later GPU-device acquisition timeout exercised the CPU fallback without stopping the editor; retain that availability limitation. No performance gain or new material physics is claimed. [Evidence and limits](tests/results/asset-studio-2026-11-16/report.md).
+
+**Next studio leads:** small-feature/coverage refinement and workflow feedback; symmetry/smoothing/brush strength; selective dependency-aware asset exports and repo promotion; derived collision proxies and material integration; sparse editable field bricks/incremental bakes; part hierarchy and quaternion clips/rigging; native wgpu studio hosting; temperature/moisture property curves with numerical simulation tests. The current native host still starts the beach. Do not silently claim native studio parity or active combustion/elasticity.
 
 ## Priority 0 — correctness and stability
 
@@ -108,7 +116,7 @@ These are ongoing intentions and regression requirements. Historical requests ar
 ## Optional product/development suggestions
 
 - A small saved workload suite (calm shore, storm, rain on glass, edited terrain, busy objects) with per-stage timing and before/after image export would make future tuning more reliable. Keep it behind QA controls.
-- A future material parameter inspector would make the generalized-property direction easier to tune. Avoid building a broad editor until the underlying properties are consistent and the user wants it.
+- The new isolated studio now provides a material parameter editor. Next integration should distinguish saved definitions from per-parcel state and validate physical coupling before presenting stored parameters as active behavior.
 
 ## Evidence and maintenance
 

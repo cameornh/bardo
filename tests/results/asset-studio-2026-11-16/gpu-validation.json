@@ -1,0 +1,10 @@
+{
+  "observedIn": "Codex in-app browser, WebGPU bounded sculpt sampler",
+  "pass": true,
+  "maximumError": 2.384185791015625e-7,
+  "materialErrors": 0,
+  "points": 3121,
+  "cases": 4,
+  "includesCrossBatchCarry": true,
+  "note": "Observed during this development pass. Later device acquisition timed out; the final preview continued on the CPU fallback. No claim that WebGPU is currently available."
+}

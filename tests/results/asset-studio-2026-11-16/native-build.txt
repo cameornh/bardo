@@ -1,0 +1,37 @@
+
+> bardo-material-field@0.1.0 build:native
+> node native/build.mjs
+
+
+  .native/generated/scene.mjs  2.6mb ⚠️
+
+⚡ Done in 226ms
+
+  .native/generated/compiler-worker.mjs  1.3mb ⚠️
+
+⚡ Done in 54ms
+
+  .native/generated/representation.mjs  601.2kb
+
+⚡ Done in 109ms
+
+  .native/generated/particle-compaction.mjs  582.7kb
+
+⚡ Done in 149ms
+
+  .native/generated/collision-mesh.worker.js  6.2kb
+  .native/generated/sand-bricks.worker.js     1.4kb
+
+⚡ Done in 13ms
+
+  .native/generated/empty-space.mjs  434.1kb
+
+⚡ Done in 158ms
+
+  .native/generated/water-consumers.mjs  448.8kb
+
+⚡ Done in 116ms
+
+  .native/generated/field-batch.mjs  32.4kb
+
+⚡ Done in 12ms
