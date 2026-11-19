@@ -1,0 +1,7 @@
+{
+  "pass": false,
+  "name": "studio",
+  "stage": "Compiling studio-ground",
+  "error": "Error: Shader compilation timed out: studio-ground. No scene draw was submitted for this shader.\n    at prepareShaderJobs (http://127.0.0.1:5173/src/rtx-sand-lab/shader-startup.js:19:38)\n    at async studioScene (http://127.0.0.1:5173/tests/scene-performance-studio.js?t=1795120133740:23:38)\n    at async studioScene (http://127.0.0.1:5173/tests/cpu-spatial-studio.js:5:14)\n    at async run (http://127.0.0.1:5173/tests/cpu-spatial-performance.js:12:9)",
+  "results": []
+}

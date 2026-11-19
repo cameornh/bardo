@@ -1,0 +1,203 @@
+{
+  "cache": {
+    "hits": 146560,
+    "misses": 18088,
+    "size": 323,
+    "resets": 56
+  },
+  "steps": 48,
+  "markers": 3024,
+  "meanStepMs": 47.867920666666656,
+  "stages": {
+    "prepareMs": 8.862764916666672,
+    "scalarMs": 0.8129863124999895,
+    "gatherMs": 0.442090333333347,
+    "neighborMs": 2.8663353125000057,
+    "surfaceMs": 6.2397997291666725,
+    "transportMs": 2.8334892500000017
+  },
+  "detail": {
+    "neighbors.grid": {
+      "ms": 8.810806000001548,
+      "calls": 48,
+      "meanMs": 0.1835584583333656
+    },
+    "neighbors.pairs": {
+      "ms": 126.94679599999995,
+      "calls": 48,
+      "meanMs": 2.6447249166666658
+    },
+    "contact.pack": {
+      "ms": 4.207493000000454,
+      "calls": 48,
+      "meanMs": 0.08765610416667613
+    },
+    "contact.boundaryBatch": {
+      "ms": 99.39629299999854,
+      "calls": 48,
+      "meanMs": 2.070756104166636
+    },
+    "contact.activePairs": {
+      "ms": 86.41549599999848,
+      "calls": 48,
+      "meanMs": 1.8003228333333017
+    },
+    "contact.activeDensity": {
+      "ms": 1.4208179999988033,
+      "calls": 48,
+      "meanMs": 0.02960037499997507
+    },
+    "contact.correction": {
+      "ms": 11.871084999998857,
+      "calls": 48,
+      "meanMs": 0.2473142708333095
+    },
+    "contact.contactBatch": {
+      "ms": 19.201224000001275,
+      "calls": 48,
+      "meanMs": 0.40002550000002657
+    }
+  },
+  "top": [
+    [
+      "wasm-function[0] wasm/43bb2a62:1",
+      129.097
+    ],
+    [
+      "wasm-function[0] wasm/b926e1e6:1",
+      112.46400000000003
+    ],
+    [
+      "wasm-function[1] wasm/b160b71e:1",
+      92.95600000000005
+    ],
+    [
+      "(garbage collector) :0",
+      92.80100000000003
+    ],
+    [
+      "heightCached sand-lab/sand.js:47",
+      91.56000000000003
+    ],
+    [
+      "wasm-function[1] wasm/6dbfe826:1",
+      86.11500000000001
+    ],
+    [
+      "wasm-function[0] wasm/a031abca:1",
+      70.36999999999999
+    ],
+    [
+      "wasm-function[9] wasm/6dbfe826:1",
+      69.07200000000002
+    ],
+    [
+      "releaseDeposits sand-lab/water-lab-rain.js:167",
+      65.726
+    ],
+    [
+      "post node:inspector:118",
+      64.387
+    ],
+    [
+      "update batch/grid.js:27",
+      55.52200000000001
+    ],
+    [
+      "surfaceConstraints fields/surface-constraints.js:7",
+      54.76300000000001
+    ],
+    [
+      "rebuild research/fixed-topology.js:42",
+      53.08600000000001
+    ],
+    [
+      "distance sand-lab/sand-air-geometry.js:14",
+      49.18900000000001
+    ],
+    [
+      "numericHierarchy research/fixed-topology.js:7",
+      47.071999999999996
+    ],
+    [
+      "sample sand-lab/fluid-sampling.js:18",
+      44.99999999999999
+    ],
+    [
+      "wasm-function[10] wasm/6dbfe826:1",
+      41.445
+    ],
+    [
+      "wasm-function[0] wasm/92e4e59e:1",
+      32.92100000000001
+    ],
+    [
+      "stepParcels sand-lab/sand.js:281",
+      28.285999999999998
+    ],
+    [
+      "solid sand-lab/lab.js:48",
+      27.421
+    ],
+    [
+      "predictBeach sand-lab/beach-predict.js:6",
+      27.019
+    ],
+    [
+      "windNoise src/beach-wind.js:5",
+      26.408
+    ],
+    [
+      "insert sand-lab/water-lab-rain.js:177",
+      25.975
+    ],
+    [
+      "height sand-lab/sand.js:40",
+      25.940999999999995
+    ],
+    [
+      "air.sampleGrid fields/beach-fields.js:25",
+      24.034000000000002
+    ],
+    [
+      "query rtx-sand-lab/parcel-query-tree.js:25",
+      22.775
+    ],
+    [
+      "wasm-function[2] wasm/a031abca:1",
+      22.253999999999998
+    ],
+    [
+      "footprint sand-lab/sand.js:72",
+      21.089999999999996
+    ],
+    [
+      "SandAirGeometry.solid sand-lab/sand-air-geometry.js:9",
+      20.872999999999998
+    ],
+    [
+      "shapeRadius sand-lab/sand-shape.js:2",
+      20.754
+    ],
+    [
+      "query sand-lab/spatial-bounds.js:18",
+      20.694
+    ],
+    [
+      "solid fields/beach-fields.js:45",
+      20.345
+    ],
+    [
+      "wasm-function[1] wasm/92e4e59e:1",
+      20.079
+    ],
+    [
+      "step sand-lab/water-lab-rain.js:265",
+      19.883
+    ],
+    [
+      "wasm-function[0] wasm/b160b71e:1",
+      19.27
+    ]
+  ]
+}

@@ -1,0 +1,197 @@
+{
+  "steps": 48,
+  "markers": 3024,
+  "meanStepMs": 49.80642289583333,
+  "stages": {
+    "prepareMs": 9.946273020833296,
+    "scalarMs": 0.8205837083333023,
+    "gatherMs": 0.44586522916666144,
+    "neighborMs": 2.907613479166661,
+    "surfaceMs": 6.371136104166697,
+    "transportMs": 2.882792770833293
+  },
+  "detail": {
+    "neighbors.grid": {
+      "ms": 9.452470999998923,
+      "calls": 48,
+      "meanMs": 0.1969264791666442
+    },
+    "neighbors.pairs": {
+      "ms": 128.3489059999996,
+      "calls": 48,
+      "meanMs": 2.6739355416666584
+    },
+    "contact.pack": {
+      "ms": 4.168379000000186,
+      "calls": 48,
+      "meanMs": 0.08684122916667054
+    },
+    "contact.boundaryBatch": {
+      "ms": 101.33414399999981,
+      "calls": 48,
+      "meanMs": 2.111127999999996
+    },
+    "contact.activePairs": {
+      "ms": 88.70062999999834,
+      "calls": 48,
+      "meanMs": 1.8479297916666322
+    },
+    "contact.activeDensity": {
+      "ms": 1.424244000000158,
+      "calls": 48,
+      "meanMs": 0.02967175000000329
+    },
+    "contact.correction": {
+      "ms": 11.500576000001843,
+      "calls": 48,
+      "meanMs": 0.2395953333333717
+    },
+    "contact.contactBatch": {
+      "ms": 20.766337999999337,
+      "calls": 48,
+      "meanMs": 0.43263204166665287
+    }
+  },
+  "top": [
+    [
+      "heightCached sand-lab/sand.js:47",
+      155.60200000000012
+    ],
+    [
+      "wasm-function[0] wasm/43bb2a62:1",
+      132.63500000000002
+    ],
+    [
+      "wasm-function[0] wasm/b926e1e6:1",
+      107.03699999999999
+    ],
+    [
+      "wasm-function[1] wasm/b160b71e:1",
+      94.725
+    ],
+    [
+      "(garbage collector) :0",
+      93.58800000000001
+    ],
+    [
+      "wasm-function[1] wasm/6dbfe826:1",
+      88.527
+    ],
+    [
+      "wasm-function[9] wasm/6dbfe826:1",
+      69.69900000000001
+    ],
+    [
+      "post node:inspector:118",
+      68.928
+    ],
+    [
+      "wasm-function[0] wasm/a031abca:1",
+      68.32300000000002
+    ],
+    [
+      "numericHierarchy research/fixed-topology.js:7",
+      52.99999999999999
+    ],
+    [
+      "rebuild research/fixed-topology.js:42",
+      51.34600000000001
+    ],
+    [
+      "distance sand-lab/sand-air-geometry.js:14",
+      48.09199999999999
+    ],
+    [
+      "update batch/grid.js:27",
+      46.434999999999995
+    ],
+    [
+      "surfaceConstraints fields/surface-constraints.js:7",
+      44.955999999999996
+    ],
+    [
+      "insert sand-lab/water-lab-rain.js:177",
+      39.048999999999985
+    ],
+    [
+      "releaseDeposits sand-lab/water-lab-rain.js:167",
+      38.376000000000005
+    ],
+    [
+      "sample sand-lab/fluid-sampling.js:18",
+      36.015
+    ],
+    [
+      "wasm-function[0] wasm/92e4e59e:1",
+      33.797000000000004
+    ],
+    [
+      "wasm-function[10] wasm/6dbfe826:1",
+      32.52100000000001
+    ],
+    [
+      "footprint sand-lab/sand.js:72",
+      31.268999999999995
+    ],
+    [
+      "predictBeach sand-lab/beach-predict.js:6",
+      30.633
+    ],
+    [
+      "key sand-lab/water-lab-rain.js:176",
+      30.397999999999996
+    ],
+    [
+      "air.sampleGrid fields/beach-fields.js:25",
+      29.708
+    ],
+    [
+      "query sand-lab/spatial-bounds.js:18",
+      28.168999999999997
+    ],
+    [
+      "windNoise src/beach-wind.js:5",
+      28.136000000000003
+    ],
+    [
+      "wasm-function[0] wasm/b160b71e:1",
+      27.426000000000005
+    ],
+    [
+      "height sand-lab/sand.js:40",
+      26.654000000000003
+    ],
+    [
+      "query rtx-sand-lab/parcel-query-tree.js:25",
+      24.250999999999998
+    ],
+    [
+      "sandMaterial sand-lab/sand-material.js:12",
+      23.830000000000002
+    ],
+    [
+      "finish fields/beach-fields.js:95",
+      22.435999999999996
+    ],
+    [
+      "update rtx-sand-lab/incremental-sand.js:15",
+      21.618000000000002
+    ],
+    [
+      "SandAirGeometry.solid sand-lab/sand-air-geometry.js:9",
+      21.596
+    ],
+    [
+      "insert sand-lab/spatial-bounds.js:8",
+      20.877000000000002
+    ],
+    [
+      "buildSurfaceIndex sand-lab/water-lab-rain.js:54",
+      20.632
+    ],
+    [
+      "wasm-function[2] wasm/a031abca:1",
+      20.321
+    ]
+  ]
+}
