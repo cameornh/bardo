@@ -1,0 +1,122 @@
+{
+  "pass": true,
+  "note": "CPU bake latency; excludes worker messaging, GPU sculpt sampling, upload and drawing. Not an FPS or physics-speed measurement.",
+  "results": [
+    {
+      "name": "starter",
+      "grid": 30752,
+      "referenceMs": 23.621236999999994,
+      "optimizedMs": 6.688201499999977,
+      "referenceExtractionMs": 11.044065000000003,
+      "optimizedExtractionMs": 1.6264917499999996,
+      "rows": [
+        {
+          "optimized": false,
+          "bakeMs": 23.998653999999988,
+          "extractMs": 9.874360000000024,
+          "splats": 2192
+        },
+        {
+          "optimized": true,
+          "bakeMs": 5.938855999999987,
+          "extractMs": 1.768209000000013,
+          "splats": 2192
+        },
+        {
+          "optimized": true,
+          "bakeMs": 5.199497999999949,
+          "extractMs": 1.3243019999999888,
+          "splats": 2192
+        },
+        {
+          "optimized": false,
+          "bakeMs": 22.313015000000007,
+          "extractMs": 10.858820999999978,
+          "splats": 2192
+        },
+        {
+          "optimized": false,
+          "bakeMs": 23.027624000000003,
+          "extractMs": 12.913729999999987,
+          "splats": 2192
+        },
+        {
+          "optimized": true,
+          "bakeMs": 9.812966000000017,
+          "extractMs": 1.7390900000000329,
+          "splats": 2192
+        },
+        {
+          "optimized": true,
+          "bakeMs": 5.801485999999954,
+          "extractMs": 1.6743659999999636,
+          "splats": 2192
+        },
+        {
+          "optimized": false,
+          "bakeMs": 25.145654999999977,
+          "extractMs": 10.529349000000025,
+          "splats": 2192
+        }
+      ]
+    },
+    {
+      "name": "edited-25-stamps",
+      "grid": 88200,
+      "referenceMs": 583.6031529999999,
+      "optimizedMs": 191.74471624999978,
+      "referenceExtractionMs": 29.588246499999855,
+      "optimizedExtractionMs": 3.9775594999998702,
+      "rows": [
+        {
+          "optimized": false,
+          "bakeMs": 570.3790329999997,
+          "extractMs": 27.858776999999918,
+          "splats": 5724
+        },
+        {
+          "optimized": true,
+          "bakeMs": 188.58797200000026,
+          "extractMs": 3.969557999999779,
+          "splats": 5724
+        },
+        {
+          "optimized": true,
+          "bakeMs": 188.38491299999987,
+          "extractMs": 3.9753609999997934,
+          "splats": 5724
+        },
+        {
+          "optimized": false,
+          "bakeMs": 590.5025260000002,
+          "extractMs": 30.439155000000028,
+          "splats": 5724
+        },
+        {
+          "optimized": false,
+          "bakeMs": 601.2454950000001,
+          "extractMs": 31.57572699999946,
+          "splats": 5724
+        },
+        {
+          "optimized": true,
+          "bakeMs": 201.07264999999916,
+          "extractMs": 3.958070000000589,
+          "splats": 5724
+        },
+        {
+          "optimized": true,
+          "bakeMs": 188.93332999999984,
+          "extractMs": 4.0072489999993195,
+          "splats": 5724
+        },
+        {
+          "optimized": false,
+          "bakeMs": 572.2855579999996,
+          "extractMs": 28.479327000000012,
+          "splats": 5724
+        }
+      ]
+    }
+  ]
+}

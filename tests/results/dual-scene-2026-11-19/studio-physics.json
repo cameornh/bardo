@@ -1,0 +1,7023 @@
+{
+  "pass": true,
+  "name": "studio",
+  "metadata": {
+    "placements": 24,
+    "parts": 32,
+    "output": [
+      960,
+      540
+    ],
+    "backend": "WebGL Gaussian / SH rendering; CPU Rapier 120 Hz; optional cursor-pick stress workload",
+    "hover": false,
+    "bakeRows": [
+      {
+        "part": "Body",
+        "optimized": false,
+        "ms": 88.40000003576279,
+        "count": 2192
+      },
+      {
+        "part": "Body",
+        "optimized": true,
+        "ms": 20.19999998807907,
+        "count": 2192
+      },
+      {
+        "part": "Body",
+        "optimized": true,
+        "ms": 18,
+        "count": 2192
+      },
+      {
+        "part": "Body",
+        "optimized": false,
+        "ms": 77.89999997615814,
+        "count": 2192
+      },
+      {
+        "part": "Arch",
+        "optimized": false,
+        "ms": 108.09999996423721,
+        "count": 3440
+      },
+      {
+        "part": "Arch",
+        "optimized": true,
+        "ms": 7,
+        "count": 3440
+      },
+      {
+        "part": "Arch",
+        "optimized": true,
+        "ms": 4,
+        "count": 3440
+      },
+      {
+        "part": "Arch",
+        "optimized": false,
+        "ms": 98.20000004768372,
+        "count": 3440
+      },
+      {
+        "part": "Base",
+        "optimized": false,
+        "ms": 31.600000023841858,
+        "count": 632
+      },
+      {
+        "part": "Base",
+        "optimized": true,
+        "ms": 2,
+        "count": 632
+      },
+      {
+        "part": "Base",
+        "optimized": true,
+        "ms": 1.899999976158142,
+        "count": 632
+      },
+      {
+        "part": "Base",
+        "optimized": false,
+        "ms": 26.30000001192093,
+        "count": 632
+      },
+      {
+        "part": "Stem",
+        "optimized": false,
+        "ms": 111.10000002384186,
+        "count": 988
+      },
+      {
+        "part": "Stem",
+        "optimized": true,
+        "ms": 8.299999952316284,
+        "count": 988
+      },
+      {
+        "part": "Stem",
+        "optimized": true,
+        "ms": 5.800000011920929,
+        "count": 988
+      },
+      {
+        "part": "Stem",
+        "optimized": false,
+        "ms": 70.19999998807907,
+        "count": 988
+      }
+    ],
+    "pickParity": 120
+  },
+  "reference": {
+    "fps": 29.652509652618836,
+    "realtime": 0.9925353925390487,
+    "frame": {
+      "mean": 33.47458333335817,
+      "p95": 38.90000003576279,
+      "p99": 48.69999998807907,
+      "stddev": 4.614413542206085
+    }
+  },
+  "optimized": {
+    "fps": 29.807554973182185,
+    "realtime": 0.9915151966773795,
+    "frame": {
+      "mean": 33.282916666567324,
+      "p95": 36.59999996423721,
+      "p99": 41,
+      "stddev": 3.7635200472132855
+    }
+  },
+  "fpsChangePercent": 0.5228741930437542,
+  "simulationChangePercent": -0.1027868496517148,
+  "image": [
+    {
+      "position": [
+        13,
+        10,
+        16
+      ],
+      "maximumByteDifference": 0,
+      "meanByteDifference": 0
+    },
+    {
+      "position": [
+        3,
+        1.8,
+        4
+      ],
+      "maximumByteDifference": 0,
+      "meanByteDifference": 0
+    },
+    {
+      "position": [
+        -8,
+        2,
+        -8
+      ],
+      "maximumByteDifference": 0,
+      "meanByteDifference": 0
+    }
+  ],
+  "contextLost": false,
+  "results": [
+    {
+      "block": 0,
+      "optimized": false,
+      "frames": 120,
+      "wallSeconds": 3.991299999952316,
+      "simulatedSeconds": 3.9666666666666774,
+      "fps": 30.0653922284553,
+      "realtime": 0.993828243107275,
+      "frame": {
+        "mean": 33.044166666269305,
+        "p95": 37,
+        "p99": 38.200000047683716,
+        "stddev": 3.7951898498359555
+      },
+      "rows": [
+        {
+          "workMs": 28,
+          "pickMs": 0,
+          "physicsMs": 1.600000023841858,
+          "steps": 61,
+          "intervalMs": 0.2999999523162842
+        },
+        {
+          "workMs": 35.5,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 64,
+          "intervalMs": 32
+        },
+        {
+          "workMs": 33.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 69,
+          "intervalMs": 35.60000002384186
+        },
+        {
+          "workMs": 27.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 73,
+          "intervalMs": 33.89999997615814
+        },
+        {
+          "workMs": 25.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 76,
+          "intervalMs": 28.200000047683716
+        },
+        {
+          "workMs": 26.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 80,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 34.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 84,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 36,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 88,
+          "intervalMs": 34.80000001192093
+        },
+        {
+          "workMs": 28.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 93,
+          "intervalMs": 36.19999998807907
+        },
+        {
+          "workMs": 25.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.800000011920929,
+          "steps": 96,
+          "intervalMs": 31.300000011920933
+        },
+        {
+          "workMs": 26.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 100,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 35.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 104,
+          "intervalMs": 33.200000047683716
+        },
+        {
+          "workMs": 34.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 109,
+          "intervalMs": 35.69999998807907
+        },
+        {
+          "workMs": 28,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 113,
+          "intervalMs": 34.89999997615814
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 116,
+          "intervalMs": 28.30000001192093
+        },
+        {
+          "workMs": 28.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 120,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 31.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 124,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 32.5,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 128,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 27.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 132,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 26.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 136,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 27.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 140,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 31.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 144,
+          "intervalMs": 32.799999952316284
+        },
+        {
+          "workMs": 36.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 148,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 38.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 153,
+          "intervalMs": 36.89999997615814
+        },
+        {
+          "workMs": 38.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 157,
+          "intervalMs": 38.90000003576279
+        },
+        {
+          "workMs": 27.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 162,
+          "intervalMs": 38.69999998807907
+        },
+        {
+          "workMs": 26.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 165,
+          "intervalMs": 28
+        },
+        {
+          "workMs": 30.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 168,
+          "intervalMs": 26.399999976158142
+        },
+        {
+          "workMs": 27.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 172,
+          "intervalMs": 30.900000035762787
+        },
+        {
+          "workMs": 26.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 176,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 32.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 180,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 31.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 184,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 30.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 188,
+          "intervalMs": 34.39999997615814
+        },
+        {
+          "workMs": 27.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 192,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 196,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 25.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 200,
+          "intervalMs": 32.10000002384186
+        },
+        {
+          "workMs": 34.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 204,
+          "intervalMs": 33.299999952316284
+        },
+        {
+          "workMs": 36.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 208,
+          "intervalMs": 34.40000003576279
+        },
+        {
+          "workMs": 27.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 213,
+          "intervalMs": 36.89999997615814
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 216,
+          "intervalMs": 30.400000035762787
+        },
+        {
+          "workMs": 27.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 220,
+          "intervalMs": 31.5
+        },
+        {
+          "workMs": 36.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 224,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 36.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 228,
+          "intervalMs": 37
+        },
+        {
+          "workMs": 37.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 233,
+          "intervalMs": 37.09999996423721
+        },
+        {
+          "workMs": 36.09999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 237,
+          "intervalMs": 37.40000003576279
+        },
+        {
+          "workMs": 28.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 242,
+          "intervalMs": 36.39999997615814
+        },
+        {
+          "workMs": 35.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 245,
+          "intervalMs": 29
+        },
+        {
+          "workMs": 26.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 250,
+          "intervalMs": 35.5
+        },
+        {
+          "workMs": 25.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 253,
+          "intervalMs": 27
+        },
+        {
+          "workMs": 26,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 256,
+          "intervalMs": 27.69999998807907
+        },
+        {
+          "workMs": 24.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 260,
+          "intervalMs": 34.80000001192093
+        },
+        {
+          "workMs": 34,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 264,
+          "intervalMs": 31.5
+        },
+        {
+          "workMs": 31.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 268,
+          "intervalMs": 35.19999998807907
+        },
+        {
+          "workMs": 36.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 272,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 27.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 277,
+          "intervalMs": 36.30000001192093
+        },
+        {
+          "workMs": 24.5,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 280,
+          "intervalMs": 31
+        },
+        {
+          "workMs": 30.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 284,
+          "intervalMs": 31.600000023841854
+        },
+        {
+          "workMs": 30.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 288,
+          "intervalMs": 34.5
+        },
+        {
+          "workMs": 26.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 292,
+          "intervalMs": 32.30000001192093
+        },
+        {
+          "workMs": 25.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 296,
+          "intervalMs": 34.59999996423721
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 300,
+          "intervalMs": 32.30000001192093
+        },
+        {
+          "workMs": 32,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 304,
+          "intervalMs": 34.5
+        },
+        {
+          "workMs": 30.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 308,
+          "intervalMs": 32.19999998807907
+        },
+        {
+          "workMs": 26.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 312,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 26.5,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 316,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 26.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 320,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 29.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 324,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 29.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 328,
+          "intervalMs": 32.19999998807907
+        },
+        {
+          "workMs": 32.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 332,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 25.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 336,
+          "intervalMs": 35.19999998807907
+        },
+        {
+          "workMs": 25.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 340,
+          "intervalMs": 31.300000011920933
+        },
+        {
+          "workMs": 32.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 344,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 35.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 348,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 25.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 352,
+          "intervalMs": 35.5
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 356,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 26,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 360,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 30.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 364,
+          "intervalMs": 31.900000035762787
+        },
+        {
+          "workMs": 31.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 368,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 372,
+          "intervalMs": 34.39999997615814
+        },
+        {
+          "workMs": 28.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 376,
+          "intervalMs": 32.10000002384186
+        },
+        {
+          "workMs": 25.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 380,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 31,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 384,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 35,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 388,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 25.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 392,
+          "intervalMs": 35.19999998807907
+        },
+        {
+          "workMs": 25.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 396,
+          "intervalMs": 31.69999998807907
+        },
+        {
+          "workMs": 23.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 400,
+          "intervalMs": 32
+        },
+        {
+          "workMs": 31.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 404,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 36.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 408,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 28.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 413,
+          "intervalMs": 36.40000003576279
+        },
+        {
+          "workMs": 26.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 416,
+          "intervalMs": 31.300000011920933
+        },
+        {
+          "workMs": 25.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 420,
+          "intervalMs": 31.799999952316284
+        },
+        {
+          "workMs": 30.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 424,
+          "intervalMs": 34.700000047683716
+        },
+        {
+          "workMs": 32.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 428,
+          "intervalMs": 32.299999952316284
+        },
+        {
+          "workMs": 25.5,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 432,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 436,
+          "intervalMs": 31.800000011920933
+        },
+        {
+          "workMs": 25.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 440,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 30.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 444,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 35.5,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 448,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 24.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 452,
+          "intervalMs": 35.69999998807907
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 456,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 25.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 460,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 30.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 464,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 36,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 468,
+          "intervalMs": 32.19999998807907
+        },
+        {
+          "workMs": 26.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 472,
+          "intervalMs": 36.39999997615814
+        },
+        {
+          "workMs": 26.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 476,
+          "intervalMs": 30
+        },
+        {
+          "workMs": 35.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 480,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 37.09999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 484,
+          "intervalMs": 35.40000003576279
+        },
+        {
+          "workMs": 35.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 2.800000011920929,
+          "steps": 489,
+          "intervalMs": 37.09999996423721
+        },
+        {
+          "workMs": 34.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 493,
+          "intervalMs": 36.19999998807907
+        },
+        {
+          "workMs": 33.5,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 497,
+          "intervalMs": 34.5
+        },
+        {
+          "workMs": 37.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 501,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 30.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 506,
+          "intervalMs": 38.200000047683716
+        },
+        {
+          "workMs": 29.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 510,
+          "intervalMs": 30.5
+        },
+        {
+          "workMs": 34.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 513,
+          "intervalMs": 29.299999952316284
+        },
+        {
+          "workMs": 30.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 517,
+          "intervalMs": 35
+        },
+        {
+          "workMs": 28,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 521,
+          "intervalMs": 30.900000035762787
+        },
+        {
+          "workMs": 31.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.899999976158142,
+          "steps": 524,
+          "intervalMs": 28.30000001192093
+        },
+        {
+          "workMs": 33.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 528,
+          "intervalMs": 31.89999997615814
+        },
+        {
+          "workMs": 28.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 532,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 26,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 536,
+          "intervalMs": 33.299999952316284
+        }
+      ]
+    },
+    {
+      "block": 1,
+      "optimized": true,
+      "frames": 120,
+      "wallSeconds": 4.071699999988079,
+      "simulatedSeconds": 4.041666666666668,
+      "fps": 29.47171942931732,
+      "realtime": 0.9926238835568685,
+      "frame": {
+        "mean": 33.65833333333333,
+        "p95": 37.5,
+        "p99": 41.5,
+        "stddev": 4.163784001248094
+      },
+      "rows": [
+        {
+          "workMs": 23.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 2.199999988079071,
+          "steps": 27,
+          "intervalMs": 5.300000011920929
+        },
+        {
+          "workMs": 34.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 2.399999976158142,
+          "steps": 31,
+          "intervalMs": 35.09999996423721
+        },
+        {
+          "workMs": 34.5,
+          "pickMs": 0,
+          "physicsMs": 2.199999988079071,
+          "steps": 35,
+          "intervalMs": 34.5
+        },
+        {
+          "workMs": 29.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.7999999523162842,
+          "steps": 39,
+          "intervalMs": 34.69999998807907
+        },
+        {
+          "workMs": 28.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.5999999642372131,
+          "steps": 43,
+          "intervalMs": 29.5
+        },
+        {
+          "workMs": 27.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 47,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 36.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 51,
+          "intervalMs": 34.39999997615814
+        },
+        {
+          "workMs": 40.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 55,
+          "intervalMs": 37.10000002384186
+        },
+        {
+          "workMs": 37.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 60,
+          "intervalMs": 40.89999997615814
+        },
+        {
+          "workMs": 38.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 65,
+          "intervalMs": 37.5
+        },
+        {
+          "workMs": 39.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 71,
+          "intervalMs": 50.90000003576279
+        },
+        {
+          "workMs": 32.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 76,
+          "intervalMs": 39.80000001192093
+        },
+        {
+          "workMs": 28,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 80,
+          "intervalMs": 32.59999996423721
+        },
+        {
+          "workMs": 26.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 83,
+          "intervalMs": 28.19999998807907
+        },
+        {
+          "workMs": 27.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.699999988079071,
+          "steps": 87,
+          "intervalMs": 31.800000011920933
+        },
+        {
+          "workMs": 34,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 91,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 27.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 2.100000023841858,
+          "steps": 95,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 25.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 99,
+          "intervalMs": 33.59999996423721
+        },
+        {
+          "workMs": 25.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 103,
+          "intervalMs": 32.80000001192093
+        },
+        {
+          "workMs": 34.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 107,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 34.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 111,
+          "intervalMs": 35.09999996423721
+        },
+        {
+          "workMs": 26.5,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 115,
+          "intervalMs": 35
+        },
+        {
+          "workMs": 28,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 119,
+          "intervalMs": 28.200000047683716
+        },
+        {
+          "workMs": 26.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 123,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 25.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 127,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 31.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 131,
+          "intervalMs": 35.19999998807907
+        },
+        {
+          "workMs": 36.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 135,
+          "intervalMs": 32.60000002384186
+        },
+        {
+          "workMs": 27.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 139,
+          "intervalMs": 36.69999998807907
+        },
+        {
+          "workMs": 27,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 143,
+          "intervalMs": 29.400000035762787
+        },
+        {
+          "workMs": 26.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 147,
+          "intervalMs": 34.39999997615814
+        },
+        {
+          "workMs": 31.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 151,
+          "intervalMs": 31.5
+        },
+        {
+          "workMs": 36.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 155,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 25.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 159,
+          "intervalMs": 36.700000047683716
+        },
+        {
+          "workMs": 26,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 163,
+          "intervalMs": 30
+        },
+        {
+          "workMs": 31.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 167,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 35.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 171,
+          "intervalMs": 35.30000001192093
+        },
+        {
+          "workMs": 36.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 175,
+          "intervalMs": 35.59999996423721
+        },
+        {
+          "workMs": 41.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 180,
+          "intervalMs": 36.30000001192093
+        },
+        {
+          "workMs": 36.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 185,
+          "intervalMs": 41.5
+        },
+        {
+          "workMs": 38.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 191,
+          "intervalMs": 53.39999997615814
+        },
+        {
+          "workMs": 32.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 196,
+          "intervalMs": 38.700000047683716
+        },
+        {
+          "workMs": 26.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 200,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 28.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 203,
+          "intervalMs": 26.299999952316284
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 207,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 36.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 211,
+          "intervalMs": 34.89999997615814
+        },
+        {
+          "workMs": 32.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 215,
+          "intervalMs": 36.5
+        },
+        {
+          "workMs": 26,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 219,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 25.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 223,
+          "intervalMs": 30.30000001192093
+        },
+        {
+          "workMs": 24.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 227,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 34.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 231,
+          "intervalMs": 32
+        },
+        {
+          "workMs": 33.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 235,
+          "intervalMs": 34.89999997615814
+        },
+        {
+          "workMs": 25.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 239,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 243,
+          "intervalMs": 32.10000002384186
+        },
+        {
+          "workMs": 24.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 247,
+          "intervalMs": 31.399999976158146
+        },
+        {
+          "workMs": 32.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 251,
+          "intervalMs": 35.39999997615814
+        },
+        {
+          "workMs": 27.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 255,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 27.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 259,
+          "intervalMs": 32
+        },
+        {
+          "workMs": 27.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 263,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 34.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 267,
+          "intervalMs": 32.80000001192093
+        },
+        {
+          "workMs": 34.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 271,
+          "intervalMs": 35.19999998807907
+        },
+        {
+          "workMs": 27.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 275,
+          "intervalMs": 35
+        },
+        {
+          "workMs": 26.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 279,
+          "intervalMs": 30.30000001192093
+        },
+        {
+          "workMs": 27.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 283,
+          "intervalMs": 33.89999997615814
+        },
+        {
+          "workMs": 35,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 287,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 35.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 291,
+          "intervalMs": 35.09999996423721
+        },
+        {
+          "workMs": 23.5,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 295,
+          "intervalMs": 35.30000001192093
+        },
+        {
+          "workMs": 32.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 299,
+          "intervalMs": 30.30000001192093
+        },
+        {
+          "workMs": 26.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 303,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 29.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 307,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 34.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 311,
+          "intervalMs": 34.09999996423721
+        },
+        {
+          "workMs": 24.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 315,
+          "intervalMs": 35.10000002384186
+        },
+        {
+          "workMs": 25.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 319,
+          "intervalMs": 31.300000011920933
+        },
+        {
+          "workMs": 26.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 323,
+          "intervalMs": 33.89999997615814
+        },
+        {
+          "workMs": 33.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 327,
+          "intervalMs": 31.100000023841858
+        },
+        {
+          "workMs": 36.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 331,
+          "intervalMs": 33.89999997615814
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 335,
+          "intervalMs": 36.5
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 339,
+          "intervalMs": 31.399999976158146
+        },
+        {
+          "workMs": 25.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 343,
+          "intervalMs": 33.200000047683716
+        },
+        {
+          "workMs": 33.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 347,
+          "intervalMs": 31.799999952316284
+        },
+        {
+          "workMs": 31.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 351,
+          "intervalMs": 33.90000003576279
+        },
+        {
+          "workMs": 27.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 355,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 25.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 359,
+          "intervalMs": 35
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 363,
+          "intervalMs": 31.89999997615814
+        },
+        {
+          "workMs": 29.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 367,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 36.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 371,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 29.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 375,
+          "intervalMs": 36.59999996423721
+        },
+        {
+          "workMs": 26,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 379,
+          "intervalMs": 30.400000035762787
+        },
+        {
+          "workMs": 26.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 383,
+          "intervalMs": 32.80000001192093
+        },
+        {
+          "workMs": 31.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 387,
+          "intervalMs": 35
+        },
+        {
+          "workMs": 31.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 391,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 26.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 395,
+          "intervalMs": 32.39999997615814
+        },
+        {
+          "workMs": 26.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 399,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 24.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 403,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 30.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 407,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 31.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 411,
+          "intervalMs": 34.89999997615814
+        },
+        {
+          "workMs": 23.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 415,
+          "intervalMs": 33.90000003576279
+        },
+        {
+          "workMs": 26.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 419,
+          "intervalMs": 33.299999952316284
+        },
+        {
+          "workMs": 30.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 423,
+          "intervalMs": 31.5
+        },
+        {
+          "workMs": 30.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 427,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 31.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 431,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 26.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 435,
+          "intervalMs": 32.40000003576279
+        },
+        {
+          "workMs": 21.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 439,
+          "intervalMs": 35.09999996423721
+        },
+        {
+          "workMs": 25.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 443,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 29.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 447,
+          "intervalMs": 31.600000023841854
+        },
+        {
+          "workMs": 30,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 451,
+          "intervalMs": 33.89999997615814
+        },
+        {
+          "workMs": 21.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 455,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 25.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 459,
+          "intervalMs": 32.30000001192093
+        },
+        {
+          "workMs": 27.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 463,
+          "intervalMs": 33.299999952316284
+        },
+        {
+          "workMs": 29.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 467,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 31.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 471,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 31.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 475,
+          "intervalMs": 34.40000003576279
+        },
+        {
+          "workMs": 26.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 479,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 25.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 483,
+          "intervalMs": 33.89999997615814
+        },
+        {
+          "workMs": 30.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 487,
+          "intervalMs": 31.400000035762787
+        },
+        {
+          "workMs": 29.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 491,
+          "intervalMs": 33.799999952316284
+        },
+        {
+          "workMs": 25.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 495,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 23.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 499,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 24.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 503,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 30.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 507,
+          "intervalMs": 34.89999997615814
+        },
+        {
+          "workMs": 32.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 511,
+          "intervalMs": 31.800000011920933
+        }
+      ]
+    },
+    {
+      "block": 2,
+      "optimized": true,
+      "frames": 120,
+      "wallSeconds": 4.030300000011921,
+      "simulatedSeconds": 3.991666666666669,
+      "fps": 29.774458476948382,
+      "realtime": 0.9904142785040475,
+      "frame": {
+        "mean": 33.28416666636864,
+        "p95": 36.19999998807907,
+        "p99": 40.69999998807907,
+        "stddev": 4.273016026505796
+      },
+      "rows": [
+        {
+          "workMs": 29,
+          "pickMs": 0,
+          "physicsMs": 1.699999988079071,
+          "steps": 34,
+          "intervalMs": 0.30000001192092896
+        },
+        {
+          "workMs": 28.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.800000011920929,
+          "steps": 37,
+          "intervalMs": 29.299999952316284
+        },
+        {
+          "workMs": 32,
+          "pickMs": 0,
+          "physicsMs": 1.699999988079071,
+          "steps": 41,
+          "intervalMs": 31.100000023841858
+        },
+        {
+          "workMs": 26.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 45,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 35.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 49,
+          "intervalMs": 33.09999996423721
+        },
+        {
+          "workMs": 45.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 53,
+          "intervalMs": 35.5
+        },
+        {
+          "workMs": 40.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 59,
+          "intervalMs": 46.200000047683716
+        },
+        {
+          "workMs": 30.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 65,
+          "intervalMs": 52.799999952316284
+        },
+        {
+          "workMs": 40.5,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 69,
+          "intervalMs": 31.400000035762787
+        },
+        {
+          "workMs": 33.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 74,
+          "intervalMs": 40.69999998807907
+        },
+        {
+          "workMs": 27.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 78,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 26,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 81,
+          "intervalMs": 28
+        },
+        {
+          "workMs": 27.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.600000023841858,
+          "steps": 85,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 35.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 89,
+          "intervalMs": 31.300000011920933
+        },
+        {
+          "workMs": 35.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 93,
+          "intervalMs": 35.89999997615814
+        },
+        {
+          "workMs": 28.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 98,
+          "intervalMs": 35.90000003576279
+        },
+        {
+          "workMs": 25.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 101,
+          "intervalMs": 29.5
+        },
+        {
+          "workMs": 26.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 105,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 35.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 109,
+          "intervalMs": 32.19999998807907
+        },
+        {
+          "workMs": 35.5,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 113,
+          "intervalMs": 35.39999997615814
+        },
+        {
+          "workMs": 28.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 118,
+          "intervalMs": 35.80000001192093
+        },
+        {
+          "workMs": 25.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 121,
+          "intervalMs": 28.30000001192093
+        },
+        {
+          "workMs": 23.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 125,
+          "intervalMs": 34.69999998807907
+        },
+        {
+          "workMs": 35,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 129,
+          "intervalMs": 31.800000011920933
+        },
+        {
+          "workMs": 35.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 133,
+          "intervalMs": 35.30000001192093
+        },
+        {
+          "workMs": 26.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 138,
+          "intervalMs": 36.09999996423721
+        },
+        {
+          "workMs": 24.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 141,
+          "intervalMs": 28.700000047683716
+        },
+        {
+          "workMs": 26.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 145,
+          "intervalMs": 34.39999997615814
+        },
+        {
+          "workMs": 31.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 149,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 30.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 153,
+          "intervalMs": 34.60000002384186
+        },
+        {
+          "workMs": 27.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 157,
+          "intervalMs": 33.09999996423721
+        },
+        {
+          "workMs": 27.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 161,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 27.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 165,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 36.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 169,
+          "intervalMs": 31.399999976158146
+        },
+        {
+          "workMs": 35.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 173,
+          "intervalMs": 36.40000003576279
+        },
+        {
+          "workMs": 28.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 178,
+          "intervalMs": 36
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 181,
+          "intervalMs": 28.69999998807907
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 185,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 34.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 189,
+          "intervalMs": 31.69999998807907
+        },
+        {
+          "workMs": 35.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 193,
+          "intervalMs": 35.10000002384186
+        },
+        {
+          "workMs": 27.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 198,
+          "intervalMs": 36.19999998807907
+        },
+        {
+          "workMs": 24.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 201,
+          "intervalMs": 29.399999976158142
+        },
+        {
+          "workMs": 25.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 205,
+          "intervalMs": 34.40000003576279
+        },
+        {
+          "workMs": 37.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 209,
+          "intervalMs": 31.5
+        },
+        {
+          "workMs": 34.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 213,
+          "intervalMs": 37.39999997615814
+        },
+        {
+          "workMs": 27.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 218,
+          "intervalMs": 35.19999998807907
+        },
+        {
+          "workMs": 27.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 221,
+          "intervalMs": 27.30000001192093
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 225,
+          "intervalMs": 34.69999998807907
+        },
+        {
+          "workMs": 35.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 229,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 35.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 233,
+          "intervalMs": 35.69999998807907
+        },
+        {
+          "workMs": 28.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 238,
+          "intervalMs": 36.10000002384186
+        },
+        {
+          "workMs": 24.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 241,
+          "intervalMs": 28.399999976158142
+        },
+        {
+          "workMs": 25.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 245,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 33.5,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 249,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 31,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 253,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 26.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 257,
+          "intervalMs": 31.19999998807907
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 261,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 26.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 265,
+          "intervalMs": 34.80000001192093
+        },
+        {
+          "workMs": 32.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 269,
+          "intervalMs": 31.89999997615814
+        },
+        {
+          "workMs": 36.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 273,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 25.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 277,
+          "intervalMs": 37.19999998807907
+        },
+        {
+          "workMs": 23.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 281,
+          "intervalMs": 30
+        },
+        {
+          "workMs": 30.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 285,
+          "intervalMs": 34.69999998807907
+        },
+        {
+          "workMs": 34.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 289,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 34.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 3.300000011920929,
+          "steps": 293,
+          "intervalMs": 35.10000002384186
+        },
+        {
+          "workMs": 25.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 298,
+          "intervalMs": 35.10000002384186
+        },
+        {
+          "workMs": 27.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 301,
+          "intervalMs": 29.299999952316284
+        },
+        {
+          "workMs": 25.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 305,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 30,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 309,
+          "intervalMs": 32.80000001192093
+        },
+        {
+          "workMs": 30.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 313,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 317,
+          "intervalMs": 34.19999998807907
+        },
+        {
+          "workMs": 22.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 321,
+          "intervalMs": 31.800000011920933
+        },
+        {
+          "workMs": 25.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 325,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 30.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 329,
+          "intervalMs": 34.60000002384186
+        },
+        {
+          "workMs": 31.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 333,
+          "intervalMs": 33.799999952316284
+        },
+        {
+          "workMs": 26.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 337,
+          "intervalMs": 32.80000001192093
+        },
+        {
+          "workMs": 20.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 341,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 24.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 345,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 31.600000023841858,
+          "pickMs": 0.10000002384185791,
+          "physicsMs": 1.199999988079071,
+          "steps": 349,
+          "intervalMs": 33.59999996423721
+        },
+        {
+          "workMs": 32.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 353,
+          "intervalMs": 32.60000002384186
+        },
+        {
+          "workMs": 28.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 357,
+          "intervalMs": 32.59999996423721
+        },
+        {
+          "workMs": 25.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 361,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 25.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 365,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 31.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 369,
+          "intervalMs": 34.89999997615814
+        },
+        {
+          "workMs": 30.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 373,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 31.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 377,
+          "intervalMs": 32.19999998807907
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 381,
+          "intervalMs": 34.40000003576279
+        },
+        {
+          "workMs": 26.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 385,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 31.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 389,
+          "intervalMs": 31.69999998807907
+        },
+        {
+          "workMs": 35.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 393,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 25.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 397,
+          "intervalMs": 36.09999996423721
+        },
+        {
+          "workMs": 23.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 401,
+          "intervalMs": 30.400000035762787
+        },
+        {
+          "workMs": 26.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 405,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 35.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 409,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 29.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 413,
+          "intervalMs": 36
+        },
+        {
+          "workMs": 27.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 417,
+          "intervalMs": 31.100000023841858
+        },
+        {
+          "workMs": 26.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 421,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 25.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 425,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 31.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 429,
+          "intervalMs": 35.30000001192093
+        },
+        {
+          "workMs": 32,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 433,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 25.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 437,
+          "intervalMs": 33.59999996423721
+        },
+        {
+          "workMs": 25.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 441,
+          "intervalMs": 31.69999998807907
+        },
+        {
+          "workMs": 24.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 445,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 31,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 449,
+          "intervalMs": 32.10000002384186
+        },
+        {
+          "workMs": 35.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 453,
+          "intervalMs": 35.299999952316284
+        },
+        {
+          "workMs": 26.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 458,
+          "intervalMs": 35.90000003576279
+        },
+        {
+          "workMs": 23.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 461,
+          "intervalMs": 29.599999964237213
+        },
+        {
+          "workMs": 26.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 465,
+          "intervalMs": 32.700000047683716
+        },
+        {
+          "workMs": 33.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 469,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 31.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 473,
+          "intervalMs": 33.89999997615814
+        },
+        {
+          "workMs": 25.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 477,
+          "intervalMs": 34.5
+        },
+        {
+          "workMs": 25.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 481,
+          "intervalMs": 31.200000047683716
+        },
+        {
+          "workMs": 26.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 485,
+          "intervalMs": 33.59999996423721
+        },
+        {
+          "workMs": 35.5,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 489,
+          "intervalMs": 35.19999998807907
+        },
+        {
+          "workMs": 30.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 494,
+          "intervalMs": 35.90000003576279
+        },
+        {
+          "workMs": 24.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 497,
+          "intervalMs": 30.899999976158142
+        },
+        {
+          "workMs": 25.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 501,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 24.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 505,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 32.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 509,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 36.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 513,
+          "intervalMs": 32.39999997615814
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "optimized": false,
+      "frames": 120,
+      "wallSeconds": 4.118,
+      "simulatedSeconds": 4.075000000000006,
+      "fps": 29.140359397765902,
+      "realtime": 0.9895580378824687,
+      "frame": {
+        "mean": 33.956666666766004,
+        "p95": 40.40000003576279,
+        "p99": 48.69999998807907,
+        "stddev": 5.775331641809779
+      },
+      "rows": [
+        {
+          "workMs": 40,
+          "pickMs": 0,
+          "physicsMs": 2.099999964237213,
+          "steps": 35,
+          "intervalMs": 0.19999998807907104
+        },
+        {
+          "workMs": 45.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.600000023841858,
+          "steps": 42,
+          "intervalMs": 57.19999998807907
+        },
+        {
+          "workMs": 31.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 47,
+          "intervalMs": 45.40000003576279
+        },
+        {
+          "workMs": 27.5,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 51,
+          "intervalMs": 31.5
+        },
+        {
+          "workMs": 27,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 54,
+          "intervalMs": 27.599999964237213
+        },
+        {
+          "workMs": 26.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.600000023841858,
+          "steps": 57,
+          "intervalMs": 27.30000001192093
+        },
+        {
+          "workMs": 27.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 62,
+          "intervalMs": 35.10000002384186
+        },
+        {
+          "workMs": 33.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 65,
+          "intervalMs": 31.69999998807907
+        },
+        {
+          "workMs": 38.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 69,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 31.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 74,
+          "intervalMs": 39.200000047683716
+        },
+        {
+          "workMs": 31.5,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 78,
+          "intervalMs": 31.799999952316284
+        },
+        {
+          "workMs": 27.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 2.399999976158142,
+          "steps": 82,
+          "intervalMs": 31.700000047683716
+        },
+        {
+          "workMs": 30.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.699999988079071,
+          "steps": 85,
+          "intervalMs": 30.69999998807907
+        },
+        {
+          "workMs": 36.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 90,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 31.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.7000000476837158,
+          "steps": 94,
+          "intervalMs": 36.69999998807907
+        },
+        {
+          "workMs": 46,
+          "pickMs": 0,
+          "physicsMs": 2.300000011920929,
+          "steps": 98,
+          "intervalMs": 31.600000023841854
+        },
+        {
+          "workMs": 36.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 103,
+          "intervalMs": 46.299999952316284
+        },
+        {
+          "workMs": 29.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 108,
+          "intervalMs": 37.200000047683716
+        },
+        {
+          "workMs": 25.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 111,
+          "intervalMs": 31.099999964237213
+        },
+        {
+          "workMs": 27,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 115,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 38,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 120,
+          "intervalMs": 35
+        },
+        {
+          "workMs": 30.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 124,
+          "intervalMs": 38.5
+        },
+        {
+          "workMs": 27.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 128,
+          "intervalMs": 30.69999998807907
+        },
+        {
+          "workMs": 27.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 132,
+          "intervalMs": 30.5
+        },
+        {
+          "workMs": 35.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 136,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 36.5,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 140,
+          "intervalMs": 35.69999998807907
+        },
+        {
+          "workMs": 31.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 144,
+          "intervalMs": 36.80000001192093
+        },
+        {
+          "workMs": 26.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 148,
+          "intervalMs": 32
+        },
+        {
+          "workMs": 25.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 152,
+          "intervalMs": 28.899999976158142
+        },
+        {
+          "workMs": 25.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 156,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 36.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 160,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 32.09999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 164,
+          "intervalMs": 37.10000002384186
+        },
+        {
+          "workMs": 27.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 168,
+          "intervalMs": 32.30000001192093
+        },
+        {
+          "workMs": 26.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 172,
+          "intervalMs": 30
+        },
+        {
+          "workMs": 32.5,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 176,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 35.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 179,
+          "intervalMs": 32.80000001192093
+        },
+        {
+          "workMs": 26.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 184,
+          "intervalMs": 35.80000001192093
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 187,
+          "intervalMs": 30.799999952316284
+        },
+        {
+          "workMs": 35.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 191,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 35.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 196,
+          "intervalMs": 35.59999996423721
+        },
+        {
+          "workMs": 30.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 200,
+          "intervalMs": 35.60000002384186
+        },
+        {
+          "workMs": 26.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 204,
+          "intervalMs": 30.899999976158142
+        },
+        {
+          "workMs": 24.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 207,
+          "intervalMs": 31.600000023841854
+        },
+        {
+          "workMs": 27.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 212,
+          "intervalMs": 34.80000001192093
+        },
+        {
+          "workMs": 33.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 216,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 48.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 2.400000035762787,
+          "steps": 220,
+          "intervalMs": 34.09999996423721
+        },
+        {
+          "workMs": 38.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 227,
+          "intervalMs": 64
+        },
+        {
+          "workMs": 31,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 232,
+          "intervalMs": 39
+        },
+        {
+          "workMs": 26.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 236,
+          "intervalMs": 31.100000023841858
+        },
+        {
+          "workMs": 37.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 240,
+          "intervalMs": 31.300000011920933
+        },
+        {
+          "workMs": 40.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 244,
+          "intervalMs": 38.09999996423721
+        },
+        {
+          "workMs": 48.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 249,
+          "intervalMs": 44.5
+        },
+        {
+          "workMs": 33.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 255,
+          "intervalMs": 48.69999998807907
+        },
+        {
+          "workMs": 28.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 260,
+          "intervalMs": 36.10000002384186
+        },
+        {
+          "workMs": 23.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 264,
+          "intervalMs": 32.10000002384186
+        },
+        {
+          "workMs": 25.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 268,
+          "intervalMs": 33.299999952316284
+        },
+        {
+          "workMs": 21.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 271,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 38.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 275,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 30.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 280,
+          "intervalMs": 38.90000003576279
+        },
+        {
+          "workMs": 40.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 284,
+          "intervalMs": 30.899999976158142
+        },
+        {
+          "workMs": 37.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 289,
+          "intervalMs": 40.40000003576279
+        },
+        {
+          "workMs": 24.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 293,
+          "intervalMs": 37.59999996423721
+        },
+        {
+          "workMs": 35.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 296,
+          "intervalMs": 24.5
+        },
+        {
+          "workMs": 25.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 300,
+          "intervalMs": 35.80000001192093
+        },
+        {
+          "workMs": 27.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 3,
+          "steps": 304,
+          "intervalMs": 25.80000001192093
+        },
+        {
+          "workMs": 31.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 308,
+          "intervalMs": 32.80000001192093
+        },
+        {
+          "workMs": 23.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 311,
+          "intervalMs": 33.299999952316284
+        },
+        {
+          "workMs": 35.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 316,
+          "intervalMs": 33.700000047683716
+        },
+        {
+          "workMs": 32.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 320,
+          "intervalMs": 35.799999952316284
+        },
+        {
+          "workMs": 30.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 324,
+          "intervalMs": 32.80000001192093
+        },
+        {
+          "workMs": 26,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 328,
+          "intervalMs": 31.69999998807907
+        },
+        {
+          "workMs": 23.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 331,
+          "intervalMs": 32.30000001192093
+        },
+        {
+          "workMs": 28.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 335,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 27.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 339,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 24.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 343,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 24.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 347,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 24.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 351,
+          "intervalMs": 33.90000003576279
+        },
+        {
+          "workMs": 30,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 355,
+          "intervalMs": 32.799999952316284
+        },
+        {
+          "workMs": 35.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 360,
+          "intervalMs": 34.5
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 364,
+          "intervalMs": 36.10000002384186
+        },
+        {
+          "workMs": 24.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 368,
+          "intervalMs": 30.399999976158142
+        },
+        {
+          "workMs": 31.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 371,
+          "intervalMs": 32.80000001192093
+        },
+        {
+          "workMs": 33.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 375,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 36,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 380,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 384,
+          "intervalMs": 36.19999998807907
+        },
+        {
+          "workMs": 23.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 387,
+          "intervalMs": 30.19999998807907
+        },
+        {
+          "workMs": 25.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 391,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 33.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 395,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 34.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 400,
+          "intervalMs": 33.89999997615814
+        },
+        {
+          "workMs": 25.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 404,
+          "intervalMs": 35.40000003576279
+        },
+        {
+          "workMs": 23,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 407,
+          "intervalMs": 30
+        },
+        {
+          "workMs": 24.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 411,
+          "intervalMs": 33.299999952316284
+        },
+        {
+          "workMs": 34.5,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 415,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 35.09999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 420,
+          "intervalMs": 34.700000047683716
+        },
+        {
+          "workMs": 25.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 424,
+          "intervalMs": 35.39999997615814
+        },
+        {
+          "workMs": 23,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 427,
+          "intervalMs": 30.100000023841858
+        },
+        {
+          "workMs": 24.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 431,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 33.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 435,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 35.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 440,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 24.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 444,
+          "intervalMs": 35.69999998807907
+        },
+        {
+          "workMs": 23.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 447,
+          "intervalMs": 30.099999964237213
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 451,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 33.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 456,
+          "intervalMs": 33.90000003576279
+        },
+        {
+          "workMs": 33.5,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 460,
+          "intervalMs": 34.19999998807907
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 464,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 23.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 467,
+          "intervalMs": 31.19999998807907
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 471,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 32.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 475,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 35.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 480,
+          "intervalMs": 34.5
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 484,
+          "intervalMs": 35.80000001192093
+        },
+        {
+          "workMs": 25.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 487,
+          "intervalMs": 30
+        },
+        {
+          "workMs": 24.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 491,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 23.5,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 495,
+          "intervalMs": 32.60000002384186
+        },
+        {
+          "workMs": 35.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 500,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 25.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 504,
+          "intervalMs": 36.09999996423721
+        },
+        {
+          "workMs": 23.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 507,
+          "intervalMs": 30.5
+        },
+        {
+          "workMs": 24.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 511,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 33.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 516,
+          "intervalMs": 34.200000047683716
+        },
+        {
+          "workMs": 34.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 520,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 43.09999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 524,
+          "intervalMs": 34.69999998807907
+        }
+      ]
+    },
+    {
+      "block": 4,
+      "optimized": false,
+      "frames": 120,
+      "wallSeconds": 3.9950999999642374,
+      "simulatedSeconds": 3.966666666666666,
+      "fps": 30.036795074234487,
+      "realtime": 0.9928829482871954,
+      "frame": {
+        "mean": 33.075,
+        "p95": 38,
+        "p99": 40.30000001192093,
+        "stddev": 3.890142459707301
+      },
+      "rows": [
+        {
+          "workMs": 23.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 30,
+          "intervalMs": 2.399999976158142
+        },
+        {
+          "workMs": 40,
+          "pickMs": 0,
+          "physicsMs": 1.600000023841858,
+          "steps": 34,
+          "intervalMs": 32.60000002384186
+        },
+        {
+          "workMs": 35.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.9000000357627869,
+          "steps": 39,
+          "intervalMs": 40.30000001192093
+        },
+        {
+          "workMs": 35.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.600000023841858,
+          "steps": 43,
+          "intervalMs": 35.39999997615814
+        },
+        {
+          "workMs": 31.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 47,
+          "intervalMs": 36.10000002384186
+        },
+        {
+          "workMs": 29.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 51,
+          "intervalMs": 32
+        },
+        {
+          "workMs": 34.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 55,
+          "intervalMs": 30
+        },
+        {
+          "workMs": 31.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 59,
+          "intervalMs": 34.59999996423721
+        },
+        {
+          "workMs": 26.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 63,
+          "intervalMs": 31.5
+        },
+        {
+          "workMs": 28,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 66,
+          "intervalMs": 27.19999998807907
+        },
+        {
+          "workMs": 28.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 70,
+          "intervalMs": 33.200000047683716
+        },
+        {
+          "workMs": 35.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 74,
+          "intervalMs": 33.09999996423721
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 78,
+          "intervalMs": 36
+        },
+        {
+          "workMs": 25.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.5999999642372131,
+          "steps": 82,
+          "intervalMs": 30.80000001192093
+        },
+        {
+          "workMs": 27.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.699999988079071,
+          "steps": 86,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 36.09999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 90,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 36.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.600000023841858,
+          "steps": 94,
+          "intervalMs": 36.5
+        },
+        {
+          "workMs": 31.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 99,
+          "intervalMs": 36.39999997615814
+        },
+        {
+          "workMs": 27.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 103,
+          "intervalMs": 32.19999998807907
+        },
+        {
+          "workMs": 25.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.5999999642372131,
+          "steps": 106,
+          "intervalMs": 28.30000001192093
+        },
+        {
+          "workMs": 33.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 110,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 30.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 114,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 34.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 118,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 25.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 122,
+          "intervalMs": 34.799999952316284
+        },
+        {
+          "workMs": 24.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 126,
+          "intervalMs": 31.800000011920933
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 130,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 35.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 134,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 35.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 3.100000023841858,
+          "steps": 138,
+          "intervalMs": 35.80000001192093
+        },
+        {
+          "workMs": 39.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 143,
+          "intervalMs": 35.69999998807907
+        },
+        {
+          "workMs": 30.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 147,
+          "intervalMs": 39.90000003576279
+        },
+        {
+          "workMs": 27.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 151,
+          "intervalMs": 30.899999976158142
+        },
+        {
+          "workMs": 30.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 154,
+          "intervalMs": 27.899999976158142
+        },
+        {
+          "workMs": 36.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 2.199999988079071,
+          "steps": 158,
+          "intervalMs": 30.400000035762787
+        },
+        {
+          "workMs": 40.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 163,
+          "intervalMs": 36.80000001192093
+        },
+        {
+          "workMs": 35.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 167,
+          "intervalMs": 41.09999996423721
+        },
+        {
+          "workMs": 28.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 172,
+          "intervalMs": 35.40000003576279
+        },
+        {
+          "workMs": 39.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 175,
+          "intervalMs": 28.899999976158142
+        },
+        {
+          "workMs": 26.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 180,
+          "intervalMs": 39.19999998807907
+        },
+        {
+          "workMs": 32.5,
+          "pickMs": 0,
+          "physicsMs": 2,
+          "steps": 183,
+          "intervalMs": 26.80000001192093
+        },
+        {
+          "workMs": 28.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 187,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 37.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 191,
+          "intervalMs": 29.19999998807907
+        },
+        {
+          "workMs": 36.5,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 195,
+          "intervalMs": 38
+        },
+        {
+          "workMs": 27.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 200,
+          "intervalMs": 36.80000001192093
+        },
+        {
+          "workMs": 40.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.699999988079071,
+          "steps": 203,
+          "intervalMs": 28.19999998807907
+        },
+        {
+          "workMs": 33.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 208,
+          "intervalMs": 40.80000001192093
+        },
+        {
+          "workMs": 29.5,
+          "pickMs": 0,
+          "physicsMs": 1.800000011920929,
+          "steps": 212,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 31.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.600000023841858,
+          "steps": 215,
+          "intervalMs": 29.80000001192093
+        },
+        {
+          "workMs": 26.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 219,
+          "intervalMs": 31.399999976158146
+        },
+        {
+          "workMs": 28,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 222,
+          "intervalMs": 26.600000023841858
+        },
+        {
+          "workMs": 25.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 226,
+          "intervalMs": 30.80000001192093
+        },
+        {
+          "workMs": 33,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 230,
+          "intervalMs": 33.59999996423721
+        },
+        {
+          "workMs": 37.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 234,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 28.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 239,
+          "intervalMs": 37.80000001192093
+        },
+        {
+          "workMs": 27.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 242,
+          "intervalMs": 29.19999998807907
+        },
+        {
+          "workMs": 23.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 246,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 23.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 250,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 25.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 254,
+          "intervalMs": 33.299999952316284
+        },
+        {
+          "workMs": 24.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 258,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 24.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 262,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 23.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 266,
+          "intervalMs": 33.200000047683716
+        },
+        {
+          "workMs": 23.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 270,
+          "intervalMs": 33.299999952316284
+        },
+        {
+          "workMs": 32.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 274,
+          "intervalMs": 34.200000047683716
+        },
+        {
+          "workMs": 23.5,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 278,
+          "intervalMs": 32.799999952316284
+        },
+        {
+          "workMs": 33.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 282,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 24.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 286,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 34.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 290,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 26.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 294,
+          "intervalMs": 35.19999998807907
+        },
+        {
+          "workMs": 24.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 298,
+          "intervalMs": 30.19999998807907
+        },
+        {
+          "workMs": 29.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 4.300000011920929,
+          "steps": 302,
+          "intervalMs": 34.200000047683716
+        },
+        {
+          "workMs": 23.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 306,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 24.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 310,
+          "intervalMs": 33.09999996423721
+        },
+        {
+          "workMs": 32.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 314,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 22.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 318,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 31.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 322,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 22.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 326,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 23.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 330,
+          "intervalMs": 33.299999952316284
+        },
+        {
+          "workMs": 31.5,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 334,
+          "intervalMs": 32.30000001192093
+        },
+        {
+          "workMs": 22.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 338,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 24,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 342,
+          "intervalMs": 34.39999997615814
+        },
+        {
+          "workMs": 23.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 346,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 23.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 350,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 31.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 354,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 22.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 0.8999999761581421,
+          "steps": 358,
+          "intervalMs": 33.799999952316284
+        },
+        {
+          "workMs": 24.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 362,
+          "intervalMs": 32.700000047683716
+        },
+        {
+          "workMs": 23.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 366,
+          "intervalMs": 33.799999952316284
+        },
+        {
+          "workMs": 23.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 370,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 34.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 374,
+          "intervalMs": 34.200000047683716
+        },
+        {
+          "workMs": 39,
+          "pickMs": 0,
+          "physicsMs": 2.099999964237213,
+          "steps": 378,
+          "intervalMs": 34.89999997615814
+        },
+        {
+          "workMs": 35.5,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 383,
+          "intervalMs": 39.19999998807907
+        },
+        {
+          "workMs": 35.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 387,
+          "intervalMs": 35.90000003576279
+        },
+        {
+          "workMs": 27.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 392,
+          "intervalMs": 35.5
+        },
+        {
+          "workMs": 28.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 395,
+          "intervalMs": 27.799999952316284
+        },
+        {
+          "workMs": 30.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 2.199999988079071,
+          "steps": 398,
+          "intervalMs": 28.600000023841858
+        },
+        {
+          "workMs": 27,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 402,
+          "intervalMs": 31.399999976158146
+        },
+        {
+          "workMs": 33.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 406,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 25.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 410,
+          "intervalMs": 34.5
+        },
+        {
+          "workMs": 32.09999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 414,
+          "intervalMs": 32.700000047683716
+        },
+        {
+          "workMs": 30.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 418,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 25.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 422,
+          "intervalMs": 33.799999952316284
+        },
+        {
+          "workMs": 25.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 426,
+          "intervalMs": 32.60000002384186
+        },
+        {
+          "workMs": 24.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 430,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 30.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 434,
+          "intervalMs": 33.90000003576279
+        },
+        {
+          "workMs": 26.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 438,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 23.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 442,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 25.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 446,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 24.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 450,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 34.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 454,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 35.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 458,
+          "intervalMs": 34.89999997615814
+        },
+        {
+          "workMs": 28.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 463,
+          "intervalMs": 35.90000003576279
+        },
+        {
+          "workMs": 24.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 466,
+          "intervalMs": 29.19999998807907
+        },
+        {
+          "workMs": 29.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 470,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 30.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 474,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 24.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 478,
+          "intervalMs": 34.200000047683716
+        },
+        {
+          "workMs": 23.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 482,
+          "intervalMs": 31.89999997615814
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 486,
+          "intervalMs": 34.19999998807907
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 490,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 36.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 494,
+          "intervalMs": 32.59999996423721
+        },
+        {
+          "workMs": 24.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 498,
+          "intervalMs": 36.10000002384186
+        },
+        {
+          "workMs": 24.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 502,
+          "intervalMs": 30.899999976158142
+        },
+        {
+          "workMs": 26,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 506,
+          "intervalMs": 33.40000003576279
+        }
+      ]
+    },
+    {
+      "block": 5,
+      "optimized": true,
+      "frames": 120,
+      "wallSeconds": 4.002199999988079,
+      "simulatedSeconds": 3.974999999999998,
+      "fps": 29.9835090701008,
+      "realtime": 0.9932037379470885,
+      "frame": {
+        "mean": 33.13833333303531,
+        "p95": 36.19999998807907,
+        "p99": 37.19999998807907,
+        "stddev": 2.894194858879259
+      },
+      "rows": [
+        {
+          "workMs": 21.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 2,
+          "steps": 27,
+          "intervalMs": 9.899999976158142
+        },
+        {
+          "workMs": 35,
+          "pickMs": 0,
+          "physicsMs": 2.200000047683716,
+          "steps": 31,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 35.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 2,
+          "steps": 35,
+          "intervalMs": 35.10000002384186
+        },
+        {
+          "workMs": 27.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.9000000357627869,
+          "steps": 39,
+          "intervalMs": 36.19999998807907
+        },
+        {
+          "workMs": 27.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.7999999523162842,
+          "steps": 43,
+          "intervalMs": 28.80000001192093
+        },
+        {
+          "workMs": 35.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.600000023841858,
+          "steps": 47,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 31.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 51,
+          "intervalMs": 35.799999952316284
+        },
+        {
+          "workMs": 36.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 55,
+          "intervalMs": 31.700000047683716
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 59,
+          "intervalMs": 37.19999998807907
+        },
+        {
+          "workMs": 25.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 63,
+          "intervalMs": 28.69999998807907
+        },
+        {
+          "workMs": 24.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 67,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 33,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 71,
+          "intervalMs": 32.60000002384186
+        },
+        {
+          "workMs": 35.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 75,
+          "intervalMs": 34.69999998807907
+        },
+        {
+          "workMs": 39,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 79,
+          "intervalMs": 35.89999997615814
+        },
+        {
+          "workMs": 36.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 84,
+          "intervalMs": 39.19999998807907
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 88,
+          "intervalMs": 36.80000001192093
+        },
+        {
+          "workMs": 33.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 91,
+          "intervalMs": 25.400000035762787
+        },
+        {
+          "workMs": 30.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 95,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 26.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 99,
+          "intervalMs": 31.19999998807907
+        },
+        {
+          "workMs": 25.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 103,
+          "intervalMs": 30.69999998807907
+        },
+        {
+          "workMs": 25.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 107,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 33.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 111,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 33.5,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 115,
+          "intervalMs": 33.90000003576279
+        },
+        {
+          "workMs": 25.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 119,
+          "intervalMs": 33.799999952316284
+        },
+        {
+          "workMs": 26.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 123,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 25.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 127,
+          "intervalMs": 32.700000047683716
+        },
+        {
+          "workMs": 33.09999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 131,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 34.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 135,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 26.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 139,
+          "intervalMs": 35.19999998807907
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 143,
+          "intervalMs": 31.19999998807907
+        },
+        {
+          "workMs": 24.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 147,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 30.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 151,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 34.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 155,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 25.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 159,
+          "intervalMs": 35.09999996423721
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 163,
+          "intervalMs": 32.40000003576279
+        },
+        {
+          "workMs": 24.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 167,
+          "intervalMs": 32.59999996423721
+        },
+        {
+          "workMs": 33.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 171,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 34.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 175,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 24.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 179,
+          "intervalMs": 35
+        },
+        {
+          "workMs": 25.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 183,
+          "intervalMs": 31.400000035762787
+        },
+        {
+          "workMs": 24.5,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 187,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 33,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 191,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 35,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 195,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 199,
+          "intervalMs": 35.30000001192093
+        },
+        {
+          "workMs": 24.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 203,
+          "intervalMs": 30.69999998807907
+        },
+        {
+          "workMs": 24.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 207,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 34.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 211,
+          "intervalMs": 34.299999952316284
+        },
+        {
+          "workMs": 35.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 215,
+          "intervalMs": 34.700000047683716
+        },
+        {
+          "workMs": 25.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 219,
+          "intervalMs": 35.799999952316284
+        },
+        {
+          "workMs": 25.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 223,
+          "intervalMs": 29.600000023841858
+        },
+        {
+          "workMs": 24,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 227,
+          "intervalMs": 32.60000002384186
+        },
+        {
+          "workMs": 33.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 231,
+          "intervalMs": 33.89999997615814
+        },
+        {
+          "workMs": 35.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 235,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 25.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 239,
+          "intervalMs": 35.60000002384186
+        },
+        {
+          "workMs": 25.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 243,
+          "intervalMs": 29.599999964237213
+        },
+        {
+          "workMs": 23.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 247,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 32.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 251,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 34,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 255,
+          "intervalMs": 33.299999952316284
+        },
+        {
+          "workMs": 33.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 259,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 25.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 263,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 24.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 267,
+          "intervalMs": 32
+        },
+        {
+          "workMs": 33.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 271,
+          "intervalMs": 33.59999996423721
+        },
+        {
+          "workMs": 33.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 275,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 26.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 279,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 25.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 283,
+          "intervalMs": 32.299999952316284
+        },
+        {
+          "workMs": 34.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 287,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 34.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 291,
+          "intervalMs": 35
+        },
+        {
+          "workMs": 34.5,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 295,
+          "intervalMs": 34.80000001192093
+        },
+        {
+          "workMs": 24.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 299,
+          "intervalMs": 34.69999998807907
+        },
+        {
+          "workMs": 23.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 303,
+          "intervalMs": 28.900000035762787
+        },
+        {
+          "workMs": 25.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 307,
+          "intervalMs": 33.09999996423721
+        },
+        {
+          "workMs": 33.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 311,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 36.09999996423721,
+          "pickMs": 0,
+          "physicsMs": 2,
+          "steps": 315,
+          "intervalMs": 33.90000003576279
+        },
+        {
+          "workMs": 40.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 319,
+          "intervalMs": 36.39999997615814
+        },
+        {
+          "workMs": 33.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 324,
+          "intervalMs": 41
+        },
+        {
+          "workMs": 27.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 328,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 29.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 332,
+          "intervalMs": 28
+        },
+        {
+          "workMs": 32.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 2.699999988079071,
+          "steps": 335,
+          "intervalMs": 29.900000035762787
+        },
+        {
+          "workMs": 27.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 339,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 24.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 343,
+          "intervalMs": 30.5
+        },
+        {
+          "workMs": 25.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 347,
+          "intervalMs": 33.09999996423721
+        },
+        {
+          "workMs": 28.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 351,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 29.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 355,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 359,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 25.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 363,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 24.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 367,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 28.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 371,
+          "intervalMs": 33.799999952316284
+        },
+        {
+          "workMs": 29.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 375,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 30.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 379,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 25.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 383,
+          "intervalMs": 33.59999996423721
+        },
+        {
+          "workMs": 29.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 387,
+          "intervalMs": 32.80000001192093
+        },
+        {
+          "workMs": 28.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 391,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 30.5,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 395,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 25.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 399,
+          "intervalMs": 34.19999998807907
+        },
+        {
+          "workMs": 26,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 403,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 25.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 407,
+          "intervalMs": 32.30000001192093
+        },
+        {
+          "workMs": 29.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 411,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 29.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 415,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 26.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 419,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 24.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 423,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 427,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 30.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 431,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 36,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 435,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 25.5,
+          "pickMs": 0,
+          "physicsMs": 1.5999999642372131,
+          "steps": 439,
+          "intervalMs": 36.19999998807907
+        },
+        {
+          "workMs": 24.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 443,
+          "intervalMs": 29.69999998807907
+        },
+        {
+          "workMs": 24.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 447,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 30.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 451,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 28.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 455,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 25.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 459,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 463,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 29,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 467,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 28.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 471,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 28.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 475,
+          "intervalMs": 34.39999997615814
+        },
+        {
+          "workMs": 26.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 479,
+          "intervalMs": 32.80000001192093
+        },
+        {
+          "workMs": 25.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 483,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 24.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 487,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 28.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 491,
+          "intervalMs": 33.09999996423721
+        },
+        {
+          "workMs": 28.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 495,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 24.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 499,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 25.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 503,
+          "intervalMs": 33.69999998807907
+        }
+      ]
+    },
+    {
+      "block": 6,
+      "optimized": true,
+      "frames": 120,
+      "wallSeconds": 3.9991000000238417,
+      "simulatedSeconds": 3.9583333333333313,
+      "fps": 30.006751518912903,
+      "realtime": 0.9898060396863626,
+      "frame": {
+        "mean": 33.05083333353202,
+        "p95": 36.200000047683716,
+        "p99": 37,
+        "stddev": 3.531076221228298
+      },
+      "rows": [
+        {
+          "workMs": 27.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 28,
+          "intervalMs": 0.20000004768371582
+        },
+        {
+          "workMs": 25.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 2.300000011920929,
+          "steps": 31,
+          "intervalMs": 32.09999996423721
+        },
+        {
+          "workMs": 27,
+          "pickMs": 0,
+          "physicsMs": 2.199999988079071,
+          "steps": 35,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 26.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.9000000357627869,
+          "steps": 39,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 34.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.699999988079071,
+          "steps": 43,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 36.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 48,
+          "intervalMs": 35.19999998807907
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 52,
+          "intervalMs": 37
+        },
+        {
+          "workMs": 25.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 55,
+          "intervalMs": 28
+        },
+        {
+          "workMs": 26.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 59,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 35.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 63,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 36.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 68,
+          "intervalMs": 35.69999998807907
+        },
+        {
+          "workMs": 25.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 72,
+          "intervalMs": 36.90000003576279
+        },
+        {
+          "workMs": 24.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 75,
+          "intervalMs": 27.599999964237213
+        },
+        {
+          "workMs": 25.5,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 79,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 33,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 83,
+          "intervalMs": 33.90000003576279
+        },
+        {
+          "workMs": 35.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 87,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 28.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 92,
+          "intervalMs": 35.89999997615814
+        },
+        {
+          "workMs": 25.5,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 95,
+          "intervalMs": 29.900000035762787
+        },
+        {
+          "workMs": 25.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 99,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 35.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 103,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 33,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 108,
+          "intervalMs": 36
+        },
+        {
+          "workMs": 25.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 112,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 24,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 115,
+          "intervalMs": 31
+        },
+        {
+          "workMs": 24.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 119,
+          "intervalMs": 32.200000047683716
+        },
+        {
+          "workMs": 33.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 123,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 33.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 127,
+          "intervalMs": 34.19999998807907
+        },
+        {
+          "workMs": 26.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 131,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 25.100000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 135,
+          "intervalMs": 32.19999998807907
+        },
+        {
+          "workMs": 25.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 139,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 35.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 143,
+          "intervalMs": 33.299999952316284
+        },
+        {
+          "workMs": 33.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 148,
+          "intervalMs": 35.80000001192093
+        },
+        {
+          "workMs": 25.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 152,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 155,
+          "intervalMs": 30.80000001192093
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 159,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 34.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 163,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 35.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 168,
+          "intervalMs": 34.59999996423721
+        },
+        {
+          "workMs": 39.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 172,
+          "intervalMs": 36.200000047683716
+        },
+        {
+          "workMs": 36.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 177,
+          "intervalMs": 39.89999997615814
+        },
+        {
+          "workMs": 25.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 181,
+          "intervalMs": 37
+        },
+        {
+          "workMs": 28.700000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 184,
+          "intervalMs": 25.899999976158142
+        },
+        {
+          "workMs": 30.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 188,
+          "intervalMs": 28.900000035762787
+        },
+        {
+          "workMs": 25.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 191,
+          "intervalMs": 31.099999964237213
+        },
+        {
+          "workMs": 24.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 195,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 199,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 34.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 203,
+          "intervalMs": 34.19999998807907
+        },
+        {
+          "workMs": 36.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 208,
+          "intervalMs": 34.39999997615814
+        },
+        {
+          "workMs": 24.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 212,
+          "intervalMs": 36.30000001192093
+        },
+        {
+          "workMs": 23.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 215,
+          "intervalMs": 29.30000001192093
+        },
+        {
+          "workMs": 24.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 219,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 34.5,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 223,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 35,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 228,
+          "intervalMs": 34.700000047683716
+        },
+        {
+          "workMs": 26.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.800000011920929,
+          "steps": 232,
+          "intervalMs": 35.19999998807907
+        },
+        {
+          "workMs": 24.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 235,
+          "intervalMs": 30.599999964237213
+        },
+        {
+          "workMs": 25.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 239,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 29.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 243,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 32.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 247,
+          "intervalMs": 34.5
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 251,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 24,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 255,
+          "intervalMs": 32.30000001192093
+        },
+        {
+          "workMs": 24.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 259,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 35.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 263,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 32.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 268,
+          "intervalMs": 35.799999952316284
+        },
+        {
+          "workMs": 26.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 272,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 24.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 275,
+          "intervalMs": 30.600000023841858
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 279,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 29.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 283,
+          "intervalMs": 32.19999998807907
+        },
+        {
+          "workMs": 29.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 287,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 26.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 291,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 295,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 25.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 299,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 28.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 303,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 29.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 307,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 24.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 311,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 315,
+          "intervalMs": 32.39999997615814
+        },
+        {
+          "workMs": 29.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 319,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 30,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 323,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 29.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 327,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 25.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 331,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 25.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 335,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 339,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 30.599999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 343,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 29.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 347,
+          "intervalMs": 32.59999996423721
+        },
+        {
+          "workMs": 24.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 351,
+          "intervalMs": 34.200000047683716
+        },
+        {
+          "workMs": 25,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 355,
+          "intervalMs": 32.59999996423721
+        },
+        {
+          "workMs": 27.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 359,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 31.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 363,
+          "intervalMs": 34.5
+        },
+        {
+          "workMs": 29.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 367,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 21.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 371,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 25.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 375,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 28.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 379,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 27.5,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 383,
+          "intervalMs": 32.90000003576279
+        },
+        {
+          "workMs": 24,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 387,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 24.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 391,
+          "intervalMs": 34.09999996423721
+        },
+        {
+          "workMs": 24.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 395,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 28.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 399,
+          "intervalMs": 32.30000001192093
+        },
+        {
+          "workMs": 29.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 403,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 25.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 407,
+          "intervalMs": 32.799999952316284
+        },
+        {
+          "workMs": 25.299999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 411,
+          "intervalMs": 33.200000047683716
+        },
+        {
+          "workMs": 24.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 415,
+          "intervalMs": 33.59999996423721
+        },
+        {
+          "workMs": 32.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 419,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 33.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 423,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 26,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 427,
+          "intervalMs": 34.09999996423721
+        },
+        {
+          "workMs": 26,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 431,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 25.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 435,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 32.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 439,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 36.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 443,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 26.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 448,
+          "intervalMs": 36.89999997615814
+        },
+        {
+          "workMs": 23.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 451,
+          "intervalMs": 29.5
+        },
+        {
+          "workMs": 23.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 455,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 34.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 459,
+          "intervalMs": 32.39999997615814
+        },
+        {
+          "workMs": 34.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 463,
+          "intervalMs": 34.39999997615814
+        },
+        {
+          "workMs": 26.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 468,
+          "intervalMs": 34.80000001192093
+        },
+        {
+          "workMs": 32.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 471,
+          "intervalMs": 31
+        },
+        {
+          "workMs": 25.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 475,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 31.5,
+          "pickMs": 0,
+          "physicsMs": 1,
+          "steps": 479,
+          "intervalMs": 32.40000003576279
+        },
+        {
+          "workMs": 29.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 483,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 23.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 487,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 24.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 491,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 26.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 495,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 33.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 499,
+          "intervalMs": 34.09999996423721
+        },
+        {
+          "workMs": 33,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 503,
+          "intervalMs": 33.80000001192093
+        }
+      ]
+    },
+    {
+      "block": 7,
+      "optimized": false,
+      "frames": 120,
+      "wallSeconds": 4.083100000023842,
+      "simulatedSeconds": 4.058333333333339,
+      "fps": 29.38943449812625,
+      "realtime": 0.9939343472630211,
+      "frame": {
+        "mean": 33.82250000039736,
+        "p95": 40.59999996423721,
+        "p99": 49.200000047683716,
+        "stddev": 4.645615538635971
+      },
+      "rows": [
+        {
+          "workMs": 31.799999952316284,
+          "pickMs": 0,
+          "physicsMs": 1.600000023841858,
+          "steps": 34,
+          "intervalMs": 0.20000004768371582
+        },
+        {
+          "workMs": 42,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 38,
+          "intervalMs": 32.19999998807907
+        },
+        {
+          "workMs": 43,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 43,
+          "intervalMs": 42.19999998807907
+        },
+        {
+          "workMs": 40.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 49,
+          "intervalMs": 50.10000002384186
+        },
+        {
+          "workMs": 36.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 54,
+          "intervalMs": 40.59999996423721
+        },
+        {
+          "workMs": 41.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 59,
+          "intervalMs": 36.80000001192093
+        },
+        {
+          "workMs": 30.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 65,
+          "intervalMs": 56
+        },
+        {
+          "workMs": 39.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 69,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 36.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 74,
+          "intervalMs": 39.69999998807907
+        },
+        {
+          "workMs": 40.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 79,
+          "intervalMs": 36.5
+        },
+        {
+          "workMs": 34.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 83,
+          "intervalMs": 40.59999996423721
+        },
+        {
+          "workMs": 40.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 89,
+          "intervalMs": 49.200000047683716
+        },
+        {
+          "workMs": 32.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 94,
+          "intervalMs": 40.89999997615814
+        },
+        {
+          "workMs": 30.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 98,
+          "intervalMs": 32.39999997615814
+        },
+        {
+          "workMs": 32.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 2.100000023841858,
+          "steps": 102,
+          "intervalMs": 31
+        },
+        {
+          "workMs": 31.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 2.099999964237213,
+          "steps": 106,
+          "intervalMs": 32.60000002384186
+        },
+        {
+          "workMs": 34.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 110,
+          "intervalMs": 31.399999976158146
+        },
+        {
+          "workMs": 35.5,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 114,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 30.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 118,
+          "intervalMs": 35.69999998807907
+        },
+        {
+          "workMs": 30.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.600000023841858,
+          "steps": 122,
+          "intervalMs": 30.900000035762787
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 125,
+          "intervalMs": 31.19999998807907
+        },
+        {
+          "workMs": 33.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 129,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 35.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 133,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 26.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 138,
+          "intervalMs": 35.5
+        },
+        {
+          "workMs": 22.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 141,
+          "intervalMs": 31.099999964237213
+        },
+        {
+          "workMs": 26,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 145,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 32.59999996423721,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 149,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 34.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 153,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 27,
+          "pickMs": 0,
+          "physicsMs": 1.7999999523162842,
+          "steps": 158,
+          "intervalMs": 34.39999997615814
+        },
+        {
+          "workMs": 23.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 161,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 165,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 33.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 169,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 34.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 174,
+          "intervalMs": 34.19999998807907
+        },
+        {
+          "workMs": 28.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 178,
+          "intervalMs": 35.10000002384186
+        },
+        {
+          "workMs": 24,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 181,
+          "intervalMs": 30.19999998807907
+        },
+        {
+          "workMs": 28.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 185,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 33.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 189,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 34.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 194,
+          "intervalMs": 34.09999996423721
+        },
+        {
+          "workMs": 28.5,
+          "pickMs": 0,
+          "physicsMs": 1.5999999642372131,
+          "steps": 198,
+          "intervalMs": 35.200000047683716
+        },
+        {
+          "workMs": 35.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 201,
+          "intervalMs": 31.099999964237213
+        },
+        {
+          "workMs": 27.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 2.399999976158142,
+          "steps": 206,
+          "intervalMs": 35.60000002384186
+        },
+        {
+          "workMs": 31.400000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 209,
+          "intervalMs": 30.599999964237213
+        },
+        {
+          "workMs": 34,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 213,
+          "intervalMs": 33.200000047683716
+        },
+        {
+          "workMs": 27.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 218,
+          "intervalMs": 34.39999997615814
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 221,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 25.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 225,
+          "intervalMs": 32.5
+        },
+        {
+          "workMs": 33.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 229,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 32.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 234,
+          "intervalMs": 33.59999996423721
+        },
+        {
+          "workMs": 26.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 2.300000011920929,
+          "steps": 237,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 25.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 241,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 24,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 245,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 32.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 249,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 32.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 253,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 25.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 257,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 25.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 261,
+          "intervalMs": 33.60000002384186
+        },
+        {
+          "workMs": 25.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 265,
+          "intervalMs": 33.09999996423721
+        },
+        {
+          "workMs": 29.5,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 269,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 35.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 273,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 27.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 278,
+          "intervalMs": 35.59999996423721
+        },
+        {
+          "workMs": 24.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.4000000357627869,
+          "steps": 281,
+          "intervalMs": 30.900000035762787
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 285,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 28.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 289,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 29.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 293,
+          "intervalMs": 32.89999997615814
+        },
+        {
+          "workMs": 28.900000035762787,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 297,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 24.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 301,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 29,
+          "pickMs": 0,
+          "physicsMs": 1.600000023841858,
+          "steps": 306,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 32.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 309,
+          "intervalMs": 32.30000001192093
+        },
+        {
+          "workMs": 35.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 313,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 26.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 318,
+          "intervalMs": 35.89999997615814
+        },
+        {
+          "workMs": 29.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 321,
+          "intervalMs": 31.400000035762787
+        },
+        {
+          "workMs": 25.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 325,
+          "intervalMs": 32.69999998807907
+        },
+        {
+          "workMs": 29.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 329,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 33.39999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 333,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 24.600000023841858,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 337,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 25.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 341,
+          "intervalMs": 32.80000001192093
+        },
+        {
+          "workMs": 23.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 345,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 31.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 349,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 32.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 353,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 24.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 357,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 25.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 361,
+          "intervalMs": 33.09999996423721
+        },
+        {
+          "workMs": 24.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 365,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 34,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 369,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 33.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 374,
+          "intervalMs": 34.19999998807907
+        },
+        {
+          "workMs": 34.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 378,
+          "intervalMs": 34.10000002384186
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 382,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 22.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 385,
+          "intervalMs": 30.099999964237213
+        },
+        {
+          "workMs": 34.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 389,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 34.10000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 393,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 26.5,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 398,
+          "intervalMs": 34.30000001192093
+        },
+        {
+          "workMs": 23.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 401,
+          "intervalMs": 32.10000002384186
+        },
+        {
+          "workMs": 24.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 405,
+          "intervalMs": 33.59999996423721
+        },
+        {
+          "workMs": 33.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 409,
+          "intervalMs": 32.80000001192093
+        },
+        {
+          "workMs": 31.200000047683716,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 413,
+          "intervalMs": 33.89999997615814
+        },
+        {
+          "workMs": 25.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 417,
+          "intervalMs": 32.40000003576279
+        },
+        {
+          "workMs": 24.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 421,
+          "intervalMs": 34
+        },
+        {
+          "workMs": 30.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 425,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 32.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 429,
+          "intervalMs": 33.89999997615814
+        },
+        {
+          "workMs": 32.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 433,
+          "intervalMs": 33.30000001192093
+        },
+        {
+          "workMs": 32.90000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 437,
+          "intervalMs": 33.19999998807907
+        },
+        {
+          "workMs": 34.60000002384186,
+          "pickMs": 0,
+          "physicsMs": 1.399999976158142,
+          "steps": 441,
+          "intervalMs": 33
+        },
+        {
+          "workMs": 26.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 446,
+          "intervalMs": 34.90000003576279
+        },
+        {
+          "workMs": 27.19999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 449,
+          "intervalMs": 31.89999997615814
+        },
+        {
+          "workMs": 29.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2999999523162842,
+          "steps": 453,
+          "intervalMs": 33.5
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.100000023841858,
+          "steps": 457,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 24.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 461,
+          "intervalMs": 33.299999952316284
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 465,
+          "intervalMs": 32.60000002384186
+        },
+        {
+          "workMs": 33.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 469,
+          "intervalMs": 33.89999997615814
+        },
+        {
+          "workMs": 36.30000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 474,
+          "intervalMs": 33.90000003576279
+        },
+        {
+          "workMs": 25.80000001192093,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 478,
+          "intervalMs": 36.39999997615814
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.600000023841858,
+          "steps": 481,
+          "intervalMs": 29
+        },
+        {
+          "workMs": 24.899999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 485,
+          "intervalMs": 33.40000003576279
+        },
+        {
+          "workMs": 30.5,
+          "pickMs": 0,
+          "physicsMs": 1.5,
+          "steps": 489,
+          "intervalMs": 33.69999998807907
+        },
+        {
+          "workMs": 34.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.2000000476837158,
+          "steps": 494,
+          "intervalMs": 34.09999996423721
+        },
+        {
+          "workMs": 24.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.0999999642372131,
+          "steps": 498,
+          "intervalMs": 34.700000047683716
+        },
+        {
+          "workMs": 23.69999998807907,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 501,
+          "intervalMs": 30.5
+        },
+        {
+          "workMs": 23.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 505,
+          "intervalMs": 34.19999998807907
+        },
+        {
+          "workMs": 33.40000003576279,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 509,
+          "intervalMs": 33.39999997615814
+        },
+        {
+          "workMs": 32.89999997615814,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 513,
+          "intervalMs": 33.80000001192093
+        },
+        {
+          "workMs": 25.099999964237213,
+          "pickMs": 0,
+          "physicsMs": 1.199999988079071,
+          "steps": 517,
+          "intervalMs": 33.10000002384186
+        },
+        {
+          "workMs": 24.399999976158142,
+          "pickMs": 0,
+          "physicsMs": 1.300000011920929,
+          "steps": 521,
+          "intervalMs": 33
+        }
+      ]
+    }
+  ]
+}

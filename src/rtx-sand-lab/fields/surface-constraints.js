@@ -4,10 +4,10 @@ import {NativeDensity,nativeDensityAvailable} from '../../sand-lab/native-densit
 import {simdKernel} from '../simd/kernels.js';
 // Only the narrow surface/contact band needs local density work after the
 // bulk projection. No artificial attraction and no change to parcel volumes.
-export function surfaceConstraints(lab,positions,neighbors,grid,{native=true}={}){
+export function surfaceConstraints(lab,positions,neighbors,grid,{native=true,kernelOverride=null}={}){
  const n=positions.length/4,s=lab.spacing,h=2*s,volume=s**3,W=315/(64*Math.PI*h**3),G=-45/(Math.PI*h**6),lambda=new Float32Array(n),wall=new Float32Array(n*4),active=[];
  const simd=native&&lab.optimizations?.simdParticles&&simdKernel('density');
- const kernel=simd?(lab.simdSurfaceKernel??=new NativeDensity(simd)):native&&nativeDensityAvailable()?(lab.fieldSurfaceKernel??=new NativeDensity()):null;
+ const kernel=kernelOverride||(simd?(lab.simdSurfaceKernel??=new NativeDensity(simd)):native&&nativeDensityAvailable()?(lab.fieldSurfaceKernel??=new NativeDensity()):null);
  const next=positions.slice(),shift=new Float32Array(positions.length),point=[0,0,0];
  const band=new Uint8Array(grid.count);for(let i=0;i<grid.count;i++)if(grid.phase[i]!==WATER)band[i]=1;
  for(const face of grid.faces)for(let k=0;k<face.a.length;k++){const a=face.a[k],b=face.b[k];if(grid.phase[a]!==WATER&&b>=0)band[b]=1;if(grid.phase[b]!==WATER&&a>=0)band[a]=1;}

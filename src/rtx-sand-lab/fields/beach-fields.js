@@ -101,7 +101,7 @@ export class BeachFields {
    lab.gpu.overflow=0;lab.gpu.neighborReused=false;lab.gpu.neighborBackend='WebGPU spatial buckets';lab.gpu.neighborMs=0;
   }else{
   const transferred=g.transfer(context.old,context.predicted,context.dt,context.scale,context.s),gatherDone=performance.now(),builder=this.neighbors??=new FieldNeighbors(),neighbors=builder.build(transferred,context.s,{native:lab.gpu.nativeNeighbors!==false,reuse:lab.optimizations?.neighborReuse!==false});lab.gpu.neighborMs=performance.now()-gatherDone;lab.gpu.neighbors=neighbors.data;lab.gpu.overflow=neighbors.overflow;lab.gpu.neighborReused=builder.reused;lab.gpu.neighborBackend=builder.backend;
-  const surfaceStart=performance.now(),computedSurface=surfaceConstraints(lab,transferred,neighbors.data,g);surface=computedSurface;
+  const surfaceStart=performance.now(),computedSurface=(this.surfaceConstraints||surfaceConstraints)(lab,transferred,neighbors.data,g);surface=computedSurface;
   this.stats={...this.stats,...result,topologyUploads:undefined,potential:undefined,...g.summary(),before:this.before,prepareMs:this.prepareMs,transferMs:surfaceStart-start,scalarMs:this.scalarMs,gatherMs:gatherDone-scalarDone,neighborMs:lab.gpu.neighborMs,surfaceMs:performance.now()-surfaceStart,surfaceParticles:surface.active,surfaceBackend:surface.backend,totalParticles:lab.count};
   const transportStart=performance.now();
   // Local density relaxation re-spaces markers after bulk projection. It is
