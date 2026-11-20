@@ -1,0 +1,394 @@
+TAP version 13
+# Subtest: old libraries migrate liquidity without changing geometry, pose keys or material references
+ok 1 - old libraries migrate liquidity without changing geometry, pose keys or material references
+  ---
+  duration_ms: 52.697772
+  type: 'test'
+  ...
+# Subtest: joint graph rejects cycles, invalid anchors, dangling parents and invalid forces
+ok 2 - joint graph rejects cycles, invalid anchors, dangling parents and invalid forces
+  ---
+  duration_ms: 22.248414
+  type: 'test'
+  ...
+# Subtest: joint retention decreases continuously to zero with liquidity
+ok 3 - joint retention decreases continuously to zero with liquidity
+  ---
+  duration_ms: 3.337211
+  type: 'test'
+  ...
+# Subtest: force keys interpolate signed loads and loop without reading pose targets
+ok 4 - force keys interpolate signed loads and loop without reading pose targets
+  ---
+  duration_ms: 3.90536
+  type: 'test'
+  ...
+# Subtest: collision proxy uses exact primitives and retains the arch opening independently of render spacing
+ok 5 - collision proxy uses exact primitives and retains the arch opening independently of render spacing
+  ---
+  duration_ms: 292.607581
+  type: 'test'
+  ...
+# Subtest: force magnitude and duration produce expected momentum; pulse ends exactly
+ok 6 - force magnitude and duration produce expected momentum; pulse ends exactly
+  ---
+  duration_ms: 1563.009564
+  type: 'test'
+  ...
+# Subtest: off-centre drag forces produce angular response without writing authoring data
+ok 7 - off-centre drag forces produce angular response without writing authoring data
+  ---
+  duration_ms: 19.236302
+  type: 'test'
+  ...
+# Subtest: gravity settles bodies and rigid contacts transfer momentum
+ok 8 - gravity settles bodies and rigid contacts transfer momentum
+  ---
+  duration_ms: 152.313237
+  type: 'test'
+  ...
+# Subtest: all joint types stay finite under gravity and repeated impulses, including rotated rest frames
+ok 9 - all joint types stay finite under gravity and repeated impulses, including rotated rest frames
+  ---
+  duration_ms: 423.063226
+  type: 'test'
+  ...
+# Subtest: elasticity reduces deflection and angular looseness permits more deflection
+ok 10 - elasticity reduces deflection and angular looseness permits more deflection
+  ---
+  duration_ms: 134.358636
+  type: 'test'
+  ...
+# Subtest: animation is open-loop torque: an external nudge persists instead of snapping back to a keyed pose
+ok 11 - animation is open-loop torque: an external nudge persists instead of snapping back to a keyed pose
+  ---
+  duration_ms: 295.371087
+  type: 'test'
+  ...
+# Subtest: freely flowing materials never create a rigid body/joint and zero-strength material cannot attach
+ok 12 - freely flowing materials never create a rigid body/joint and zero-strength material cannot attach
+  ---
+  duration_ms: 8.444032
+  type: 'test'
+  ...
+# Subtest: fixed stepping respects earned wall time and clamps background catchup
+ok 13 - fixed stepping respects earned wall time and clamps background catchup
+  ---
+  duration_ms: 6.357484
+  type: 'test'
+  ...
+# Subtest: joint force animation applies equal and opposite linear loads without a pose motor
+ok 14 - joint force animation applies equal and opposite linear loads without a pose motor
+  ---
+  duration_ms: 42.796167
+  type: 'test'
+  ...
+# Subtest: repeated articulation nudges remain finite in a bounded ten-second soak
+ok 15 - repeated articulation nudges remain finite in a bounded ten-second soak
+  ---
+  duration_ms: 243.477048
+  type: 'test'
+  ...
+# Subtest: starter library round-trips without losing parts, material properties, animation or placements
+ok 16 - starter library round-trips without losing parts, material properties, animation or placements
+  ---
+  duration_ms: 47.502693
+  type: 'test'
+  ...
+# Subtest: import validation rejects unsupported, nonfinite, oversized, and dangling data before save
+ok 17 - import validation rejects unsupported, nonfinite, oversized, and dangling data before save
+  ---
+  duration_ms: 27.106615
+  type: 'test'
+  ...
+# Subtest: CSG carve makes a real opening and paint changes material without changing distances
+ok 18 - CSG carve makes a real opening and paint changes material without changing distances
+  ---
+  duration_ms: 7.762959
+  type: 'test'
+  ...
+# Subtest: ellipsoid, capsule and box distances are finite with correct boundary signs
+ok 19 - ellipsoid, capsule and box distances are finite with correct boundary signs
+  ---
+  duration_ms: 1.679446
+  type: 'test'
+  ...
+# Subtest: grid budgets grow spacing while retaining the full sculpt bounds
+ok 20 - grid budgets grow spacing while retaining the full sculpt bounds
+  ---
+  duration_ms: 2.29765
+  type: 'test'
+  ...
+# Subtest: surface extraction produces bounded outward normals and material tags independent of camera
+ok 21 - surface extraction produces bounded outward normals and material tags independent of camera
+  ---
+  duration_ms: 598.01528
+  type: 'test'
+  ...
+# Subtest: animation interpolates shortest rotation and scales, clamps endpoints, replaces keys
+ok 22 - animation interpolates shortest rotation and scales, clamps endpoints, replaces keys
+  ---
+  duration_ms: 11.379405
+  type: 'test'
+  ...
+# Subtest: undo and redo restore geometry, materials and placements by value
+ok 23 - undo and redo restore geometry, materials and placements by value
+  ---
+  duration_ms: 15.434717
+  type: 'test'
+  ...
+# Subtest: studio dispatch leaves beach and historical startup untouched
+ok 24 - studio dispatch leaves beach and historical startup untouched
+  ---
+  duration_ms: 4.17965
+  type: 'test'
+  ...
+# Subtest: browser fallback preserves old namespace and a previous save
+ok 25 - browser fallback preserves old namespace and a previous save
+  ---
+  duration_ms: 24.1483
+  type: 'test'
+  ...
+# Subtest: disk saves are serialized atomically, validate payloads and reject other origins
+ok 26 - disk saves are serialized atomically, validate payloads and reject other origins
+  ---
+  duration_ms: 159.826733
+  type: 'test'
+  ...
+# Subtest: disk save survives a full or unavailable browser storage quota
+ok 27 - disk save survives a full or unavailable browser storage quota
+  ---
+  duration_ms: 7.911367
+  type: 'test'
+  ...
+# Subtest: editing during backend startup uses CPU until GPU validation completes
+ok 28 - editing during backend startup uses CPU until GPU validation completes
+  ---
+  duration_ms: 56.501979
+  type: 'test'
+  ...
+# Subtest: a sampled endpoint cannot override the time of a newly recorded key
+ok 29 - a sampled endpoint cannot override the time of a newly recorded key
+  ---
+  duration_ms: 0.933958
+  type: 'test'
+  ...
+# Subtest: large imported worlds are rejected before unbounded drawing or baking
+ok 30 - large imported worlds are rejected before unbounded drawing or baking
+  ---
+  duration_ms: 4.722156
+  type: 'test'
+  ...
+# Subtest: incomplete kernel is rejected without replacing the working module
+ok 31 - incomplete kernel is rejected without replacing the working module
+  ---
+  duration_ms: 60.187413
+  type: 'test'
+  ...
+# Subtest: compiled face batch is identical across walls, shallow water, spray, held markers and anisotropic grids
+ok 32 - compiled face batch is identical across walls, shallow water, spray, held markers and anisotropic grids
+  ---
+  duration_ms: 1677.500423
+  type: 'test'
+  ...
+# Subtest: no compiled transfer uses the unmodified reference and live toggles leave snapshots alone
+ok 33 - no compiled transfer uses the unmodified reference and live toggles leave snapshots alone
+  ---
+  duration_ms: 1430.92303
+  type: 'test'
+  ...
+# Subtest: standalone scalar/air batch preserves nonuniform fields, CFL substeps and heat/vapour accounting
+ok 34 - standalone scalar/air batch preserves nonuniform fields, CFL substeps and heat/vapour accounting
+  ---
+  duration_ms: 120.121468
+  type: 'test'
+  ...
+# Subtest: full live physics matches through toggles, edits, moving bodies, brush, rain and reset
+ok 35 - full live physics matches through toggles, edits, moving bodies, brush, rain and reset
+  ---
+  duration_ms: 10206.03957
+  type: 'test'
+  ...
+# Subtest: a ball placed inside a carved bowl is not ejected by the original sand sphere
+ok 36 - a ball placed inside a carved bowl is not ejected by the original sand sphere
+  ---
+  duration_ms: 140.92739
+  type: 'test'
+  ...
+# Subtest: glass, mirror, rock and light balls fall to the carved floor, not the old top
+ok 37 - glass, mirror, rock and light balls fall to the carved floor, not the old top
+  ---
+  duration_ms: 4334.146944
+  type: 'test'
+  ...
+# Subtest: carved walls push objects into the cavity, and tilted cups use their actual surfaces
+ok 38 - carved walls push objects into the cavity, and tilted cups use their actual surfaces
+  ---
+  duration_ms: 331.333494
+  type: 'test'
+  ...
+# Subtest: enclosed spherical cavities and intersection-cut portions do not acquire false walls
+ok 39 - enclosed spherical cavities and intersection-cut portions do not acquire false walls
+  ---
+  duration_ms: 10.059994
+  type: 'test'
+  ...
+# Subtest: surface caches refresh after another cut or motion, with identical broadphase results
+ok 40 - surface caches refresh after another cut or motion, with identical broadphase results
+  ---
+  duration_ms: 44.127446
+  type: 'test'
+  ...
+# Subtest: mobile carved sand and a body exchange equal and opposite linear momentum
+ok 41 - mobile carved sand and a body exchange equal and opposite linear momentum
+  ---
+  duration_ms: 13.513066
+  type: 'test'
+  ...
+# Subtest: a small carved piece inside a larger held object is expelled without phantom cavity contacts
+ok 42 - a small carved piece inside a larger held object is expelled without phantom cavity contacts
+  ---
+  duration_ms: 13.908811
+  type: 'test'
+  ...
+# Subtest: the shared live scene selects carved contacts and retains the historical ordinary-grain path
+ok 43 - the shared live scene selects carved contacts and retains the historical ordinary-grain path
+  ---
+  duration_ms: 1036.644562
+  type: 'test'
+  ...
+# Subtest: the actual live prepare-step path keeps an object in the carved cavity
+ok 44 - the actual live prepare-step path keeps an object in the carved cavity
+  ---
+  duration_ms: 574.330817
+  type: 'test'
+  ...
+# Subtest: live wind brush gives ten times the previous live surface velocity and maximum
+ok 45 - live wind brush gives ten times the previous live surface velocity and maximum
+  ---
+  duration_ms: 694.406029
+  type: 'test'
+  ...
+# Subtest: small sand brush cuts only its intersection from a large placed clump
+ok 46 - small sand brush cuts only its intersection from a large placed clump
+  ---
+  duration_ms: 119.604327
+  type: 'test'
+  ...
+# Subtest: moving the supporting clump releases attached sand instead of suspending it
+ok 47 - moving the supporting clump releases attached sand instead of suspending it
+  ---
+  duration_ms: 209.734052
+  type: 'test'
+  ...
+# Subtest: player-body contacts transfer equal and opposite momentum, with mass-dependent response
+ok 48 - player-body contacts transfer equal and opposite momentum, with mass-dependent response
+  ---
+  duration_ms: 9.019388
+  type: 'test'
+  ...
+# Subtest: walking into an object pushes it rather than treating it as immovable scenery
+ok 49 - walking into an object pushes it rather than treating it as immovable scenery
+  ---
+  duration_ms: 78.209163
+  type: 'test'
+  ...
+# Subtest: shore reconstruction keeps a level free surface level across the sloping contact line
+ok 50 - shore reconstruction keeps a level free surface level across the sloping contact line
+  ---
+  duration_ms: 278.322572
+  type: 'test'
+  ...
+# Subtest: allocation-light sculpt samples and complete surfaces match reference exactly
+ok 51 - allocation-light sculpt samples and complete surfaces match reference exactly
+  ---
+  duration_ms: 4445.941519
+  type: 'test'
+  ...
+# Subtest: material ties, boundary zeroes and truncated grids keep reference ordering
+ok 52 - material ties, boundary zeroes and truncated grids keep reference ordering
+  ---
+  duration_ms: 834.977102
+  type: 'test'
+  ...
+# Subtest: conservative picking keeps exact hits through rotation, nonuniform scale, misses and inside rays
+ok 53 - conservative picking keeps exact hits through rotation, nonuniform scale, misses and inside rays
+  ---
+  duration_ms: 976.676978
+  type: 'test'
+  ...
+# Subtest: worker accepts exact fast extraction from GPU-shaped buffers and retains CPU reference
+ok 54 - worker accepts exact fast extraction from GPU-shaped buffers and retains CPU reference
+  ---
+  duration_ms: 278.218926
+  type: 'test'
+  ...
+# Subtest: appended mixed strokes preserve exact grids, normals, ordering and material ties
+ok 55 - appended mixed strokes preserve exact grids, normals, ordering and material ties
+  ---
+  duration_ms: 6973.477879
+  type: 'test'
+  ...
+# Subtest: undo, changed prior operations, reordering, bounds and spacing changes rebuild exactly
+ok 56 - undo, changed prior operations, reordering, bounds and spacing changes rebuild exactly
+  ---
+  duration_ms: 1207.01968
+  type: 'test'
+  ...
+# Subtest: sampled grids rebuild all incident cells across eight-cell brick borders
+ok 57 - sampled grids rebuild all incident cells across eight-cell brick borders
+  ---
+  duration_ms: 155.532472
+  type: 'test'
+  ...
+# Subtest: GPU-sampled floats and CPU accumulators never cross-contaminate
+ok 58 - GPU-sampled floats and CPU accumulators never cross-contaminate
+  ---
+  duration_ms: 109.272221
+  type: 'test'
+  ...
+# Subtest: global surface cap and ordering are identical through cached truncated grids
+ok 59 - global surface cap and ordering are identical through cached truncated grids
+  ---
+  duration_ms: 957.351473
+  type: 'test'
+  ...
+# Subtest: two-part cache evicts old grids and remains bounded across long editing histories
+ok 60 - two-part cache evicts old grids and remains bounded across long editing histories
+  ---
+  duration_ms: 1739.996624
+  type: 'test'
+  ...
+# Subtest: incremental worker keys isolate parts; disabling and re-enabling uses clean state
+ok 61 - incremental worker keys isolate parts; disabling and re-enabling uses clean state
+  ---
+  duration_ms: 403.058252
+  type: 'test'
+  ...
+# Subtest: seeded assets keep exact output on initial and repeat bake
+ok 62 - seeded assets keep exact output on initial and repeat bake
+  ---
+  duration_ms: 870.61207
+  type: 'test'
+  ...
+# Subtest: cache limits cannot disable eviction or grow beyond the two-part budget
+ok 63 - cache limits cannot disable eviction or grow beyond the two-part budget
+  ---
+  duration_ms: 1.359319
+  type: 'test'
+  ...
+# Subtest: Baker preserves the legacy worker by default and forwards explicit per-part reuse
+ok 64 - Baker preserves the legacy worker by default and forwards explicit per-part reuse
+  ---
+  duration_ms: 12.888009
+  type: 'test'
+  ...
+1..64
+# tests 64
+# suites 0
+# pass 64
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 14372.971277

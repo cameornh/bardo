@@ -1,0 +1,857 @@
+{
+  "pass": true,
+  "note": "CPU sampling + extraction only, excludes worker delivery, uploads and drawing; not FPS or physics throughput.",
+  "reference": {
+    "mean": 233.8720449999999,
+    "p95": 258.9544049999995
+  },
+  "incremental": {
+    "mean": 14.475800499999991,
+    "p95": 22.307480999999825
+  },
+  "speedup": 16.156069918205908,
+  "cold": [
+    {
+      "block": 0,
+      "optimized": false,
+      "ms": 328.87105499999996
+    },
+    {
+      "block": 1,
+      "optimized": true,
+      "ms": 251.1240200000002
+    },
+    {
+      "block": 2,
+      "optimized": true,
+      "ms": 200.34769899999992
+    },
+    {
+      "block": 3,
+      "optimized": false,
+      "ms": 209.58430999999928
+    },
+    {
+      "block": 4,
+      "optimized": false,
+      "ms": 207.36003100000016
+    },
+    {
+      "block": 5,
+      "optimized": true,
+      "ms": 228.83395500000006
+    },
+    {
+      "block": 6,
+      "optimized": true,
+      "ms": 213.3327270000009
+    },
+    {
+      "block": 7,
+      "optimized": false,
+      "ms": 198.95217599999887
+    }
+  ],
+  "rows": [
+    {
+      "block": 0,
+      "edit": 24,
+      "optimized": false,
+      "ms": 238.1469199999999,
+      "splats": 7958
+    },
+    {
+      "block": 0,
+      "edit": 25,
+      "optimized": false,
+      "ms": 221.80410600000005,
+      "splats": 8118
+    },
+    {
+      "block": 0,
+      "edit": 26,
+      "optimized": false,
+      "ms": 242.82001600000012,
+      "splats": 8256
+    },
+    {
+      "block": 0,
+      "edit": 27,
+      "optimized": false,
+      "ms": 245.86870199999998,
+      "splats": 8256
+    },
+    {
+      "block": 0,
+      "edit": 28,
+      "optimized": false,
+      "ms": 249.45114300000023,
+      "splats": 8318
+    },
+    {
+      "block": 0,
+      "edit": 29,
+      "optimized": false,
+      "ms": 258.202049,
+      "splats": 8342
+    },
+    {
+      "block": 0,
+      "edit": 30,
+      "optimized": false,
+      "ms": 258.9220499999997,
+      "splats": 8342
+    },
+    {
+      "block": 0,
+      "edit": 31,
+      "optimized": false,
+      "ms": 258.2586769999998,
+      "splats": 8494
+    },
+    {
+      "block": 1,
+      "edit": 24,
+      "optimized": true,
+      "ms": 14.083487999999761,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 180,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 8,
+        "rebuiltCells": 4096,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 7958
+    },
+    {
+      "block": 1,
+      "edit": 25,
+      "optimized": true,
+      "ms": 22.307480999999825,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 1638,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 18,
+        "rebuiltCells": 9216,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8118
+    },
+    {
+      "block": 1,
+      "edit": 26,
+      "optimized": true,
+      "ms": 22.380073000000266,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 1599,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 21,
+        "rebuiltCells": 10752,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8256
+    },
+    {
+      "block": 1,
+      "edit": 27,
+      "optimized": true,
+      "ms": 10.988816000000043,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 216,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 4,
+        "rebuiltCells": 2048,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8256
+    },
+    {
+      "block": 1,
+      "edit": 28,
+      "optimized": true,
+      "ms": 22.791415000000143,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 401,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 10,
+        "rebuiltCells": 5120,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8318
+    },
+    {
+      "block": 1,
+      "edit": 29,
+      "optimized": true,
+      "ms": 20.94992900000034,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 1257,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 18,
+        "rebuiltCells": 9216,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8342
+    },
+    {
+      "block": 1,
+      "edit": 30,
+      "optimized": true,
+      "ms": 10.835732999999891,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 150,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 8,
+        "rebuiltCells": 4096,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8342
+    },
+    {
+      "block": 1,
+      "edit": 31,
+      "optimized": true,
+      "ms": 15.04694599999948,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 620,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 8,
+        "rebuiltCells": 4096,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8494
+    },
+    {
+      "block": 2,
+      "edit": 24,
+      "optimized": true,
+      "ms": 11.136154000000715,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 180,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 8,
+        "rebuiltCells": 4096,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 7958
+    },
+    {
+      "block": 2,
+      "edit": 25,
+      "optimized": true,
+      "ms": 14.013246999999865,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 1638,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 18,
+        "rebuiltCells": 9216,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8118
+    },
+    {
+      "block": 2,
+      "edit": 26,
+      "optimized": true,
+      "ms": 14.11036299999978,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 1599,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 21,
+        "rebuiltCells": 10752,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8256
+    },
+    {
+      "block": 2,
+      "edit": 27,
+      "optimized": true,
+      "ms": 9.608482999999978,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 216,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 4,
+        "rebuiltCells": 2048,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8256
+    },
+    {
+      "block": 2,
+      "edit": 28,
+      "optimized": true,
+      "ms": 15.046383999999307,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 401,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 10,
+        "rebuiltCells": 5120,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8318
+    },
+    {
+      "block": 2,
+      "edit": 29,
+      "optimized": true,
+      "ms": 14.42128700000012,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 1257,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 18,
+        "rebuiltCells": 9216,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8342
+    },
+    {
+      "block": 2,
+      "edit": 30,
+      "optimized": true,
+      "ms": 9.498789999999644,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 150,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 8,
+        "rebuiltCells": 4096,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8342
+    },
+    {
+      "block": 2,
+      "edit": 31,
+      "optimized": true,
+      "ms": 12.50731899999937,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 620,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 8,
+        "rebuiltCells": 4096,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8494
+    },
+    {
+      "block": 3,
+      "edit": 24,
+      "optimized": false,
+      "ms": 201.67485400000078,
+      "splats": 7958
+    },
+    {
+      "block": 3,
+      "edit": 25,
+      "optimized": false,
+      "ms": 203.36973799999942,
+      "splats": 8118
+    },
+    {
+      "block": 3,
+      "edit": 26,
+      "optimized": false,
+      "ms": 214.57710700000007,
+      "splats": 8256
+    },
+    {
+      "block": 3,
+      "edit": 27,
+      "optimized": false,
+      "ms": 235.3461789999992,
+      "splats": 8256
+    },
+    {
+      "block": 3,
+      "edit": 28,
+      "optimized": false,
+      "ms": 253.84320500000013,
+      "splats": 8318
+    },
+    {
+      "block": 3,
+      "edit": 29,
+      "optimized": false,
+      "ms": 260.126037,
+      "splats": 8342
+    },
+    {
+      "block": 3,
+      "edit": 30,
+      "optimized": false,
+      "ms": 258.9544049999995,
+      "splats": 8342
+    },
+    {
+      "block": 3,
+      "edit": 31,
+      "optimized": false,
+      "ms": 260.13899799999945,
+      "splats": 8494
+    },
+    {
+      "block": 4,
+      "edit": 24,
+      "optimized": false,
+      "ms": 204.75810999999976,
+      "splats": 7958
+    },
+    {
+      "block": 4,
+      "edit": 25,
+      "optimized": false,
+      "ms": 213.60928700000022,
+      "splats": 8118
+    },
+    {
+      "block": 4,
+      "edit": 26,
+      "optimized": false,
+      "ms": 226.68254799999886,
+      "splats": 8256
+    },
+    {
+      "block": 4,
+      "edit": 27,
+      "optimized": false,
+      "ms": 217.5997959999986,
+      "splats": 8256
+    },
+    {
+      "block": 4,
+      "edit": 28,
+      "optimized": false,
+      "ms": 230.71714600000087,
+      "splats": 8318
+    },
+    {
+      "block": 4,
+      "edit": 29,
+      "optimized": false,
+      "ms": 236.24801900000057,
+      "splats": 8342
+    },
+    {
+      "block": 4,
+      "edit": 30,
+      "optimized": false,
+      "ms": 247.30199700000048,
+      "splats": 8342
+    },
+    {
+      "block": 4,
+      "edit": 31,
+      "optimized": false,
+      "ms": 249.2248780000009,
+      "splats": 8494
+    },
+    {
+      "block": 5,
+      "edit": 24,
+      "optimized": true,
+      "ms": 11.689833999998882,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 180,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 8,
+        "rebuiltCells": 4096,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 7958
+    },
+    {
+      "block": 5,
+      "edit": 25,
+      "optimized": true,
+      "ms": 15.693707000000359,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 1638,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 18,
+        "rebuiltCells": 9216,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8118
+    },
+    {
+      "block": 5,
+      "edit": 26,
+      "optimized": true,
+      "ms": 16.281998999998905,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 1599,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 21,
+        "rebuiltCells": 10752,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8256
+    },
+    {
+      "block": 5,
+      "edit": 27,
+      "optimized": true,
+      "ms": 10.136236000000281,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 216,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 4,
+        "rebuiltCells": 2048,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8256
+    },
+    {
+      "block": 5,
+      "edit": 28,
+      "optimized": true,
+      "ms": 16.146442000001116,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 401,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 10,
+        "rebuiltCells": 5120,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8318
+    },
+    {
+      "block": 5,
+      "edit": 29,
+      "optimized": true,
+      "ms": 15.639926999998352,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 1257,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 18,
+        "rebuiltCells": 9216,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8342
+    },
+    {
+      "block": 5,
+      "edit": 30,
+      "optimized": true,
+      "ms": 11.194217000000208,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 150,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 8,
+        "rebuiltCells": 4096,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8342
+    },
+    {
+      "block": 5,
+      "edit": 31,
+      "optimized": true,
+      "ms": 14.999370999999883,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 620,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 8,
+        "rebuiltCells": 4096,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8494
+    },
+    {
+      "block": 6,
+      "edit": 24,
+      "optimized": true,
+      "ms": 9.75828200000069,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 180,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 8,
+        "rebuiltCells": 4096,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 7958
+    },
+    {
+      "block": 6,
+      "edit": 25,
+      "optimized": true,
+      "ms": 16.70805499999915,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 1638,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 18,
+        "rebuiltCells": 9216,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8118
+    },
+    {
+      "block": 6,
+      "edit": 26,
+      "optimized": true,
+      "ms": 15.564614000000802,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 1599,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 21,
+        "rebuiltCells": 10752,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8256
+    },
+    {
+      "block": 6,
+      "edit": 27,
+      "optimized": true,
+      "ms": 9.964207000000897,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 216,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 4,
+        "rebuiltCells": 2048,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8256
+    },
+    {
+      "block": 6,
+      "edit": 28,
+      "optimized": true,
+      "ms": 15.751364000001558,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 401,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 10,
+        "rebuiltCells": 5120,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8318
+    },
+    {
+      "block": 6,
+      "edit": 29,
+      "optimized": true,
+      "ms": 16.14045900000019,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 1257,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 18,
+        "rebuiltCells": 9216,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8342
+    },
+    {
+      "block": 6,
+      "edit": 30,
+      "optimized": true,
+      "ms": 12.999744999999166,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 150,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 8,
+        "rebuiltCells": 4096,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8342
+    },
+    {
+      "block": 6,
+      "edit": 31,
+      "optimized": true,
+      "ms": 14.831249000000753,
+      "stats": {
+        "mode": "appended strokes",
+        "source": "cpu",
+        "gridSamples": 68921,
+        "changedSamples": 620,
+        "stampEvaluations": 68921,
+        "rebuiltBricks": 8,
+        "rebuiltCells": 4096,
+        "totalBricks": 125,
+        "bytes": 4888703
+      },
+      "splats": 8494
+    },
+    {
+      "block": 7,
+      "edit": 24,
+      "optimized": false,
+      "ms": 192.23784999999953,
+      "splats": 7958
+    },
+    {
+      "block": 7,
+      "edit": 25,
+      "optimized": false,
+      "ms": 200.38454300000012,
+      "splats": 8118
+    },
+    {
+      "block": 7,
+      "edit": 26,
+      "optimized": false,
+      "ms": 217.36983399999917,
+      "splats": 8256
+    },
+    {
+      "block": 7,
+      "edit": 27,
+      "optimized": false,
+      "ms": 224.24426700000004,
+      "splats": 8256
+    },
+    {
+      "block": 7,
+      "edit": 28,
+      "optimized": false,
+      "ms": 223.0581170000005,
+      "splats": 8318
+    },
+    {
+      "block": 7,
+      "edit": 29,
+      "optimized": false,
+      "ms": 240.2925070000001,
+      "splats": 8342
+    },
+    {
+      "block": 7,
+      "edit": 30,
+      "optimized": false,
+      "ms": 247.55657299999984,
+      "splats": 8342
+    },
+    {
+      "block": 7,
+      "edit": 31,
+      "optimized": false,
+      "ms": 251.11578199999894,
+      "splats": 8494
+    }
+  ]
+}

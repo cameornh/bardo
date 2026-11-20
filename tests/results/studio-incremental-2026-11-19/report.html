@@ -1,0 +1,6 @@
+<!doctype html><meta charset="utf-8"><title>Incremental studio results</title>
+<style>body{font:16px system-ui;max-width:1000px;margin:24px;color:#ddd;background:#20272c}table{border-collapse:collapse}td,th{padding:8px 20px 8px 0;text-align:left}a{color:#b8dfef}img{max-width:100%;width:640px}</style>
+<h1>Incremental studio surfaces</h1><p>CPU sculpt updates reuse unchanged regions. Geometry and rendered output match exactly.</p>
+<table><tr><th>Measured during editing</th><th>Before</th><th>After</th></tr><tr><td>Average update latency</td><td>231 ms</td><td>17.7 ms — 13× faster</td></tr><tr><td>Average FPS</td><td>22.49</td><td>22.30 — no gain</td></tr><tr><td>Simulation</td><td colspan="2">Paused during authoring in both modes</td></tr></table>
+<p>64 tests and both builds pass. The combined GPU comparison stopped at its completion guard during the unchanged reference; GPU reuse remains disabled. Further rendered physics checks are gated. <a href="report.md">Full evidence and limitations</a></p>
+<img src="studio-edits.png" alt="Exact rendered sculpt result after the bounded comparison">

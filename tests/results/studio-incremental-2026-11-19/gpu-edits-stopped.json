@@ -1,0 +1,7 @@
+{
+  "pass": false,
+  "check": "edits",
+  "stage": "Compiling studio-surfaces",
+  "error": "Error: GPU frame exceeded completion budget. Last completed: studio covariance Gaussian. First outstanding: work queued before frame. No further frames submitted.\n    at FrameCompletion.finish (http://127.0.0.1:5173/src/rtx-sand-lab/frame-completion.js:46:40)\n    at async http://127.0.0.1:5173/src/rtx-sand-lab/frame-completion.js:56:48\n    at async edits (http://127.0.0.1:5173/tests/studio-incremental-browser.js?t=1795138153797:31:46)\n    at async run (http://127.0.0.1:5173/tests/studio-incremental-browser.js?t=1795138153797:62:13)",
+  "results": []
+}
