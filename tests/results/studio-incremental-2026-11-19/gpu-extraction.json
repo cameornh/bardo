@@ -1,0 +1,12 @@
+{
+  "pass": true,
+  "check": "Real GPU grids / exact incremental CPU extraction",
+  "validation": {
+    "pass": true,
+    "maximumError": 2.384185791015625e-07,
+    "materialErrors": 0,
+    "points": 3121,
+    "cases": 4
+  },
+  "captureNote": "This is the completed summary read from the browser UI during this run. The subsequent raw-results export was empty; per-step cache counters were not retained. No GPU rerun was attempted after the later combined-playback timeout."
+}

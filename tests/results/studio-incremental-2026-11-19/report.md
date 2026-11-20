@@ -31,7 +31,7 @@ The final surfaces and all eight frozen images are exact (maximum byte differenc
 
 ## GPU evidence and excluded run
 
-The existing bounded GPU sampler passed its four CPU-oracle cases: 3,121 samples, maximum distance error 2.384e-7 m, exact material IDs. Four real GPU-generated grids also produce exactly the same surface through cached and reference CPU extraction. [GPU evidence](gpu-extraction.json).
+The existing bounded GPU sampler passed its four CPU-oracle cases: 3,121 samples, maximum distance error 2.384e-7 m, exact material IDs. Four real GPU-generated grids also produce exactly the same surface through cached and reference CPU extraction. [Captured GPU summary](gpu-extraction.json). The completed UI summary was observed; the subsequent raw export was empty, so per-step cache counters were not retained. The saved summary explicitly records that limitation.
 
 A subsequent GPU-backed rendered editing comparison stopped during the first **unchanged full-rebuild reference** block at the existing two-second graphics-completion limit. No candidate block completed, so no timings from this run are included. Last confirmed complete: `studio covariance Gaussian`; first outstanding: `work queued before frame`. The displayed stage still said compilation although the stack had reached playback; the harness now refreshes that stage label before playback. The completion checkpoint does not identify the guilty workload, and no device/context-loss result was captured. [Raw stop](gpu-edits-stopped.json), [screenshot](gpu-edits-stopped.png).
 
