@@ -1,14 +1,4 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Studio water-ground test</title></head><body><p>Opening water-ground test…</p><script type="module">
 import {startStudioApp} from '/src/asset-studio/main.js';
-import {seedLibrary,asset,part,stamp,transform} from '/src/asset-studio/model.js';
-const library=seedLibrary(),starter=library.assets[0];
-starter.name='Wood float';starter.parts[0].stamps=[stamp('sphere','add',[0,.45,0],[.8,.55,.8],'wood')];
-library.world.instances=[{id:'float',assetId:starter.id,transform:transform()},
- {id:'arch',assetId:'arch',transform:{...transform(),position:[-3,0,-1]}}];
-library.assets.find(a=>a.id==='arch').parts[0].physics={fixed:true};
-const block=asset('Wood block');block.parts=[part('Block',[stamp('box','add',[0,.3,0],[.65,.3,.4],'wood')])];
-library.assets.push(block);library.world.instances.push({id:'block',assetId:block.id,transform:{...transform(),position:[1.9,0,-1.2]}});
-library.world.groundMaterialId='water';library.world.wind={speed:9,heading:25};
-const store={load:async()=>({library,message:'Water-ground test. Changes last for this visit.'}),save:async()=>'Water-ground test · changes held in memory.'};
-startStudioApp(undefined,{store,cpuOnly:true}).catch(e=>document.body.append(e.message));
+startStudioApp(undefined,{cpuOnly:true,testId:'water'}).catch(e=>document.body.append(e.message));
 </script></body></html>

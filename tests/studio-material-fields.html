@@ -1,6 +1,4 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Studio material workbench</title></head><body><script type="module">
 import {startStudioApp} from '/src/asset-studio/main.js';
-import {materialBench} from './studio-material-fields-fixture.js';
-const store={load:async()=>({library:materialBench(),message:'Material workbench. Heat the selected cotton or connect the touching copper and graphite.'}),save:async()=>'Workbench edits last for this visit.'};
-startStudioApp(undefined,{store,cpuOnly:true}).catch(e=>document.body.append(e.message));
+startStudioApp(undefined,{cpuOnly:true,testId:'materials'}).catch(e=>document.body.append(e.message));
 </script></body></html>

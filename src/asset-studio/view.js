@@ -53,6 +53,43 @@ void main(){vec3 p=worldPosition;float grid=min(abs(fract(p.x+.5)-.5),abs(fract(
 }`;
 export function partMatrix(pose,pivot){const m=new THREE.Matrix4().compose(new THREE.Vector3(...pose.position).add(new THREE.Vector3(...pivot)),new THREE.Quaternion().setFromEuler(new THREE.Euler(...pose.rotation.map(x=>x*Math.PI/180),'XYZ')),new THREE.Vector3(...pose.scale));return m.multiply(new THREE.Matrix4().makeTranslation(...pivot.map(x=>-x)));}
 function poseObject(object,t){object.position.fromArray(t.position);object.rotation.set(...t.rotation.map(x=>x*Math.PI/180));object.scale.fromArray(t.scale);object.updateMatrix();}
+// Use authored bounds even before a Gaussian surface has finished baking.
+function expandAuthoredBounds(bounds,asset,placement){
+  for(const part of asset.parts){
+   const matrix=partMatrix(part.transform,part.pivot);
+   if(placement)matrix.premultiply(placement);
+   for(const m of part.marks||[]){
+    const root=new THREE.Vector3(...m.root),axis=new THREE.Vector3(...m.axis),up=new THREE.Vector3(...m.up),side=axis.clone().cross(up);
+    for(const t of [0,.25,.5,.75,1])for(const sign of [-1,1]){
+     const point=root.clone().addScaledVector(axis,t*m.length).addScaledVector(up,.48*m.curl*t*t*m.length)
+      .addScaledVector(side,sign*m.width*m.length);
+     bounds.expandByPoint(point.applyMatrix4(matrix));
+    }
+   }
+   const grid=gridSpec(part.stamps,asset.spacing);
+   if(!grid)continue;
+   const min=new THREE.Vector3(...grid.origin);
+   const max=new THREE.Vector3(...grid.dims.map((n,i)=>grid.origin[i]+(n-1)*grid.h));
+   bounds.union(new THREE.Box3(min,max).applyMatrix4(matrix));
+  }
+}
+function frameBounds(view,bounds,preset,emptyMode){
+  if(bounds.isEmpty())return view.focus(emptyMode);
+  const target=bounds.getCenter(new THREE.Vector3()), direction=view.camera.position.clone().sub(view.controls.target);
+  const presets={threeQuarter:[2,2.6,3],front:[0,0,1],side:[1,0,0],top:[0,1,.0001]};
+  if(presets[preset])direction.fromArray(presets[preset]);if(!direction.lengthSq())direction.set(4,2,5);direction.normalize();
+  const right=new THREE.Vector3().crossVectors(view.camera.up,direction).normalize(),up=direction.clone().cross(right);
+  const tanV=Math.tan(view.camera.fov*Math.PI/360),tanH=tanV*view.camera.aspect;
+  let distance=view.controls.minDistance;
+  for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){
+   const offset=new THREE.Vector3(x,y,z).sub(target);
+   distance=Math.max(distance,offset.dot(direction)+1.16*Math.max(Math.abs(offset.dot(right))/tanH,Math.abs(offset.dot(up))/tanV)+view.camera.near);
+  }
+  view.controls.target.copy(target);
+  view.camera.position.copy(target).addScaledVector(direction,Math.min(distance,view.controls.maxDistance));
+  view.controls.update();
+ }
+
 export class StudioView{
  constructor(canvas,onChange,onDragStart,{preserveDrawingBuffer=false,liveStudio=false}={}){
  this.canvas=canvas;this.renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:false,preserveDrawingBuffer,powerPreference:'low-power'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));this.renderer.setClearColor('#8eaaaf');this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.05;
@@ -210,39 +247,17 @@ export class StudioView{
  showForce(from,to){this.forceLine.visible=!!from;if(from){const p=this.forceLine.geometry.attributes.position;p.setXYZ(0,...from.toArray());p.setXYZ(1,...to.toArray());p.needsUpdate=true;}}
  showBrush(hit,size){this.brush.visible=!!hit;if(hit){this.brush.position.copy(hit.point);this.brush.scale.setScalar(size);}}
  frameAuthoredAsset(asset,preset){
-  // Use the same conservative bounds as the sculpt baker. These are available
-  // immediately on import, before any derived Gaussian surfaces have finished.
   const bounds=new THREE.Box3();
-  for(const part of asset.parts){
-   const matrix=partMatrix(part.transform,part.pivot);
-   for(const m of part.marks||[]){
-    const root=new THREE.Vector3(...m.root),axis=new THREE.Vector3(...m.axis),up=new THREE.Vector3(...m.up),side=axis.clone().cross(up);
-    for(const t of [0,.25,.5,.75,1])for(const sign of [-1,1]){
-     const point=root.clone().addScaledVector(axis,t*m.length).addScaledVector(up,.48*m.curl*t*t*m.length)
-      .addScaledVector(side,sign*m.width*m.length);
-     bounds.expandByPoint(point.applyMatrix4(matrix));
-    }
-   }
-   const grid=gridSpec(part.stamps,asset.spacing);
-   if(!grid)continue;
-   const min=new THREE.Vector3(...grid.origin);
-   const max=new THREE.Vector3(...grid.dims.map((n,i)=>grid.origin[i]+(n-1)*grid.h));
-   bounds.union(new THREE.Box3(min,max).applyMatrix4(matrix));
+  expandAuthoredBounds(bounds,asset);
+  frameBounds(this,bounds,preset,'asset');
+ }
+ frameWorld(library){
+  const bounds=new THREE.Box3();
+  for(const instance of library.world.instances){
+   const asset=library.assets.find(a=>a.id===instance.assetId);
+   expandAuthoredBounds(bounds,asset,partMatrix(instance.transform,[0,0,0]));
   }
-  if(bounds.isEmpty())return this.focus('asset');
-  const target=bounds.getCenter(new THREE.Vector3()), direction=this.camera.position.clone().sub(this.controls.target);
-  const presets={threeQuarter:[2,2.6,3],front:[0,0,1],side:[1,0,0],top:[0,1,.0001]};
-  if(presets[preset])direction.fromArray(presets[preset]);if(!direction.lengthSq())direction.set(4,2,5);direction.normalize();
-  const right=new THREE.Vector3().crossVectors(this.camera.up,direction).normalize(),up=direction.clone().cross(right);
-  const tanV=Math.tan(this.camera.fov*Math.PI/360),tanH=tanV*this.camera.aspect;
-  let distance=this.controls.minDistance;
-  for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){
-   const offset=new THREE.Vector3(x,y,z).sub(target);
-   distance=Math.max(distance,offset.dot(direction)+1.16*Math.max(Math.abs(offset.dot(right))/tanH,Math.abs(offset.dot(up))/tanV)+this.camera.near);
-  }
-  this.controls.target.copy(target);
-  this.camera.position.copy(target).addScaledVector(direction,Math.min(distance,this.controls.maxDistance));
-  this.controls.update();
+  frameBounds(this,bounds,null,'world');
  }
  focus(mode='world'){this.controls.target.set(0,1,0);this.camera.position.set(...(mode==='asset'?[4,3,5]:[8,5,10]));this.controls.update();}
  get visibleLiquid(){

@@ -95,8 +95,10 @@ test('wind transports heat, water, smoke and oxygen deficits on the same bounded
  near(down.water/down.smoke,.2);assert.ok(down.oxygenUsed>0&&air.read(down).temperature>293.15);
  for(let i=0;i<MAX_AIR*2;i++)air.cell(i,1,0,true);assert.ok(air.cells.size<=MAX_AIR);
 });
-test('anchored contacts conduct on the actual bench and separate when a bar moves',async()=>{
- const sim=await StudioPhysics.create(materialBench(),'world','cotton',0);
+test('explicitly anchored contacts conduct and separate when a bar moves',async()=>{
+ const library=materialBench();
+ for(const asset of library.assets.filter(a=>a.id==='copper'||a.id==='graphite'))asset.parts[0].physics={fixed:true};
+ const sim=await StudioPhysics.create(library,'world','cotton',0);
  try{
   const w=sim.materialWorld,a=sim.get('copper','sample'),b=sim.get('graphite','sample');
   w.apply(a.field.sites[0],'positive');w.apply(b.field.sites[1],'return');

@@ -3,7 +3,13 @@ import {field} from './sculpt.js';
 import {retention} from './physics-data.js';
 
 export const MAX_MARKS = 128;
-export const markKinds = ['petal','leaf','blade','dab'];
+const legacyProfiles = new Map([['petal',[1.5,0]], ['leaf',[1,0]], ['blade',[1,1]]]);
+export function markProfile(mark) {
+  return legacyProfiles.get(mark.kind) || [mark.bias ?? 1, mark.taper ?? 0];
+}
+export function ribbonWidth(t, bias, taper) {
+  return (1-taper)*Math.sin(Math.PI*t**bias) + taper*(1-t);
+}
 const vector = a => new Vector3().fromArray(a);
 const within = (x, lo, hi) => Number.isFinite(x) && x >= lo && x <= hi;
 const triples = (v, limit) => Array.isArray(v) && v.length === 3 && v.every(x => within(x,-limit,limit));
@@ -13,8 +19,12 @@ export function validateMarks(part, materials) {
   if (!Array.isArray(part.marks) || part.marks.length > MAX_MARKS) throw Error('Invalid Gaussian brush count.');
   const ids = new Set();
   for (const m of part.marks) {
+    if (m && legacyProfiles.has(m.kind)) {
+      [m.bias,m.taper] = markProfile(m);
+      m.kind = 'ribbon';
+    }
     if (!m || typeof m.id !== 'string' || !/^[\w-]{1,100}$/.test(m.id) || ids.has(m.id)
-      || !materials.has(m.materialId) || !markKinds.includes(m.kind) || !triples(m.root,500)
+      || !materials.has(m.materialId) || !['ribbon','dab'].includes(m.kind) || !within(m.bias ?? 1,.25,4) || !within(m.taper ?? 0,0,1) || !triples(m.root,500)
       || !triples(m.axis,1.001) || !triples(m.up,1.001) || !within(m.length,.035,4)
       || !within(m.width,.04,.9) || !within(m.curl,-1,1) || !within(m.flex,0,1))
       throw Error('Invalid Gaussian brush attachment.');
@@ -65,7 +75,7 @@ export function brushFrame(direction, upHint, roll=0) {
 }
 
 export function brushCopies(point, pattern, oriented=false) {
-  const count=pattern==='mirror'?2:([4,6,8].includes(Number(pattern))?Number(pattern):1);
+  const count=pattern==='mirror'?2:(Number.isInteger(+pattern)?Math.max(1,Math.min(32,+pattern)):1);
   const copies=[];
   for(let i=0;i<count;i++){
     const a=2*Math.PI*i/count,c=Math.cos(a),s=Math.sin(a);

@@ -4,7 +4,7 @@ import {Group, Matrix4, PerspectiveCamera, Ray, Vector3} from 'three';
 import {PaintedView} from '../src/asset-studio/painted-view.js';
 import {MarkBrush} from '../src/asset-studio/paint-brush.js';
 import {clone, part, seedLibrary, stamp, validateLibrary} from '../src/asset-studio/model.js';
-import {flowerExample} from '../src/asset-studio/flower.js';
+import {flowerExample} from './fixtures/studio-flower.js';
 import {brushCopies, brushFrame, MAX_MARKS, projectMount, strokePoints, supportedMark} from '../src/asset-studio/gaussian-marks.js';
 import {exportAsset, importAsset} from '../src/asset-studio/asset-package.js';
 import {PaintedHinges} from '../src/asset-studio/painted-hinges.js';
@@ -122,7 +122,7 @@ test('a placed flower and a bare stem use the same rigid bodies and collision pr
 test('a drag from one pole previews a rosette, cancels cleanly and commits as one edit', () => {
   const library=seedLibrary(), material=library.materials.find(m=>m.id==='wood');
   const p=part('Bud',[stamp('sphere','add',[0,0,0],[1,1,1],'wood',0)]);
-  const values={repeat:'6','mark-kind':'Petal','mark-length':.5,'mark-width':.28,'mark-curl':.3,'mark-roll':0,'mark-flex':.6};
+  const values={repeat:'6','mark-kind':'ribbon','mark-bias':1.5,'mark-taper':0,'mark-length':.5,'mark-width':.28,'mark-curl':.3,'mark-roll':0,'mark-flex':.6};
   const group=new Group(),host=new Group();host.userData.partId=p.id;group.add(host);
   let preview,edits=0;
   const view={groups:new Map([['editor',group]]),camera:new PerspectiveCamera(),

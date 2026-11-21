@@ -68,3 +68,36 @@ export function importAsset(library, file) {
   if (new Blob([JSON.stringify(result)]).size > MAX_LIBRARY_BYTES) throw Error('Import would exceed the 8 MiB library save limit.');
   return {asset, library:result};
 }
+
+export const familyKind='bardo-studio-family';
+export function exportFamily(library,familyId){
+  const family=library.families?.find(f=>f.id===familyId);
+  if(!family)throw Error('Choose a family to export.');
+  const assets=family.members.map(m=>library.assets.find(a=>a.id===m.assetId));
+  const used=new Set(assets.flatMap(a=>[...usedMaterials(a)]));
+  return clone({version:VERSION,kind:familyKind,family,assets,materials:library.materials.filter(m=>used.has(m.id))});
+}
+
+export function importFamily(library,file){
+  if(file?.kind!==familyKind||file.version!==VERSION||!Array.isArray(file.materials)||!file.family)throw Error('Invalid asset family file.');
+  const {family,assets,materials}=clone(file);
+  const checks=materials.length?materials:[clone(library.materials[0])];
+  validateLibrary({version:VERSION,assets,materials:checks,families:[family],world:{groundMaterialId:checks[0].id,instances:[]}});
+  if(assets.length!==family.members.length)throw Error('The family file contains extra assets.');
+  const remap=new Map();
+  let next=library;
+  for(const asset of assets){
+    const ids=usedMaterials(asset);
+    const result=importAsset(next,{version:VERSION,kind,asset,materials:materials.filter(m=>ids.has(m.id))});
+    next=result.library;
+    remap.set(asset.id,result.asset.id);
+  }
+  const existing=next.families||[],original=family.name;
+  if(existing.some(f=>f.id===family.id))family.id=uid();
+  for(let i=2;existing.some(f=>f.name===family.name);i++)family.name=withSuffix(original,' ('+i+')');
+  for(const member of family.members)member.assetId=remap.get(member.assetId);
+  next={...next,families:[...existing,family]};
+  validateLibrary(next);
+  if(new Blob([JSON.stringify(next)]).size>MAX_LIBRARY_BYTES)throw Error('The family would exceed the library save limit.');
+  return {family,library:next};
+}

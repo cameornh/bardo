@@ -1,6 +1,6 @@
 import {Vector3} from 'three';
-import {asset,material,part,stamp,uid,LIMITS} from './model.js';
-import {brushFrame,projectMount} from './gaussian-marks.js';
+import {asset,material,part,stamp,uid,LIMITS} from '../../src/asset-studio/model.js';
+import {brushFrame,projectMount} from '../../src/asset-studio/gaussian-marks.js';
 
 // An editable example constructed with exactly the same mounts and materials
 // as the brush. Creating it is an explicit, undoable library action.

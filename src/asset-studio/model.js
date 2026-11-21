@@ -1,3 +1,4 @@
+import {validateVariation} from './family.js';
 import {materialPresets} from './material-presets.js';
 import {validateMarks} from './gaussian-marks.js';
 import {validatePhysics} from './physics-data.js';
@@ -44,9 +45,18 @@ export function addStudioPresets(materials){
  for(const args of materialPresets)if(!ids.has(args[0])&&materials.length<LIMITS.materials)materials.push(material(...args));
  return materials;
 }
-export function seedLibrary(){
+function starterMaterials(){
  const materials=[material('clay','Clay','#b17d62'),material('stone','Stone','#8e969a',{density:2700,roughness:.85,youngModulus:5e10,tensileStrength:3e6}),material('bronze','Bronze','#bc8b48',{metallic:.92,roughness:.23,density:8800,tensileStrength:1.5e8,electricalConductivity:7e6,thermalConductivity:60}),material('wood','Wood','#98603b',{density:650,fuelEnergy:1.6e7,burnRate:.02,smokeYield:.06,porosity:.4}),material('rubber','Rubber','#65767a',{density:1100,youngModulus:1e6,restitution:.7,friction:.95}),material('water','Water','#4099bd',{waterContent:1,latentHeat:334000,electricalConductivity:.02,phase:'liquid',liquidity:1,youngModulus:0,tensileStrength:0,cohesion:0,density:1000,opacity:.45,roughness:.07,ior:1.333,viscosity:.001,heatCapacity:4184,thermalConductivity:.6,meltingPoint:273.15,boilingPoint:373.15}),material('sand','Sand','#c7b28a',{phase:'granular',youngModulus:0,tensileStrength:0,density:1600,roughness:.95,cohesion:0,adhesion:0,porosity:.38})];
- addStudioPresets(materials);
+ return addStudioPresets(materials);
+}
+export function newStudioLibrary(){
+ const initial=asset('Untitled sculpt');
+ initial.parts[0].stamps=[stamp('sphere','add',[0,.6,0],[.6,.6,.6])];
+ return {version:VERSION,materials:starterMaterials(),assets:[initial],world:{groundMaterialId:'stone',
+  instances:[{id:uid(),assetId:initial.id,transform:transform()}]}};
+}
+export function seedLibrary(){
+ const materials=starterMaterials();
  const orb=asset('Sculpt starter');orb.id='starter';orb.parts=[part('Body',[stamp('sphere','add',[0,1,0],[.85,.9,.85])])];
  const arch=asset('Stone arch');arch.id='arch';arch.parts=[part('Arch',[stamp('box','add',[0,1.3,0],[1.45,1.3,.42],'stone',0),stamp('capsule','subtract',[0,.5,0],[.85,.45,.85],'stone',.08)])];
  const flower=asset('Animated stem');flower.id='stem';flower.parts=[part('Base',[stamp('sphere','add',[0,.2,0],[.65,.2,.65],'bronze')]),part('Stem',[stamp('capsule','add',[0,1,0],[.13,.8,.13],'wood'),stamp('sphere','add',[0,2,0],[.65,.25,.65],'bronze')])];flower.parts[1].pivot=[0,.2,0];flower.parts[1].keys=[{time:0,...transform()},{time:1.5,...transform(),rotation:[0,0,22]},{time:3,...transform()}];
@@ -63,8 +73,20 @@ export function validateLibrary(value){
  list(value.materials,LIMITS.materials,'material');list(value.assets,LIMITS.assets,'asset');
  const ids=(a,label)=>{const set=new Set();for(const o of a){if(typeof o.id!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(o.id)||set.has(o.id)||typeof o.name!=='string'||!o.name.trim()||o.name.length>100)fail(label+' id/name');set.add(o.id);}return set;};
  const mids=ids(value.materials,'material'),aids=ids(value.assets,'asset');
+ if(value.families!==undefined){
+  if(!Array.isArray(value.families)||value.families.length>LIMITS.assets)fail('asset family count');
+  ids(value.families,'family');
+  for(const f of value.families){
+   list(f.members,LIMITS.assets,'family member');
+   const seen=new Set();
+   for(const member of f.members){
+    if(!member||!aids.has(member.assetId)||seen.has(member.assetId)||!Number.isInteger(member.weight)||!finite(member.weight,1,100))fail('invalid family member or weight');
+    seen.add(member.assetId);
+   }
+  }
+ }
  for(const m of value.materials){m.initialTemperature??=293.15;m.waterContent??=m.phase==='liquid'&&Math.abs(m.boilingPoint-373.15)<.01&&Math.abs(m.meltingPoint-273.15)<.01?1:0;m.scattering??=defaultScattering(m);Object.assign(m,Object.fromEntries(Object.entries(surfaceDefaults(m)).filter(([k])=>m[k]===undefined)));m.fiberLength??=0;if(m.surfaceMode!==undefined&&!['auto','gaussian'].includes(m.surfaceMode))fail('invalid surface rendering');m.liquidity??=['liquid','gas'].includes(m.phase)?1:0;if(!/^#[0-9a-f]{6}$/i.test(m.color)||!['solid','granular','liquid','gas'].includes(m.phase))fail('material appearance/phase');for(const [k,,,min,max] of MATERIAL_FIELDS)if(!finite(m[k],min,max))fail('invalid '+k);if(m.boilingPoint<m.meltingPoint)fail('boiling temperature must be at least melting temperature');}
- for(const a of value.assets){list(a.parts,LIMITS.parts,'part');ids(a.parts,'part');if(!finite(a.spacing,.05,.5)||!finite(a.duration,.1,120))fail('asset spacing/duration');for(const p of a.parts){validateMarks(p,mids);if(!checkTransform(p.transform)||!vector(p.pivot))fail('part transform');if(!Array.isArray(p.stamps)||p.stamps.length>LIMITS.stamps)fail('stamp budget');for(const s of p.stamps)if(!['sphere','box','capsule'].includes(s.shape)||!['add','subtract','paint'].includes(s.mode)||!vector(s.position,-500,500)||!vector(s.size,.025,50)||!finite(s.blend,0,2)||!mids.has(s.materialId))fail('invalid sculpt stamp');if(!Array.isArray(p.keys)||p.keys.length>LIMITS.keys)fail('keyframe count');const times=new Set();for(const k of p.keys){if(!finite(k.time,0,a.duration)||!checkTransform(k)||times.has(k.time))fail('invalid keyframe');times.add(k.time);}}}
+ for(const a of value.assets){validateVariation(a.variation);list(a.parts,LIMITS.parts,'part');ids(a.parts,'part');if(!finite(a.spacing,.05,.5)||!finite(a.duration,.1,120))fail('asset spacing/duration');for(const p of a.parts){validateMarks(p,mids);if(!checkTransform(p.transform)||!vector(p.pivot))fail('part transform');if(!Array.isArray(p.stamps)||p.stamps.length>LIMITS.stamps)fail('stamp budget');for(const s of p.stamps)if(!['sphere','box','capsule'].includes(s.shape)||!['add','subtract','paint'].includes(s.mode)||!vector(s.position,-500,500)||!vector(s.size,.025,50)||!finite(s.blend,0,2)||!mids.has(s.materialId))fail('invalid sculpt stamp');if(!Array.isArray(p.keys)||p.keys.length>LIMITS.keys)fail('keyframe count');const times=new Set();for(const k of p.keys){if(!finite(k.time,0,a.duration)||!checkTransform(k)||times.has(k.time))fail('invalid keyframe');times.add(k.time);}}}
  for(const a of value.assets)validatePhysics(a);
  if(!value.world||!mids.has(value.world.groundMaterialId)||!Array.isArray(value.world.instances)||value.world.instances.length>LIMITS.instances)fail('world');
  const wind=value.world.wind;if(wind&&(!finite(wind.speed,0,MAX_WIND_SPEED)||!finite(wind.heading,-180,180)))fail('invalid wind');

@@ -1,5 +1,5 @@
 import {Matrix4,Plane,Vector3} from 'three';
-import {brushCopies,brushFrame,MAX_MARKS,projectMount} from './gaussian-marks.js';
+import {brushCopies,brushFrame,MAX_MARKS,markProfile,projectMount} from './gaussian-marks.js';
 import {retention} from './physics-data.js';
 import {uid} from './model.js';
 
@@ -10,12 +10,14 @@ export const toolOptions='<option value="gaussian">Paint Gaussian detail</option
 const range=(id,label,min,max,step,value)=>'<label>'+label+' <output id="studio-'+id+'-value">'+value+'</output><input id="studio-'+id+'" type="range" min="'+min+'" max="'+max+'" step="'+step+'" value="'+value+'"></label>';
 export const brushControls=`
  <label>Brush material<select id="studio-brush-material"></select></label>
- <label id="studio-repeat-row">Stroke symmetry<select id="studio-repeat"><option value="1">Single stroke</option><option value="mirror">Mirror across local X</option><option value="4">4 around local Y</option><option value="6">6 around local Y</option><option value="8">8 around local Y</option></select></label>
+ <label id="studio-repeat-row">Stroke symmetry<select id="studio-repeat"><option value="1">Single stroke</option><option value="mirror">Mirror across local X</option><option value="radial">Radial around local Y</option></select></label>
+ <label id="studio-repeat-count-row" hidden>Radial copies<input id="studio-repeat-count" type="number" min="2" max="32" step="1" value="6"></label>
  <div id="studio-stamp-settings">${range('stroke-spacing','Stamp spacing (radii)',.15,1,.05,.35)}${range('aspect','Vertical brush scale',.1,2,.05,1)}</div>
  <div id="studio-gaussian-settings" hidden>
-  <label>Gaussian brush<select id="studio-mark-kind"><option>Petal</option><option>Leaf</option><option>Blade</option><option>Dab</option></select></label>
+  <label>Gaussian brush<select id="studio-mark-kind"><option value="ribbon">Curved ribbon</option><option value="dab">Ellipsoid</option></select></label>
   ${range('mark-length','Length (m)',.035,4,.005,.5)}
   ${range('mark-width','Relative width',.04,.9,.01,.28)}
+  <div id="studio-profile">${range('mark-bias','Width curve bias',.25,4,.05,1)}${range('mark-taper','Linear taper',0,1,.01,0)}</div>
   ${range('mark-curl','Curl',-1,1,.02,.3)}
   ${range('mark-roll','Twist (°)',-180,180,1,0)}
   ${range('mark-flex','Joint flexibility',0,1,.02,.6)}
@@ -25,7 +27,9 @@ export const brushControls=`
  </div>`;
 const value=(el)=>Number(el.value);
 export function bindBrushControls($){
- for(const id of ['stroke-spacing','aspect','mark-length','mark-width','mark-curl','mark-roll','mark-flex'])
+ $('mark-kind').onchange=()=>$('profile').hidden=$('mark-kind').value==='dab';
+ $('repeat').onchange=()=>$('repeat-count-row').hidden=$('repeat-row').hidden||$('repeat').value!=='radial';
+ for(const id of ['stroke-spacing','aspect','mark-bias','mark-taper','mark-length','mark-width','mark-curl','mark-roll','mark-flex'])
   $(id).oninput=()=>$(id+'-value').value=$(id).value;
 }
 export function showBrushControls($,active,tool){
@@ -34,11 +38,13 @@ export function showBrushControls($,active,tool){
  for(const b of $('brush-bar').children)b.setAttribute('aria-pressed',String(b.dataset.brush===tool));
  $('gaussian-settings').hidden=!marking;$('detail-edit').hidden=tool!=='detail';
  $('stamp-settings').hidden=!stamping;$('repeat-row').hidden=!stamping&&tool!=='gaussian';
+ $('repeat').onchange();
  for(const id of ['shape','radius','blend'])$(id).closest('label').hidden=!stamping;
 }
+export const strokePattern=$=>$('repeat').value==='radial'?Math.max(2,Math.min(32,Math.round(Number($('repeat-count').value)||2))):$('repeat').value;
 function readSettings($){
  return {kind:$('mark-kind').value.toLowerCase(),length:value($('mark-length')),width:value($('mark-width')),
-  curl:value($('mark-curl')),flex:value($('mark-flex'))};
+  bias:value($('mark-bias')),taper:value($('mark-taper')),curl:value($('mark-curl')),flex:value($('mark-flex'))};
 }
 export class MarkBrush{
  constructor($,view,notice){this.$=$;this.view=view;this.notice=notice;this.selected=null;}
@@ -53,8 +59,9 @@ export class MarkBrush{
  choose(part,id){
   const m=part.marks?.find(m=>m.id===id);
   this.selected=m?.id;
-  if(m){this.$('mark-kind').value=m.kind[0].toUpperCase()+m.kind.slice(1);
-   for(const [key,num] of Object.entries({length:m.length,width:m.width,curl:m.curl,flex:m.flex,roll:0})){
+  if(m){this.$('mark-kind').value=m.kind==='dab'?'dab':'ribbon';this.$('mark-kind').onchange();
+   const [bias,taper]=markProfile(m);
+   for(const [key,num] of Object.entries({bias,taper,length:m.length,width:m.width,curl:m.curl,flex:m.flex,roll:0})){
     const input=this.$('mark-'+key);input.value=num;input.oninput();
    }
   }
@@ -83,7 +90,7 @@ export class MarkBrush{
   if(!mount){this.notice('Could not find a surface here. Try closer to the sculpt.');return;}
   const palette=new Map(materials.map(m=>[m.id,m]));
   const copies=[];
-  for(const c of brushCopies(mount.root,this.$('repeat').value,true)){
+  for(const c of brushCopies(mount.root,strokePattern(this.$),true)){
    const site=projectMount(part,c.point,Math.max(.015,spacing*.12));
    if(site&&retention(palette.get(site.materialId))>1e-4)copies.push({root:site.root,transform:c.transform,id:uid()});
   }

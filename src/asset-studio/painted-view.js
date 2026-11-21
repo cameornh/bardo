@@ -1,17 +1,17 @@
 import * as T from 'three';
-import {markKinds,supportedMark} from './gaussian-marks.js';
+import {markProfile,ribbonWidth,supportedMark} from './gaussian-marks.js';
 import {reflectedSurfaceClip} from './wave-surface.js';
 
 const sections=10, lanes=[-1,0,1];
 const vertex=`
-attribute vec2 lobe;attribute vec3 root,axis,bladeUp,tint;attribute vec4 style,props;attribute float swing,highlight;
+attribute vec2 lobe,profile;attribute vec3 root,axis,markUp,tint;attribute vec4 style,props;attribute float swing,highlight;
 uniform vec2 viewport;
 varying vec2 uvG;varying vec3 world,norm,base;varying vec4 finish;varying float extent,softDab;
 void main(){
  float t=lobe.x, lane=lobe.y, len=style.x, kind=style.w;
- vec3 side=normalize(cross(axis,bladeUp));
- vec3 dir=axis*cos(swing)+bladeUp*sin(swing),up=normalize(cross(side,dir));
- float form=kind<.5?sin(3.14159*pow(t,1.5)):kind<1.5?sin(3.14159*t):1.-t;
+ vec3 side=normalize(cross(axis,markUp));
+ vec3 dir=axis*cos(swing)+markUp*sin(swing),up=normalize(cross(side,dir));
+ float form=mix(sin(3.14159*pow(t,profile.x)),1.-t,profile.y);
  float width=len*style.y*(.07+.93*max(0.,form));
  float rise=style.z*t*t*.48;
  vec3 center=root+len*(dir*t+up*rise)+width*(lane*.49*side+abs(lane)*.055*up);
@@ -20,7 +20,7 @@ void main(){
  // The three axes are the square root of this lobe's 3D covariance.
  mat3 mv=mat3(modelViewMatrix);
  vec3 A=mv*tangent*(len*.086),B=mv*across*(width*.39),C=mv*n*(len*.012);
- softDab=step(2.5,kind);
+ softDab=step(.5,kind);
  if(softDab>.5){
   // A dab is one oriented volume. Its curvature bends the rest axis at the root.
   tangent=normalize(dir+up*(style.z*.48));n=normalize(cross(side,tangent));
@@ -54,8 +54,9 @@ function geometry(records,materials){
  g.setAttribute('lobe',new T.Float32BufferAttribute(lobes,2));
  const add=(name,size,values)=>g.setAttribute(name,new T.InstancedBufferAttribute(new Float32Array(values),size));
  const marks=records.map(r=>r.mark);
- for(const [name,key] of [['axis','axis'],['bladeUp','up'],['root','root']])add(name,3,marks.flatMap(m=>m[key]));
- add('style',4,marks.flatMap(m=>[m.length,m.width,m.curl,markKinds.indexOf(m.kind)]));
+ for(const [name,key] of [['axis','axis'],['markUp','up'],['root','root']])add(name,3,marks.flatMap(m=>m[key]));
+ add('profile',2,marks.flatMap(markProfile));
+ add('style',4,marks.flatMap(m=>[m.length,m.width,m.curl,Number(m.kind==='dab')]));
  add('tint',3,marks.flatMap(m=>new T.Color(materials.get(m.materialId).color).toArray()));
  add('props',4,marks.flatMap(m=>{const p=materials.get(m.materialId);return [p.roughness,p.metallic,p.opacity,p.emission];}));
  add('highlight',1,records.map(()=>0));
@@ -166,13 +167,14 @@ export class PaintedView{
      }
      continue;
     }
+    const [bias,taper]=markProfile(m);
     for(let i=0;i<sections;i++){
      const t=(i+.5)/sections, tangent=dir.clone().addScaledVector(up,m.curl*t*.96).normalize(),n=side.clone().cross(tangent);
      const center=root.clone().addScaledVector(dir,m.length*t).addScaledVector(up,m.length*m.curl*t*t*.48);
      const den=n.dot(local.direction);if(Math.abs(den)<1e-7)continue;
      const s=n.dot(center.clone().sub(local.origin))/den;if(s<0)continue;
      const point=local.at(s,new T.Vector3()),d=point.clone().sub(center);
-     const form=m.kind==='petal'?Math.sin(Math.PI*t**1.5):m.kind==='leaf'?Math.sin(Math.PI*t):1-t;
+     const form=ribbonWidth(t,bias,taper);
      if(Math.abs(d.dot(side))>m.length*m.width*(.07+.93*form)*1.12||Math.abs(d.dot(tangent))>m.length*.09)continue;
      point.applyMatrix4(matrix);const distance=point.distanceTo(ray.origin);
      if(!nearest||distance<nearest.distance)nearest={point,distance,mark:m,materialId:m.materialId,normal:n.applyNormalMatrix(new T.Matrix3().getNormalMatrix(matrix)),partId:b.part.id,assetId:b.assetId,instanceId:b.id,bodyKey:owner?.key};
@@ -183,17 +185,19 @@ export class PaintedView{
  }
  preview(marks,object,materials){
   if(!marks?.length){this.clearPreview();return;}
-  if(this.ghost?.geometry.instanceCount!==marks.length){
+  if(this.ghost?.geometry.instanceCount!==marks.length || this.ghostDab!==(marks[0].kind==='dab')){
    this.clearPreview();
+   this.ghostDab=marks[0].kind==='dab';
    this.ghost=new T.Mesh(geometry(marks.map(mark=>({mark})),materials),this.material);
    this.ghost.frustumCulled=false;this.ghost.matrixAutoUpdate=false;this.scene.add(this.ghost);
   }else{
    const attr=this.ghost.geometry.attributes;
    marks.forEach((m,i)=>{
-    attr.axis.setXYZ(i,...m.axis);attr.bladeUp.setXYZ(i,...m.up);
-    attr.style.setXYZW(i,m.length,m.width,m.curl,markKinds.indexOf(m.kind));
+    attr.axis.setXYZ(i,...m.axis);attr.markUp.setXYZ(i,...m.up);
+    attr.profile.setXY(i,...markProfile(m));
+    attr.style.setXYZW(i,m.length,m.width,m.curl,Number(m.kind==='dab'));
    });
-   for(const key of ['axis','bladeUp','style'])attr[key].needsUpdate=true;
+   for(const key of ['axis','markUp','style','profile'])attr[key].needsUpdate=true;
   }
   object.updateWorldMatrix(true,false);this.ghost.matrix.copy(object.matrixWorld);this.ghost.matrixWorldNeedsUpdate=true;
  }
