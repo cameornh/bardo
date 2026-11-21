@@ -1,4 +1,5 @@
 import {asset, part, seedLibrary, stamp, transform} from './model.js';
+import {exampleWorlds} from './example-worlds.js';
 import {jointDefaults} from './physics-data.js';
 
 function emptyBench(ground) {
@@ -79,6 +80,7 @@ function jointBench() {
 
 export const studioTests = [
   {id:'library',name:'My library'},
+  ...exampleWorlds,
   {id:'materials',name:'Material workbench',create:materialBench},
   {id:'water',name:'Wind and water',create:waterBench},
   {id:'ground',name:'Ground materials',create:groundBench},

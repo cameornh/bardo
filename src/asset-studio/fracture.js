@@ -1,5 +1,6 @@
 import {Matrix3,Quaternion,Vector3} from 'three';
 import {fractureBoxes,fractureGrid,fragmentBoxes,islands,nearestRegion} from './fracture-grid.js';
+import {charBondStrength} from './char-fracture.js';
 import {factorNetwork,solveBonds} from './fracture-stress.js';
 
 const vec=p=>new Vector3().copy(p);
@@ -164,7 +165,9 @@ function evaluate(sim,r,dt){
  // Defer irreversible damage if a large iterative solve still needs refinement.
  if(net.pending)return;
  for(const e of net.edges){
-  const ratio=e.ratio/Math.min(r.fieldStrength?.get(e.a)??1,r.fieldStrength?.get(e.b)??1),axial=e.axial;
+  const strengthA=charBondStrength(s,e,r.fieldStrength?.get(e.a)??1,r.fieldChar?.get(e.a)??0);
+  const strengthB=charBondStrength(s,e,r.fieldStrength?.get(e.b)??1,r.fieldChar?.get(e.b)??0);
+  const ratio=e.ratio/Math.min(strengthA,strengthB),axial=e.axial;
   if(beam?.status==='intact'&&e.axis===beam.axis&&Math.abs(e.center[e.axis]-s.bucklingPlane)<1e-5)compression-=axial;
   e.damage=Math.max(0,e.damage+dt*(ratio>1?Math.min(7,ratio-1):-2));
   if(e.damage>0)r.accumulating=true;
@@ -193,7 +196,7 @@ function evaluate(sim,r,dt){
  if(!selected)return;
  // Redistribute the load before breaking an alternate path. Several cracks can
  // grow in one part, and a detached fragment keeps its own surviving bonds.
- selected.broken=true;s.brokenBonds++;r.net=null;
+ selected.char=Math.max(r.fieldChar?.get(selected.a)??0,r.fieldChar?.get(selected.b)??0);selected.broken=true;s.brokenBonds++;r.net=null;
  const groups=componentsOf(r);
  if(groups.length>1){
   const records=separate(sim,r,groups);

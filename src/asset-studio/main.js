@@ -139,7 +139,15 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
    location.assign(url.href);
   }catch(e){notice('Could not switch tests: '+e.message);$('test').disabled=false;$('test').value=test.id;}
  };
- if(test.create){$('save').hidden=true;$('library-note').textContent='Test edits last for this visit. Export an asset to use it in My library.';}
+ if(test.create){
+  $('save').hidden=true;
+  $('library-note').textContent='Test edits last for this visit. Export an asset to keep a copy.';
+  if(test.guide){
+   const guide=document.createElement('small');guide.className='studio-guide';guide.textContent=test.guide;
+   $('test').closest('header').append(guide);
+  }
+  if(test.display){$('field-display').value=test.display;view.fieldDisplay=test.display;}
+ }
  $('brush-material').onchange=()=>{selectedMaterial=$('brush-material').value;sync();};
  function changedMarks(){view.paintView.rebuild(view);changed(false);}
  function chooseMark(id){const m=markBrush.choose(currentPart(),id);if(m)selectedMaterial=m.materialId;sync();}
@@ -207,7 +215,7 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
   try{
    const next=await StudioPhysics.create(clone(library),mode,selectedAsset,Number($('gravity').value),view.sea,view.sand);
    if(generation!==physicsEpoch||disposed){next.dispose();return;}
-   physics=next;fields.settings(physics);physics.wind=wind();playing=true;previewPose=false;
+   physics=next;fields.settings(physics);physics.wind=wind();if(mode==='world')test.start?.(physics);playing=true;previewPose=false;
    view.gizmo.detach();$('play').textContent='Pause physics';
    notice(next.skipped.length?next.skipped.join(' · '):'Physics running. Reset restores the authored poses and ground.');
    if(pendingGround){const run=pendingGround;pendingGround=null;run();}

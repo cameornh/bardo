@@ -1,4 +1,5 @@
 import {Mesh,Vector3} from 'three';
+import {charSurfacePoint,roundCharChip} from './char-fracture.js';
 import {nearestRegion} from './fracture-grid.js';
 import {bakeFast} from './sculpt-fast.js';
 import {field} from './sculpt.js';
@@ -36,15 +37,26 @@ function fragmentSurfaces(s,skin,changed){
    const w=patch.hi[u]-patch.lo[u],h=patch.hi[v]-patch.lo[v],nx=Math.max(1,Math.ceil(w/spacing)),ny=Math.max(1,Math.ceil(h/spacing));
    for(let x=0;x<nx;x++)for(let y=0;y<ny;y++){
     const p=patch.lo.slice();p[u]+=(x+.5)*w/nx;p[v]+=(y+.5)*h/ny;
-    if(field(p,s.root.part.stamps)[0]>0)continue;
+    const depth=-field(p,s.root.part.stamps)[0];if(depth<0)continue;
+    const position=e.char?charSurfacePoint(p,s.grid,depth,e.char):p;
+    const faceNormal=[0,0,0];faceNormal[axis]=1;
+    if(e.char){
+     const delta=spacing*.25,tu=p.slice(),tv=p.slice();tu[u]+=delta;tv[v]+=delta;
+     const tangent=q=>new Vector3(...charSurfacePoint(q,s.grid,-field(q,s.root.part.stamps)[0],e.char)).sub(new Vector3(...position));
+     tangent(tu).cross(tangent(tv)).normalize().toArray(faceNormal);
+    }
     for(const [node,sign] of [[e.a,1],[e.b,-1]]){
      const out=surfaces.get(s.owners[node]);if(!out)continue;
-     const normal=[0,0,0];normal[axis]=sign;
-     out.positions.push(...p);out.normals.push(...normal);out.materials.push(s.grid.nodes[node].material.id);
+     const normal=faceNormal.map(x=>x*sign);
+     out.positions.push(...position);out.normals.push(...normal);out.materials.push(s.grid.nodes[node].material.id);
     }
    }
   }
  }
+ const char=new Map();
+ for(const e of cuts)if(e.char)for(const owner of [s.owners[e.a],s.owners[e.b]])
+  char.set(owner,Math.max(char.get(owner)??0,e.char));
+ for(const [r,out] of surfaces)roundCharChip(out,s.grid,r.regions,char.get(r));
  return surfaces;
 }
 export class SectionView{

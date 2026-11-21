@@ -1,4 +1,5 @@
 import {Box3,Vector3} from 'three';
+import {CombustionPlume} from './combustion-plume.js';
 import {releaseMelt,conductInterior} from './bulk-melt.js';
 import {BED_CELL} from './material-bed.js';
 import {MaterialAir,clamp} from './material-air.js';
@@ -41,7 +42,7 @@ function nearestLocal(sites,target){
 // Two material samples along the longest dimension of each occupied material.
 // These travel with the body. Ground tiles and the atmosphere live in world space.
 export class MaterialWorld {
- constructor(materials){this.palette=new Map(materials.map(m=>[m.id,m]));this.air=new MaterialAir();this.tiles=new Map();this.loose=new Map();this.clock=0;this.version=0;this.nodes=[];this.edges=[];this.probe=null;this.activeCircuit=false;}
+ constructor(materials){this.palette=new Map(materials.map(m=>[m.id,m]));this.air=new MaterialAir();this.plume=new CombustionPlume();this.tiles=new Map();this.loose=new Map();this.clock=0;this.version=0;this.nodes=[];this.edges=[];this.probe=null;this.activeCircuit=false;}
  bind(record,shapes){
   // Keep disconnected pieces of one material electrically separate even when
   // they belong to one rigid body (for example, two traces in an insulator).
@@ -85,7 +86,7 @@ export class MaterialWorld {
       s.core=core;s.depth=Math.max(.008,volume/(2*area));
      }
     }
-    s.local=local;s.record=record;s.radius=Math.sqrt(area/Math.PI);
+    s.colliderIndices=indices;s.local=local;s.record=record;s.radius=Math.sqrt(area/Math.PI);
     sites.push(s);return s;
    });
    if(record.part)for(const site of group)site.zone=group;
@@ -263,6 +264,7 @@ export class MaterialWorld {
   this.version++;return true;
  }
  step(sim,dt){
+  this.plume.step(dt,sim.wind,sim);
   this.clock+=dt;if(this.clock<INTERVAL-1e-8)return;this.clock-=INTERVAL;
   if(sim.matter.beds.size)for(const t of this.tiles.values())this.ground(sim,t.position.x,t.position.z,false,false,true);
   this.collectLoose(sim);
@@ -374,6 +376,7 @@ export class MaterialWorld {
    for(const s of this.loose.values())active.add(s);
    this.nodes=[...active];this.edges=edges.filter(({a,b})=>active.has(a)&&active.has(b));
   }else{this.nodes=nodes;this.edges=edges;}
+  this.plume.setSources(this.nodes);
   this.version++;
  }
  mechanics(r){
@@ -406,9 +409,10 @@ export class MaterialWorld {
   if(r.structure&&(r.fieldStrength||bonded.some(s=>s.strength<.9999))){
    r.fieldStrength??=new Map();
    for(const i of r.regions){const n=r.structure.grid.nodes[i],p=v().fromArray(n.center);
-    let best=Infinity,factor=1;
-    for(const s of bonded)if(s.material.id===n.material.id){const d=p.distanceToSquared(s.local);if(d<best){best=d;factor=s.strength;}}
+    let best=Infinity,factor=1,char=0;
+    for(const s of bonded)if(s.material.id===n.material.id){const d=p.distanceToSquared(s.local);if(d<best){best=d;factor=s.strength;char=s.material.fuelEnergy>0?1-s.fuel:0;}}
     r.fieldStrength.set(i,factor);
+    if(char>0||r.fieldChar){r.fieldChar??=new Map();r.fieldChar.set(i,char);}
    }
   }
   if(resize){f.scale=scale;body.wakeUp();}
