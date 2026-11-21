@@ -1,3 +1,4 @@
+import {recordLoad} from './fracture.js';
 import {sectionFailure} from './structural-section.js';
 import {Vector3} from 'three';
 const vec=x=>new Vector3().copy(x);
@@ -24,7 +25,7 @@ export function releaseOverloaded(sim,records,dt,links=sim.joints){
   const force=before.force.sub(vec(b.linvel()).sub(before.velocity).multiplyScalar(b.mass()/dt));
   const torque=before.torque.sub(angularMomentum(b).sub(before.angular).divideScalar(dt));
   // Include impact and ground support. A contact normal points from shape 1 to 2.
-  const onFloor=r.section&&Math.abs(b.linvel().y)<.08?{force:new Vector3(),torque:new Vector3(),corners:0}:null;
+  const onFloor=r.structure?.beam?.status==='buckled'&&Math.abs(b.linvel().y)<.08?{force:new Vector3(),torque:new Vector3(),corners:0}:null;
   for(let i=0;i<b.numColliders();i++){
    const collider=b.collider(i);
    sim.world.contactPairsWith(collider,other=>sim.world.contactPair(collider,other,(m,flipped)=>{
@@ -62,7 +63,8 @@ export function releaseOverloaded(sim,records,dt,links=sim.joints){
  for(let i=links.length-1;i>=0;i--){
   const l=links[i],w=total(l.child);if(!w)continue;
   const anchor=sim.worldPoint(l.child,l.anchorChild);
-  const moment=w.moment.clone().sub(anchor.cross(w.force));
+  const moment=w.moment.clone().sub(anchor.clone().cross(w.force));
+  recordLoad(l.parent,w.force,anchor,moment);recordLoad(l.child,w.force.clone().negate(),anchor,moment.clone().negate());
   const lever=Math.max(.05,Math.cbrt(l.child.fluidVolume)*.5);
   const load=Math.hypot(w.force.length(),moment.length()/lever);
   if(l.section?sectionFailure(sim,l,w.force,moment,dt):load>(l.j.breakForce??50000)*l.support){

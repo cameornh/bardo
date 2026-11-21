@@ -52,11 +52,13 @@ async function beam({vertical=false,wind=0,fixed=true,height=4,gravity=9.81,prop
  return StudioPhysics.create(l,'world','starter',gravity);
 }
 test('an anchored cantilever fractures under sustained weight; short loading, free fall and strong material survive',async()=>{
- const s=await beam(),strong=await beam({properties:{tensileStrength:2e7}}),fall=await beam({fixed:false,height:100});
+ const s=await beam({height:30}),strong=await beam({properties:{tensileStrength:2e7}}),fall=await beam({fixed:false,height:100});
  try{
   const b=s.sections[0];run(s,3);assert.equal(b.status,'intact');
   run(s,177);assert.equal(b.status,'fractured');assert.ok(b.tip.body.worldCom().y<b.root.body.worldCom().y-1);
-  near(b.tip.body.mass(),.16**2*1.5*650,.001);
+  const pieces=[...s.structures[0].bodies];
+  near(pieces.reduce((mass,r)=>mass+r.body.mass(),0),.16**2*3*650,.001);
+  assert.ok(b.tip.body.mass()>b.root.body.mass(),'the root-side section has the highest bending load');
   for(const other of [strong,fall]){run(other,180);assert.equal(other.sections[0].status,'intact');}
  }finally{for(const sim of [s,strong,fall])sim.dispose();}
 });
@@ -128,7 +130,7 @@ test('repeated lifts reuse their drawing buffers and material until the preview 
 test('a weight attached beyond the internal section loads the beam and stays attached to the detached end',async()=>{
  const setup=weighted=>{
   const l=library(),a=l.assets[0],p=a.parts[0];
-  l.world.groundMaterialId='stone';l.materials.find(m=>m.id==='wood').tensileStrength=3e5;
+  l.world.groundMaterialId='stone';l.materials.find(m=>m.id==='wood').tensileStrength=1.2e6;
   p.stamps=[stamp('box','add',[1.5,0,0],[1.5,.08,.08],'wood',0)];p.physics={fixed:true};
   if(weighted){
    const weight=part('Load',[stamp('box','add',[3,-.35,0],[.25,.25,.25],'stone',0)]);

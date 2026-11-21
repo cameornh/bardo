@@ -64,7 +64,7 @@ export function strikeGround(sim,point,force){
  const m=sim.groundMaterial,{reach,dent,recovery}=impactResponse(m,force);
  // Project onto actual collision shapes so a bulk impulse only reaches things touching the ground.
  for(const [key,r] of [...sim.bodies,...sim.chunks]){
-  const b=r.body;if(!b.isDynamic())continue;
+  const b=r.body;if(!b.isDynamic()&&!r.structure)continue;
   const origin=b.translation();if(Math.hypot(origin.x-point.x,origin.z-point.z)>4*reach+(r.probeRadius||CELL))continue;
   let best=null,nearest=Infinity;
   for(let i=0;i<b.numColliders();i++){

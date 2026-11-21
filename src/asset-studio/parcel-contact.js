@@ -24,6 +24,15 @@ function sync(o){
  let norm2=0;for(let i=0;i<3;i++){let sum=0;for(let j=0;j<3;j++)sum+=Math.abs(e[i]*e[j]+e[i+4]*e[j+4]+e[i+8]*e[j+8]);norm2=Math.max(norm2,sum);}
  o.scale=1/Math.sqrt(norm2);
 }
+function obstacleDistance(o,p){
+ const d=field(p.toArray(),o.stamps)[0];if(!o.fragments)return d;
+ let nearest=Infinity;
+ for(const s of o.fragments){
+  const x=Math.abs(p.x-s.center[0])-s.half[0],y=Math.abs(p.y-s.center[1])-s.half[1],z=Math.abs(p.z-s.center[2])-s.half[2];
+  nearest=Math.min(nearest,Math.hypot(Math.max(0,x),Math.max(0,y),Math.max(0,z))+Math.min(0,Math.max(x,y,z)));
+ }
+ return Math.max(d,nearest);
+}
 function sweep(o,start,dir,length,radius){
  sync(o);
  const end=start.clone().addScaledVector(dir,length),lo=o.box.min,hi=o.box.max;
@@ -38,12 +47,12 @@ function sweep(o,start,dir,length,radius){
  const p=new Vector3(),local=new Vector3(),n=new Vector3(),eps=.0005;
  for(let i=0;i<80;i++){
   p.copy(start).addScaledVector(dir,t);local.copy(p).applyMatrix4(o.inverse);
-  const d=field(local.toArray(),o.stamps)[0],gap=d*o.scale-radius;
+  const d=obstacleDistance(o,local),gap=d*o.scale-radius;
   if(gap<.001){
    let best=0,bestSign=1,bestAxis='y';
    for(const axis of ['x','y','z']){
-    local[axis]+=eps;const a=field(local.toArray(),o.stamps)[0];local[axis]-=2*eps;
-    const b=field(local.toArray(),o.stamps)[0];local[axis]+=eps;n[axis]=(a-b)/(2*eps);
+    local[axis]+=eps;const a=obstacleDistance(o,local);local[axis]-=2*eps;
+    const b=obstacleDistance(o,local);local[axis]+=eps;n[axis]=(a-b)/(2*eps);
     const rise=Math.max(a,b)-d;if(rise>best){best=rise;bestSign=a>=b?1:-1;bestAxis=axis;}
    }
    // Convert the local signed distance to metres along the world normal.

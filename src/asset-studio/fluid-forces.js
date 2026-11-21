@@ -1,3 +1,4 @@
+import {recordLoad} from './fracture.js';
 import {Vector3, Quaternion} from 'three';
 
 // At most eight displaced-volume samples per body, independent of view or render spacing.
@@ -25,7 +26,7 @@ export function flotationSamples(shapes,scale){
 
 export function applyEnvironment(record,sea,waterDensity,wind,gravity,dt,column){
  const b=record.body;
- if(!b.isDynamic())return;
+ if(!b.isDynamic()&&!record.structure)return;
  const center=new Vector3().copy(b.translation()),rotation=new Quaternion().copy(b.rotation());
  const inverse=rotation.clone().invert(),up=new Vector3(0,1,0).applyQuaternion(inverse);
  const angle=wind.heading*Math.PI/180,wx=Math.cos(angle),wz=Math.sin(angle);
@@ -56,7 +57,7 @@ export function applyEnvironment(record,sea,waterDensity,wind,gravity,dt,column)
     force.addScaledVector(dir.applyQuaternion(rotation),magnitude);
    }
   }
-  if(force.lengthSq())b.addForceAtPoint(force,pt,true);
+  if(force.lengthSq()){recordLoad(record,force,pt,null,sample.region);if(b.isDynamic())b.addForceAtPoint(force,pt,true);}
  }
  const wet=wetVolume/record.fluidVolume;
  if(sea&&record.wetFraction!==undefined&&record.wetFraction<.1&&wet>=.1&&b.linvel().y<-.9){
