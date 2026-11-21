@@ -1,3 +1,4 @@
+import {reflectedSurfaceClip} from './wave-surface.js';
 import {surfaceRelief,grainParams} from './surface-grain.js';
 import * as THREE from 'three';
 import {LIMITS} from './model.js';
@@ -12,8 +13,8 @@ export function implicitStamp(part,materials){
 // The unit sphere and box have closed-form zero-isosurface intersections.
 // The box hull bounds rasterization; the shader writes the exact surface depth.
 export class ImplicitSurfaces {
- constructor(scene,environment,lighting,grainMap){this.grainMap=grainMap;
-  this.clipFloor={value:-1e10};this.scene=scene;this.geometry=new THREE.BoxGeometry(2,2,2);
+ constructor(scene,environment,lighting,grainMap,clipUniforms){this.grainMap=grainMap;this.clipUniforms=clipUniforms;
+  this.scene=scene;this.geometry=new THREE.BoxGeometry(2,2,2);
   this.materials=new Map();this.batches=new Map();this.environment=environment;this.lighting=lighting;
  }
  clear(){
@@ -25,7 +26,7 @@ export class ImplicitSurfaces {
   let mat=this.materials.get(key);
   if(!mat){
    mat=new THREE.ShaderMaterial({side:sphere?THREE.BackSide:THREE.FrontSide,defines:sphere?{ELLIPSOID:1}:{},
-    uniforms:{grainMap:this.grainMap,grain:{value:new THREE.Vector3()},clipFloor:this.clipFloor,environment:this.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},
+    uniforms:{grainMap:this.grainMap,grain:{value:new THREE.Vector3()},...this.clipUniforms,environment:this.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},
     vertexShader:`varying vec3 worldPoint,detailCoord,detailNormal;flat varying vec3 dimensions;
     #ifdef ELLIPSOID
      varying vec3 localPosition;varying vec3 eye;varying mat3 normalToWorld;
@@ -40,7 +41,7 @@ export class ImplicitSurfaces {
      faceNormal=normalize(normalTransform*normal);
     #endif
      gl_Position=projectionMatrix*viewMatrix*world;}`,
-    fragmentShader:this.lighting+surfaceRelief+`varying vec3 worldPoint,detailCoord,detailNormal;flat varying vec3 dimensions;uniform mat4 projectionMatrix;uniform vec3 grain;uniform float clipFloor;uniform vec3 color;uniform vec4 properties;
+    fragmentShader:reflectedSurfaceClip+this.lighting+surfaceRelief+`varying vec3 worldPoint,detailCoord,detailNormal;flat varying vec3 dimensions;uniform mat4 projectionMatrix;uniform vec3 grain;uniform vec3 color;uniform vec4 properties;
     #ifdef ELLIPSOID
      varying vec3 localPosition;varying vec3 eye;varying mat3 normalToWorld;
     #else
@@ -57,7 +58,7 @@ export class ImplicitSurfaces {
     #else
      n=normalize(faceNormal);
     #endif
-     if(p.y<clipFloor)discard;
+     if(belowReflector(p))discard;
      vec3 base=color,prior=n;float lift=grainSurface(coord,ln,grain,n,base,cameraPosition-p);gl_FragDepth=reliefDepth(depth,p,prior,lift,projectionMatrix);gl_FragColor=vec4(shade(base,n,p,properties),1.);
      #include <tonemapping_fragment>
      #include <colorspace_fragment>

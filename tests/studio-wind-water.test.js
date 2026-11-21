@@ -1,31 +1,48 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Vector3} from 'three';
-import {WindSea,OCEAN_SIZE,TILE_METRES} from '../src/asset-studio/ocean.js';
+import {WindSea,OCEAN_SIZE} from '../src/asset-studio/ocean.js';
 import {implicitStamp} from '../src/asset-studio/implicit-surface.js';
 import {StudioPhysics} from '../src/asset-studio/physics.js';
 import {jointDefaults} from '../src/asset-studio/physics-data.js';
 import {seedLibrary,validateLibrary,stamp,transform} from '../src/asset-studio/model.js';
 
-test('inverse FFT matches direct spectral summation, wraps, and has zero mean',()=>{
+test('each rotated band matches its direct Fourier sum and has zero mean',()=>{
  const sea=new WindSea(9,35);sea.sampleTime(.5);
- let mean=0;
- for(let z=0;z<OCEAN_SIZE;z+=3)for(let x=0;x<OCEAN_SIZE;x+=2){
-  let expected=0;
-  for(const m of sea.modes){
-   const kx=m.index%OCEAN_SIZE,kz=Math.floor(m.index/OCEAN_SIZE);
-   expected+=2*m.a*Math.cos(m.phase+m.omega*.5+2*Math.PI*(kx*x+kz*z)/OCEAN_SIZE);
+ for(const band of sea.bands){
+  for(let z=0;z<OCEAN_SIZE;z+=3)for(let x=0;x<OCEAN_SIZE;x+=2){
+   let expected=0;
+   for(const m of band.modes){
+    const kx=m.index%OCEAN_SIZE,kz=Math.floor(m.index/OCEAN_SIZE);
+    expected+=2*m.a*Math.cos(m.phase+m.omega*.5+2*Math.PI*(kx*x+kz*z)/OCEAN_SIZE);
+   }
+   const dx=x*band.metres/OCEAN_SIZE,dz=z*band.metres/OCEAN_SIZE;
+   assert.ok(Math.abs(expected-band.sample(band.cos*dx-band.sin*dz,band.sin*dx+band.cos*dz))<1e-6);
   }
-  const dx=x*TILE_METRES/OCEAN_SIZE,dz=z*TILE_METRES/OCEAN_SIZE;
-  assert.ok(Math.abs(expected-sea.height(dx,dz))<1e-6);
-  assert.equal(sea.height(dx,dz),sea.height(dx-TILE_METRES,dz+TILE_METRES));
+  assert.ok(Math.abs(band.frames[0].reduce((a,b)=>a+b,0))/OCEAN_SIZE**2<1e-6);
  }
- for(const h of sea.frames[0])mean+=h;
- assert.ok(Math.abs(mean)/sea.frames[0].length<1e-6);
+});
+test('the combined wave field breaks the old axial grid repetition',()=>{
+ const sea=new WindSea(18,26);sea.sampleTime(.381);
+ for(const [dx,dz] of [[40,0],[0,40],[40,40]]){
+  let error=0,power=0;
+  for(let x=-120;x<120;x+=3.7)for(let z=-120;z<120;z+=5.1){
+   const h=sea.height(x,z),other=sea.height(x+dx,z+dz);
+   error+=(h-other)**2;power+=h*h;
+  }
+  assert.ok(error/power>.5);
+ }
+ const y=sea.bulk(3,2),vy=sea.flow(3,2).y;
+ sea.sampleTime(.38101);assert.ok(Math.abs((sea.bulk(3,2)-y)/.00001-vy)<1e-7);
+});
+test('legacy water inherits its scattering and an explicit zero survives a library round trip',()=>{
+ const l=seedLibrary(),w=l.materials.find(m=>m.id==='water'),initial=w.scattering;
+ delete w.scattering;validateLibrary(l);assert.ok(initial>0);assert.equal(w.scattering,initial);
+ w.scattering=0;w.opacity=.9;w.absorption=2;validateLibrary(l);assert.equal(w.scattering,0);
 });
 test('wind changes height and direction, temporal interpolation stays continuous, particles return locally',()=>{
  const sea=new WindSea();assert.equal(sea.height(1,2),0);
- const rms=s=>Math.sqrt(s.frames[0].reduce((n,x)=>n+x*x,0)/s.frames[0].length);
+ const rms=s=>Math.sqrt(s.bands[0].frames[0].reduce((n,x)=>n+x*x,0)/s.bands[0].frames[0].length);
  sea.setWind(4,0);const low=rms(sea);sea.setWind(10,0);assert.ok(rms(sea)>low*2);
  const first=sea.height(2,4);sea.setWind(10,90);assert.ok(Math.abs(first-sea.height(2,4))>.001);
  sea.sampleTime(.049999);const before=sea.height(3,5);sea.sampleTime(.050001);assert.ok(Math.abs(before-sea.height(3,5))<.0001);

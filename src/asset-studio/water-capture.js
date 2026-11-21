@@ -15,7 +15,7 @@ export class WaterCapture{
    sceneColor:{value:this.source.texture},sceneDepth:{value:this.source.depthTexture},
    mirrorColor:{value:this.mirror.texture},mirrorVP:{value:new THREE.Matrix4()},
    viewport:{value:new THREE.Vector2()},inverseProjection:{value:new THREE.Matrix4()},
-   submerged:{value:0},absorption:{value:0},ior:{value:1.333},opacity:{value:.45}
+   submerged:{value:0},absorption:{value:0},scattering:{value:.05},ior:{value:1.333},opacity:{value:.45}
   });
   const geometry=new THREE.BufferGeometry();
   geometry.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,3,-1,0,-1,3,0],3));
@@ -50,6 +50,14 @@ export class WaterCapture{
    else continue;
    this.bounds.union(this.partBounds.applyMatrix4(surface.matrixWorld));
   }
+  // Authored proxies stay in place when loose material is released. Include its
+  // moving world bounds so the transmission path still sees the sinking sand.
+  if(sea&&view.activePhysics)for(const mesh of view.matterView.meshes.values()){
+   if(mesh.visible&&mesh.layers.isEnabled(0)){
+    this.partBounds.min.setScalar(-1);this.partBounds.max.setScalar(1);
+    this.bounds.union(this.partBounds.applyMatrix4(mesh.matrixWorld));
+   }
+  }
   if(this.bounds.isEmpty()){u.boundsMin.value.setScalar(1);u.boundsMax.value.setScalar(-1);}
   else{this.bounds.expandByScalar(.08);u.boundsMin.value.copy(this.bounds.min);u.boundsMax.value.copy(this.bounds.max);}
   const output=r.getRenderTarget(),alpha=r.getClearAlpha();r.getClearColor(this.clearColor);u.skyColor.value.copy(this.clearColor);
@@ -71,13 +79,13 @@ export class WaterCapture{
    r.setRenderTarget(this.mirror);r.setClearColor(0,0);
    view.uniforms.viewport.value.set(this.mirror.width,this.mirror.height);
    view.uniforms.cameraWorld.value=c.matrixWorld;
-   view.uniforms.clipFloor.value=-.02;view.implicit.clipFloor.value=-.02;
+   view.uniforms.clipFloor.value=-.012;u.clipWaves.value=!!sea;
    const floor=view.ground.visible;view.ground.visible=false;view.drawObjects(c);view.ground.visible=floor;
   }
   r.setClearColor(this.clearColor,alpha);r.setRenderTarget(mirrorOnly?output:this.source);
   view.uniforms.viewport.value.copy(u.viewport.value);
   view.uniforms.cameraWorld.value=camera.matrixWorld;
-  view.uniforms.clipFloor.value=view.implicit.clipFloor.value=-1e10;
+  view.uniforms.clipFloor.value=-1e10;u.clipWaves.value=false;
   if(mirrorOnly)return;
   view.drawObjects(camera);
   const ocean=view.oceanView;

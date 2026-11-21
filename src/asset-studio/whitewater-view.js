@@ -1,20 +1,16 @@
 import * as THREE from 'three';
 import {lipPoint} from './whitewater.js';
-import {TILE_METRES} from './ocean.js';
 import {medium,interfaceOptics} from './water-optics.js';
 
-// Visual copies only. Simulation always evolves in the physical wave tile.
-function copies(p,camera,visit){
- if(!p.periodic){visit(0,0,1);return;}
- const t=TILE_METRES,cx=Math.round((camera.position.x-p.x)/t),cz=Math.round((camera.position.z-p.z)/t);
- for(let iz=cz-1;iz<=cz+1;iz++)for(let ix=cx-1;ix<=cx+1;ix++){
-  const d=Math.hypot(p.x+ix*t-camera.position.x,p.z+iz*t-camera.position.z);
-  if(d<42)visit(ix*t,iz*t,Math.min(1,(42-d)/12));
- }
+// Breakers retain their physical world position as the camera moves.
+function drawLocal(p,camera,visit){
+ if(!p.windCrest){visit(1);return;}
+ const distance=Math.hypot(p.x-camera.position.x,p.z-camera.position.z);
+ if(distance<64)visit(Math.min(1,(64-distance)/16));
 }
 export class WhitewaterView{
  constructor(scene,uniforms,wave,lighting){
-  const along=20,across=6,stride=(along+1)*(across+1),rows=16*9;
+  const along=20,across=6,stride=(along+1)*(across+1),rows=16;
   this.along=along;this.across=across;
   const g=new THREE.BufferGeometry(),indices=[];
   this.lips=new THREE.Float32BufferAttribute(new Float32Array(rows*stride*3),3);
@@ -36,7 +32,7 @@ export class WhitewaterView{
   const geometry=new THREE.InstancedBufferGeometry();
   geometry.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));geometry.setIndex([0,1,2,0,2,3]);
   this.attrs={};for(const [name,n] of [['packet',4],['axis',3],['style',4]]){
-   this.attrs[name]=new THREE.InstancedBufferAttribute(new Float32Array(384*9*n),n);
+   this.attrs[name]=new THREE.InstancedBufferAttribute(new Float32Array(384*n),n);
    geometry.setAttribute(name,this.attrs[name]);
   }
   geometry.instanceCount=0;
@@ -92,11 +88,11 @@ export class WhitewaterView{
  }
  update(sea,camera){
   let vertices=0,ribbons=0,count=0;
-  for(const c of sea.crests)copies(c,camera,(dx,dz,fade)=>{
+  for(const c of sea.crests)drawLocal(c,camera,fade=>{
    const age=sea.time-c.t;
    for(let a=0;a<=this.along;a++)for(let b=0;b<=this.across;b++){
     const s=2*a/this.along-1,u=b/this.across,p=lipPoint(c,s,u,age);
-    this.lips.setXYZ(vertices,p.x+dx,p.y*fade,p.z+dz);
+    this.lips.setXYZ(vertices,p.x,p.y*fade,p.z);
     this.aeration.setX(vertices++,fade*(1-s*s)*u**3*(.14+.31*Math.sin(c.phase+3*s+age)**2));
    }
    ribbons++;
@@ -105,10 +101,10 @@ export class WhitewaterView{
   if(vertices)for(const attribute of [this.lips,this.aeration]){
    attribute.clearUpdateRanges();attribute.addUpdateRange(0,vertices*attribute.itemSize);attribute.needsUpdate=true;
   }
-  for(const p of sea.whitewater.particles)copies(p,camera,(dx,dz,fade)=>{
+  for(const p of sea.whitewater.particles)drawLocal(p,camera,fade=>{
    const spray=p.kind==='spray',foam=p.kind==='foam',t=p.age/p.life;
    const size=p.size*(spray?1:1+t*.74),alpha=fade*Math.min(1,.15+p.age*18)*Math.min(1,(1-t)*4)*(spray?.36:foam?.69:.58);
-   this.attrs.packet.setXYZW(count,p.x+dx,p.y,p.z+dz,size);
+   this.attrs.packet.setXYZW(count,p.x,p.y,p.z,size);
    this.attrs.axis.setXYZ(count,spray?p.vx:-p.dz,spray?p.vy+.001:0,spray?p.vz:p.dx);
    this.attrs.style.setXYZW(count++,alpha,spray?1.7:p.aspect,spray?1:0,foam?sea.organicLoad:0);
   });

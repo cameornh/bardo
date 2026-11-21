@@ -1,3 +1,4 @@
+import {reflectedSurfaceClip} from './wave-surface.js';
 import {grainTexture,grainParams,surfaceRelief} from './surface-grain.js';
 import {groundSurface} from './ground-surface.js';
 import {looseKind} from './loose-matter.js';
@@ -58,13 +59,17 @@ export class StudioView{
   this.controls.enableDamping=false;
   this.controls.mouseButtons={LEFT:null,MIDDLE:THREE.MOUSE.PAN,RIGHT:THREE.MOUSE.ROTATE};
   this.uniforms.grainMap={value:grainTexture()};this.uniforms.matterPlaying={value:0};
-  this.implicit=new ImplicitSurfaces(this.scene,this.uniforms.environment,LIGHTING,this.uniforms.grainMap);
+
   this.waterScene=new THREE.Scene();
   this.oceanView=new OceanView(this.waterScene,this.uniforms.environment,LIGHTING);
+  const ocean=this.oceanView.uniforms;this.uniforms.clipFloor={value:0};
+  const clipUniforms={clipFloor:this.uniforms.clipFloor};
+  for(const key of ['height0','height1','height2','bandMix','rings','ringCount','clipWaves','clipHeights'])clipUniforms[key]=ocean[key];
+  Object.assign(this.uniforms,clipUniforms);
+  this.implicit=new ImplicitSurfaces(this.scene,this.uniforms.environment,LIGHTING,this.uniforms.grainMap,clipUniforms);
   // Stretch each fibre along its surface normal, retaining the projected covariance.
   for(const mat of [this.material,this.depthMaterial]){
-   mat.uniforms.clipFloor={value:0};
-   mat.fragmentShader='uniform float clipFloor;\n'+mat.fragmentShader.replace('vWorld.y<0.','vWorld.y<clipFloor');
+   mat.fragmentShader=reflectedSurfaceClip+mat.fragmentShader.replace('vWorld.y<0.','belowReflector(vWorld)');
    mat.vertexShader='attribute float fiberLength;\n'+mat.vertexShader
     .replace('vec4 c=modelViewMatrix*vec4(center,1.);','vec3 fiberCenter=center+surfaceNormal*fiberLength*.46;vec4 c=modelViewMatrix*vec4(fiberCenter,1.);')
     .replace('mat3 rotation=', 'if(fiberLength>0.)covariance=mat3(1.)*r2*.10+mat3(n*n.x,n*n.y,n*n.z)*fiberLength*fiberLength*.2;mat3 rotation=')

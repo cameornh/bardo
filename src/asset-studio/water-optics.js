@@ -4,7 +4,7 @@ export const medium = /* glsl */`
  uniform sampler2D sceneColor,sceneDepth;
  uniform vec2 viewport;
  uniform vec3 color;
- uniform float absorption,opacity,ior;
+ uniform float absorption,scattering,opacity,ior;
  uniform mat4 inverseProjection;
  vec3 viewPoint(vec2 uv,float depth){
   vec4 h=inverseProjection*vec4(uv*2.-1.,depth*2.-1.,1.);
@@ -12,10 +12,11 @@ export const medium = /* glsl */`
  }
  vec3 inWater(vec3 incident,float travel){
   float concentration=.3+1.6*opacity;
-  vec3 scattering=(vec3(.009)+.14*color)*concentration;
-  vec3 extinction=scattering+(.06+(1.-sqrt(color))*.4+absorption)*concentration;
+  vec3 tint=vec3(.009)+.14*color;
+  vec3 sigmaS=scattering*tint/max(tint.r,max(tint.g,tint.b));
+  vec3 extinction=sigmaS+(.06+(1.-sqrt(color))*.4+absorption)*concentration;
   vec3 transmission=exp(-extinction*min(travel,100.));
-  vec3 scatter=env(vec3(0.,1.,0.),1.)*.88*scattering/extinction;
+  vec3 scatter=env(vec3(0.,1.,0.),1.)*.88*sigmaS/extinction;
   return incident*transmission+scatter*(1.-transmission);
  }`;
 export const interfaceOptics = /* glsl */`

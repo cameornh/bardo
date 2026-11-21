@@ -1,5 +1,5 @@
 import {Whitewater,lipPoint} from './whitewater.js';
-// A periodic deep-water wind sea. Authoring units are metres and seconds.
+// A multiscale deep-water wind sea. Authoring units are metres and seconds.
 export const OCEAN_SIZE = 32, TILE_METRES = 40, WAVE_HZ = 20;
 const N = OCEAN_SIZE, TAU = Math.PI * 2, cell = TILE_METRES / N;
 const wrap = x => (x % N + N) % N;
@@ -20,29 +20,35 @@ function inverseLine(real, imag, offset, stride) {
  }
 }
 
-export const MAX_PARCELS=96;
-export class WindSea {
- constructor(speed=0,heading=0) {
-  this.frames=[new Float32Array(N*N),new Float32Array(N*N)];
-  this.imag=new Float32Array(N*N);this.frame=-Infinity;this.version=0;
-  this.whitewater=new Whitewater();this.organicLoad=0;this.crests=[];this.ripples=[];this.drops=[];this.serial=0;this.breakTick=-1;this.time=0;this.setWind(speed,heading);
+// Independent, differently oriented wave bands. World positions map to all three
+// grids, so crossing a wrap in one band leaves the physical surface continuous.
+export const WAVE_BANDS=[
+ {metres:TILE_METRES,angle:0,amplitude:.56,hz:WAVE_HZ,seed:1701},
+ {metres:96.7,angle:.483,amplitude:.96,hz:12,seed:3097},
+ {metres:318.3,angle:-.732,amplitude:1.13,hz:6,seed:7331},
+];
+class SpectralBand {
+ constructor(config){
+  Object.assign(this,config);this.cos=Math.cos(this.angle);this.sin=Math.sin(this.angle);
+  this.frames=[new Float32Array(N*N),new Float32Array(N*N)];this.imag=new Float32Array(N*N);
+  this.orbitalGain=1.65*Math.sqrt(TILE_METRES/this.metres);
+  this.frame=-Infinity;this.time=0;this.version=0;
  }
  setWind(speed,heading){
-  if(this.speed===speed&&this.heading===heading)return;
-  this.speed=speed;this.heading=heading;this.frame=-Infinity;
-  const angle=heading*Math.PI/180, wx=Math.cos(angle),wz=Math.sin(angle),L=speed*speed/9.81;
-  this.wx=wx;this.wz=wz;this.modes=[];let energy=0,seed=1701;
+  this.speed=speed;this.frame=-Infinity;
+  const angle=heading*Math.PI/180-this.angle, wx=Math.cos(angle),wz=Math.sin(angle),L=speed*speed/9.81;
+  this.modes=[];let energy=0,seed=this.seed;
   const random=()=>((seed=(Math.imul(1664525,seed)+1013904223)>>>0)+.5)/4294967296;
   // Sample one half-plane, add its conjugate explicitly, and use deep-water dispersion.
   for(let iz=0;iz<N/2;iz++)for(let ix=1-N/2;ix<N/2;ix++){
    if(!iz&&ix<=0)continue;
-   const k=TAU/TILE_METRES*Math.hypot(ix,iz),aligned=(ix*wx+iz*wz)/Math.hypot(ix,iz);
+   const k=TAU/this.metres*Math.hypot(ix,iz),aligned=(ix*wx+iz*wz)/Math.hypot(ix,iz);
    const a=Math.sqrt(-2*Math.log(random()))*Math.exp(-.5/(k*k*L*L)-.07*k*k)*aligned*aligned/(k*k);
    const phase=TAU*random(),omega=Math.sqrt(9.81*k)*(aligned>=0?-1:1);
    this.modes.push({a,phase,omega,index:wrap(ix)+N*iz,mirror:wrap(-ix)+N*wrap(-iz)});
    energy+=2*a*a;
   }
-  const rms=.0028*speed*speed/(1+(speed/21)**3)**(2/3);
+  const rms=.0028*speed*speed/(1+(speed/21)**3)**(2/3)*this.amplitude;
   for(const m of this.modes)m.a=energy>1e-20?m.a*rms/Math.sqrt(energy):0;
   this.sampleTime(this.time);
  }
@@ -57,22 +63,42 @@ export class WindSea {
   for(let i=0;i<N;i++)inverseLine(out,this.imag,i,N);
  }
  sampleTime(t){
-  this.time=t;const frame=Math.floor(t*WAVE_HZ);this.mix=t*WAVE_HZ-frame;
-  if(frame===this.frame)return;
-  if(frame===this.frame+1)this.frames.reverse();else this.fill(this.frames[0],frame/WAVE_HZ);
-  this.fill(this.frames[1],(frame+1)/WAVE_HZ);this.frame=frame;this.version++;
+  this.time=t;const frame=Math.floor(t*this.hz);this.mix=t*this.hz-frame;
+  if(frame===this.frame||(!this.speed&&Number.isFinite(this.frame)))return;
+  if(frame===this.frame+1)this.frames.reverse();else this.fill(this.frames[0],frame/this.hz);
+  this.fill(this.frames[1],(frame+1)/this.hz);this.frame=frame;this.version++;
  }
- bulk(x,z,frameMix=this.mix){
-  const gx=x/cell,gz=z/cell,i=Math.floor(gx),j=Math.floor(gz),u=gx-i,v=gz-j;
+ sample(x,z,flow){
+  const cell=this.metres/N;
+  const gx=(this.cos*x+this.sin*z)/cell,gz=(-this.sin*x+this.cos*z)/cell,i=Math.floor(gx),j=Math.floor(gz),u=gx-i,v=gz-j;
   const a=wrap(i),b=wrap(i+1),c=N*wrap(j),d=N*wrap(j+1);
   const interp=h=>(h[a+c]*(1-u)+h[b+c]*u)*(1-v)+(h[a+d]*(1-u)+h[b+d]*u)*v;
-  return interp(this.frames[0])*(1-frameMix)+interp(this.frames[1])*frameMix;
+  const first=interp(this.frames[0]),last=interp(this.frames[1]);
+  const height=first+(last-first)*this.mix;
+  if(flow)flow.y+=(last-first)*this.hz;
+  return height;
+ }
+}
+
+export const MAX_PARCELS=96;
+export class WindSea {
+ constructor(speed=0,heading=0){
+  this.bands=WAVE_BANDS.map(b=>new SpectralBand(b));
+  this.whitewater=new Whitewater();this.organicLoad=0;this.crests=[];this.ripples=[];this.drops=[];this.serial=0;this.breakTick=-1;this.time=0;this.setWind(speed,heading);
+ }
+ setWind(speed,heading){
+  if(this.speed===speed&&this.heading===heading)return;
+  this.speed=speed;this.heading=heading;this.wx=Math.cos(heading*Math.PI/180);this.wz=Math.sin(heading*Math.PI/180);
+  for(const band of this.bands)band.setWind(speed,heading);
+ }
+ sampleTime(t){this.time=t;for(const band of this.bands)band.sampleTime(t);}
+ bulk(x,z){
+  let h=0;for(const band of this.bands)h+=band.sample(x,z);return h;
  }
  flow(x,z){
-  const a=this.bulk(x,z,0),b=this.bulk(x,z,1);
-  // Deep-water orbital velocity at the surface using the dominant resolved frequency.
-  const along=(a+(b-a)*this.mix)*1.65;
-  return {x:this.wx*along,y:(b-a)*WAVE_HZ,z:this.wz*along};
+  const flow={x:0,y:0,z:0};let along=0;
+  for(const band of this.bands)along+=band.sample(x,z,flow)*band.orbitalGain;
+  flow.x=this.wx*along;flow.z=this.wz*along;return flow;
  }
  height(x,z){
   let y=this.bulk(x,z);
@@ -109,22 +135,24 @@ export class WindSea {
     vy:(1.35+2*this.random())*Math.sqrt(strength),r:(.029+.058*this.random())*Math.sqrt(strength),foam:.25});
   }
  }
- breakCrest(x,z,energy,dx,dz,periodic=false){
+ breakCrest(x,z,energy,dx,dz,windCrest=false){
   const width=Math.min(.9,.35+energy*.2),speed=Math.min(4,1+energy);
   const c={x,z,dx,dz,t:this.time,width,speed,span:width*(1.7+1.9*this.random()),
-   phase:this.random()*TAU,periodic,duration:.46+.15*this.random()+.055*energy,emitted:-1};
+   phase:this.random()*TAU,windCrest,duration:.46+.15*this.random()+.055*energy,emitted:-1};
   if(this.crests.length>=16)this.crests.shift();
   this.crests.push(c);
   // The root is a contact marker. The visible lip is a single continuous surface.
-  this.appendDrop({x,y:this.height(x,z)-.03,z,vx:0,vy:0,vz:0,r:.02,crest:c,u:0,lateral:0,periodic});
+  this.appendDrop({x,y:this.height(x,z)-.03,z,vx:0,vy:0,vz:0,r:.02,crest:c,u:0,lateral:0,windCrest});
  }
  advanceBreakers(){
   const tick=Math.floor(this.time*8);if(this.breakTick===tick)return;this.breakTick=tick;
   if(this.speed<7)return;
-  // Sample an interleaved set of physical grid cells on the periodic wave tile.
+  // Sample an interleaved set of physical grid cells around the studio origin and recent interactions.
   let best=.105,bx=0,bz=0;
   for(let j=0;j<24;j++){
-   const index=(tick*73+j*137)%(N*N),x=(index%N+this.random()-.5)*cell,z=(Math.floor(index/N)+this.random()-.5)*cell;
+   const index=(tick*73+j*137)%(N*N),origin=j%2?this.ripples.at(-1):null;
+   const x=(origin?.x??0)+(index%N-N/2+this.random())*cell*1.6;
+   const z=(origin?.z??0)+(Math.floor(index/N)-N/2+this.random())*cell*1.6;
    const crest=this.bulk(x,z),front=this.bulk(x+this.wx*cell,z+this.wz*cell);
    const back=this.bulk(x-this.wx*cell,z-this.wz*cell);
    const steepness=(crest-front)/cell;
@@ -186,12 +214,12 @@ export class WindSea {
    }
    const drag=1-Math.exp(-dt*.009*this.speed/Math.max(.05,d.r));
    d.vx+=(this.speed*.26*this.wx-d.vx)*drag;d.vz+=(this.speed*.26*this.wz-d.vz)*drag;
-   if(collide&&!d.periodic&&!d.previous)d.previous={x:d.x,y:d.y,z:d.z,t:this.time};
+   if(collide&&!d.windCrest&&!d.previous)d.previous={x:d.x,y:d.y,z:d.z,t:this.time};
    d.vy-=9.81*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.z+=d.vz*dt;
    if(collide&&d.previous&&this.time-d.previous.t>=1/30){
     collide(d,d.previous);d.previous=null;
    }
-   if(d.vy<0&&d.y+d.r<=this.height(d.x,d.z)){this.drops.splice(i,1);if(!d.periodic&&i%3===0)this.ripple(d.x,d.z,.022);}
+   if(d.vy<0&&d.y+d.r<=this.height(d.x,d.z)){this.drops.splice(i,1);if(!d.windCrest&&i%3===0)this.ripple(d.x,d.z,.022);}
   }
  }
 }

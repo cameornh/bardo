@@ -12,8 +12,8 @@ test('steep moving crests overturn into bounded wind-driven parcels and a held h
  sea.lift(0,0);sea.moveLift({x:-3,y:2,z:0});
  for(let i=0;i<800;i++){
   sea.advance(dt);
-  airborne||=sea.drops.some(p=>p.periodic&&p.y-sea.height(p.x,p.z)>.15&&p.vx>0);
-  stillAttached||=sea.drops.some(p=>p.periodic&&p.crest&&p.u===0&&p.y<sea.height(p.x,p.z));
+  airborne||=sea.drops.some(p=>p.windCrest&&p.y-sea.height(p.x,p.z)>.15&&p.vx>0);
+  stillAttached||=sea.drops.some(p=>p.windCrest&&p.crest&&p.u===0&&p.y<sea.height(p.x,p.z));
   assert.ok(sea.drops.length<=MAX_PARCELS);
  }
  assert.ok(airborne&&stillAttached);assert.equal(sea.drops.filter(p=>p.held).length,10);
@@ -27,7 +27,7 @@ test('oncoming waves break against a fixed collider at its face and miss a raise
   p.physics={fixed:true};l.world.instances=[{id:'pier',assetId:'starter',transform:{...transform(),position:[0,height,0]}}];
   l.world.groundMaterialId='water';l.world.wind={speed:18,heading:0};
   const sim=await StudioPhysics.create(l,'world','starter'),hits=[],sea=sim.sea;
-  const emit=sea.breakCrest.bind(sea);sea.breakCrest=(x,z,e,dx,dz,periodic)=>{if(!periodic)hits.push({x,z,dx});emit(x,z,e,dx,dz,periodic);};
+  const emit=sea.breakCrest.bind(sea);sea.breakCrest=(x,z,e,dx,dz,windCrest)=>{if(!windCrest)hits.push({x,z,dx});emit(x,z,e,dx,dz,windCrest);};
   try{for(let i=0;i<1200;i++)sim.step(dt);
    if(height)assert.equal(hits.length,0);
    else{assert.ok(hits.length>0);assert.ok(hits.every(p=>Math.abs(p.x+.56)<.01&&Math.abs(p.z)<=2.01&&p.dx<-.95));}
@@ -73,6 +73,6 @@ test('authoring preview can generate spray on a placed part before physics start
  group.add(object);const sea=new WindSea(18,0),preview=new AuthoredWaveContacts();
  preview.rebuild({groups:new Map([['placed',group]]),library});
  let contact=false;
- for(let i=0;i<480;i++){preview.advance(sea);sea.advance(dt);contact||=sea.drops.some(d=>!d.periodic&&d.x<-.5);}
+ for(let i=0;i<480;i++){preview.advance(sea);sea.advance(dt);contact||=sea.drops.some(d=>!d.windCrest&&d.x<-.5);}
  assert.ok(contact);
 });

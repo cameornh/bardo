@@ -1,3 +1,4 @@
+import {reflectedSurfaceClip} from './wave-surface.js';
 import * as THREE from 'three';
 import {SAND_CAP,SAND_SIDE,SAND_METRES} from './wind-sand.js';
 
@@ -16,7 +17,7 @@ export class SandDriftView{
   geometry.setAttribute('tileOffset',new THREE.Float32BufferAttribute(offsets,2));
   const material=new THREE.ShaderMaterial({uniforms:{...uniforms,color:{value:new THREE.Color()}},
    transparent:true,depthWrite:false,
-   vertexShader:`attribute vec4 grain;attribute vec3 flight;attribute vec2 tileOffset;uniform vec2 viewport;varying vec2 g;varying float fade,tint;
+   vertexShader:reflectedSurfaceClip+`attribute vec4 grain;attribute vec3 flight;attribute vec2 tileOffset;uniform vec2 viewport;varying vec2 g;varying float fade,tint;
    const float tile=${SAND_METRES.toFixed(1)};
    void main(){
     vec3 p=grain.xyz;${finite?'':'p.xz+=tile*(floor((cameraPosition.xz-p.xz)/tile+.5)+tileOffset);'}
@@ -32,7 +33,7 @@ export class SandDriftView{
     float a=sqrt(cov[0][0]),b=cov[0][1]/a;
     vec2 offset=vec2(a*g.x,b*g.x+sqrt(max(.01,cov[1][1]-b*b))*g.y);
     clip.xy+=offset*2./viewport*clip.w;
-    fade=1.-smoothstep(6.,17.,length(p.xz-cameraPosition.xz));gl_Position=v.z<-.03?clip:vec4(2.,2.,2.,1.);
+    fade=1.-smoothstep(6.,17.,length(p.xz-cameraPosition.xz));gl_Position=v.z<-.03&&!belowReflector(p)?clip:vec4(2.,2.,2.,1.);
    }`,
    fragmentShader:lighting+`varying vec2 g;varying float fade,tint;uniform vec3 color;
    void main(){float a=fade*exp(-.5*dot(g,g))*.72;if(a<.015)discard;

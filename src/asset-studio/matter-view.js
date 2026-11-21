@@ -1,3 +1,4 @@
+import {reflectedSurfaceClip} from './wave-surface.js';
 import * as THREE from 'three';
 import {MarchingCubes} from 'three/examples/jsm/objects/MarchingCubes.js';
 import {SandDriftView} from './sand-drift-view.js';
@@ -6,7 +7,7 @@ import {grainParams,surfaceRelief} from './surface-grain.js';
 import {medium,interfaceOptics} from './water-optics.js';
 
 export function liquidUniforms(shared,m){
- return {...shared,color:{value:new THREE.Color(m.color)},absorption:{value:m.absorption},ior:{value:m.ior},opacity:{value:m.opacity},
+ return {...shared,color:{value:new THREE.Color(m.color)},absorption:{value:m.absorption},scattering:{value:m.scattering},ior:{value:m.ior},opacity:{value:m.opacity},
   properties:{value:new THREE.Vector4(m.roughness,m.metallic,m.opacity,m.emission)}};
 }
 const vertex=`varying vec3 p,n;
@@ -28,15 +29,17 @@ export class MatterView{
  }
  material(m,water,radius,deposit=false){
   const uniforms=liquidUniforms(this.view.oceanView.uniforms,m);
-  uniforms.grainMap=this.view.uniforms.grainMap;uniforms.grain={value:new THREE.Vector3(...grainParams(m))};uniforms.thickness={value:2*radius};
+  uniforms.clipFloor=this.view.uniforms.clipFloor;uniforms.grainMap=this.view.uniforms.grainMap;uniforms.grain={value:new THREE.Vector3(...grainParams(m))};uniforms.thickness={value:2*radius};
   const shader=new THREE.ShaderMaterial({uniforms,transparent:deposit,side:deposit?THREE.FrontSide:THREE.DoubleSide,defines:{...(water?{PARCEL_OPTICS:1}:{}),...(deposit?{DEPOSIT:1}:{})},
-   vertexShader:vertex,fragmentShader:this.lighting+(water?medium+interfaceOptics:surfaceRelief)+`
+   vertexShader:vertex,fragmentShader:this.lighting+(water?medium+interfaceOptics:reflectedSurfaceClip+surfaceRelief)+`
     varying vec3 p,n;uniform float thickness;uniform vec3 grain;
     ${water?'':'uniform mat4 projectionMatrix;uniform vec3 color;uniform vec4 properties;'}
     #ifdef DEPOSIT
      varying float depthMetres;
     #endif
-    void main(){vec3 norm=normalize(n),base=color;float travel=thickness;
+    void main(){
+     ${water?'':'if(belowReflector(p))discard;'}
+     vec3 norm=normalize(n),base=color;float travel=thickness;
      #ifdef DEPOSIT
       if(depthMetres<.0006)discard;
       travel=depthMetres/max(.18,abs(dot(norm,normalize(cameraPosition-p))));

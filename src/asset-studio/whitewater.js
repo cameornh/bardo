@@ -6,7 +6,7 @@ export class Whitewater{
  spawn(kind,x,y,z,velocity,size,life,crest,random){
   this.reserve(kind);this.count[kind]++;
 
-  this.particles.push({kind,x,y,z,...velocity,size,life,age:0,periodic:!!crest.periodic,
+  this.particles.push({kind,x,y,z,...velocity,size,life,age:0,windCrest:!!crest.windCrest,
    dx:crest.dx,dz:crest.dz,aspect:1.2+random()*2,phase:random()*6.28});
  }
  reserve(kind){

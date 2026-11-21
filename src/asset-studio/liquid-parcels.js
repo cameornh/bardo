@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {MAX_PARCELS,TILE_METRES} from './ocean.js';
+import {MAX_PARCELS} from './ocean.js';
 import {medium,interfaceOptics} from './water-optics.js';
 
 const NEIGHBORS=12,ROWS=3+NEIGHBORS/4;
@@ -11,16 +11,14 @@ export class LiquidParcels{
   this.texture=new THREE.DataTexture(this.data,MAX_PARCELS,ROWS,THREE.RGBAFormat,THREE.FloatType);
   const uniforms={...shared,parcels:{value:this.texture}};
   const geometry=new THREE.BoxGeometry(2,2,2);
-  this.ids=new THREE.InstancedBufferAttribute(new Float32Array(MAX_PARCELS*9),1);
+  this.ids=new THREE.InstancedBufferAttribute(new Float32Array(MAX_PARCELS),1);
   geometry.setAttribute('parcelId',this.ids);
-  this.offsets=new THREE.InstancedBufferAttribute(new Float32Array(2*MAX_PARCELS*9),2);
-  geometry.setAttribute('tileOffset',this.offsets);
   this.mesh=new THREE.InstancedMesh(geometry,new THREE.ShaderMaterial({defines:{PARCEL_OPTICS:1},uniforms,side:THREE.BackSide,
-   vertexShader:`attribute float parcelId;attribute vec2 tileOffset;flat varying vec2 tile;flat varying int id;flat varying vec3 center,extent;varying vec3 world;
-   void main(){tile=tileOffset;id=int(parcelId);center=instanceMatrix[3].xyz;extent=vec3(instanceMatrix[0].x,instanceMatrix[1].y,instanceMatrix[2].z);
+   vertexShader:`attribute float parcelId;flat varying int id;flat varying vec3 center,extent;varying vec3 world;
+   void main(){id=int(parcelId);center=instanceMatrix[3].xyz;extent=vec3(instanceMatrix[0].x,instanceMatrix[1].y,instanceMatrix[2].z);
     world=center+extent*position;gl_Position=projectionMatrix*viewMatrix*vec4(world,1.);}`,
    fragmentShader:wave+lighting+medium+interfaceOptics+`
-   uniform highp sampler2D parcels;flat varying int id;flat varying vec2 tile;flat varying vec3 center,extent;varying vec3 world;
+   uniform highp sampler2D parcels;flat varying int id;flat varying vec3 center,extent;varying vec3 world;
    vec4 row(int i,int y){return texelFetch(parcels,ivec2(i,y),0);}
    // Restrict each world-space Gaussian to this ray once. Subsequent density
    // evaluations are scalar quadratics and never fetch the volume again.
@@ -40,7 +38,7 @@ export class LiquidParcels{
     float first=end,last=0.,solid=end,iso=.13533528;
     for(int k=0;k<${NEIGHBORS};k++){if(k>=count)break;
      int i=int(row(id,3+k/4)[k%4]);vec4 ball=row(i,0),axis=row(i,1);
-     vec3 d=entry-ball.xyz-vec3(tile.x,0.,tile.y);
+     vec3 d=entry-ball.xyz;
      float invRadius=1./(ball.w*ball.w),f=1./(axis.w*axis.w)-axis.w;
      vec3 rd=(ray*axis.w+axis.xyz*(dot(ray,axis.xyz)*f))*invRadius;
      float A=dot(ray,rd),peak=-dot(d,rd)/A;vec3 q=d+peak*ray;
@@ -69,7 +67,7 @@ export class LiquidParcels{
     vec3 p=entry+t*ray,gradient=vec3(0.);float weight=0.,radius=0.,foam=0.;
     for(int k=0;k<${NEIGHBORS};k++){if(k>=count)break;
      int i=int(row(id,3+k/4)[k%4]);vec4 ball=row(i,0),axis=row(i,1);
-     vec3 d=p-ball.xyz-vec3(tile.x,0.,tile.y),g=profiles[k];float w=g.z*exp(-2.*g.y*((t-g.x)*(t-g.x)));
+     vec3 d=p-ball.xyz,g=profiles[k];float w=g.z*exp(-2.*g.y*((t-g.x)*(t-g.x)));
      gradient+=4.*w*(d*axis.w+axis.xyz*dot(d,axis.xyz)*(1./(axis.w*axis.w)-axis.w))/(ball.w*ball.w);
      weight+=w;radius+=w*ball.w;foam+=w*row(i,2).x;
     }
@@ -82,7 +80,7 @@ export class LiquidParcels{
     gl_FragColor=vec4(radiance,1.);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
-   }`}),MAX_PARCELS*9);
+   }`}),MAX_PARCELS);
   this.mesh.name='Studio connected water parcels';this.mesh.count=0;this.mesh.frustumCulled=false;
   this.mesh.renderOrder=1;scene.add(this.mesh);this.matrix=new THREE.Matrix4();
   this.near=[];this.bounds=new Float32Array(MAX_PARCELS*3);
@@ -107,26 +105,20 @@ export class LiquidParcels{
     for(let axis=0;axis<3;axis++){lo[axis]=Math.min(lo[axis],data[at+axis]-this.bounds[r+axis]);hi[axis]=Math.max(hi[axis],data[at+axis]+this.bounds[r+axis]);}
     if(near.length>=NEIGHBORS)continue;
     for(let m=i+1;m<drops.length&&near.length<NEIGHBORS;m++){
-     if(used[m]||!!drops[m].periodic!==!!d.periodic)continue;
+     if(used[m]||!!drops[m].windCrest!==!!d.windCrest)continue;
      const connected=[0,1,2].every(axis=>Math.abs(data[4*m+axis]-data[at+axis])<this.bounds[3*m+axis]+this.bounds[r+axis]);
      if(connected){used[m]=1;near.push(m);}
     }
    }
    const center=lo.map((a,k)=>(a+hi[k])*.5),extent=lo.map((a,k)=>(hi[k]-a)*.5);
-   for(const j of near)data.set([drops[j].foam||0,near.length,d.periodic?1:0,0],4*(2*MAX_PARCELS+j));
+   for(const j of near)data.set([drops[j].foam||0,near.length,d.windCrest?1:0,0],4*(2*MAX_PARCELS+j));
    for(let k=0;k<near.length;k++)data[4*((3+(k>>2))*MAX_PARCELS+i)+(k%4)]=near[k];
-   const repeat=d.periodic?1:0;
-   const tileX=d.periodic?Math.round((camera.position.x-center[0])/TILE_METRES):0;
-   const tileZ=d.periodic?Math.round((camera.position.z-center[2])/TILE_METRES):0;
-   for(let tz=-repeat;tz<=repeat;tz++)for(let tx=-repeat;tx<=repeat;tx++){
-    const dx=(tileX+tx)*TILE_METRES,dz=(tileZ+tz)*TILE_METRES,x=center[0]+dx,z=center[2]+dz;
-    if(d.periodic&&Math.hypot(x-camera.position.x,z-camera.position.z)>57)continue;
-    this.matrix.makeScale(...extent).setPosition(x,center[1],z);this.mesh.setMatrixAt(instances,this.matrix);
-    this.offsets.setXY(instances,dx,dz);this.ids.setX(instances++,i);
-   }
+   if(d.windCrest&&Math.hypot(center[0]-camera.position.x,center[2]-camera.position.z)>57)continue;
+   this.matrix.makeScale(...extent).setPosition(...center);this.mesh.setMatrixAt(instances,this.matrix);
+   this.ids.setX(instances++,i);
   }
   this.mesh.count=instances;
-  if(instances){this.texture.needsUpdate=this.mesh.instanceMatrix.needsUpdate=this.ids.needsUpdate=this.offsets.needsUpdate=true;}
+  if(instances){this.texture.needsUpdate=this.mesh.instanceMatrix.needsUpdate=this.ids.needsUpdate=true;}
  }
  dispose(){this.mesh.removeFromParent();this.mesh.geometry.dispose();this.mesh.material.dispose();this.mesh.dispose();this.texture.dispose();}
 }
