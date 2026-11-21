@@ -1,6 +1,6 @@
 import {readFile,writeFile,mkdir,rename,copyFile} from 'node:fs/promises';
 import path from 'node:path';
-import {validateLibrary} from '../../src/asset-studio/model.js';
+import {validateLibrary,MAX_LIBRARY_BYTES} from '../../src/asset-studio/model.js';
 // Fixed, ignored path: requests never choose a filesystem location. Only the
 // same local origin may write. JSON validation precedes an atomic replacement.
 export function studioLibraryPlugin(root=process.cwd()){
@@ -12,7 +12,7 @@ export function studioLibraryPlugin(root=process.cwd()){
  if(req.headers.origin&&new URL(req.headers.origin).host!==req.headers.host)return reply(403,{error:'Same-origin writes only'});
  if(req.headers['sec-fetch-site']==='cross-site')return reply(403,{error:'Cross-site writes refused'});
  if(!req.headers['content-type']?.startsWith('application/json'))return reply(415,{error:'JSON required'});
- const chunks=[];let bytes=0;for await(const chunk of req){bytes+=chunk.length;if(bytes>8*1024*1024)return reply(413,{error:'Library exceeds 8 MiB'});chunks.push(Buffer.from(chunk));}const text=Buffer.concat(chunks).toString('utf8');
+ const chunks=[];let bytes=0;for await(const chunk of req){bytes+=chunk.length;if(bytes>MAX_LIBRARY_BYTES)return reply(413,{error:'Library exceeds 8 MiB'});chunks.push(Buffer.from(chunk));}const text=Buffer.concat(chunks).toString('utf8');
  const library=validateLibrary(JSON.parse(text));
  const job=write.catch(()=>{}).then(async()=>{await mkdir(folder,{recursive:true});try{await copyFile(file,file+'.backup');}catch(e){if(e.code!=='ENOENT')throw e;}const tmp=file+'.tmp';await writeFile(tmp,JSON.stringify(library,null,2));await rename(tmp,file);});write=job;await job;reply(200,{saved:true});
  }catch(e){reply(400,{error:e.message});}};

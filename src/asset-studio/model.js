@@ -1,6 +1,7 @@
 import {validatePhysics} from './physics-data.js';
 // Versioned authoring data. Derived Gaussian samples are disposable caches.
 export const MAX_WIND_SPEED=100;
+export const MAX_LIBRARY_BYTES=8*1024*1024;
 export const VERSION=1, STORAGE_KEY='bardo.asset-studio.v1';
 export const LIMITS={assets:128,parts:24,stamps:512,instances:256,materials:128,keys:120,grid:140000,splats:24000,previewParts:32};
 export const clone=x=>structuredClone(x);

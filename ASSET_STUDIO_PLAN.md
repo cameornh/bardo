@@ -39,7 +39,7 @@ Later: distinguish bulk material definitions from per-parcel temperature, moistu
 
 The Vite development/preview server writes to `.local/asset-studio/library.json`, ignored by Git, with a previous-file backup and atomic replacement. The endpoint has one fixed path, requires same-origin JSON writes, validates the full document, and limits payload size. Browser autosave is an additional fallback using a dedicated versioned key; it never reads or overwrites beach/clay saves. Save operations serialize. Export/import provides a portable editable JSON library; import validates references, bounds, units and version before replacing the library, and replacement is undoable.
 
-An exported, reviewed library can later be committed under `assets/library/` with stable asset/material IDs, source attribution, thumbnails and versioned migrations. Keep local working drafts out of ordinary pushes. Do not auto-publish user creations. Future selective export should collect material dependencies, animation clips and collision settings for one asset or collection.
+An exported, reviewed library can later be committed under `assets/library/` with stable asset/material IDs, source attribution, thumbnails and versioned migrations. Keep local working drafts out of ordinary pushes. Do not auto-publish user creations. Use **Export asset** to save one sculpt with its materials, part settings, joints and animation. **Add asset from file** merges it as an editable asset. If an existing material ID has different properties, the import keeps both definitions. **Place selected asset** adds a world placement.
 
 ## Rendering and bounded work
 
@@ -52,7 +52,7 @@ This first editor deliberately limits a part to 512 stamps, 24,000 surface sampl
 ## Next priorities
 
 1. Validate daily sculpt/paint/keyframe workflow with the user's assets. Improve surface smoothing/coverage, small-feature resolution and selection as needed; add mirror/symmetry, pressure/strength and a smooth brush.
-2. Selective asset export/import, thumbnails, categories/tags, provenance, migration tests and repo promotion tooling. Keep browser and disk recovery transparent.
+2. Collection export, thumbnails, categories/tags, provenance, file migration tests and repo promotion tooling. Keep browser and disk recovery transparent.
 3. Refine the bounded collision proxies now used in the studio (exact primitives and greedy occupied boxes for CSG), then apply the same material definitions to the existing sandbox. Add collision visualization, smaller-feature error control and granular/wet material coupling. No replacement of working beach features without parity checks.
 4. Sparse editable field bricks, incremental brush updates, demand-loaded library caches and GPU instance transforms. These should remove operation-history limits and lower save/undo memory while retaining the original editable definition.
 5. Reusable force clips, optional inverse-dynamics authoring from pose guides, joint limits/breakage, quaternion rig editing, bones/skin weights and deformation cages. Preserve local pivots and covariance transforms under deformation.
