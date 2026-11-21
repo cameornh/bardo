@@ -1,3 +1,4 @@
+import {mixDeposit,takeDeposit} from './deposit-heat.js';
 import {entrainment,repose,launchGrain,driftGrain} from './wind-sand.js';
 
 // Finite, non-repeating deposits. h is the thickness in metres over a square
@@ -9,13 +10,15 @@ const area=BED_CELL**2;
 export const bedKey=(x,z)=>Math.abs(x)<2**24&&Math.abs(z)<2**24?x+2**25*z:x+','+z;
 const directions=[[1,0,1],[-1,0,1],[0,1,1],[0,-1,1],[1,1,Math.SQRT2],[-1,-1,Math.SQRT2],[1,-1,Math.SQRT2],[-1,1,Math.SQRT2]];
 export class MaterialBed{
- constructor(material,liquid){this.material=material;this.liquid=liquid;this.nodes=new Map();this.version=0;this.grains=[];this.grainCredit=0;this.seed=71;}
+ constructor(material,liquid){this.material=material;this.liquid=liquid;this.nodes=new Map();this.version=0;this.grains=[];this.grainCredit=0;this.seed=71;this.thermalCells=[];this.thermalCursor=0;}
  at(x,z){return this.nodes.get(bedKey(x,z));}
- add(x,z,volume,owner){
+ add(x,z,volume,owner,thermal=null){
   const u=x/BED_CELL,v=z/BED_CELL,i=Math.floor(u),j=Math.floor(v),a=u-i,b=v-j;
   const corners=[[i,j,(1-a)*(1-b)],[i+1,j,a*(1-b)],[i,j+1,(1-a)*b],[i+1,j+1,a*b]];
   if(this.nodes.size+corners.filter(([x,z,w])=>w>0&&!this.at(x,z)).length>MAX_BED_NODES)return false;
-  for(const [x,z,w] of corners)if(w)this.node(x,z,owner).h+=volume*w/area;this.version++;return true;
+  for(const [x,z,w] of corners)if(w){
+   const c=this.node(x,z,owner);mixDeposit(this,c,volume*w,thermal,BED_CELL);c.h+=volume*w/area;
+  }this.version++;return true;
  }
  node(x,z,owner){
   const k=bedKey(x,z);let c=this.nodes.get(k);
@@ -27,10 +30,22 @@ export class MaterialBed{
   return (1-a)*(1-b)*(this.at(i,j)?.h||0)+a*(1-b)*(this.at(i+1,j)?.h||0)
    +(1-a)*b*(this.at(i,j+1)?.h||0)+a*b*(this.at(i+1,j+1)?.h||0);
  }
+ thermalAt(x,z){
+  if(!this.thermalCells.length)return null;
+  const u=x/BED_CELL,v=z/BED_CELL,i=Math.floor(u),j=Math.floor(v);let best=0,site=null;
+  for(const dx of [0,1])for(const dz of [0,1]){
+   const c=this.at(i+dx,j+dz),weight=(c?.h||0)*(1-Math.abs(i+dx-u))*(1-Math.abs(j+dz-v));
+   if(c?.thermal&&weight>best){best=weight;site=c.thermal;}
+  }
+  return site;
+ }
  volume(){let h=0;for(const c of this.nodes.values())h+=c.h;return h*area;}
  move(c,nx,nz,amount){
   if(amount<=0||(!this.at(nx,nz)&&this.nodes.size>=MAX_BED_NODES))return;
-  const neighbour=this.node(nx,nz,c.owner);neighbour.h+=amount;c.h-=amount;
+  const neighbour=this.node(nx,nz,c.owner);
+  mixDeposit(this,neighbour,amount*area,c.thermal,BED_CELL);
+  if(c.thermal)takeDeposit(c.thermal,amount*area*this.material.density);
+  neighbour.h+=amount;c.h-=amount;
  }
  random(){this.seed=(Math.imul(1664525,this.seed)+1013904223)>>>0;return this.seed/4294967296;}
  saltate(dt,wind,wx,wz,shear,cells,floor){
@@ -79,7 +94,7 @@ export class MaterialBed{
     flux[k]=value>1e-6?value:0;demand+=flux[k];
    }
    if(!demand)continue;
-   const scale=Math.min(1,(c.h-film)/demand);
+   const scale=Math.min(1,(c.h-film)/demand)*(c.thermal?.melt??1);
    for(let k=0;k<directions.length;k++)if(flux[k]){
     this.move(c,c.x+directions[k][0],c.z+directions[k][1],flux[k]*scale);
    }
@@ -94,7 +109,7 @@ export class MaterialBed{
   for(const c of [...this.nodes.values()]){
    const d2=(c.x*BED_CELL-point.x)**2+(c.z*BED_CELL-point.z)**2;
    if(d2>.75**2)continue;
-   this.move(c,c.x+dx,c.z+dz,Math.min(c.h*.35,size*dt/(this.material.density*area)*.07*Math.exp(-8*d2)));moved=true;
+   this.move(c,c.x+dx,c.z+dz,Math.min(c.h*.35,size*dt/(this.material.density*area)*.07*Math.exp(-8*d2))*(c.thermal?.melt??1));moved=true;
   }
   if(moved)this.version++;
  }

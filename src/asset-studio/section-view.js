@@ -52,7 +52,8 @@ export class SectionView{
  update(sim){
   if(this.sim!==sim){this.clear();this.sim=sim;}
   for(const s of sim?.structures||[]){
-   if(s.bodies.size===1)continue;
+   if(s.bodies.size<=1&&!s.meltRevision)continue;
+   if(!s.bodies.size&&!this.meshes.has(s))continue;
    let batch=this.meshes.get(s);
    if(!batch){
     const r=s.root,root=this.view.groups.get(r.instance.id)?.children.find(o=>o.userData.partId===r.part.id);
@@ -61,7 +62,11 @@ export class SectionView{
     batch={root,skin:partitionSkin(s,surface),pieces:new Map()};this.meshes.set(s,batch);
    }
    batch.root.visible=false;
-   if(batch.count!==s.bodies.size){
+   if(batch.count!==s.bodies.size||batch.meltRevision!==s.meltRevision){
+    batch.meltRevision=s.meltRevision;
+    for(const [r,mesh] of batch.pieces)if(!s.bodies.has(r)){
+     mesh.removeFromParent();mesh.geometry.dispose();batch.pieces.delete(r);
+    }
     const changed=[...s.bodies].filter(r=>batch.pieces.get(r)?.userData.regions!==r.regions);
     for(const [r,surface] of fragmentSurfaces(s,batch.skin,changed)){
      const geometry=this.view.geometry(surface,this.view.library.materials);let mesh=batch.pieces.get(r);

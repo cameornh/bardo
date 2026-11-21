@@ -6,6 +6,9 @@ import {DepositSurface} from './deposit-view.js';
 import {grainParams,surfaceRelief} from './surface-grain.js';
 import {medium,interfaceOptics} from './water-optics.js';
 
+// Opaque fused materials keep their own surface shading. Transmissive melts
+// and authored liquids use the shared reflection, refraction and volume pass.
+export const usesLiquidOptics=(material,liquid)=>liquid&&!(material.fromSolid&&material.opacity===1);
 export function liquidUniforms(shared,m){
  return {...shared,color:{value:new THREE.Color(m.color)},absorption:{value:m.absorption},scattering:{value:m.scattering},ior:{value:m.ior},opacity:{value:m.opacity},
   properties:{value:new THREE.Vector4(m.roughness,m.metallic,m.opacity,m.emission)}};
@@ -58,7 +61,7 @@ export class MatterView{
  }
  surface(key,g){
   let mesh=this.meshes.get(key);if(mesh)return mesh;
-  const water=g.kind===2;
+  const water=usesLiquidOptics(g.material,g.kind===2);
   const resolution=Math.min(26,8+Math.ceil(4.5*Math.cbrt(g.packets.length)));
   mesh=new MarchingCubes(resolution,this.material(g.material,water,g.radius),false,false,Math.min(14000,5*(resolution-3)**3));mesh.isolation=.23;mesh.frustumCulled=false;
   if(water)mesh.layers.set(1);
@@ -69,7 +72,7 @@ export class MatterView{
   if(!sim||sim.time-this.last<1/30)return;this.last=sim.time;
   for(const [id,bed] of sim.matter.beds){
    let mesh=this.beds.get(id);
-   if(!mesh){mesh=new DepositSurface(bed,this.material(bed.material,bed.liquid,0,true));this.beds.set(id,mesh);this.view.scene.add(mesh);}
+   if(!mesh){mesh=new DepositSurface(bed,this.material(bed.material,usesLiquidOptics(bed.material,bed.liquid),0,true));if(!usesLiquidOptics(bed.material,bed.liquid))mesh.layers.set(0);this.beds.set(id,mesh);this.view.scene.add(mesh);}
    mesh.update(sim);
    if(!bed.liquid&&(bed.grains.length||this.saltation.has(id))){
     if(!this.saltation.has(id))this.saltation.set(id,new SandDriftView(this.view.grainScene,this.view.uniforms,this.lighting,true,this.view.eyeScene));

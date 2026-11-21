@@ -42,7 +42,7 @@ export class PaintedHinges {
     for(const hinges of this.parts.values())for(const h of hinges){
       const count=h.body.structure?.bodies.size||1;
       if(h.regionCount!==count){
-        const owner=count>1?structureBody(h.body,h.anchor):h.body;
+        const owner=count>1||h.body.structure?.meltRevision?structureBody(h.body,h.anchor):h.body;
         if(owner!==h.owner){h.owner=owner;h.initialized=false;this.revision++;}
         h.regionCount=count;
       }

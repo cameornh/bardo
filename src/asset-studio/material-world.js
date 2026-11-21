@@ -1,4 +1,6 @@
 import {Box3,Vector3} from 'three';
+import {releaseMelt,conductInterior} from './bulk-melt.js';
+import {BED_CELL} from './material-bed.js';
 import {MaterialAir,clamp} from './material-air.js';
 import {surfaceState,heat,addWater,react,exchangePair,chargeNetwork,activeMass,phaseState} from './material-reactions.js';
 
@@ -62,18 +64,31 @@ export class MaterialWorld {
   const groups=new Map(),sites=[],pairs=[],mapping=[];
   for(const p of pieces){
    const id=root(p.index);
-   if(!groups.has(id))groups.set(id,{material:p.material,box:new Box3(),indices:[],volume:0});
-   const g=groups.get(id);g.box.union(p.box);g.indices.push(p.index);g.volume+=record.body.collider(p.index).volume();
+   if(!groups.has(id))groups.set(id,{material:p.material,box:new Box3(),indices:[],volume:0,mass:0});
+   const g=groups.get(id),collider=record.body.collider(p.index);
+   g.box.union(p.box);g.indices.push(p.index);
+   g.volume+=collider.volume();g.mass+=collider.mass();
   }
-  for(const [id,{material:m,box,indices,volume}] of groups){
+  for(const [id,{material:m,box,indices,volume,mass}] of groups){
    const extent=box.getSize(v()),axis=extent.x>=extent.y&&extent.x>=extent.z?0:extent.y>=extent.z?1:2;
    const area=Math.max(.002,Math.min(2*(extent.x*extent.y+extent.z*(extent.x+extent.y)),6*volume**(2/3)))/2;
    const group=[-1,1].map(sign=>{
     const local=box.getCenter(v());local.setComponent(axis,local.getComponent(axis)+sign*.30*extent.getComponent(axis));
     const s=surfaceState(m,record.key+'/'+id+'/'+sign,v(),area,Math.min(volume*.5,area*.008)*m.density);
+    if(record.part && mass>0){
+     const halfMass=mass*.5;
+     const skinFraction=Math.min(1,area*.008/(volume*.5));
+     s.mass=halfMass*skinFraction;s.water=m.moisture*s.mass;s.bulkWater=m.waterContent*s.mass;
+     if(skinFraction<1){
+      const core=surfaceState(m,s.key+'/core',v(),area,halfMass-s.mass);
+      core.mass=halfMass-s.mass;core.water=0;core.bulkWater=m.waterContent*core.mass;core.local=local.clone();
+      s.core=core;s.depth=Math.max(.008,volume/(2*area));
+     }
+    }
     s.local=local;s.record=record;s.radius=Math.sqrt(area/Math.PI);
     sites.push(s);return s;
    });
+   if(record.part)for(const site of group)site.zone=group;
    pairs.push([group[0],group[1],area*.4]);for(const i of indices)mapping[i]=group;
   }
   for(const {i,j,point,area} of interfaces)pairs.push([nearestLocal(mapping[i],{local:point}),nearestLocal(mapping[j],{local:point}),area]);
@@ -102,7 +117,20 @@ export class MaterialWorld {
   const ids=new Set(fresh.map(s=>s.material.id));
   for(const id of ids){
    const old=prior.sites.filter(s=>!s.mark&&s.material.id===id);
-   if(old.length)splitSkin(old,fresh.filter(s=>s.material.id===id));
+   const next=fresh.filter(s=>s.material.id===id);
+   if(old.length){
+    splitSkin(old,next);
+    // A fracture can leave pieces thinner than the modeled skin. Keep each
+    // original interior reservoir represented when remapping to those pieces.
+    const cores=old.filter(s=>s.core).map(s=>s.core);
+    if(cores.length){
+     for(const s of next)if(!s.core){
+      s.core=surfaceState(s.material,s.key+'/core',v(),s.area,s.mass);
+      s.core.local=s.local.clone();s.depth=.008;
+     }
+     splitSkin(cores,next.map(s=>s.core));
+    }else for(const s of next)delete s.core;
+   }
   }
   // Point attachments and electrodes move to exactly one surviving owner.
   for(const s of prior.sites){
@@ -116,6 +144,7 @@ export class MaterialWorld {
   }
  }
  ground(sim,x,z,create=true,explicit=false,refresh=false){
+  for(const bed of sim.matter.beds.values()){const s=bed.thermalAt(x,z);if(s)return s;}
   const i=Math.floor(x/CELL),j=Math.floor(z/CELL),key=groundKey(i,j);
   let tile=this.tiles.get(key);
   if(tile&&refresh&&sim.matter.beds.size){
@@ -194,6 +223,7 @@ export class MaterialWorld {
    g.surfaceMoisture=clamp(s.water/s.mass,0,1);
   }
   for(const [key,s] of this.loose)if(!sim.matter.parts.get(key)?.packets.length){
+   if(s.group?.fromMelt){if(this.probe===s)this.probe=null;this.loose.delete(key);continue;}
    const tile=this.ground(sim,s.position.x,s.position.z,true,false,true);
    if(tile){
     const ct=activeMass(tile)*tile.material.heatCapacity,cs=activeMass(s)*s.material.heatCapacity;
@@ -208,8 +238,11 @@ export class MaterialWorld {
   }
  }
  target(sim,hit){
+  if(hit.bedMaterial){const site=sim.matter.beds.get(hit.bedMaterial)?.thermalAt(hit.point.x,hit.point.z);if(site)return site;}
   if(hit.mark){const owner=sim.bodies.get(hit.bodyKey)??sim.get(hit.instanceId,hit.partId);const s=owner?.field.sites.find(s=>s.mark===hit.mark.id);if(s)return s;}
-  if(hit.loose&&!hit.bedMaterial){this.collectLoose(sim);const s=nearest([...this.loose.values()].filter(s=>s.group.key===hit.looseKey),hit.point);if(s)return s;}
+  if(hit.loose&&!hit.bedMaterial){this.collectLoose(sim);
+   if(hit.looseGroup&&this.loose.has(hit.looseGroup))return this.loose.get(hit.looseGroup);
+   const s=nearest([...this.loose.values()].filter(s=>s.group.key===hit.looseKey),hit.point);if(s)return s;}
   const r=hit.chunk??sim.bodies.get(hit.bodyKey)??sim.get(hit.instanceId,hit.partId);
   if(r?.field&&!hit.bedMaterial)return nearest(r.field.sites,hit.point,hit.materialId)||nearest(r.field.sites,hit.point);
   return this.ground(sim,hit.point.x,hit.point.z,true,true);
@@ -217,6 +250,14 @@ export class MaterialWorld {
  apply(s,tool,strength=1){
   if(!s)return false;this.probe=s;const level=clamp(strength,.01,5);
   if(tool==='heat'||tool==='cool')heat(s,(tool==='heat'?6e5:-6e5)*s.area*level);
+  else if(tool==='bulkHeat'||tool==='bulkCool'){
+   if(!s.zone)return false;
+   const dose=(tool==='bulkHeat'?1:-1)*400000*level;
+   for(const site of s.zone){
+    heat(site,dose*activeMass(site));
+    if(site.core)heat(site.core,dose*activeMass(site.core));
+   }
+  }
   else if(tool==='wet')addWater(s,level*.8*s.area);
   else if(tool==='positive'||tool==='return'||tool==='unpin'){s.electrode=tool==='unpin'?null:tool==='return'?0:48*level;this.activeCircuit=true;}
   this.version++;return true;
@@ -288,6 +329,19 @@ export class MaterialWorld {
    }
   }
   nodes.push(...this.tiles.values());
+  // Cool sparse deposits in rotating batches. Contacted cells
+  // always participate now, including both ends of every electrical edge.
+  const deposits=new Set();
+  for(const bed of sim.matter.beds.values()){
+   const cells=bed.thermalCells,n=Math.min(48,cells.length);
+   for(let j=0;j<n;j++){const c=cells[bed.thermalCursor++%cells.length];if(c.h>1e-7)deposits.add(c.thermal);}
+  }
+  for(const {a,b} of edges){if(a.deposit)deposits.add(a);if(b.deposit)deposits.add(b);}
+
+  for(const s of deposits){
+   s.position.y=sim.matter.groundHeight(sim,s.position.x,s.position.z)+s.deposit.h;
+   nodes.push(s);
+  }
   for(const {a,b,area} of edges)exchangePair(a,b,area,INTERVAL);
   if(this.activeCircuit){
    chargeNetwork(nodes,edges,INTERVAL);
@@ -295,11 +349,32 @@ export class MaterialWorld {
   }
   for(const s of nodes){
    const c=this.air.at(s.position)||{heat:0,water:0,oxygenUsed:0,smoke:0,vapour:0};
-   react(s,this.air,c,INTERVAL,sim.wind.speed);
+   const dt=s.deposit?Math.max(INTERVAL,sim.time-(s.lastExchange??sim.time)):INTERVAL;
+   react(s,this.air,c,dt,sim.wind.speed);
+   if(s.deposit){
+    s.lastExchange=sim.time;
+    if(s.lost){s.deposit.h=activeMass(s)/(s.material.density*BED_CELL**2);s.mass=activeMass(s);s.lost=0;sim.matter.beds.get(s.material.id).version++;}
+   }else if(s.group?.fromMelt&&s.lost){
+    const remaining=1-s.lost,g=s.group;
+    for(const p of g.packets){p.volume*=remaining;p.radius*=Math.cbrt(remaining);const c=p.body.collider(0);c.setRadius(p.radius);c.setMass(p.volume*s.material.density);}
+    g.radius=g.packets[0]?.radius??g.radius;s.mass=activeMass(s);s.lost=0;
+   }
   }
   this.air.advance(INTERVAL,sim.wind);
-  for(const r of bodies)this.mechanics(r);
-  this.nodes=nodes;this.edges=edges;this.version++;
+  let changedBodies=false;
+  for(const r of bodies){
+   for(const s of r.field.sites)if(s.core)conductInterior(s,INTERVAL);
+   for(const [a,b,area] of r.field.pairs)if(a.core&&b.core)conductInterior(a,INTERVAL,b,area);
+   this.mechanics(r);
+   if(r.part&&releaseMelt(sim,r))changedBodies=true;
+  }
+  if(changedBodies){
+   const active=new Set(nodes.filter(s=>!s.record));
+   for(const r of [...sim.bodies.values(),...sim.chunks.values()])for(const s of r.field?.sites??[])active.add(s);
+   for(const s of this.loose.values())active.add(s);
+   this.nodes=[...active];this.edges=edges.filter(({a,b})=>active.has(a)&&active.has(b));
+  }else{this.nodes=nodes;this.edges=edges;}
+  this.version++;
  }
  mechanics(r){
   const f=r.field,body=r.body;

@@ -1,3 +1,4 @@
+import {takeDeposit} from './deposit-heat.js';
 import {MaterialBed,BED_CELL} from './material-bed.js';
 import {Vector3} from 'three';
 import {liquidity} from './physics-data.js';
@@ -27,13 +28,13 @@ export function seedMatter(shapes,matrix,material,count){
  return out;
 }
 export class LooseMatter{
- constructor(){this.parts=new Map();this.beds=new Map();this.count=0;this.bedTime=0;}
+ constructor(){this.meltSerial=0;this.meltedMass=0;this.meltedParts=new Set();this.parts=new Map();this.beds=new Map();this.count=0;this.bedTime=0;}
  add(sim,key,shapes,matrix,material,budget){
   return this.addPackets(sim,key,material,seedMatter(shapes,matrix,material,budget));
  }
- addPackets(sim,key,material,packets,groundTool=false){
+ addPackets(sim,key,material,packets,groundTool=false,id=key+'/'+material.id){
   if(this.count+packets.length>768)throw Error('This physics preview exceeds the 768 loose parcel budget.');
-  const {R,world}=sim,kind=looseKind(material),id=key+'/'+material.id;
+  const {R,world}=sim,kind=looseKind(material);
   const group={key,material,kind,packets,groundTool,age:0,radius:packets[0].radius};this.parts.set(id,group);
   for(const p of packets){
    const body=world.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(p.position.x,p.position.y,p.position.z)
@@ -96,7 +97,11 @@ export class LooseMatter{
     if(floorContact){
      let bed=this.beds.get(m.id);
      if(!bed){bed=new MaterialBed(m,liquid);this.beds.set(m.id,bed);}
-     if(bed.add(pos.x,pos.z,p.volume,g.groundTool?'ground:'+m.id:g.key)){
+     if(bed.add(pos.x,pos.z,p.volume,g.groundTool?'ground:'+m.id:g.key,g.thermal)){
+      if(g.thermal){
+       takeDeposit(g.thermal,p.volume*m.density);
+       if(packets.length===1&&sim.materialWorld.probe===g.thermal)sim.materialWorld.probe=bed.thermalAt(pos.x,pos.z);
+      }
       world.removeRigidBody(p.body);packets.splice(i,1);this.count--;continue;
      }
     }
@@ -125,7 +130,7 @@ export class LooseMatter{
      other.body.applyImpulse({x:-dx*amount,y:0,z:-dz*amount},true);
     }
    }
-   if(g.groundTool&&!packets.length)this.parts.delete(id);
+   if((g.groundTool||g.fromMelt)&&!packets.length)this.parts.delete(id);
   }
   this.bedTime+=dt;
   if(this.bedTime+1e-8>=1/20){
@@ -154,7 +159,7 @@ export class LooseMatter{
   }
  }
  nudge(key,point,force,dt){
-  for(const bed of this.beds.values())if(key==='ground:'+bed.material.id||[...this.parts.values()].some(g=>g.key===key&&g.material.id===bed.material.id))bed.push(point,force,dt);
+  for(const bed of this.beds.values())if(key==='ground:'+bed.material.id||bed.thermalAt(point.x,point.z)?.deposit.owner===key||[...this.parts.values()].some(g=>g.key===key&&g.material.id===bed.material.id))bed.push(point,force,dt);
   let total=0;const picked=[];
   for(const group of this.parts.values())if(group.key===key)for(const p of group.packets){
    const w=Math.exp(-p.position.distanceToSquared(point)/(5*p.radius*p.radius));if(w>.01){picked.push([p,w]);total+=w;}

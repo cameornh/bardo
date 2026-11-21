@@ -17,7 +17,7 @@ function assignRegions(r,s,ids){
  for(const sample of r.floats)sample.region=regionAt(r,sample.p);
 }
 export function attachStructure(sim,r,shapes,materials,anchor,beam,makeBody){
- if(!shapes.some(s=>materials.get(s.materialId).youngModulus>0))return;
+ if(!shapes.some(s=>materials.get(s.materialId).youngModulus>0)&&shapes.every(s=>s.materialId===shapes[0].materialId))return;
  const grid=fractureGrid(fractureBoxes(shapes),r.scale.toArray(),materials);
  if(!grid||grid.nodes.length<2)return;
  const indices=grid.nodes.map(n=>n.index);
@@ -203,6 +203,26 @@ function evaluate(sim,r,dt){
 function componentsOf(r){
  const ids=new Set(r.regions);
  return islands(r.structure.grid).filter(group=>ids.has(group[0]));
+}
+// Cut only interfaces between ready-to-flow regions and the remaining solid.
+// Existing fractures and disconnected supports still determine the rigid islands.
+export function separateMeltRegions(sim,r,liquid,maxGroups){
+ const s=r.structure,interfaces=[];
+ for(const e of s.grid.bonds){
+  if(e.broken||s.owners[e.a]!==r||s.owners[e.b]!==r)continue;
+  const a=liquid.has(e.a),b=liquid.has(e.b);
+  if(a!==b||(a&&s.grid.nodes[e.a].material!==s.grid.nodes[e.b].material)){
+   interfaces.push(e);e.broken=true;
+  }
+ }
+ const groups=componentsOf(r);
+ // Each hot island stays homogeneous and needs one parcel group. Capacity
+ // backpressure must never silently cut bonds in a still-rigid sculpt.
+ if(groups.filter(ids=>liquid.has(ids[0])).length>maxGroups){
+  for(const e of interfaces)e.broken=false;
+  return [];
+ }
+ return separate(sim,r,groups).filter(piece=>liquid.has(piece.regions[0]));
 }
 export function advanceFractures(sim,dt){
  for(const s of sim.structures)for(const r of [...s.bodies])evaluate(sim,r,dt);

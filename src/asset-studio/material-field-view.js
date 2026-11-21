@@ -55,6 +55,7 @@ export class MaterialFieldView {
     const p=s.position,r=clamp(s.radius*.47,.04,.55);
     if(s.i!=null&&mode==='natural'&&s.finish>.015)put(p.x,p.y+.006,p.z,r,.008,[.07,.055,.043],s.finish);
     if(mode==='temperature')put(p.x,p.y,p.z,r,r,fromTemperature(s.t),.8);
+    else if(mode==='fusion')put(p.x,p.y,p.z,r,r,mix([.51,.34,.19],[.08,.77,1],s.core?.melt??s.melt),.83);
     else if(mode==='charge')put(p.x,p.y,p.z,r,r,mix(cold,gold,clamp(s.volts/48,0,1)),s.electrode==null?.66:.94);
     else if(mode==='moisture'){
      const wet=clamp((s.material.waterContent*s.melt+s.water/(s.area*.12)),0,1);

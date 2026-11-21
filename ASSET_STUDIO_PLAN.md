@@ -16,7 +16,13 @@ This first version includes:
 - Asset and material duplication, shared library placement, undo/redo and an unbounded ground material preview. The ground follows the camera's covered region without changing its world-space coordinates or material. There are no beach boundary walls.
 - Nineteen editable starter materials and three sample assets, including an animated two-part object.
 
-The studio now includes a bounded CPU rigid-body/joint preview. Density, friction, restitution and joint retention affect it. In the world workspace, liquid ground supplies wind waves, displaced-volume buoyancy and drag. The asset editor uses a solid work plane. Freely flowing parts release mobile material when physics starts. Surface temperature, moisture, electrical potential and combustion evolve during physics playback. Melting weakens contacts and joints. Continuous bulk reshaping of a melting sculpt remains a follow-up.
+The studio now includes a bounded CPU rigid-body/joint preview. Density, friction, restitution and joint retention affect it. In the world workspace, liquid ground supplies wind waves, displaced-volume buoyancy and drag. The asset editor uses a solid work plane. Freely flowing parts release mobile material when physics starts. Surface temperature, moisture, electrical potential and combustion evolve during physics playback. A hot skin weakens contacts and joints. Once a connected material region has absorbed enough energy to melt through its interior, it releases flowing material and any attachments it supported. Cold regions of the same sculpt remain physical.
+
+### Melting a sculpt
+
+In the material workbench, select **Beeswax** under **Placed object**. Choose **Heat material volume** and **Apply to selected part**. At the default intensity, this adds 400 kJ/kg throughout each connected region of the selected part. **Point at surface** targets just the region you click. Use **Heat pulse** to heat only the skin and watch conduction into the interior. The probe shows both temperatures, and the **Liquid fraction** overlay shows where the surface is melting.
+
+Liquid starts inside the occupied collision geometry and inherits the motion of the material it came from. As parcels land and spread, the receiving cells carry their share of the remaining mass, enthalpy, moisture and fuel. Cold deposits flow more slowly and stop when fully solid. A saturated parcel pool defers release until space becomes available. Reset physics restores the authored sculpt. [Thermal and mass conservation tests](tests/studio-bulk-melt.test.js)
 
 ## Materials
 
@@ -27,7 +33,7 @@ A material definition supplies starting conditions and coefficients. Each placem
 | Density, friction, restitution, liquidity and viscosity | Mass, buoyancy, resistance to sliding, rebound, fluid movement and whether a joint can hold. |
 | Elastic modulus, Poisson ratio, yield stress, tensile strength, cohesion and adhesion | Elastic recovery, deformation, transfer of loads and fracture within and between materials. Local melting and fuel loss weaken connections. |
 | Starting temperature, heat capacity, thermal conductivity, emissivity and expansion | Initial temperature, heating per joule, heat flow across touching surfaces, radiative exchange with air and changes to both visible and collision dimensions. |
-| Melting and boiling temperatures, latent heat of fusion and bulk water content | Energy goes into changing phase at the transition temperature. Melting softens the surface. Boiling transfers mass to the air, where the aqueous fraction contributes to humidity and the rest becomes a separate vapour. |
+| Melting and boiling temperatures, latent heat of fusion and bulk water content | Energy goes into changing phase at the transition temperature. Heat conducts between the surface and interior. Fully melted sculpt regions become liquid parcels. Boiling transfers mass to the air, where the aqueous fraction contributes to humidity and the rest becomes a separate vapour. |
 | Initial moisture, porosity, permeability and water affinity | Water storage and uptake, wicking at contacts, wet friction, evaporative cooling and resistance to ignition. Cold surfaces collect condensate from humid air. |
 | Electrical conductivity | Potential and current through connected material regions. Damp surfaces can conduct better. Resistance dissipates electrical energy as heat. |
 | Ignition temperature, fuel energy, burn rate and smoke yield | Hot fuel consumes local oxygen, heats the surface and the air, emits smoke, chars and weakens. Moisture inhibits burning. Wind carries smoke, heat and humidity. |
@@ -36,7 +42,7 @@ A material definition supplies starting conditions and coefficients. Each placem
 
 Open **Material interactions** to probe an object or a spot on the ground. Attach a supply and a return to distinct points on a conducting path. Inspect the potential and local heating, then separate the contacts to open the circuit. Heat or wet a piece of cotton to compare how it burns. The material workbench at `/tests/studio-material-fields.html` opens an isolated, in-memory library.
 
-The CPU updates connected surface samples and a sparse world-space atmosphere eight times per simulated second. Each connected material region has two samples along its longest axis. Painted Gaussian details have individual samples connected to their roots. Ground uses up to 150 active surface tiles and air uses up to 384 one-cubic-metre cells. The outer boundary exchanges with ambient air. Bulk interior heat fronts, molten geometry flowing off a formerly rigid sculpt, and calibrated chemistry remain future work. Field overlays show sampled values, and the surface keeps its wet or charred finish during the run. Reset physics restores the authored starting state.
+The CPU updates connected surface samples and a sparse world-space atmosphere eight times per simulated second. Each connected sculpt material has two surface samples along its longest axis. Thick regions also have two interior reservoirs. The collider mass is divided between them, so the phase change consumes its latent heat once. Painted Gaussian details have individual samples connected to their roots. Ground uses up to 150 active surface tiles and air uses up to 384 one-cubic-metre cells. The outer boundary exchanges with ambient air. Melting is resolved region by region. A finer melt front within a homogeneous region, load-bearing solidification of a cooled pool and calibration against measurements are open work. Field overlays show sampled values, and the surface keeps its wet or charred finish during the run. Reset physics restores the authored starting state.
 
 ## Local ownership and repository path
 
@@ -60,7 +66,7 @@ This first editor deliberately limits a part to 512 stamps, 24,000 surface sampl
 4. Sparse editable field bricks, incremental brush updates, demand-loaded library caches and GPU instance transforms. These should remove operation-history limits and lower save/undo memory while retaining the original editable definition.
 5. Reusable force clips, optional inverse-dynamics authoring from pose guides, joint limits/breakage, quaternion rig editing, bones/skin weights and deformation cages. Preserve local pivots and covariance transforms under deformation.
 6. Native wgpu studio integration and portable renderer, using the same authoring schema and controls. Existing beach performance work remains in DEVELOPMENT_BACKLOG.md and is paused at the user's request.
-7. Calibrate the coupled material responses against reference measurements. Add interior thermal resolution and mass-conserving conversion between a melting rigid sculpt and mobile material. Extend transport tests to cover spatially separated deposits and larger connected circuits.
+7. Resolve progressive melt fronts within one homogeneous region and solidification of load-bearing deposits. Extend spatial heat transport to ordinary scoops and grains. Calibrate material responses against measurements and profile larger connected circuits.
 
 ## Inspiration and reuse
 
