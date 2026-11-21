@@ -3,11 +3,11 @@ import * as THREE from 'three';
 import {SAND_CAP,SAND_SIDE,SAND_METRES} from './wind-sand.js';
 
 export class SandDriftView{
- constructor(scene,uniforms,lighting,finite=false,eyeScene=null){
+ constructor(scene,uniforms,lighting,finite=false,eyeScene=null,capacity=SAND_CAP){
   this.finite=finite;
   const geometry=new THREE.InstancedBufferGeometry();
-  this.centers=new THREE.InstancedBufferAttribute(new Float32Array(SAND_CAP*4),4);
-  this.velocities=new THREE.InstancedBufferAttribute(new Float32Array(SAND_CAP*3),3);
+  this.centers=new THREE.InstancedBufferAttribute(new Float32Array(capacity*4),4);
+  this.velocities=new THREE.InstancedBufferAttribute(new Float32Array(capacity*3),3);
   geometry.setAttribute('flight',this.velocities);geometry.setAttribute('grain',this.centers);
   const positions=[],offsets=[];
   for(let z=-1;z<=1;z++)for(let x=-1;x<=1;x++)for(const q of [[-1,-1],[1,-1],[1,1],[-1,-1],[1,1],[-1,1]]){
@@ -36,7 +36,7 @@ export class SandDriftView{
     // Limit the support of a grain crossing the near plane, including its motion blur.
     offset*=min(1.,min(viewport.x,viewport.y)*.065/max(1.,2.5*sqrt(cov[0][0]+cov[1][1])));
     clip.xy+=offset*2./viewport*clip.w;
-    fade=1.-smoothstep(6.,17.,length(p.xz-cameraPosition.xz));
+    fade=1.-smoothstep(${capacity>SAND_CAP?'45.,120.':'6.,17.'},length(p.xz-cameraPosition.xz));
     #ifdef EYE_GRAIN
     fade*=eye;clip.z=0.;
     gl_Position=v.z<-.005&&eye>.001?clip:vec4(2.,2.,2.,1.);

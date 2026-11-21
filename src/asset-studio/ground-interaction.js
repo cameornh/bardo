@@ -3,12 +3,12 @@ import {CELL,chunkPackets,impactResponse} from './ground-tools.js';
 import {looseKind} from './loose-matter.js';
 
 function excavate(sim,point,depth){
- const cut=sim.cuts.extract(point.x,point.z,depth,(x,z)=>sim.matter.groundHeight(sim,x,z));
+ const cut=(sim.sandTerrain??sim.cuts).extract(point.x,point.z,depth,(x,z)=>sim.matter.groundHeight(sim,x,z));
  if(!cut)return null;
  if(sim.groundMaterial.phase==='gas'){
   const n=sim.cuts.node(cut.top.x,cut.top.z);n.depth-=depth;n.elastic+=depth;
  }
- updateGroundContacts(sim);return cut;
+ if(sim.sandTerrain)sim.dunes.next=0;else updateGroundContacts(sim);return cut;
 }
 function updateGroundContacts(sim){
  if(sim.flatFloor){sim.world.removeCollider(sim.flatFloor,true);sim.flatFloor=null;}
@@ -16,7 +16,7 @@ function updateGroundContacts(sim){
 }
 export function liftGround(sim,point){
  const m=sim.groundMaterial,loose=looseKind(m)===1||m.phase==='gas';
- if(sim.heldChunk||sim.chunks.size>=32||loose&&sim.matter.count+18>768)return false;
+ if(sim.heldChunk||sim.chunks.size>=32||loose&&sim.matter.count+(sim.sandTerrain?8:18)>768)return false;
  const c=excavate(sim,point,.32);if(!c)return false;
  const key='ground-'+(++sim.chunkSerial),R=sim.R;
  const body=sim.world.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(c.top.x,c.top.y+.003,c.top.z)
@@ -26,7 +26,7 @@ export function liftGround(sim,point){
   sim.world.createCollider(hull.setDensity(m.density).setRestitution(m.restitution).setFriction(m.friction),body);
  }
  const chunk={key,cut:c,body,material:m,loose,target:c.top.clone(),offset:c.top.clone().sub(point)};
- sim.chunks.set(key,chunk);sim.heldChunk=chunk;sim.dunes.next=0;sim.dunes.update(sim);return true;
+ sim.chunks.set(key,chunk);sim.heldChunk=chunk;sim.dunes.next=0;if(!sim.sandTerrain)sim.dunes.update(sim);return true;
 }
 export function moveChunk(sim,point){
  const c=sim.heldChunk;if(c)c.target.copy(point).add(c.offset);
@@ -38,7 +38,7 @@ export function releaseChunk(sim,finishDrag=false){
  sim.heldChunk=null;delete c.releaseAt;
  if(!c.loose)return;
  const origin=new Vector3().copy(c.body.translation()),rot=c.body.rotation(),v=c.body.linvel(),omega=c.body.angvel();
- const packets=chunkPackets(c.cut,c.material,new Vector3());
+ const packets=chunkPackets(c.cut,c.material,new Vector3(),sim.sandTerrain?8:18);
  for(const p of packets){p.position.applyQuaternion(rot);p.velocity=new Vector3().copy(omega).cross(p.position).add(v);p.position.add(origin);}
  sim.world.removeRigidBody(c.body);sim.chunks.delete(c.key);
  sim.matter.addPackets(sim,c.key,c.material,packets,true);
@@ -83,9 +83,9 @@ export function strikeGround(sim,point,force){
  if(sim.sea){sim.sea.splash(point.x,point.z,Math.min(3,Math.sqrt(force/5000)));return true;}
  if(looseKind(m)===1||m.phase==='gas'){
   if(force<=CELL*CELL*m.cohesion)return true;
-  if(sim.matter.count+18+(sim.heldChunk?.loose?18:0)>768)return false;
+  if(sim.matter.count+(sim.sandTerrain?8:18)*(sim.heldChunk?.loose?2:1)>768)return false;
   const cut=excavate(sim,point,Math.min(.3,.15*Math.sqrt(force/5000)));if(!cut)return false;
-  const packets=chunkPackets(cut,m,cut.top),speed=Math.min(6,force*.06/(cut.volume*m.density));
+  const packets=chunkPackets(cut,m,cut.top,sim.sandTerrain?8:18),speed=Math.min(6,force*.06/(cut.volume*m.density));
   sim.matter.addPackets(sim,'strike-'+(++sim.chunkSerial),m,packets,true);
   for(const [i,p] of packets.entries()){
    const v=p.position.clone().sub(cut.top);v.y=0;v.normalize().multiplyScalar(speed*.65);v.y=speed*(.8+.4*(i%5)/4);

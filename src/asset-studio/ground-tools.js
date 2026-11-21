@@ -5,12 +5,17 @@ import {SAND_SIDE,SAND_METRES} from './wind-sand.js';
 export const CELL=SAND_METRES/SAND_SIDE,MAX_CUTS=64;
 const rim=[[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
 export const footprint=(u,v)=>Math.max(0,1-Math.max(Math.abs(u),Math.abs(v),Math.abs(u+v)));
+export function groundWedge(x,z,depth,height){
+ const top=new Vector3(x,height(x,z),z);
+ const ring=rim.map(([i,j])=>new Vector3(i*CELL,height(x+i*CELL,z+j*CELL)-top.y,j*CELL));
+ return {top,ring,depth,volume:CELL*CELL*depth};
+}
 export class GroundCuts{
  constructor(){this.nodes=new Map();this.version=0;}
  offset(x,z){
   const u=x/CELL,v=z/CELL,i=Math.floor(u),j=Math.floor(v);let depth=0;
   for(let a=i;a<=i+1;a++)for(let b=j;b<=j+1;b++){
-   const n=this.nodes.get(a+','+b);if(n)depth+=(n.depth+n.elastic)*footprint(u-a,v-b);
+   const n=this.nodes.get(a+','+b);if(n)depth+=(n.depth+n.elastic+(n.bearing||0)+(n.compaction||0))*footprint(u-a,v-b);
   }
   return -depth;
  }
@@ -22,9 +27,8 @@ export class GroundCuts{
  }
  extract(x,z,depth,height){
   const n=this.node(x,z);if(!n||n.depth+depth>4)return null;
-  const top=new Vector3(n.x,height(n.x,n.z),n.z);
-  const ring=rim.map(([i,j])=>new Vector3(i*CELL,height(n.x+i*CELL,n.z+j*CELL)-top.y,j*CELL));
-  n.depth+=depth;this.version++;return {top,ring,depth,volume:CELL*CELL*depth};
+  const cut=groundWedge(n.x,n.z,depth,height);
+  n.depth+=depth;this.version++;return cut;
  }
  displace(x,z,depth,elasticity){
   if(depth<.0002)return;
@@ -34,7 +38,7 @@ export class GroundCuts{
  relax(dt){
   for(const [key,n] of this.nodes)if(n.elastic>0){
    n.elastic*=Math.exp(-7*dt);if(n.elastic<.0005)n.elastic=0;
-   if(!n.depth&&!n.elastic)this.nodes.delete(key);this.version++;
+   if(!n.depth&&!n.elastic&&!n.bearing&&!n.compaction)this.nodes.delete(key);this.version++;
   }
  }
  triangles(){

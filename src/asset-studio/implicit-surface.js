@@ -77,7 +77,7 @@ export class ImplicitSurfaces {
  }
  update(){
   for(const {mesh,parts} of this.batches.values()){
-   for(let i=0;i<parts.length;i++)mesh.setMatrixAt(i,parts[i].matrixWorld);
+   let count=0;for(const part of parts)if(part.parent.visible)mesh.setMatrixAt(count++,part.matrixWorld);mesh.count=count;
    mesh.instanceMatrix.needsUpdate=true;
   }
  }

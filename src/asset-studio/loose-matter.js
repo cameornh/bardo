@@ -40,6 +40,7 @@ export class LooseMatter{
     .setLinearDamping(kind===2?.8:.3).setAngularDamping(3).lockRotations().setCcdEnabled(true));
    const shape=R.ColliderDesc.ball(p.radius).setMass(p.volume*material.density)
     .setRestitution(.015).setFriction(kind===2?.018:material.friction+.18*material.moisture);
+   if(sim.sandTerrain&&material.id===sim.groundMaterial.id)shape.setCollisionGroups(0x0002fff9);
    if(material.phase==='gas'){body.setGravityScale(0,true);body.setLinearDamping(1.8);}
    world.createCollider(shape,body);p.body=body;this.count++;
   }
@@ -54,7 +55,7 @@ export class LooseMatter{
   const bottom=this.groundHeight(sim,x,z);return {top:bottom+depth,bottom,density:densityMass/depth};
  }
  groundHeight(sim,x,z){
-  let y=(sim.sand?.height(x,z)||0)+(sim.cuts?.offset(x,z)||0);
+  let y=(sim.sandTerrain?.height(x,z)??sim.sand?.height(x,z)??0)+(sim.cuts?.offset(x,z)||0);
   for(const bed of this.beds.values())if(!bed.liquid)y+=bed.sample(x,z);
   return y;
  }
@@ -79,13 +80,18 @@ export class LooseMatter{
      if(!g.merged||sim.time-g.merged>.12)sea.splash(pos.x,pos.z,Math.min(1.2,.35+Math.abs(v.y)*.12));
      g.merged=sim.time;sea.mergedVolume=(sea.mergedVolume||0)+p.volume;world.removeRigidBody(p.body);packets.splice(i,1);this.count--;continue;
     }
+    const joinsGround=sim.sandTerrain&&m.id===sim.groundMaterial.id;
     let floorContact=false;
-    if(!sea&&v.y<.45){
+    if(!sea&&v.y<(joinsGround?.04:.45)){
      const gap=pos.y-this.groundHeight(sim,pos.x,pos.z)-r;
      floorContact=gap<=r*.14;
-     if(!floorContact&&gap<.38&&Math.abs(v.y)<.2){
+     if(!floorContact&&!joinsGround&&gap<.38&&Math.abs(v.y)<.2){
       world.contactPairsWith(p.body.collider(0),c=>{if(c.parent()?.handle===sim.ground.handle)floorContact=true;});
      }
+    }
+    if(floorContact&&joinsGround){
+     sim.sandTerrain.deposit(pos.x,pos.z,p.volume);
+     world.removeRigidBody(p.body);packets.splice(i,1);this.count--;continue;
     }
     if(floorContact){
      let bed=this.beds.get(m.id);
@@ -130,7 +136,7 @@ export class LooseMatter{
      obstacles.push({center,radius:r.probeRadius,body:r.body});
     }
     for(const bed of this.beds.values()){
-     const floor=(x,z)=>bed.liquid?this.groundHeight(sim,x,z):(sim.sand?.height(x,z)||0)+(sim.cuts?.offset(x,z)||0);
+     const floor=(x,z)=>bed.liquid?this.groundHeight(sim,x,z):(sim.sandTerrain?.height(x,z)??sim.sand?.height(x,z)??0)+(sim.cuts?.offset(x,z)||0);
      const obstructed=(i,j)=>{
       const x=i*BED_CELL,z=j*BED_CELL,y=floor(x,z)+.025;
       let hit=false;
@@ -159,7 +165,7 @@ export class LooseMatter{
 // Periodic terrain collision tiles exist around physical bodies, independently
 // of the camera. Reuse tiles until the sand bed changes by a measurable amount.
 export class DuneContacts{
- constructor(){this.tiles=new Map();this.next=0;this.version=-1;}
+ constructor(){this.tiles=new Map();this.localVersions=new Map();this.next=0;this.version=-1;}
  update(sim){
   if(sim.time<this.next)return;this.next=sim.time+.16;
   const n=SAND_SIDE,L=SAND_METRES,needed=new Set(),mark=(p,r)=>{
@@ -169,23 +175,38 @@ export class DuneContacts{
   for(const node of sim.cuts?.nodes.values()||[])mark(node,L/n+.01);
   for(const r of sim.bodies.values())mark(r.body.translation(),Math.min(L,1+r.probeRadius));
   for(const c of sim.chunks?.values()||[])mark(c.body.translation(),1);
-  for(const g of sim.matter.parts.values())for(const p of g.packets)mark(p.position,p.radius+.5);
+  for(const g of sim.matter.parts.values())if(!sim.sandTerrain||g.material.id!==sim.groundMaterial.id)for(const p of g.packets)mark(p.position,p.radius+.5);
   const sand=sim.sand,R=sim.R,scale={x:L,y:1,z:L};
   const solids=[...sim.matter.beds.values()].filter(b=>!b.liquid);
   const version=(sim.cuts?.version||0)+(sand?.version||0)+solids.reduce((n,b)=>n+b.version,0);
   let base;
   for(const key of needed){
-   const old=this.tiles.get(key);if(old&&version===this.version)continue;
+   const old=this.tiles.get(key);
    const [tx,tz]=key.split(',').map(Number);
-   let heights=base;
-   if(!heights){heights=new Float32Array((n+1)**2);for(let x=0;x<=n;x++)for(let z=0;z<=n;z++)
-    heights[x*(n+1)+z]=sim.matter.groundHeight(sim,tx*L+x*L/n,tz*L+z*L/n);if(!solids.length&&!sim.cuts?.nodes.size)base=heights;}
-   if(old)old.setShape(new R.Heightfield(n,n,heights,scale));
+   const revision=sim.sandTerrain?.revision(tx,tz)||0;
+   if(old&&version===this.version&&this.localVersions.get(key)===revision)continue;
+   this.localVersions.set(key,revision);
+   let heights;
+   if(!solids.length&&!sim.cuts?.nodes.size){
+    if(!base){
+     base=new Float32Array((n+1)**2);
+     if(sand)for(let i=0;i<=n;i++)for(let j=0;j<=n;j++)base[i*(n+1)+j]=sand.height(i*L/n,j*L/n);
+    }
+    heights=revision?base.slice():base;if(revision)sim.sandTerrain.addTileHeights(heights,tx,tz);
+   }else{
+    heights=new Float32Array((n+1)**2);
+    for(let i=0;i<=n;i++)for(let j=0;j<=n;j++)heights[i*(n+1)+j]=sim.matter.groundHeight(sim,tx*L+i*L/n,tz*L+j*L/n);
+   }
+   if(old){
+    // A sleeping object on an excavated support must resume falling.
+    sim.world.contactPairsWith(old,other=>other.parent()?.wakeUp());
+    old.setShape(new R.Heightfield(n,n,heights,scale));
+   }
    else{const [x,z]=key.split(',').map(Number);
-    this.tiles.set(key,sim.world.createCollider(R.ColliderDesc.heightfield(n,n,heights,scale).setTranslation((x+.5)*L,0,(z+.5)*L)
+    this.tiles.set(key,sim.world.createCollider(R.ColliderDesc.heightfield(n,n,heights,scale).setTranslation((x+.5)*L,0,(z+.5)*L).setCollisionGroups(0x0004ffff)
      .setFriction(sim.groundMaterial.friction).setRestitution(sim.groundMaterial.restitution),sim.ground));}
   }
-  for(const [key,tile] of this.tiles)if(!needed.has(key)){sim.world.removeCollider(tile,false);this.tiles.delete(key);}
+  for(const [key,tile] of this.tiles)if(!needed.has(key)){sim.world.removeCollider(tile,false);this.tiles.delete(key);this.localVersions.delete(key);}
   this.version=version;
  }
 }

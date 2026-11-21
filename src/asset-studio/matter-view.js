@@ -26,7 +26,7 @@ export class MatterView{
   for(const mesh of [...this.meshes.values(),...this.beds.values()]){mesh.removeFromParent();mesh.material.dispose();mesh.geometry.dispose();}
   for(const renderer of this.saltation.values())renderer.dispose();this.saltation.clear();
   for(const puff of this.puffs.values())puff.dispose();this.puffs.clear();
-  this.meshes.clear();this.beds.clear();this.last=-1;this.state=null;
+  this.thrownSand?.dispose();this.thrownSand=null;this.meshes.clear();this.beds.clear();this.last=-1;this.state=null;
  }
  material(m,water,radius,deposit=false){
   const uniforms=liquidUniforms(this.view.oceanView.uniforms,m);
@@ -80,7 +80,17 @@ export class MatterView{
    mesh.removeFromParent();mesh.geometry.dispose();mesh.material.dispose();this.meshes.delete(key);
   }
   for(const [key,puff] of this.puffs)if(!sim.matter.parts.has(key)){puff.dispose();this.puffs.delete(key);}
+  const grains=[];
   for(const [key,g] of sim.matter.parts){
+   if(g.groundTool&&g.kind===1){
+    for(const p of g.packets){
+     // Four overlapping Gaussian grains per physical parcel, one draw across all strokes.
+     for(let k=0;k<4;k++){const r=p.radius*.48,sign=k&1?1:-1,side=k&2?1:-1;
+      grains.push({x:p.position.x+r*sign,y:p.position.y+r*side*.7,z:p.position.z+r*sign*side,
+       r,vx:0,vy:0,vz:0});}
+    }
+    continue;
+   }
    if(g.material.phase==='gas'){
     let puff=this.puffs.get(key);if(!puff){puff=new SandDriftView(this.view.grainScene,this.view.uniforms,this.lighting,true);this.puffs.set(key,puff);}
     const grains=g.packets.map(p=>({...p.position,r:p.radius*(1+g.age),vx:0,vy:0,vz:0}));
@@ -114,5 +124,7 @@ export class MatterView{
    }
    mesh.update();
   }
+  if(grains.length&&!this.thrownSand)this.thrownSand=new SandDriftView(this.view.grainScene,this.view.uniforms,this.lighting,true,null,768*4);
+  this.thrownSand?.update({grains},sim.groundMaterial);
  }
 }

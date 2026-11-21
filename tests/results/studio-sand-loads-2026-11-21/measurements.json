@@ -1,0 +1,146 @@
+[
+  {
+    "name": "revised",
+    "rows": [
+      {
+        "stage": "warm",
+        "fps": 6.81,
+        "realtime": 0.553,
+        "physicsMsPerFrame": 29.19,
+        "airborne": 0
+      },
+      {
+        "stage": "before",
+        "fps": 8.73,
+        "realtime": 0.697,
+        "physicsMsPerFrame": 9.26,
+        "airborne": 0
+      },
+      {
+        "stage": "editing",
+        "fps": 7.21,
+        "realtime": 0.645,
+        "physicsMsPerFrame": 18.71,
+        "airborne": 54
+      },
+      {
+        "stage": "settled",
+        "fps": 8.88,
+        "realtime": 0.731,
+        "physicsMsPerFrame": 8.73,
+        "airborne": 16
+      }
+    ],
+    "lifted": 24,
+    "strikes": 24,
+    "contextLost": false
+  },
+  {
+    "name": "original",
+    "rows": [
+      {
+        "stage": "warm",
+        "fps": 7.36,
+        "realtime": 0.559,
+        "physicsMsPerFrame": 10.08,
+        "airborne": 0
+      },
+      {
+        "stage": "before",
+        "fps": 7.79,
+        "realtime": 0.657,
+        "physicsMsPerFrame": 11.57,
+        "airborne": 0
+      },
+      {
+        "stage": "editing",
+        "fps": 6.39,
+        "realtime": 0.622,
+        "physicsMsPerFrame": 46.41,
+        "airborne": 89
+      },
+      {
+        "stage": "settled",
+        "fps": 6.5,
+        "realtime": 0.623,
+        "physicsMsPerFrame": 47.48,
+        "airborne": 12
+      }
+    ],
+    "lifted": 24,
+    "strikes": 24,
+    "contextLost": false
+  },
+  {
+    "name": "original",
+    "rows": [
+      {
+        "stage": "warm",
+        "fps": 4.43,
+        "realtime": 0.387,
+        "physicsMsPerFrame": 13.75,
+        "airborne": 0
+      },
+      {
+        "stage": "before",
+        "fps": 6.12,
+        "realtime": 0.532,
+        "physicsMsPerFrame": 13.25,
+        "airborne": 0
+      },
+      {
+        "stage": "editing",
+        "fps": 6.22,
+        "realtime": 0.614,
+        "physicsMsPerFrame": 44.94,
+        "airborne": 82
+      },
+      {
+        "stage": "settled",
+        "fps": 6.93,
+        "realtime": 0.648,
+        "physicsMsPerFrame": 41.68,
+        "airborne": 5
+      }
+    ],
+    "lifted": 24,
+    "strikes": 24,
+    "contextLost": false
+  },
+  {
+    "name": "revised",
+    "rows": [
+      {
+        "stage": "warm",
+        "fps": 6.77,
+        "realtime": 0.522,
+        "physicsMsPerFrame": 10.48,
+        "airborne": 0
+      },
+      {
+        "stage": "before",
+        "fps": 8.59,
+        "realtime": 0.738,
+        "physicsMsPerFrame": 9.16,
+        "airborne": 0
+      },
+      {
+        "stage": "editing",
+        "fps": 7.58,
+        "realtime": 0.695,
+        "physicsMsPerFrame": 20.17,
+        "airborne": 44
+      },
+      {
+        "stage": "settled",
+        "fps": 7.16,
+        "realtime": 0.624,
+        "physicsMsPerFrame": 9.11,
+        "airborne": 17
+      }
+    ],
+    "lifted": 24,
+    "strikes": 24,
+    "contextLost": false
+  }
+]
