@@ -1,6 +1,4 @@
 import * as THREE from 'three';
-import {lipPoint} from './whitewater.js';
-import {medium,interfaceOptics} from './water-optics.js';
 
 // Breakers retain their physical world position as the camera moves.
 function drawLocal(p,camera,visit){
@@ -10,25 +8,6 @@ function drawLocal(p,camera,visit){
 }
 export class WhitewaterView{
  constructor(scene,uniforms,wave,lighting){
-  const along=20,across=6,stride=(along+1)*(across+1),rows=16;
-  this.along=along;this.across=across;
-  const g=new THREE.BufferGeometry(),indices=[];
-  this.lips=new THREE.Float32BufferAttribute(new Float32Array(rows*stride*3),3);
-  this.aeration=new THREE.Float32BufferAttribute(new Float32Array(rows*stride),1);
-  for(let k=0;k<rows;k++)for(let a=0;a<along;a++)for(let b=0;b<across;b++){
-   const i=k*stride+a*(across+1)+b;indices.push(i,i+1,i+across+1,i+1,i+across+2,i+across+1);
-  }
-  g.setAttribute('position',this.lips);g.setAttribute('bubbles',this.aeration);g.setIndex(indices);g.setDrawRange(0,0);
-  this.ribbon=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms,side:THREE.DoubleSide,
-   vertexShader:wave+`attribute float bubbles;varying float air;varying vec3 p;void main(){
-    p=position;p.y+=elevation(p.xz);air=bubbles;gl_Position=projectionMatrix*viewMatrix*vec4(p,1.);}`,
-   fragmentShader:lighting+medium+interfaceOptics+`varying vec3 p;varying float air;void main(){
-    vec3 n=normalize(cross(dFdx(p),dFdy(p)));
-    gl_FragColor=vec4(opticalSurface(p,n,.075,air),1.);
-    #include <tonemapping_fragment>
-    #include <colorspace_fragment>
-   }`}));
-  this.ribbon.frustumCulled=false;scene.add(this.ribbon);
   const geometry=new THREE.InstancedBufferGeometry();
   geometry.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));geometry.setIndex([0,1,2,0,2,3]);
   this.attrs={};for(const [name,n] of [['packet',4],['axis',3],['style',4]]){
@@ -41,7 +20,7 @@ export class WhitewaterView{
    void main(){
     vec3 p=packet.xyz;
     vec2 slope=vec2(0.);
-    if(style.z<.5){p.y=elevation(p.xz)+.018;slope=waterSlope(p.xz);}
+    if(style.z<.5){p.y+=elevation(p.xz)+.018;slope=waterSlope(p.xz);}
     vec3 c=(viewMatrix*vec4(p,1.)).xyz;centerView=c;surfaceNormal=mat3(viewMatrix)*normalize(vec3(-slope.x,1.,-slope.y));float z=max(.03,-c.z);
     float bound=packet.w*2.6*max(1.,style.y);
     vec2 slopes=1./vec2(projectionMatrix[0][0],projectionMatrix[1][1]);
@@ -87,24 +66,11 @@ export class WhitewaterView{
   this.cloud=new THREE.Mesh(geometry,material);this.cloud.frustumCulled=false;this.cloud.renderOrder=3;scene.add(this.cloud);
  }
  update(sea,camera){
-  let vertices=0,ribbons=0,count=0;
-  for(const c of sea.crests)drawLocal(c,camera,fade=>{
-   const age=sea.time-c.t;
-   for(let a=0;a<=this.along;a++)for(let b=0;b<=this.across;b++){
-    const s=2*a/this.along-1,u=b/this.across,p=lipPoint(c,s,u,age);
-    this.lips.setXYZ(vertices,p.x,p.y*fade,p.z);
-    this.aeration.setX(vertices++,fade*(1-s*s)*u**3*(.14+.31*Math.sin(c.phase+3*s+age)**2));
-   }
-   ribbons++;
-  });
-  this.ribbon.geometry.setDrawRange(0,ribbons*this.along*this.across*6);
-  if(vertices)for(const attribute of [this.lips,this.aeration]){
-   attribute.clearUpdateRanges();attribute.addUpdateRange(0,vertices*attribute.itemSize);attribute.needsUpdate=true;
-  }
+  let count=0;
   for(const p of sea.whitewater.particles)drawLocal(p,camera,fade=>{
    const spray=p.kind==='spray',foam=p.kind==='foam',t=p.age/p.life;
-   const size=p.size*(spray?1:1+t*.74),alpha=fade*Math.min(1,.15+p.age*18)*Math.min(1,(1-t)*4)*(spray?.36:foam?.69:.58);
-   this.attrs.packet.setXYZW(count,p.x,p.y,p.z,size);
+   const size=p.size*(spray?1:1+t*.25),alpha=fade*Math.min(1,p.age*15)*Math.min(1,(1-t)*4)*(spray?.35:foam?.59:.46);
+   this.attrs.packet.setXYZW(count,p.x,spray?p.y:(p.relief??0),p.z,size);
    this.attrs.axis.setXYZ(count,spray?p.vx:-p.dz,spray?p.vy+.001:0,spray?p.vz:p.dx);
    this.attrs.style.setXYZW(count++,alpha,spray?1.7:p.aspect,spray?1:0,foam?sea.organicLoad:0);
   });
@@ -113,5 +79,5 @@ export class WhitewaterView{
    a.clearUpdateRanges();a.addUpdateRange(0,count*a.itemSize);a.needsUpdate=true;
   }
  }
- dispose(){for(const mesh of [this.cloud,this.ribbon]){mesh.removeFromParent();mesh.geometry.dispose();mesh.material.dispose();}}
+ dispose(){this.cloud.removeFromParent();this.cloud.geometry.dispose();this.cloud.material.dispose();}
 }

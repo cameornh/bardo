@@ -1,3 +1,4 @@
+import {BreakingGrid,breakerVertex} from './breaking-grid.js';
 import {scoopProfile} from './ocean.js';
 import * as THREE from 'three';
 import {WhitewaterView} from './whitewater-view.js';
@@ -35,15 +36,39 @@ export class OceanView{
   }
   geometry.setAttribute('spacing',new THREE.BufferAttribute(spacing,1));
   const material=new THREE.ShaderMaterial({uniforms:this.uniforms,side:THREE.DoubleSide,
-   vertexShader:wave+`attribute float spacing;varying vec3 surface;
-   void main(){surface=(modelMatrix*vec4(position,1.)).xyz;
+   vertexShader:wave+`
+   varying vec3 surface;
+   #ifdef BREAKING_GRID
+   ${breakerVertex}
+   #else
+   attribute float spacing;
+   #endif
+   void main(){
+    #ifdef BREAKING_GRID
+    refineOcean(surface);
+    #else
+    surface=(modelMatrix*vec4(position,1.)).xyz;
     surface.y=surfaceHeight(surface.xz,spacing);
+    #endif
     vec4 clip=projectionMatrix*viewMatrix*vec4(surface,1.);
     gl_Position=vec4(clip.xy,min(clip.z,clip.w*.9999997),clip.w);}`,
    fragmentShader:wave+lighting+medium+interfaceOptics+`varying vec3 surface;
-   void main(){vec2 x=surface.xz,slope=waterSlope(x);
+   #ifdef BREAKING_GRID
+   varying vec3 dxOffset,dzOffset;
+   varying vec2 referenceXZ;
+   #endif
+   void main(){
+    #ifdef BREAKING_GRID
+    vec2 slope=waterSlope(referenceXZ);
+    vec3 area=cross(vec3(0.,slope.y,1.)+dzOffset,vec3(1.,slope.x,0.)+dxOffset);
+    vec3 n=area*inversesqrt(max(1.e-10,dot(area,area)));
+    float air=.49*smoothstep(.35,1.18,1.-area.y);
+    #else
+    vec2 slope=waterSlope(surface.xz);
     vec3 n=normalize(vec3(-slope.x,1.,-slope.y));
-    vec3 radiance=opticalSurface(surface,n,-1.,0.);
+    float air=0.;
+    #endif
+    vec3 radiance=opticalSurface(surface,n,-1.,air);
     // Blend only the very long atmospheric sight paths into the sky at the horizon.
     float path=length(surface-cameraPosition);
     float haze=1.-exp(-path*.000085);
@@ -52,6 +77,7 @@ export class OceanView{
    #include <colorspace_fragment>
    }`});
   this.mesh=new THREE.Mesh(geometry,material);this.mesh.frustumCulled=false;scene.add(this.mesh);
+  this.breakingGrid=new BreakingGrid(this.mesh);
   this.effectsScene=new THREE.Scene();this.effects=new WhitewaterView(this.effectsScene,this.uniforms,wave,lighting);
   this.parcels=new LiquidParcels(scene,this.uniforms,wave,lighting);this.show(false);
  }
@@ -88,7 +114,7 @@ export class OceanView{
    if(r.scoop){const {width2,depth}=scoopProfile(r,sea.time);u.rings.value[i].set(r.x,r.z,-width2,depth);}
    else u.rings.value[i].set(r.x,r.z,sea.time-r.t,r.a);
   });
-  this.parcels.update(sea,camera);this.effects.update(sea,camera);
+  this.breakingGrid.update(sea,camera.position);this.parcels.update(sea,camera);this.effects.update(sea,camera);
  }
- dispose(){this.mesh.removeFromParent();this.mesh.geometry.dispose();this.mesh.material.dispose();this.parcels.dispose();this.capture.dispose();this.effects.dispose();for(const b of this.bands){b.height.dispose();b.slope.dispose();}}
+ dispose(){this.breakingGrid.dispose();this.mesh.removeFromParent();this.mesh.geometry.dispose();this.mesh.material.dispose();this.parcels.dispose();this.capture.dispose();this.effects.dispose();for(const b of this.bands){b.height.dispose();b.slope.dispose();}}
 }

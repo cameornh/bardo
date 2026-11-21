@@ -1,10 +1,11 @@
+import {planarSurface} from './surface-support.js';
 import {Mesh,Vector3} from 'three';
 import {charSurfacePoint,roundCharChip} from './char-fracture.js';
 import {nearestRegion} from './fracture-grid.js';
 import {bakeFast} from './sculpt-fast.js';
 import {field} from './sculpt.js';
 
-function emptySurface(spacing){return {spacing,positions:[],normals:[],materials:[]};}
+function emptySurface(spacing){return {spacing,positions:[],normals:[],materials:[],supportMin:[],supportMax:[]};}
 function partitionSkin(s,surface){
  const skin=s.indices.map(()=>emptySurface(surface.spacing));
  const solids=new Set(s.grid.nodes.map(n=>n.material.id));
@@ -13,11 +14,19 @@ function partitionSkin(s,surface){
   const p=Array.from(surface.positions.slice(i*3,i*3+3));
   const n=nearestRegion(s.grid,p,s.indices,material),out=skin[n];
   out.positions.push(...p);out.normals.push(...surface.normals.slice(i*3,i*3+3));out.materials.push(material);
+  for(let k=0;k<3;k++){out.supportMin.push(surface.supportMin?.[i*3+k]??-Infinity);out.supportMax.push(surface.supportMax?.[i*3+k]??Infinity);}
  }
  return skin;
 }
 function fragmentSurfaces(s,skin,changed){
- const surfaces=new Map();
+ const surfaces=new Map(),limits=new Map();
+ const cuts=s.grid.bonds.filter(e=>s.owners[e.a]!==s.owners[e.b]);
+ // The two sides of a separated bond no longer share exterior skin.
+ for(const edge of cuts)for(const [id,side] of [[edge.a,1],[edge.b,-1]]){
+  if(!limits.has(id))limits.set(id,{lo:[-Infinity,-Infinity,-Infinity],hi:[Infinity,Infinity,Infinity]});
+  const bounds=limits.get(id),axis=edge.axis,plane=edge.patches[0].lo[axis];
+  if(side>0)bounds.hi[axis]=Math.min(bounds.hi[axis],plane);else bounds.lo[axis]=Math.max(bounds.lo[axis],plane);
+ }
  for(const r of changed){
   const out=emptySurface(skin[0].spacing);surfaces.set(r,out);
   for(const i of r.regions){
@@ -25,9 +34,13 @@ function fragmentSurfaces(s,skin,changed){
    for(const x of node.positions)out.positions.push(x);
    for(const x of node.normals)out.normals.push(x);
    for(const m of node.materials)out.materials.push(m);
+   const bounds=limits.get(i);
+   for(let j=0;j<node.positions.length;j++){
+    out.supportMin.push(Math.max(node.supportMin[j],bounds?.lo[j%3]??-Infinity));
+    out.supportMax.push(Math.min(node.supportMax[j],bounds?.hi[j%3]??Infinity));
+   }
   }
  }
- const cuts=s.grid.bonds.filter(e=>s.owners[e.a]!==s.owners[e.b]);
  const area=cuts.reduce((total,e)=>total+e.area/(s.grid.scale[(e.axis+1)%3]*s.grid.scale[(e.axis+2)%3]),0);
  const spacing=Math.max(skin[0].spacing,Math.sqrt(area/12000));
  for(const e of cuts){
@@ -49,6 +62,12 @@ function fragmentSurfaces(s,skin,changed){
      const out=surfaces.get(s.owners[node]);if(!out)continue;
      const normal=faceNormal.map(x=>x*sign);
      out.positions.push(...position);out.normals.push(...normal);out.materials.push(s.grid.nodes[node].material.id);
+     for(let k=0;k<3;k++){
+      // A charred seam can curl out of its original plane.
+      const shift=position[k]-p[k];
+      out.supportMin.push(k===axis?-Infinity:patch.lo[k]+shift);
+      out.supportMax.push(k===axis?Infinity:patch.hi[k]+shift);
+     }
     }
    }
   }
@@ -56,7 +75,15 @@ function fragmentSurfaces(s,skin,changed){
  const char=new Map();
  for(const e of cuts)if(e.char)for(const owner of [s.owners[e.a],s.owners[e.b]])
   char.set(owner,Math.max(char.get(owner)??0,e.char));
- for(const [r,out] of surfaces)roundCharChip(out,s.grid,r.regions,char.get(r));
+ for(const [r,out] of surfaces){
+  const amount=char.get(r);
+  if(!amount||r.regions.length>8)continue;
+  const before=out.positions.slice();
+  roundCharChip(out,s.grid,r.regions,amount);
+  for(let i=0;i<before.length;i++){
+   const shift=out.positions[i]-before[i];out.supportMin[i]+=shift;out.supportMax[i]+=shift;
+  }
+ }
  return surfaces;
 }
 export class SectionView{
@@ -70,7 +97,7 @@ export class SectionView{
    if(!batch){
     const r=s.root,root=this.view.groups.get(r.instance.id)?.children.find(o=>o.userData.partId===r.part.id);
     if(!root)continue;
-    const surface=this.view.surfaces.get(r.asset.id+':'+r.part.id)??bakeFast(r.part.stamps,r.asset.spacing);
+    const surface=this.view.surfaces.get(r.asset.id+':'+r.part.id)??planarSurface(r.part.stamps,r.asset.spacing)??bakeFast(r.part.stamps,r.asset.spacing);
     batch={root,skin:partitionSkin(s,surface),pieces:new Map()};this.meshes.set(s,batch);
    }
    batch.root.visible=false;

@@ -1,3 +1,4 @@
+import {planarSurface,surfaceFragment} from './surface-support.js';
 import {MaterialFieldView} from './material-field-view.js';
 import {PaintedView} from './painted-view.js';
 import {studioGeometry,updateMaterialAttribute} from './surface-attributes.js';
@@ -113,26 +114,19 @@ export class StudioView{
   this.implicit=new ImplicitSurfaces(this.scene,this.uniforms.environment,LIGHTING,this.uniforms.grainMap,clipUniforms);
   // Stretch each fibre along its surface normal, retaining the projected covariance.
   for(const mat of [this.material,this.depthMaterial]){
-   mat.fragmentShader=reflectedSurfaceClip+mat.fragmentShader.replace('vWorld.y<0.','belowReflector(vWorld)');
    mat.vertexShader='attribute float fiberLength;\n'+mat.vertexShader
     .replace('vec4 c=modelViewMatrix*vec4(center,1.);','vec3 fiberCenter=center+surfaceNormal*fiberLength*.46;vec4 c=modelViewMatrix*vec4(fiberCenter,1.);')
     .replace('mat3 rotation=', 'if(fiberLength>0.)covariance=mat3(1.)*r2*.10+mat3(n*n.x,n*n.y,n*n.z)*fiberLength*fiberLength*.2;mat3 rotation=')
     .replace('modelMatrix*vec4(center,1.)','modelMatrix*vec4(fiberCenter,1.)');
   }
-  const grainV='attribute vec3 grainSettings;attribute vec2 phaseId;varying vec2 phase;varying vec3 grain,localCoord,localN;flat varying mat3 worldToLocal;';
+  const grainV='attribute vec3 grainSettings,supportMin,supportMax;attribute vec2 phaseId;varying vec2 phase;varying vec3 grain,localCoord,localN;flat varying mat3 worldToLocal;flat varying vec4 boundsLo;flat varying vec3 boundsHi;';
   for(const mat of [this.material,this.depthMaterial]){
-   mat.vertexShader=grainV+mat.vertexShader.replace('vec4 c=modelViewMatrix','grain=grainSettings;phase=phaseId;localCoord=center;localN=surfaceNormal;worldToLocal=inverse(mat3(modelMatrix));vec4 c=modelViewMatrix');
-   mat.fragmentShader='varying vec2 phase;uniform float matterPlaying;'+mat.fragmentShader.replace('void main(){','void main(){if(phase.x>1.5||(matterPlaying>.5&&phase.x>.5))discard;');
+   mat.vertexShader=grainV+mat.vertexShader.replace('vec4 c=modelViewMatrix',`
+    grain=grainSettings;phase=phaseId;localCoord=center;localN=surfaceNormal;
+    worldToLocal=inverse(mat3(modelMatrix));boundsLo=vec4(supportMin,float(phaseId.x<.5&&fiberLength<=0.&&properties.z>=.999));boundsHi=supportMax;
+    vec4 c=modelViewMatrix`);
+   mat.fragmentShader=surfaceFragment(mat===this.depthMaterial,LIGHTING,surfaceRelief,reflectedSurfaceClip);
   }
-  this.material.fragmentShader=surfaceRelief+'varying vec3 grain,localCoord,localN;flat varying mat3 worldToLocal;'+this.material.fragmentShader.replace('gl_FragColor=vec4(shade(vColor,normalize(vNormal),vWorld,vProps)',`
-   vec3 surface=(cameraWorld*vec4(ray*(t+vRadius*4.),1.)).xyz;
-   vec3 n=normalize(vNormal),base=vColor;grainSurface(localCoord+worldToLocal*(surface-vWorld),localN,grain,n,base,cameraPosition-surface);
-   gl_FragColor=vec4(shade(base,n,surface,vProps)`).replace('uniform vec2 viewport;uniform mat4 projectionMatrix;','uniform vec2 viewport;uniform mat4 projectionMatrix,cameraWorld;');
-  this.depthMaterial.uniforms.cameraWorld=this.uniforms.cameraWorld;
-  this.depthMaterial.fragmentShader=surfaceRelief+'uniform mat4 cameraWorld;varying vec3 grain,localCoord,localN;flat varying mat3 worldToLocal;'+this.depthMaterial.fragmentShader.replace('gl_FragColor=vec4(0.);',`
-   vec3 surface=(cameraWorld*vec4(ray*t,1.)).xyz;
-   vec3 n=normalize(vNormal),col=vec3(1.);float h=grainSurface(localCoord+worldToLocal*(surface-vWorld),localN,grain,n,col,cameraPosition-surface);
-   gl_FragDepth=reliefDepth(clip.z/clip.w*.5+.5,surface,normalize(vNormal),h,projectionMatrix);gl_FragColor=vec4(0.);`);
   // The finish is evaluated on the existing surface, including its silhouettes.
   // The shared geometry stays immutable across instances and resets.
   this.uniforms.finishCount={value:0};this.uniforms.finishSites={value:Array.from({length:8},()=>new THREE.Vector4())};
@@ -161,7 +155,7 @@ export class StudioView{
  setGround(m){this.groundSurface=m;if(this.liveStudio)this.groundMaterial.uniforms.grain.value.set(...grainParams(m));this.groundMaterial.uniforms.color.value.set(m.color);this.groundMaterial.uniforms.properties.value.set(m.roughness,m.metallic,m.opacity,m.emission);}
  geometry(surface,materials){return this.liveStudio?studioGeometry(surface,materials):this.referenceGeometry(surface,materials);}
  referenceGeometry(surface,materials){const geometry=new THREE.InstancedBufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));geometry.setIndex([0,1,2,0,2,3]);const count=surface.positions.length/3,colors=new Float32Array(count*3),props=new Float32Array(count*4),radii=new Float32Array(count),fiber=new Float32Array(count);const grains=new Float32Array(count*3),phases=new Float32Array(count*2);let maxFiber=0;for(let i=0;i<count;i++){const m=materials.find(m=>m.id===surface.materials[i])||materials[0],c=new THREE.Color(m.color);colors.set([c.r,c.g,c.b],i*3);if(this.liveStudio){grains.set(grainParams(m),i*3);phases.set([looseKind(m),materials.indexOf(m)],i*2);}props.set([m.roughness,m.metallic,m.opacity,m.emission],i*4);radii[i]=surface.spacing*.61;fiber[i]=m.fiberLength||0;maxFiber=Math.max(maxFiber,fiber[i]);}for(const [name,array,itemSize]of [['center',new Float32Array(surface.positions),3],['surfaceNormal',new Float32Array(surface.normals),3],['tint',colors,3],['properties',props,4],['radius',radii,1]])geometry.setAttribute(name,new THREE.InstancedBufferAttribute(array,itemSize));if(this.liveStudio){geometry.setAttribute('grainSettings',new THREE.InstancedBufferAttribute(grains,3));geometry.setAttribute('phaseId',new THREE.InstancedBufferAttribute(phases,2));}if(this.liveStudio)geometry.setAttribute('fiberLength',new THREE.InstancedBufferAttribute(fiber,1));geometry.instanceCount=count;const box=new THREE.Box3().setFromArray(surface.positions);box.expandByScalar(surface.spacing*2+maxFiber*2);geometry.boundingBox=box;geometry.boundingSphere=box.getBoundingSphere(new THREE.Sphere());return geometry;}
- setSurface(key,surface,materials){this.surfaces.set(key,surface);const old=this.cache.get(key),geometry=this.geometry(surface,materials);this.cache.set(key,geometry);for(const group of this.groups.values())group.traverse(o=>{if(o.userData.surfaceKey===key)o.geometry=geometry;});old?.dispose();}
+ setSurface(key,surface,materials,stamps){if(this.liveStudio&&stamps)surface=planarSurface(stamps,surface.spacing)??surface;this.surfaces.set(key,surface);const old=this.cache.get(key),geometry=this.geometry(surface,materials);this.cache.set(key,geometry);for(const group of this.groups.values())group.traverse(o=>{if(o.userData.surfaceKey===key)o.geometry=geometry;});old?.dispose();}
  recolor(materials, material, field){
   for(const [key,surface] of this.surfaces){
    if(this.liveStudio && material)updateMaterialAttribute(this.cache.get(key),surface,materials,material,field);

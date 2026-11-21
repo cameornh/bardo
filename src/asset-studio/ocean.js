@@ -1,4 +1,6 @@
-import {Whitewater,lipPoint} from './whitewater.js';
+import {windAt} from './wind.js';
+import {crestFrame,crestLevel,lipPoint} from './breaking-wave.js';
+import {Whitewater} from './whitewater.js';
 // A multiscale deep-water wind sea. Authoring units are metres and seconds.
 export const OCEAN_SIZE = 32, TILE_METRES = 40, WAVE_HZ = 20;
 const N = OCEAN_SIZE, TAU = Math.PI * 2, cell = TILE_METRES / N;
@@ -87,16 +89,25 @@ export function scoopProfile(r,time){
  return {width2,depth:3*r.volume/(Math.PI*width2)};
 }
 export class WindSea {
- constructor(speed=0,heading=0){
+ constructor(speed=0,heading=0,turbulence=0){
   this.bands=WAVE_BANDS.map(b=>new SpectralBand(b));
-  this.whitewater=new Whitewater();this.organicLoad=0;this.crests=[];this.ripples=[];this.drops=[];this.serial=0;this.breakTick=-1;this.time=0;this.setWind(speed,heading);
+  this.whitewater=new Whitewater();this.organicLoad=0;this.crests=[];this.ripples=[];this.drops=[];this.serial=0;this.breakTick=-1;this.time=0;this.setWind(speed,heading,turbulence);
  }
- setWind(speed,heading){
-  if(this.speed===speed&&this.heading===heading)return;
-  this.speed=speed;this.heading=heading;this.wx=Math.cos(heading*Math.PI/180);this.wz=Math.sin(heading*Math.PI/180);
-  for(const band of this.bands)band.setWind(speed,heading);
+ setWind(speed,heading,turbulence=0){
+  const meanChanged=this.speed!==speed||this.heading!==heading;
+  this.speed=speed;this.heading=heading;this.turbulence=turbulence;
+  this.wx=Math.cos(heading*Math.PI/180);this.wz=Math.sin(heading*Math.PI/180);
+  if(meanChanged)for(const band of this.bands)band.setWind(speed,heading);
+  this.updateAir();
  }
- sampleTime(t){this.time=t;for(const band of this.bands)band.sampleTime(t);}
+ updateAir(){
+  const air=windAt(this,this.time,0,0,this.gust??={}),angle=air.heading*Math.PI/180;
+  this.airX=air.speed*Math.cos(angle);this.airZ=air.speed*Math.sin(angle);
+ }
+ sampleTime(t){
+  this.time=t;this.updateAir();for(const band of this.bands)band.sampleTime(t);
+  for(const c of this.crests)c.frame=crestFrame(c,t-c.t);
+ }
  bulk(x,z){
   let h=0;for(const band of this.bands)h+=band.sample(x,z);return h;
  }
@@ -105,7 +116,8 @@ export class WindSea {
   for(const band of this.bands)along+=band.sample(x,z,flow)*band.orbitalGain;
   flow.x=this.wx*along;flow.z=this.wz*along;return flow;
  }
- height(x,z){
+ height(x,z){let y=this.baseHeight(x,z);for(const c of this.crests)y+=crestLevel(c,x,z);return y;}
+ baseHeight(x,z){
   let y=this.bulk(x,z);
   for(const p of this.ripples){const dist=Math.hypot(x-p.x,z-p.z),age=this.time-p.t,q=dist-2*age;
    if(p.scoop){const {width2,depth}=scoopProfile(p,this.time);y-=depth*Math.max(0,1-dist*dist/width2)**2;continue;}
@@ -145,12 +157,35 @@ export class WindSea {
     vy:(1.35+2*this.random())*Math.sqrt(strength),r:(.029+.058*this.random())*Math.sqrt(strength),foam:.25});
   }
  }
- breakCrest(x,z,energy,dx,dz,windCrest=false){
-  const width=Math.min(.9,.35+energy*.2),speed=Math.min(4,1+energy);
-  const c={x,z,dx,dz,t:this.time,width,speed,span:width*(1.7+1.9*this.random()),
-   phase:this.random()*TAU,windCrest,duration:.46+.15*this.random()+.055*energy,emitted:-1};
-  if(this.crests.length>=16)this.crests.shift();
-  this.crests.push(c);
+ breakCrest(x,z,energy,dx,dz,windCrest=false,radius=Infinity){
+  const norm=Math.hypot(dx,dz);if(norm<.01||energy<=0||this.crests.length>=16)return;
+  dx/=norm;dz/=norm;
+  const width=Math.min(.74,.12+energy*.23,radius*.63);
+  if(width<.035)return;
+  const span=Math.min(width*(windCrest?5.3:3.5),radius*1.35);
+  // Several contacts on the same front reinforce one rolling wave.
+  if(this.crests.some(c=>{
+   const rx=x-c.frame.x,rz=z-c.frame.z;
+   return c.dx*dx+c.dz*dz>.25&&Math.abs(rx*dx+rz*dz)<(width+c.width)*.9&&Math.abs(rz*dx-rx*dz)<.8*(span+c.span);
+  }))return;
+  const speed=Math.min(3.2,Math.sqrt(9.81*width)*(.7+.14*energy));
+  const c={x,z,dx,dz,t:this.time,width,speed,span,skew:(this.random()-.5)*.28,curvature:.24,travelSpeed:speed*.46,
+   phase:this.random()*TAU,windCrest,duration:.66+.22*Math.sqrt(width)+.12*this.random(),emitted:-1};
+  if(windCrest){
+   // Follow the existing spectral ridge on both sides of the breaking point.
+   // Its path and phase speed come from the water which is already moving here.
+   const ridge=s=>{
+    const px=x-dz*span*s,pz=z+dx*span*s;
+    const back=this.bulk(px-dx*cell,pz-dz*cell),mid=this.bulk(px,pz),front=this.bulk(px+dx*cell,pz+dz*cell);
+    return Math.max(-.54,Math.min(.54,(front-back)*cell/(2*Math.max(.04,2*mid-front-back)*width)));
+   };
+   const left=ridge(-1),right=ridge(1);
+   c.curvature=(left+right)*.5;c.skew=(right-left)*.5;
+   const slope=(this.bulk(x,z)-this.bulk(x+dx*cell,z+dz*cell))/cell;
+   const rise=this.flow(x+.6*dx*cell,z+.6*dz*cell).y;
+   c.travelSpeed=Math.max(.5,Math.min(6,rise/Math.max(.08,slope)));
+  }
+  c.frame=crestFrame(c,0);this.crests.push(c);
   // The root is a contact marker. The visible lip is a single continuous surface.
   this.appendDrop({x,y:this.height(x,z)-.03,z,vx:0,vy:0,vz:0,r:.02,crest:c,u:0,lateral:0,windCrest});
  }
@@ -158,7 +193,8 @@ export class WindSea {
   const tick=Math.floor(this.time*8);if(this.breakTick===tick)return;this.breakTick=tick;
   if(this.speed<7)return;
   // Sample an interleaved set of physical grid cells around the studio origin and recent interactions.
-  let best=.105,bx=0,bz=0;
+  const threshold=.13/(1+.23*this.turbulence*Math.sin(this.time*1.31));
+  let best=threshold,bx=0,bz=0,sideSlope=0;
   for(let j=0;j<24;j++){
    const index=(tick*73+j*137)%(N*N),origin=j%2?this.ripples.at(-1):null;
    const x=(origin?.x??0)+(index%N-N/2+this.random())*cell*1.6;
@@ -166,9 +202,12 @@ export class WindSea {
    const crest=this.bulk(x,z),front=this.bulk(x+this.wx*cell,z+this.wz*cell);
    const back=this.bulk(x-this.wx*cell,z-this.wz*cell);
    const steepness=(crest-front)/cell;
-   if(crest>0&&2*crest>front+back&&steepness>best){best=steepness;bx=x;bz=z;}
+   if(crest>0&&crest>=back&&steepness>best){
+    const peak=cell*.5*(front-back)/Math.max(.001,2*crest-front-back);
+    best=steepness;bx=x+peak*this.wx;bz=z+peak*this.wz;
+    sideSlope=(this.bulk(x-this.wz*cell,z+this.wx*cell)-this.bulk(x+this.wz*cell,z-this.wx*cell))/(2*cell);}
   }
-  if(best>.105)this.breakCrest(bx,bz,Math.min(2.5,best*4),this.wx,this.wz,true);
+  if(best>threshold)this.breakCrest(bx,bz,Math.min(2.5,best*4),this.wx*best+this.wz*sideSlope,this.wz*best-this.wx*sideSlope,true);
  }
  returnDrop(d){
   if(d.scoop){d.scoop.volume=Math.max(0,d.scoop.volume-4*Math.PI*d.r**3/3);d.scoop=null;}
@@ -221,18 +260,18 @@ export class WindSea {
    if(d.held)continue;
    if(d.crest){
     const c=d.crest,age=this.time-c.t;
-    if(age<c.duration){const p=lipPoint(c,0,0,age);d.x=p.x;d.z=p.z;d.y=this.height(p.x,p.z)-.03;continue;}
+    if(age<c.duration*.57){const p=lipPoint(c,0,0,age);d.x=p.x;d.z=p.z;d.y=this.height(p.x,p.z)-.03;continue;}
     // A single irregular liquid fragment can peel away behind the thinner spray.
-    const p=lipPoint(c,.62*Math.sin(c.phase),.84,c.duration*.7);
-    d.x=p.x;d.z=p.z;d.y=this.height(p.x,p.z)+Math.max(.04,p.y);d.r=.022+.035*this.random();
+    const p=lipPoint(c,.45*Math.sin(c.phase),.70,age);
+    d.x=p.x;d.z=p.z;d.y=this.baseHeight(p.baseX,p.baseZ)+p.y;d.r=Math.min(.055,c.width*.09)*(.6+.65*this.random());
     d.vx=c.dx*c.speed;d.vz=c.dz*c.speed;d.vy=c.speed*1.15;d.foam=.28;d.crest=null;
    }
    const drag=1-Math.exp(-dt*.009*this.speed/Math.max(.05,d.r));
-   d.vx+=(this.speed*.26*this.wx-d.vx)*drag;d.vz+=(this.speed*.26*this.wz-d.vz)*drag;
+   d.vx+=(this.airX*.26-d.vx)*drag;d.vz+=(this.airZ*.26-d.vz)*drag;
    const from=collide?{x:d.x,y:d.y,z:d.z}:null;
    d.vy-=9.81*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.z+=d.vz*dt;
    if(from)collide(d,from);
-   if(d.vy<0&&d.y+d.r<=this.height(d.x,d.z)){this.returnDrop(d);this.drops.splice(i,1);if(!d.windCrest&&i%3===0)this.ripple(d.x,d.z,.022);}
+   if(d.vy<0&&d.y+d.r<=this.height(d.x,d.z)){this.returnDrop(d);this.drops.splice(i,1);if(d.r>.065&&!d.windCrest&&i%3===0)this.ripple(d.x,d.z,Math.min(.023,d.r*.12));}
   }
  }
 }

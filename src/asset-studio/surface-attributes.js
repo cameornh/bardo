@@ -29,6 +29,14 @@ export function studioGeometry(surface, materials) {
   geometry.setAttribute('position', new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0], 3));
   geometry.setIndex([0,1,2,0,2,3]);
   attribute('center', new Float32Array(surface.positions), 3);
+  const box=new THREE.Box3().setFromArray(surface.positions).expandByScalar(surface.spacing*.2);
+  const lo=new Float32Array(count*3),hi=new Float32Array(count*3);
+  const lower=box.min.toArray(),upper=box.max.toArray(),eps=Math.max(.000002,surface.spacing*.0005);
+  for(let j=0;j<count*3;j++){
+    lo[j]=(Number.isFinite(surface.supportMin?.[j])?surface.supportMin[j]:lower[j%3])-eps;
+    hi[j]=(Number.isFinite(surface.supportMax?.[j])?surface.supportMax[j]:upper[j%3])+eps;
+  }
+  attribute('supportMin',lo,3);attribute('supportMax',hi,3);
   attribute('surfaceNormal', new Float32Array(surface.normals), 3);
   attribute('radius', new Float32Array(count).fill(surface.spacing * .61), 1);
   const colors = new Float32Array(count * 3), props = new Float32Array(count * 4);

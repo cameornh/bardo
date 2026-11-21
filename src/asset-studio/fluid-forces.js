@@ -91,11 +91,10 @@ export function sampleWaveContact(sea,record,center,radius,velocity,probe){
   {x:sea.wx,y:0,z:sea.wz},2*radius+.24);
  if(!hit)return;
  const {point,normal}=hit,sx=point.x+.06*normal.x,sz=point.z+.06*normal.z;
- if(entry){sea.splash(sx,sz,Math.min(2.4,1+Math.abs(velocity.y)*.13),normal.x*.5,normal.z*.5);}
+ if(entry){sea.splash(sx,sz,Math.min(2.4,.4+Math.abs(velocity.y)*.13,radius*2),normal.x*.5,normal.z*.5);}
  else{
   const length=Math.hypot(normal.x,normal.z)||1;
-  sea.ripple(sx,sz,Math.min(.12,.034*(relative+flow.y)));
-  sea.breakCrest(sx,sz,Math.min(2.5,relative*.7+flow.y*.4),normal.x/length,normal.z/length);
+  sea.breakCrest(sx,sz,Math.min(2.5,relative*.7+flow.y*.4),normal.x/length,normal.z/length,false,radius);
  }
  record.nextBreaker=sea.time+.38;
 }

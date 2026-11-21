@@ -8,6 +8,7 @@ import {stepChunks} from './ground-interaction.js';
 import {parcelObstacle,resolveParcel} from './parcel-contact.js';
 import {LooseMatter,DuneContacts,looseKind} from './loose-matter.js';
 import {SandTerrain} from './sand-terrain.js';
+import {windAt} from './wind.js';
 import {WindSand} from './wind-sand.js';
 import {WindSea} from './ocean.js';
 import {flotationSamples,applyEnvironment,waveImpact} from './fluid-forces.js';
@@ -28,7 +29,7 @@ export class StudioPhysics {
  const kind=mode==='world'?looseKind(p.groundMaterial):0,liquid=kind===2;p.sand=kind===1?(sand??new WindSand()):null;
  p.bearing=mode==='world'&&p.groundMaterial.phase==='solid'?new BearingLoad():null;
  p.sandTerrain=p.sand?new SandTerrain(p.sand,p.groundMaterial):null;
- p.matter=new LooseMatter();p.dunes=new DuneContacts();p.sea=liquid?(sea??new WindSea(p.wind.speed,p.wind.heading)):null;if(p.sea)p.sea.organicLoad=p.groundMaterial.organicLoad??0;p.broken=0;try{await p.build(library,mode,assetId);return p;}catch(e){p.dispose();throw e;}}
+ p.matter=new LooseMatter();p.dunes=new DuneContacts();p.sea=liquid?(sea??new WindSea(p.wind.speed,p.wind.heading,p.wind.turbulence)):null;if(p.sea)p.sea.organicLoad=p.groundMaterial.organicLoad??0;p.broken=0;try{await p.build(library,mode,assetId);return p;}catch(e){p.dispose();throw e;}}
  constructor(R,gravity){this.paintedHinges=new PaintedHinges();this.R=R;this.cuts=new GroundCuts();this.chunks=new Map();this.chunkSerial=0;this.parcelObstacles=[];this.collideDrop=(d,from)=>resolveParcel(this.parcelObstacles,d,from);this.world=new R.World({x:0,y:-gravity,z:0});this.world.timestep=1/120;this.world.numSolverIterations=8;this.bodies=new Map();this.joints=[];this.sections=[];this.structures=[];this.internalLinks=[];this.pulses=[];this.time=0;this.accumulator=0;this.steps=0;this.skipped=[];this.maxProxySpacing=0;this.motorEnabled=true;this.lastStepMs=0;this.colliderCount=0;}
  async proxy(part){if(typeof Worker==='undefined')return collisionProxy(part);const worker=new Worker(new URL('./collision-worker.js',import.meta.url),{type:'module'});try{return await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Collision preparation exceeded six seconds; simplify or split this part.')),6000);worker.onmessage=({data})=>{clearTimeout(timer);data.error?reject(Error(data.error)):resolve(data.proxy);};worker.onerror=e=>{clearTimeout(timer);reject(Error(e.message));};worker.postMessage(part);});}finally{worker.terminate();}}
  async build(library,mode,assetId){
@@ -125,11 +126,23 @@ export class StudioPhysics {
  setDrag(key,localPoint,force,loose=false){this.drag={key,loose,localPoint:localPoint.clone(),force:force.clone().clampLength(0,100000)};}
  clearDrag(){this.drag=null;}
  applyForce(f){const r=this.bodies.get(f.key)||this.chunks.get(f.key);if(r&&!f.loose){const pt=this.worldPoint(r,f.localPoint);recordLoad(r,f.force,pt);r.body.addForceAtPoint(f.force,pt,true);}else this.matter.nudge(f.key,f.localPoint,f.force,this.world.timestep);}
+ set wind(settings){this.windSettings=settings;this.airflow=settings;this.sea?.setWind(settings.speed,settings.heading,settings.turbulence);}
+ get wind(){return this.airflow;}
  step(dt=1/120){
   if(dt<=0||dt>1/60)throw Error('Invalid physics timestep');const start=performance.now();this.world.timestep=dt;
+  this.airflow=windAt(this.windSettings,this.time,0,0,this.gust??={});
   beforeFractureStep(this);
   const pool=!this.sea&&this.matter.beds.size?(x,z)=>this.matter.liquidColumn(this,x,z):null;
-  for(const r of this.bodies.values()){r.body.resetForces(false);r.body.resetTorques(false);if(this.sea||this.wind.speed||pool)applyEnvironment(r,this.sea,this.waterDensity,this.wind,-this.world.gravity.y,dt,pool);}
+  for(const r of this.bodies.values()){
+   r.body.resetForces(false);r.body.resetTorques(false);
+   if(!this.sea&&!this.wind.speed&&!pool)continue;
+   let air=this.airflow;
+   if(this.windSettings.turbulence&&air.speed){
+    const point=r.body.translation();
+    air=windAt(this.windSettings,this.time,point.x,point.z,this.bodyGust??={});
+   }
+   applyEnvironment(r,this.sea,this.waterDensity,air,-this.world.gravity.y,dt,pool);
+  }
   const links=this.internalLinks.length?this.joints.concat(this.internalLinks):this.joints;
   for(const link of links){const {child,parent,j,support,rest}=link,b=child.body,a=parent?.body||this.ground;
    if(j.type!=='fixed'){

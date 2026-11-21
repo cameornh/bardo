@@ -45,10 +45,14 @@ export class WaterCapture{
   // Sparse infinite ocean otherwise has a constant-cost deep-water solution.
   this.bounds.makeEmpty();view.assetScene.updateMatrixWorld(true);
   if(sea)for(const group of view.groups.values())for(const part of group.children)for(const surface of part.children){
+   if(!part.visible||!surface.visible)continue;
    if(surface.userData.implicit){this.partBounds.min.setScalar(-1);this.partBounds.max.setScalar(1);}
    else if(surface.geometry?.boundingBox)this.partBounds.copy(surface.geometry.boundingBox);
    else continue;
    this.bounds.union(this.partBounds.applyMatrix4(surface.matrixWorld));
+  }
+  if(sea)for(const {pieces} of view.sectionView?.meshes.values()||[])for(const mesh of pieces.values()){
+   if(mesh.visible&&mesh.geometry.boundingBox)this.bounds.union(this.partBounds.copy(mesh.geometry.boundingBox).applyMatrix4(mesh.matrixWorld));
   }
   if(sea)for(const batch of view.paintView?.batches||[]){
    this.bounds.union(this.partBounds.copy(batch.mesh.geometry.boundingBox).applyMatrix4(batch.mesh.matrix));
