@@ -1,3 +1,4 @@
+import {PaintedView} from './painted-view.js';
 import {studioGeometry,updateMaterialAttribute} from './surface-attributes.js';
 import {SectionView} from './section-view.js';
 import {GroundEditView} from './ground-edit-view.js';
@@ -14,7 +15,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {TransformControls} from 'three/examples/jsm/controls/TransformControls.js';
 import {projectSH} from '../sh.js';
-import {sampleTrack} from './model.js';
+import {sampleTrack,material as studioMaterial} from './model.js';
 import {gridSpec} from './sculpt.js';
 const VERTEX=`
 attribute vec3 center;attribute vec3 surfaceNormal;attribute vec3 tint;attribute vec4 properties;attribute float radius;
@@ -60,6 +61,7 @@ export class StudioView{
  this.material=new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:VERTEX,fragmentShader:FRAGMENT,transparent:true,depthWrite:false,side:THREE.DoubleSide});this.material.name='studio covariance Gaussian';this.depthMaterial=new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:VERTEX,fragmentShader:DEPTH_FRAGMENT,colorWrite:false,depthWrite:true,side:THREE.DoubleSide});
  this.liveStudio=liveStudio;
  if(liveStudio){
+  this.workPlane=studioMaterial('studio-workplane','Work plane','#818a8d',{roughness:.96,grainDepth:0});
   this.controls.enableDamping=false;
   this.controls.mouseButtons={LEFT:null,MIDDLE:THREE.MOUSE.PAN,RIGHT:THREE.MOUSE.ROTATE};
   this.uniforms.grainMap={value:grainTexture()};this.uniforms.matterPlaying={value:0};
@@ -93,7 +95,7 @@ export class StudioView{
    vec3 surface=(cameraWorld*vec4(ray*t,1.)).xyz;
    vec3 n=normalize(vNormal),col=vec3(1.);float h=grainSurface(localCoord+worldToLocal*(surface-vWorld),localN,grain,n,col,cameraPosition-surface);
    gl_FragDepth=reliefDepth(clip.z/clip.w*.5+.5,surface,normalize(vNormal),h,projectionMatrix);gl_FragColor=vec4(0.);`);
-  this.sectionView=new SectionView(this);this.matterView=new MatterView(this,LIGHTING);this.liquidMats=new Map();
+  this.paintView=new PaintedView(this.uniforms,LIGHTING);this.sectionView=new SectionView(this);this.matterView=new MatterView(this,LIGHTING);this.liquidMats=new Map();
  }
  this.groundMaterial=new THREE.ShaderMaterial({uniforms:{environment:this.uniforms.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},vertexShader:GROUND_VERTEX,fragmentShader:GROUND_FRAGMENT});
  if(liveStudio){
@@ -138,23 +140,24 @@ export class StudioView{
  }
  rebuild(library,mode,assetId){this.gizmo.detach();this.root.clear();this.groups.clear();this.library=library;this.mode=mode;this.hasFiniteLiquid=false;this.implicitCount=0;this.gaussianCount=0;this.implicit?.clear();const instances=mode==='asset'?[{id:'editor',assetId,transform:{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}}]:library.world.instances;
  for(const instance of instances){const a=library.assets.find(a=>a.id===instance.assetId);if(!a)continue;const group=new THREE.Group();group.userData={instanceId:instance.id,assetId:a.id};poseObject(group,instance.transform);this.root.add(group);this.groups.set(instance.id,group);for(const p of a.parts){const object=new THREE.Group();object.userData={partId:p.id,assetId:a.id};object.matrixAutoUpdate=false;object.matrix.copy(partMatrix(p.transform,p.pivot));group.add(object);const direct=this.liveStudio&&implicitStamp(p,library.materials);
- if(direct){object.add(this.implicit.mesh(direct,library.materials.find(m=>m.id===direct.materialId)));this.implicitCount++;continue;}
+ if(direct){object.userData.stampMaterial=direct.materialId;object.add(this.implicit.mesh(direct,library.materials.find(m=>m.id===direct.materialId)));this.implicitCount++;continue;}
  const key=a.id+':'+p.id,geometry=this.cache.get(key);if(geometry){this.gaussianCount+=geometry.instanceCount;const mesh=new THREE.Mesh(geometry,this.material);mesh.userData.surfaceKey=key;object.add(mesh);
  if(this.liveStudio)for(const mid of geometry.userData.materialIds??new Set(this.surfaces.get(key)?.materials)){
   const index=library.materials.findIndex(m=>m.id===mid),m=library.materials[index];
   if(looseKind(m)!==2)continue;this.hasFiniteLiquid=true;
   const optical=new THREE.Mesh(geometry,this.liquidMaterial(m,index));optical.userData.surfaceKey=key;optical.layers.set(1);object.add(optical);
- }}}}this.setGround(library.materials.find(m=>m.id===library.world.groundMaterialId));}
+ }}}}this.setGround(this.liveStudio&&mode==='asset'?this.workPlane:library.materials.find(m=>m.id===library.world.groundMaterialId));this.paintView?.rebuild(this);}
  applyPhysics(physics){if(this.liveStudio){this.activePhysics=physics;this.uniforms.matterPlaying.value=1;this.matterView.update(physics);this.sectionView.update(physics);}for(const [id,group]of this.groups){group.updateMatrix();const inverse=group.matrix.clone().invert();for(const object of group.children){const body=physics.get(id,object.userData.partId);if(body)object.matrix.copy(inverse).multiply(body.matrix);}}}
  animate(time,playing){if(this.activePhysics){this.sectionView?.update(null);this.activePhysics=null;this.uniforms.matterPlaying.value=0;this.matterView.reset();}for(const group of this.groups.values()){const a=this.library.assets.find(a=>a.id===group.userData.assetId);for(const obj of group.children){const p=a.parts.find(p=>p.id===obj.userData.partId);if(this.gizmo.dragging&&this.gizmo.object===obj)continue;obj.matrix.copy(partMatrix(playing?sampleTrack(p,time%a.duration):p.transform,p.pivot));}}}
  attach(instanceId,partId,tool){this.gizmo.detach();if(!['translate','rotate','scale'].includes(tool))return;const group=this.groups.get(this.mode==='asset'?'editor':instanceId);if(!group)return;const obj=this.mode==='asset'?group.children.find(p=>p.userData.partId===partId):group;if(!obj)return;
  if(this.mode==='asset'){obj.matrix.decompose(obj.position,obj.quaternion,obj.scale);}this.gizmo.setMode(tool);this.gizmo.setSpace(this.mode==='asset'?'local':'world');this.gizmo.attach(obj);}
  ray(event){const rect=this.canvas.getBoundingClientRect();this.pointer.set((event.clientX-rect.left)/rect.width*2-1,1-(event.clientY-rect.top)/rect.height*2);this.scene.updateMatrixWorld(true);this.assetScene.updateMatrixWorld(true);this.raycaster.setFromCamera(this.pointer,this.camera);return this.raycaster.ray;}
- pick(event,{optimized=this.fastPicking===true}={}){const ray=this.ray(event);let nearest=null;const local=new THREE.Ray(),inverse=new THREE.Matrix4(),p=new THREE.Vector3(),normal=new THREE.Vector3(),delta=new THREE.Vector3(),worldScratch=new THREE.Vector3(),bounds=new THREE.Sphere();for(const group of this.groups.values())for(const part of group.children){if(!part.visible)continue;const mesh=part.children[0];
+ pick(event,{optimized=this.fastPicking===true,marks=true}={}){const ray=this.ray(event);let nearest=null;const local=new THREE.Ray(),inverse=new THREE.Matrix4(),p=new THREE.Vector3(),normal=new THREE.Vector3(),delta=new THREE.Vector3(),worldScratch=new THREE.Vector3(),bounds=new THREE.Sphere();for(const group of this.groups.values())for(const part of group.children){if(!part.visible)continue;const mesh=part.children[0];
  if(mesh?.userData.implicit){const hit=intersectImplicit(ray,mesh);if(hit){const distance=ray.origin.distanceTo(hit.point);
-  if(!nearest||distance<nearest.distance)nearest={...hit,distance,partId:part.userData.partId,instanceId:group.userData.instanceId,assetId:group.userData.assetId};}continue;}
+  if(!nearest||distance<nearest.distance)nearest={...hit,materialId:part.userData.stampMaterial,distance,partId:part.userData.partId,instanceId:group.userData.instanceId,assetId:group.userData.assetId};}continue;}
  const key=group.userData.assetId+':'+part.userData.partId,s=this.surfaces.get(key);if(!s)continue;inverse.copy(part.matrixWorld).invert();local.copy(ray).applyMatrix4(inverse);const tolerance=s.spacing*1.25;const moving=this.activePhysics?.matter.parts;if(optimized){const geometry=this.cache.get(key);if(geometry?.boundingSphere){bounds.copy(geometry.boundingSphere);bounds.radius+=tolerance;if(!local.intersectsSphere(bounds))continue;}}
- for(let i=0;i<s.positions.length;i+=3){if(moving?.has(group.userData.instanceId+':'+part.userData.partId+'/'+s.materials[i/3]))continue;p.fromArray(s.positions,i);const t=(optimized?delta.copy(p):p.clone()).sub(local.origin).dot(local.direction);if(t<0||local.distanceSqToPoint(p)>tolerance*tolerance)continue;const world=(optimized?worldScratch.copy(p):p.clone()).applyMatrix4(part.matrixWorld),distance=world.distanceTo(ray.origin);if(nearest&&distance>=nearest.distance)continue;normal.fromArray(s.normals,i).applyNormalMatrix(new THREE.Matrix3().getNormalMatrix(part.matrixWorld));nearest={point:world.clone(),normal:normal.clone(),distance,partId:part.userData.partId,instanceId:group.userData.instanceId,localPoint:p.clone(),assetId:group.userData.assetId};}}
+ for(let i=0;i<s.positions.length;i+=3){if(moving?.has(group.userData.instanceId+':'+part.userData.partId+'/'+s.materials[i/3]))continue;p.fromArray(s.positions,i);const t=(optimized?delta.copy(p):p.clone()).sub(local.origin).dot(local.direction);if(t<0||local.distanceSqToPoint(p)>tolerance*tolerance)continue;const world=(optimized?worldScratch.copy(p):p.clone()).applyMatrix4(part.matrixWorld),distance=world.distanceTo(ray.origin);if(nearest&&distance>=nearest.distance)continue;normal.fromArray(s.normals,i).applyNormalMatrix(new THREE.Matrix3().getNormalMatrix(part.matrixWorld));nearest={point:world.clone(),normal:normal.clone(),distance,partId:part.userData.partId,instanceId:group.userData.instanceId,localPoint:p.clone(),materialId:s.materials[i/3],assetId:group.userData.assetId};}}
+ if(marks&&this.paintView?.batches.length)nearest=this.paintView.pick(ray,nearest);
  nearest=this.sectionView?.pick(this.raycaster,nearest)??nearest;
  for(const [chunk,mesh] of this.groundEdits?.meshes||[]){
   const hit=this.raycaster.intersectObject(mesh,false)[0];if(hit&&(!nearest||hit.distance<nearest.distance))nearest={...hit,chunk};
@@ -182,26 +185,39 @@ export class StudioView{
  localPoint(point,partId){const obj=this.groups.get('editor')?.children.find(p=>p.userData.partId===partId);return obj?obj.worldToLocal(point.clone()).toArray():point.toArray();}
  showForce(from,to){this.forceLine.visible=!!from;if(from){const p=this.forceLine.geometry.attributes.position;p.setXYZ(0,...from.toArray());p.setXYZ(1,...to.toArray());p.needsUpdate=true;}}
  showBrush(hit,size){this.brush.visible=!!hit;if(hit){this.brush.position.copy(hit.point);this.brush.scale.setScalar(size);}}
- frameAuthoredAsset(asset){
+ frameAuthoredAsset(asset,preset){
   // Use the same conservative bounds as the sculpt baker. These are available
   // immediately on import, before any derived Gaussian surfaces have finished.
   const bounds=new THREE.Box3();
   for(const part of asset.parts){
+   const matrix=partMatrix(part.transform,part.pivot);
+   for(const m of part.marks||[]){
+    const root=new THREE.Vector3(...m.root),axis=new THREE.Vector3(...m.axis),up=new THREE.Vector3(...m.up),side=axis.clone().cross(up);
+    for(const t of [0,.25,.5,.75,1])for(const sign of [-1,1]){
+     const point=root.clone().addScaledVector(axis,t*m.length).addScaledVector(up,.48*m.curl*t*t*m.length)
+      .addScaledVector(side,sign*m.width*m.length);
+     bounds.expandByPoint(point.applyMatrix4(matrix));
+    }
+   }
    const grid=gridSpec(part.stamps,asset.spacing);
    if(!grid)continue;
    const min=new THREE.Vector3(...grid.origin);
    const max=new THREE.Vector3(...grid.dims.map((n,i)=>grid.origin[i]+(n-1)*grid.h));
-   bounds.union(new THREE.Box3(min,max).applyMatrix4(partMatrix(part.transform,part.pivot)));
+   bounds.union(new THREE.Box3(min,max).applyMatrix4(matrix));
   }
   if(bounds.isEmpty())return this.focus('asset');
-  const ball=bounds.getBoundingSphere(new THREE.Sphere());
-  const vertical=this.camera.fov*Math.PI/360;
-  const halfAngle=Math.min(vertical,Math.atan(Math.tan(vertical)*this.camera.aspect));
-  const distance=THREE.MathUtils.clamp(1.06*ball.radius/Math.sin(halfAngle),this.controls.minDistance,this.controls.maxDistance);
-  const direction=this.camera.position.clone().sub(this.controls.target).normalize();
-  if(direction.lengthSq()===0)direction.set(4,2,5).normalize();
-  this.controls.target.copy(ball.center);
-  this.camera.position.copy(ball.center).addScaledVector(direction,distance);
+  const target=bounds.getCenter(new THREE.Vector3()), direction=this.camera.position.clone().sub(this.controls.target);
+  const presets={threeQuarter:[2,2.6,3],front:[0,0,1],side:[1,0,0],top:[0,1,.0001]};
+  if(presets[preset])direction.fromArray(presets[preset]);if(!direction.lengthSq())direction.set(4,2,5);direction.normalize();
+  const right=new THREE.Vector3().crossVectors(this.camera.up,direction).normalize(),up=direction.clone().cross(right);
+  const tanV=Math.tan(this.camera.fov*Math.PI/360),tanH=tanV*this.camera.aspect;
+  let distance=this.controls.minDistance;
+  for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){
+   const offset=new THREE.Vector3(x,y,z).sub(target);
+   distance=Math.max(distance,offset.dot(direction)+1.16*Math.max(Math.abs(offset.dot(right))/tanH,Math.abs(offset.dot(up))/tanV)+this.camera.near);
+  }
+  this.controls.target.copy(target);
+  this.camera.position.copy(target).addScaledVector(direction,Math.min(distance,this.controls.maxDistance));
   this.controls.update();
  }
  focus(mode='world'){this.controls.target.set(0,1,0);this.camera.position.set(...(mode==='asset'?[4,3,5]:[8,5,10]));this.controls.update();}
@@ -213,6 +229,7 @@ export class StudioView{
   return false;
  }
  draw(){if(this.failed)throw Error('Studio graphics context lost; stopped.');this.controls.update();if(this.liveStudio){
+ this.paintView.update(this,this.activePhysics??null);
  for(const drift of this.matterView.saltation.values())drift.updateEye(this.camera.position);
  this.groundEdits.update(this.activePhysics);this.sandView.update(this.sand,this.groundSurface,this.camera.position);this.groundMaterial.uniforms.granular.value=!!this.sand;
  this.ground.visible=!this.sea;this.uniforms.clipFloor.value=this.sea||this.activePhysics?.sandTerrain?.version||this.activePhysics?.cuts?.nodes.size?-1e10:0;
@@ -222,6 +239,6 @@ export class StudioView{
  }else{if(this.liveStudio&&this.groundSurface.metallic>.02)this.oceanView.capture.render(this,true);this.drawObjects(this.camera);}
  if(this.eyeScene?.children.some(o=>o.visible)){this.renderer.autoClear=false;this.renderer.render(this.eyeScene,this.camera);}}
  drawObjects(camera){this.renderer.autoClear=true;this.renderer.render(this.scene,camera);this.renderer.autoClear=false;
- this.assetScene.overrideMaterial=this.depthMaterial;this.renderer.render(this.assetScene,camera);this.assetScene.overrideMaterial=null;this.renderer.render(this.assetScene,camera);if(this.grainScene?.children.some(o=>o.visible))this.renderer.render(this.grainScene,camera);}
- dispose(){this.sectionView?.clear();this.groundEdits?.dispose();this.matterView?.reset();this.uniforms.grainMap?.value.dispose();for(const mat of this.liquidMats?.values()||[])mat.dispose();this.sandView?.dispose();this.oceanView?.dispose();this.implicit?.dispose();this.forceLine.geometry.dispose();this.forceLine.material.dispose();this.resizeObserver.disconnect();this.controls.dispose();this.gizmo.dispose();for(const g of this.cache.values())g.dispose();this.material.dispose();this.depthMaterial.dispose();this.ground.geometry.dispose();this.groundMaterial.dispose();this.brush.geometry.dispose();this.brush.material.dispose();this.renderer.dispose();}
+ this.assetScene.overrideMaterial=this.depthMaterial;this.renderer.render(this.assetScene,camera);this.assetScene.overrideMaterial=null;this.renderer.render(this.assetScene,camera);if(this.paintView?.scene.children.length)this.renderer.render(this.paintView.scene,camera);if(this.grainScene?.children.some(o=>o.visible))this.renderer.render(this.grainScene,camera);}
+ dispose(){this.paintView?.dispose();this.sectionView?.clear();this.groundEdits?.dispose();this.matterView?.reset();this.uniforms.grainMap?.value.dispose();for(const mat of this.liquidMats?.values()||[])mat.dispose();this.sandView?.dispose();this.oceanView?.dispose();this.implicit?.dispose();this.forceLine.geometry.dispose();this.forceLine.material.dispose();this.resizeObserver.disconnect();this.controls.dispose();this.gizmo.dispose();for(const g of this.cache.values())g.dispose();this.material.dispose();this.depthMaterial.dispose();this.ground.geometry.dispose();this.groundMaterial.dispose();this.brush.geometry.dispose();this.brush.material.dispose();this.renderer.dispose();}
 }

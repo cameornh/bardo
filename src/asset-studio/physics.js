@@ -1,3 +1,4 @@
+import {PaintedHinges} from './painted-hinges.js';
 import {BearingLoad} from './bearing-load.js';
 import {beamSection,bindBuckledSection} from './structural-section.js';
 import {attachStructure,structureBody,recordLoad,beforeFractureStep,advanceFractures} from './fracture.js';
@@ -26,7 +27,7 @@ export class StudioPhysics {
  p.bearing=mode==='world'&&p.groundMaterial.phase==='solid'?new BearingLoad():null;
  p.sandTerrain=p.sand?new SandTerrain(p.sand,p.groundMaterial):null;
  p.matter=new LooseMatter();p.dunes=new DuneContacts();p.sea=liquid?(sea??new WindSea(p.wind.speed,p.wind.heading)):null;if(p.sea)p.sea.organicLoad=p.groundMaterial.organicLoad??0;p.broken=0;try{await p.build(library,mode,assetId);return p;}catch(e){p.dispose();throw e;}}
- constructor(R,gravity){this.R=R;this.cuts=new GroundCuts();this.chunks=new Map();this.chunkSerial=0;this.parcelObstacles=[];this.collideDrop=(d,from)=>resolveParcel(this.parcelObstacles,d,from);this.world=new R.World({x:0,y:-gravity,z:0});this.world.timestep=1/120;this.world.numSolverIterations=8;this.bodies=new Map();this.joints=[];this.sections=[];this.structures=[];this.internalLinks=[];this.pulses=[];this.time=0;this.accumulator=0;this.steps=0;this.skipped=[];this.maxProxySpacing=0;this.motorEnabled=true;this.lastStepMs=0;this.colliderCount=0;}
+ constructor(R,gravity){this.paintedHinges=new PaintedHinges();this.R=R;this.cuts=new GroundCuts();this.chunks=new Map();this.chunkSerial=0;this.parcelObstacles=[];this.collideDrop=(d,from)=>resolveParcel(this.parcelObstacles,d,from);this.world=new R.World({x:0,y:-gravity,z:0});this.world.timestep=1/120;this.world.numSolverIterations=8;this.bodies=new Map();this.joints=[];this.sections=[];this.structures=[];this.internalLinks=[];this.pulses=[];this.time=0;this.accumulator=0;this.steps=0;this.skipped=[];this.maxProxySpacing=0;this.motorEnabled=true;this.lastStepMs=0;this.colliderCount=0;}
  async proxy(part){if(typeof Worker==='undefined')return collisionProxy(part);const worker=new Worker(new URL('./collision-worker.js',import.meta.url),{type:'module'});try{return await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Collision preparation exceeded six seconds; simplify or split this part.')),6000);worker.onmessage=({data})=>{clearTimeout(timer);data.error?reject(Error(data.error)):resolve(data.proxy);};worker.onerror=e=>{clearTimeout(timer);reject(Error(e.message));};worker.postMessage(part);});}finally{worker.terminate();}}
  async build(library,mode,assetId){
   const materials=new Map(library.materials.map(m=>[m.id,m]));
@@ -80,6 +81,7 @@ export class StudioPhysics {
     };
     const record=makeBody(proxy.shapes,recordKey,p.physics?.fixed,p.stamps);
     attachStructure(this,record,proxy.shapes,materials,anchor,section,makeBody);
+    this.paintedHinges.attach(record,materials);
     this.maxProxySpacing=Math.max(this.maxProxySpacing,proxy.spacing*Math.max(...scale.toArray()));
     await new Promise(resolve=>setTimeout(resolve,0));
    }
@@ -149,6 +151,7 @@ export class StudioPhysics {
   if(!this.flatFloor&&!this.sea||[...this.matter.beds.values()].some(b=>!b.liquid))this.dunes.update(this);
   this.matter.update(this,dt);this.world.step();this.bearing?.advance(this,dt);if(this.sea)for(const record of this.bodies.values())waveImpact(this,record);releaseOverloaded(this,loads,dt,links);advanceFractures(this,dt);this.time+=dt;this.steps++;this.lastStepMs=performance.now()-start;
   for(const r of this.bodies.values()){const p=r.body.translation(),rot=r.body.rotation();if(![p.x,p.y,p.z,rot.x,rot.y,rot.z,rot.w].every(Number.isFinite))throw Error('Physics stopped: non-finite body state');r.matrix.compose(v(p),q(rot),r.scale);}
+  if(this.paintedHinges.parts.size)this.paintedHinges.step(dt,this.wind,this.world.gravity.y,this.time);
   this.sea?.advance(dt,this.collideDrop);
  }
  advance(seconds){this.accumulator=Math.min(.1,this.accumulator+Math.max(0,seconds));let n=0;while(this.accumulator>=1/120&&n<12){this.step();this.accumulator-=1/120;n++;}return n/120;}

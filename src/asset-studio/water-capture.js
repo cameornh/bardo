@@ -50,6 +50,9 @@ export class WaterCapture{
    else continue;
    this.bounds.union(this.partBounds.applyMatrix4(surface.matrixWorld));
   }
+  if(sea)for(const batch of view.paintView?.batches||[]){
+   this.bounds.union(this.partBounds.copy(batch.mesh.geometry.boundingBox).applyMatrix4(batch.mesh.matrix));
+  }
   // Authored proxies stay in place when loose material is released. Include its
   // moving world bounds so the transmission path still sees the sinking sand.
   if(sea&&view.activePhysics)for(const mesh of view.matterView.meshes.values()){

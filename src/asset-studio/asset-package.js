@@ -4,7 +4,7 @@ const kind = 'bardo-studio-asset';
 const withSuffix = (text, suffix) => text.slice(0, 100 - suffix.length) + suffix;
 
 function usedMaterials(asset) {
-  return new Set(asset.parts.flatMap(part => part.stamps.map(stamp => stamp.materialId)));
+  return new Set(asset.parts.flatMap(part => [...part.stamps, ...(part.marks || [])].map(item => item.materialId)));
 }
 
 export function exportAsset(library, assetId) {
@@ -57,7 +57,7 @@ export function importAsset(library, file) {
 
   const merged = [...library.materials], remap = new Map();
   for (const m of materials) if (used.has(m.id)) remap.set(m.id, resolveMaterial(m, merged, reserved));
-  for (const part of asset.parts) for (const stamp of part.stamps) stamp.materialId = remap.get(stamp.materialId);
+  for (const part of asset.parts) for (const item of [...part.stamps, ...(part.marks || [])]) item.materialId = remap.get(item.materialId);
 
   // Part IDs and joint parent IDs are local to an asset. Keep their links
   // intact, giving each import its own independently editable asset.
