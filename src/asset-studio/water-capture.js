@@ -32,18 +32,19 @@ export class WaterCapture{
    }`}));
   this.copy.frustumCulled=false;this.copyScene=new THREE.Scene();this.copyScene.add(this.copy);
  }
- render(view){
+ render(view,mirrorOnly=false){
   const {renderer:r,camera,sea}=view,u=this.u;
   camera.updateMatrixWorld();r.getDrawingBufferSize(u.viewport.value);
   const {x:w,y:h}=u.viewport.value;
-  const resized=this.source.width!==w||this.source.height!==h;
-  this.source.setSize(w,h);this.bulk.setSize(w,h);this.mirror.setSize(Math.max(1,Math.ceil(w*.5)),Math.max(1,Math.ceil(h*.5)));
+  const resized=this.mirror.width!==Math.ceil(w*.5)||this.mirror.height!==Math.ceil(h*.5);
+  if(!mirrorOnly){this.source.setSize(w,h);this.bulk.setSize(w,h);}
+  this.mirror.setSize(Math.max(1,Math.ceil(w*.5)),Math.max(1,Math.ceil(h*.5)));
   u.inverseProjection.value.copy(camera.projectionMatrixInverse);
-  u.submerged.value=Number(camera.position.y<sea.height(camera.position.x,camera.position.z));
+  u.submerged.value=Number(!!sea&&camera.position.y<sea.height(camera.position.x,camera.position.z));
   // Only trace transmission where the refracted ray can reach authored geometry.
   // Sparse infinite ocean otherwise has a constant-cost deep-water solution.
   this.bounds.makeEmpty();view.assetScene.updateMatrixWorld(true);
-  for(const group of view.groups.values())for(const part of group.children)for(const surface of part.children){
+  if(sea)for(const group of view.groups.values())for(const part of group.children)for(const surface of part.children){
    if(surface.userData.implicit){this.partBounds.min.setScalar(-1);this.partBounds.max.setScalar(1);}
    else if(surface.geometry?.boundingBox)this.partBounds.copy(surface.geometry.boundingBox);
    else continue;
@@ -71,19 +72,25 @@ export class WaterCapture{
    view.uniforms.viewport.value.set(this.mirror.width,this.mirror.height);
    view.uniforms.cameraWorld.value=c.matrixWorld;
    view.uniforms.clipFloor.value=-.02;view.implicit.clipFloor.value=-.02;
-   view.drawObjects(c);
+   const floor=view.ground.visible;view.ground.visible=false;view.drawObjects(c);view.ground.visible=floor;
   }
-  r.setClearColor(this.clearColor,alpha);r.setRenderTarget(this.source);
+  r.setClearColor(this.clearColor,alpha);r.setRenderTarget(mirrorOnly?output:this.source);
   view.uniforms.viewport.value.copy(u.viewport.value);
   view.uniforms.cameraWorld.value=camera.matrixWorld;
   view.uniforms.clipFloor.value=view.implicit.clipFloor.value=-1e10;
+  if(mirrorOnly)return;
   view.drawObjects(camera);
   const ocean=view.oceanView;
   r.setRenderTarget(this.bulk);ocean.parcels.mesh.visible=false;
-  r.autoClear=true;r.render(view.waterScene,camera);ocean.parcels.mesh.visible=true;
+  r.autoClear=true;if(sea)r.render(view.waterScene,camera);else r.clear();ocean.parcels.mesh.visible=!!sea;
   r.setRenderTarget(output);r.autoClear=true;r.render(this.copyScene,camera);r.autoClear=false;
-  if(ocean.parcels.mesh.count){
+  if(sea&&ocean.parcels.mesh.count){
    ocean.mesh.visible=false;r.render(view.waterScene,camera);ocean.mesh.visible=true;
+  }
+  if(sea)r.render(ocean.effectsScene,camera);
+  if(view.visibleLiquid){
+   const mask=camera.layers.mask;camera.layers.set(1);
+   r.render(view.scene,camera);r.render(view.assetScene,camera);camera.layers.mask=mask;
   }
  }
  dispose(){this.source.dispose();this.mirror.dispose();this.bulk.dispose();this.copy.geometry.dispose();this.copy.material.dispose();}

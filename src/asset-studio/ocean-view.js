@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {WhitewaterView} from './whitewater-view.js';
 import {WaterCapture} from './water-capture.js';
 import {medium,interfaceOptics} from './water-optics.js';
 import {LiquidParcels} from './liquid-parcels.js';
@@ -61,6 +62,7 @@ export class OceanView{
    #include <colorspace_fragment>
    }`});
   this.mesh=new THREE.Mesh(geometry,material);this.mesh.frustumCulled=false;scene.add(this.mesh);
+  this.effectsScene=new THREE.Scene();this.effects=new WhitewaterView(this.effectsScene,this.uniforms,wave,lighting);
   this.parcels=new LiquidParcels(scene,this.uniforms,wave,lighting);this.show(false);
  }
  show(on){this.mesh.visible=this.parcels.mesh.visible=on;}
@@ -82,7 +84,7 @@ export class OceanView{
   u.opacity.value=m.opacity;u.ior.value=m.ior;u.absorption.value=m.absorption;
   u.frameMix.value=sea.mix;u.ringCount.value=sea.ripples.length;
   sea.ripples.forEach((r,i)=>u.rings.value[i].set(r.x,r.z,sea.time-r.t,r.a));
-  this.parcels.update(sea,camera);
+  this.parcels.update(sea,camera);this.effects.update(sea,camera);
  }
- dispose(){this.mesh.removeFromParent();this.mesh.geometry.dispose();this.mesh.material.dispose();this.parcels.dispose();this.capture.dispose();this.texture.dispose();this.normalTexture.dispose();}
+ dispose(){this.mesh.removeFromParent();this.mesh.geometry.dispose();this.mesh.material.dispose();this.parcels.dispose();this.capture.dispose();this.effects.dispose();this.texture.dispose();this.normalTexture.dispose();}
 }

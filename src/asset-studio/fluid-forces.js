@@ -23,7 +23,7 @@ export function flotationSamples(shapes,scale){
  return [...bins.values()];
 }
 
-export function applyEnvironment(record,sea,waterDensity,wind,gravity,dt){
+export function applyEnvironment(record,sea,waterDensity,wind,gravity,dt,column){
  const b=record.body;
  if(!b.isDynamic())return;
  const center=new Vector3().copy(b.translation()),rotation=new Quaternion().copy(b.rotation());
@@ -35,13 +35,14 @@ export function applyEnvironment(record,sea,waterDensity,wind,gravity,dt){
  for(const sample of record.floats){
   pt.copy(sample.p).applyQuaternion(rotation).add(center);
   const e=sample.extent,r=Math.max(.01,Math.abs(up.x)*e.x+Math.abs(up.y)*e.y+Math.abs(up.z)*e.z);
-  const wet=sea?Math.max(0,Math.min(1,.5+(sea.height(pt.x,pt.z)-pt.y)/(2*r))):0;
+  const pool=column?.(pt.x,pt.z);
+  const wet=sea?Math.max(0,Math.min(1,.5+(sea.height(pt.x,pt.z)-pt.y)/(2*r))):pool?Math.max(0,Math.min(pt.y+r,pool.top)-Math.max(pt.y-r,pool.bottom))/(2*r):0;
   const portion=sample.volume/record.fluidVolume,limit=b.mass()*portion*.38/dt;
   velocity.copy(b.velocityAtPoint(pt));force.set(0,0,0);
   if(wet){
    wetVolume+=wet*sample.volume;
-   const mass=sample.volume*waterDensity*wet;
-   dir.copy(flow).sub(velocity);
+   const mass=sample.volume*(pool?.density??waterDensity)*wet;
+   if(flow)dir.copy(flow);else dir.set(0,0,0);dir.sub(velocity);
    force.copy(dir).multiplyScalar(Math.min(mass*(2+.45*dir.length()),limit));force.y+=mass*gravity;
   }
   if(wind.speed>0&&wet<1){

@@ -1,3 +1,4 @@
+import {Whitewater,lipPoint} from './whitewater.js';
 // A periodic deep-water wind sea. Authoring units are metres and seconds.
 export const OCEAN_SIZE = 32, TILE_METRES = 40, WAVE_HZ = 20;
 const N = OCEAN_SIZE, TAU = Math.PI * 2, cell = TILE_METRES / N;
@@ -24,7 +25,7 @@ export class WindSea {
  constructor(speed=0,heading=0) {
   this.frames=[new Float32Array(N*N),new Float32Array(N*N)];
   this.imag=new Float32Array(N*N);this.frame=-Infinity;this.version=0;
-  this.ripples=[];this.drops=[];this.serial=0;this.breakTick=-1;this.time=0;this.setWind(speed,heading);
+  this.whitewater=new Whitewater();this.organicLoad=0;this.crests=[];this.ripples=[];this.drops=[];this.serial=0;this.breakTick=-1;this.time=0;this.setWind(speed,heading);
  }
  setWind(speed,heading){
   if(this.speed===speed&&this.heading===heading)return;
@@ -84,7 +85,8 @@ export class WindSea {
   this.ripples.push({x,z,t:this.time,a});
  }
  reset(){
-  this.release();this.breakTick=-1;this.serial=0;this.ripples.length=0;this.drops.length=0;this.sampleTime(0);
+  this.mergedVolume=0;
+  this.crests.length=0;this.whitewater.reset();this.release();this.breakTick=-1;this.serial=0;this.ripples.length=0;this.drops.length=0;this.sampleTime(0);
  }
  appendDrop(drop){
   if(this.drops.length>=MAX_PARCELS){
@@ -108,32 +110,13 @@ export class WindSea {
   }
  }
  breakCrest(x,z,energy,dx,dz,periodic=false){
-  const width=Math.min(.9,.34+energy*.23),launch=Math.min(4.,1+energy);
-  const crest={x,z,dx,dz,t:this.time,width,speed:launch,duration:.32+.07*energy};
-  // Four cross-sections form a curling lip. Each has a broad lateral kernel
-  // and a narrow vertical cross-section. The foot remains connected as the tip spills.
-  for(let layer=0;layer<4;layer++)for(let lane=-1;lane<=1;lane++){
-   const u=layer/3,lateral=lane*width*.46;
-   const d={x,y:this.height(x,z),z,r:width*(.33-.085*u)*(.91+.14*this.random()),
-    vx:0,vy:0,vz:0,crest,u,lateral,tangentX:-dz,tangentZ:dx,
-    foam:(.025+.16*u*u)*(.8+.4*this.random()),periodic};
-   this.rollLip(d,0);this.appendDrop(d);
-  }
-  for(let i=0;i<5;i++){
-   const lateral=(this.random()-.5)*width,side=(this.random()-.5)*launch;
-   const px=x-dz*lateral,pz=z+dx*lateral;
-   this.appendDrop({x:px,y:this.height(px,pz)+.12,z:pz,vx:dx*launch-dz*side,
-    vz:dz*launch+dx*side,vy:launch*(.9+this.random()*.75),r:.012+.033*this.random(),
-    foam:.19+.23*this.random(),periodic});
-  }
- }
- rollLip(drop,age){
-  const c=drop.crest,u=drop.u,v=1-u;
-  const h=c.width*Math.min(1,.14+age/c.duration),arcX=(-.66*v*v*u+5.1*v*u*u+1.18*u*u*u);
-  const arcY=3.7*v*v*u+5.45*v*u*u+.55*u*u*u;
-  const advance=c.speed*age*.52+arcX*h,side=drop.lateral*(1+.18*age/c.duration);
-  drop.x=c.x+c.dx*advance-c.dz*side;drop.z=c.z+c.dz*advance+c.dx*side;
-  drop.y=this.height(drop.x,drop.z)+h*arcY-drop.r*.24;
+  const width=Math.min(.9,.35+energy*.2),speed=Math.min(4,1+energy);
+  const c={x,z,dx,dz,t:this.time,width,speed,span:width*(1.7+1.9*this.random()),
+   phase:this.random()*TAU,periodic,duration:.46+.15*this.random()+.055*energy,emitted:-1};
+  if(this.crests.length>=16)this.crests.shift();
+  this.crests.push(c);
+  // The root is a contact marker. The visible lip is a single continuous surface.
+  this.appendDrop({x,y:this.height(x,z)-.03,z,vx:0,vy:0,vz:0,r:.02,crest:c,u:0,lateral:0,periodic});
  }
  advanceBreakers(){
   const tick=Math.floor(this.time*8);if(this.breakTick===tick)return;this.breakTick=tick;
@@ -141,7 +124,7 @@ export class WindSea {
   // Sample an interleaved set of physical grid cells on the periodic wave tile.
   let best=.105,bx=0,bz=0;
   for(let j=0;j<24;j++){
-   const index=(tick*73+j*137)%(N*N),x=(index%N)*cell,z=Math.floor(index/N)*cell;
+   const index=(tick*73+j*137)%(N*N),x=(index%N+this.random()-.5)*cell,z=(Math.floor(index/N)+this.random()-.5)*cell;
    const crest=this.bulk(x,z),front=this.bulk(x+this.wx*cell,z+this.wz*cell);
    const back=this.bulk(x-this.wx*cell,z-this.wz*cell);
    const steepness=(crest-front)/cell;
@@ -175,6 +158,13 @@ export class WindSea {
  advance(dt,collide){
   this.sampleTime(this.time+dt);
   this.advanceBreakers();
+  for(let k=this.crests.length-1;k>=0;k--){
+   const c=this.crests[k],age=this.time-c.t;
+   if(age>=c.duration){this.crests.splice(k,1);continue;}
+   const emission=Math.floor(age/(.063+.015*Math.cos(c.phase)));
+   if(emission!==c.emitted){c.emitted=emission;this.whitewater.emit(this,c,age);}
+  }
+  this.whitewater.advance(this,dt);
   this.ripples=this.ripples.filter(p=>this.time-p.t<3);
   if(this.held){
    const relax=1-Math.exp(-12*dt),g=this.grip;
@@ -188,9 +178,11 @@ export class WindSea {
    if(d.held)continue;
    if(d.crest){
     const c=d.crest,age=this.time-c.t;
-    if(age<c.duration){this.rollLip(d,age);continue;}
-    d.vx=c.dx*c.speed*(.45+.5*d.u);d.vz=c.dz*c.speed*(.45+.5*d.u);
-    d.vy=(.8-d.u)*c.speed*.55;d.crest=null;
+    if(age<c.duration){const p=lipPoint(c,0,0,age);d.x=p.x;d.z=p.z;d.y=this.height(p.x,p.z)-.03;continue;}
+    // A single irregular liquid fragment can peel away behind the thinner spray.
+    const p=lipPoint(c,.62*Math.sin(c.phase),.84,c.duration*.7);
+    d.x=p.x;d.z=p.z;d.y=this.height(p.x,p.z)+Math.max(.04,p.y);d.r=.022+.035*this.random();
+    d.vx=c.dx*c.speed;d.vz=c.dz*c.speed;d.vy=c.speed*1.15;d.foam=.28;d.crest=null;
    }
    const drag=1-Math.exp(-dt*.009*this.speed/Math.max(.05,d.r));
    d.vx+=(this.speed*.26*this.wx-d.vx)*drag;d.vz+=(this.speed*.26*this.wz-d.vz)*drag;

@@ -1,18 +1,21 @@
+import {LooseMatter,DuneContacts,looseKind} from './loose-matter.js';
+import {WindSand} from './wind-sand.js';
 import {WindSea} from './ocean.js';
 import {flotationSamples,applyEnvironment,waveImpact} from './fluid-forces.js';
 import {prepareLoads,releaseOverloaded} from './joint-load.js';
 import * as THREE from 'three';
 import {collisionProxy} from './collision.js';
-import {partRetention,liquidity,sampleForces} from './physics-data.js';
+import {partRetention,sampleForces} from './physics-data.js';
 const v=x=>new THREE.Vector3(x.x,x.y,x.z),q=x=>new THREE.Quaternion(x.x,x.y,x.z,x.w),V=a=>new THREE.Vector3(...a),rad=Math.PI/180;
 const compose=t=>new THREE.Matrix4().compose(V(t.position),new THREE.Quaternion().setFromEuler(new THREE.Euler(...t.rotation.map(x=>x*rad))),V(t.scale));
 function partTransform(p){const m=compose({...p.transform,position:p.transform.position.map((x,k)=>x+p.pivot[k])});return m.multiply(new THREE.Matrix4().makeTranslation(...p.pivot.map(x=>-x)));}
 let engine;
 export async function loadPhysics(){if(!engine)engine=import('@dimforge/rapier3d-compat').then(async m=>{const R=m.default;await R.init();return R;});return engine;}
 export class StudioPhysics {
- static async create(library,mode,assetId,gravity=9.81,sea=null){const R=await loadPhysics(),p=new StudioPhysics(R,gravity);p.wind=library.world.wind||{speed:0,heading:0};
- const liquid=mode==='world'&&library.materials.find(m=>m.id===library.world.groundMaterialId)?.phase==='liquid';
- p.sea=liquid?(sea??new WindSea(p.wind.speed,p.wind.heading)):null;p.broken=0;try{await p.build(library,mode,assetId);return p;}catch(e){p.dispose();throw e;}}
+ static async create(library,mode,assetId,gravity=9.81,sea=null,sand=null){const R=await loadPhysics(),p=new StudioPhysics(R,gravity);p.wind=library.world.wind||{speed:0,heading:0};
+ p.groundMaterial=library.materials.find(m=>m.id===library.world.groundMaterialId);
+ const kind=mode==='world'?looseKind(p.groundMaterial):0,liquid=kind===2;p.sand=kind===1?(sand??new WindSand()):null;
+ p.matter=new LooseMatter();p.dunes=new DuneContacts();p.sea=liquid?(sea??new WindSea(p.wind.speed,p.wind.heading)):null;if(p.sea)p.sea.organicLoad=p.groundMaterial.organicLoad??0;p.broken=0;try{await p.build(library,mode,assetId);return p;}catch(e){p.dispose();throw e;}}
  constructor(R,gravity){this.R=R;this.collideDrop=(d,from)=>{
    const delta=v(d).sub(from),distance=delta.length();if(distance<.001)return;
    const ray=new R.Ray(from,delta.divideScalar(distance)),hit=this.world.castRayAndGetNormal(ray,distance,false);
@@ -27,15 +30,25 @@ export class StudioPhysics {
   const R=this.R,ground=library.materials.find(m=>m.id===library.world.groundMaterialId);
   this.ground=this.world.createRigidBody(R.RigidBodyDesc.fixed());
   this.waterDensity=ground.density;
-  if(!this.sea)this.world.createCollider(R.ColliderDesc.cuboid(100000,.1,100000).setTranslation(0,-.1,0).setFriction(ground.friction).setRestitution(ground.restitution),this.ground);
+  if(!this.sea&&!this.sand)this.world.createCollider(R.ColliderDesc.cuboid(100000,.1,100000).setTranslation(0,-.1,0).setFriction(ground.friction).setRestitution(ground.restitution),this.ground);
   const instances=mode==='asset'?[{id:'editor',assetId,transform:{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}}]:library.world.instances,cache=new Map();let total=0;
+  const partCount=instances.reduce((n,i)=>n+library.assets.find(a=>a.id===i.assetId).parts.length,0);
   for(const i of instances){const asset=library.assets.find(a=>a.id===i.assetId),im=compose(i.transform);
    for(const p of asset.parts){
-    const materials=p.stamps.filter(s=>s.mode==='add').map(s=>library.materials.find(m=>m.id===s.materialId));
-    if(materials.some(m=>liquidity(m)>=.999)){this.skipped.push(p.name+': freely flowing; no rigid body or joint');continue;}
-    const key=asset.id+':'+p.id;if(!cache.has(key))cache.set(key,await this.proxy(p));const proxy=cache.get(key);if(!proxy.shapes.length)continue;
+    const key=asset.id+':'+p.id;if(!cache.has(key))cache.set(key,await this.proxy(p));
+    const original=cache.get(key);if(!original.shapes.length)continue;
     if(++total>32)throw Error('Physics preview is limited to 32 parts');
     const m=im.clone().multiply(partTransform(p)),position=new THREE.Vector3(),rotation=new THREE.Quaternion(),scale=new THREE.Vector3();m.decompose(position,rotation,scale);
+    const proxy={...original,shapes:[]},loose=new Map();
+    for(const shape of original.shapes){
+     const mat=library.materials.find(v=>v.id===shape.materialId);
+     if(mat.phase==='gas')continue;
+     if(!looseKind(mat)){proxy.shapes.push(shape);continue;}
+     if(!loose.has(mat))loose.set(mat,[]);loose.get(mat).push(shape);
+    }
+    const budget=Math.max(1,Math.min(64,Math.floor(768/(Math.max(1,partCount)*Math.max(1,loose.size)))));
+    for(const [mat,shapes] of loose)this.matter.add(this,i.id+':'+p.id,shapes,m,mat,budget);
+    if(!proxy.shapes.length){if(p.joint)this.skipped.push(p.name+': loose material cannot retain a rigid joint');continue;}
     // Nonuniform placement scale plus part rotation produces shear; reject instead of mismatching the visible shape.
     const rebuilt=new THREE.Matrix4().compose(position,rotation,scale);if(m.elements.some((x,k)=>Math.abs(x-rebuilt.elements[k])>.001))throw Error('Physics needs uniform placement scale for rotated parts. Apply scale inside the sculpt first.');
     const desc=(p.physics?.fixed?R.RigidBodyDesc.fixed():R.RigidBodyDesc.dynamic()).setTranslation(...position.toArray()).setRotation(rotation).setCcdEnabled(true).setCanSleep(false).setLinearDamping(.025).setAngularDamping(.04);
@@ -78,13 +91,14 @@ export class StudioPhysics {
  localPoint(r,point){return point.clone().sub(v(r.body.translation())).applyQuaternion(q(r.body.rotation()).invert());}
  worldPoint(r,local){return local.clone().applyQuaternion(q(r.body.rotation())).add(v(r.body.translation()));}
  get(instanceId,partId){return this.bodies.get(instanceId+':'+partId);}
- addPulse(key,localPoint,force,duration){if(this.pulses.length>=64)this.pulses.shift();this.pulses.push({key,localPoint:localPoint.clone(),force:force.clone().clampLength(0,100000),until:this.time+Math.max(0,Math.min(5,duration))});}
- setDrag(key,localPoint,force){this.drag={key,localPoint:localPoint.clone(),force:force.clone().clampLength(0,100000)};}
+ addPulse(key,localPoint,force,duration,loose=false){if(this.pulses.length>=64)this.pulses.shift();this.pulses.push({key,loose,localPoint:localPoint.clone(),force:force.clone().clampLength(0,100000),until:this.time+Math.max(0,Math.min(5,duration))});}
+ setDrag(key,localPoint,force,loose=false){this.drag={key,loose,localPoint:localPoint.clone(),force:force.clone().clampLength(0,100000)};}
  clearDrag(){this.drag=null;}
- applyForce(f){const r=this.bodies.get(f.key);if(r)r.body.addForceAtPoint(f.force,this.worldPoint(r,f.localPoint),true);}
+ applyForce(f){const r=this.bodies.get(f.key);if(r&&!f.loose)r.body.addForceAtPoint(f.force,this.worldPoint(r,f.localPoint),true);else this.matter.nudge(f.key,f.localPoint,f.force,this.world.timestep);}
  step(dt=1/120){
   if(dt<=0||dt>1/60)throw Error('Invalid physics timestep');const start=performance.now();this.world.timestep=dt;
-  for(const r of this.bodies.values()){r.body.resetForces(false);r.body.resetTorques(false);if(this.sea||this.wind.speed)applyEnvironment(r,this.sea,this.waterDensity,this.wind,-this.world.gravity.y,dt);}
+  const pool=!this.sea&&this.matter.beds.size?(x,z)=>this.matter.liquidColumn(this,x,z):null;
+  for(const r of this.bodies.values()){r.body.resetForces(false);r.body.resetTorques(false);if(this.sea||this.wind.speed||pool)applyEnvironment(r,this.sea,this.waterDensity,this.wind,-this.world.gravity.y,dt,pool);}
   for(const link of this.joints){const {child,parent,j,support,rest}=link,b=child.body,a=parent?.body||this.ground;
    if(j.type!=='fixed'){
     const qa=q(a.rotation()),relative=qa.clone().invert().multiply(q(b.rotation())),err=relative.multiply(rest.clone().invert());if(err.w<0)err.set(-err.x,-err.y,-err.z,-err.w);
@@ -101,10 +115,12 @@ export class StudioPhysics {
   }
   this.pulses=this.pulses.filter(f=>f.until>this.time);for(const pulse of this.pulses){const fraction=Math.min(1,(pulse.until-this.time)/dt);this.applyForce({...pulse,force:pulse.force.clone().multiplyScalar(fraction)});}if(this.drag)this.applyForce(this.drag);
   const loads=prepareLoads(this.joints,this.world.gravity);
-  this.world.step();if(this.sea)for(const record of this.bodies.values())waveImpact(this,record);releaseOverloaded(this,loads,dt);this.sea?.advance(dt,this.collideDrop);this.time+=dt;this.steps++;this.lastStepMs=performance.now()-start;
+  if(this.sand)this.sand.advance(dt,this.wind,this.groundMaterial);
+  if(this.sand||[...this.matter.beds.values()].some(b=>!b.liquid))this.dunes.update(this);
+  this.matter.update(this,dt);this.world.step();if(this.sea)for(const record of this.bodies.values())waveImpact(this,record);releaseOverloaded(this,loads,dt);this.sea?.advance(dt,this.collideDrop);this.time+=dt;this.steps++;this.lastStepMs=performance.now()-start;
   for(const r of this.bodies.values()){const p=r.body.translation(),rot=r.body.rotation();if(![p.x,p.y,p.z,rot.x,rot.y,rot.z,rot.w].every(Number.isFinite))throw Error('Physics stopped: non-finite body state');r.matrix.compose(v(p),q(rot),r.scale);}
  }
  advance(seconds){this.accumulator=Math.min(.1,this.accumulator+Math.max(0,seconds));let n=0;while(this.accumulator>=1/120&&n<12){this.step();this.accumulator-=1/120;n++;}return n/120;}
- dispose(){this.world?.free();this.world=null;this.bodies.clear();}
- diagnostics(){return {backend:'CPU · Rapier WASM',bodies:this.bodies.size,joints:this.joints.length,broken:this.broken,colliders:this.colliderCount,steps:this.steps,seconds:this.time,stepMs:this.lastStepMs,proxySpacing:this.maxProxySpacing,skipped:this.skipped,poses:[...this.bodies].map(([id,r])=>({id,position:r.body.translation(),rotation:r.body.rotation(),mass:r.body.mass()}))};}
+ dispose(){this.world?.free();this.world=null;this.bodies.clear();this.matter.parts.clear();this.matter.beds.clear();}
+ diagnostics(){return {backend:'CPU · Rapier WASM',bodies:this.bodies.size,joints:this.joints.length,broken:this.broken,colliders:this.colliderCount,steps:this.steps,seconds:this.time,looseParcels:this.matter.count,stepMs:this.lastStepMs,proxySpacing:this.maxProxySpacing,skipped:this.skipped,poses:[...this.bodies].map(([id,r])=>({id,position:r.body.translation(),rotation:r.body.rotation(),mass:r.body.mass()}))};}
 }

@@ -88,7 +88,7 @@ export class LiquidParcels{
   this.near=[];this.bounds=new Float32Array(MAX_PARCELS*3);
  }
  update(sea,camera){
-  const drops=sea.drops,data=this.data;
+  const drops=sea.drops.filter(p=>!p.crest),data=this.data;
   let instances=0;
   for(let i=0;i<drops.length;i++){
    const d=drops[i],v=Math.hypot(d.vx,d.vy,d.vz),stretch=d.crest?1.85:d.held?1.15:1+Math.min(1.05,v*.16);

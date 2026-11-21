@@ -1,3 +1,4 @@
+import {surfaceRelief,grainParams} from './surface-grain.js';
 import * as THREE from 'three';
 import {LIMITS} from './model.js';
 
@@ -5,13 +6,13 @@ export function implicitStamp(part,materials){
  if(part.stamps.length!==1)return null;
  const s=part.stamps[0],m=materials.find(m=>m.id===s.materialId);
  return s.mode==='add'&&['sphere','box'].includes(s.shape)&&m?.opacity===1&&
-   !m.fiberLength&&m.surfaceMode!=='gaussian'&&m.phase==='solid'?s:null;
+   !m.fiberLength&&m.surfaceMode!=='gaussian'&&m.phase==='solid'&&m.liquidity<.999?s:null;
 }
 
 // The unit sphere and box have closed-form zero-isosurface intersections.
 // The box hull bounds rasterization; the shader writes the exact surface depth.
 export class ImplicitSurfaces {
- constructor(scene,environment,lighting){
+ constructor(scene,environment,lighting,grainMap){this.grainMap=grainMap;
   this.clipFloor={value:-1e10};this.scene=scene;this.geometry=new THREE.BoxGeometry(2,2,2);
   this.materials=new Map();this.batches=new Map();this.environment=environment;this.lighting=lighting;
  }
@@ -24,46 +25,46 @@ export class ImplicitSurfaces {
   let mat=this.materials.get(key);
   if(!mat){
    mat=new THREE.ShaderMaterial({side:sphere?THREE.BackSide:THREE.FrontSide,defines:sphere?{ELLIPSOID:1}:{},
-    uniforms:{clipFloor:this.clipFloor,environment:this.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},
-    vertexShader:`varying vec3 worldPoint;
+    uniforms:{grainMap:this.grainMap,grain:{value:new THREE.Vector3()},clipFloor:this.clipFloor,environment:this.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},
+    vertexShader:`varying vec3 worldPoint,detailCoord,detailNormal;flat varying vec3 dimensions;
     #ifdef ELLIPSOID
      varying vec3 localPosition;varying vec3 eye;varying mat3 normalToWorld;
     #else
      varying vec3 faceNormal;
     #endif
     void main(){mat4 transform=modelMatrix*instanceMatrix;vec4 world=transform*vec4(position,1.);
-     mat3 normalTransform=transpose(inverse(mat3(transform)));worldPoint=world.xyz;
+     mat3 normalTransform=transpose(inverse(mat3(transform)));worldPoint=world.xyz;dimensions=vec3(length(transform[0].xyz),length(transform[1].xyz),length(transform[2].xyz));detailCoord=position*dimensions;detailNormal=normal;
     #ifdef ELLIPSOID
      localPosition=position;eye=(inverse(transform)*vec4(cameraPosition,1.)).xyz;normalToWorld=normalTransform;
     #else
      faceNormal=normalize(normalTransform*normal);
     #endif
      gl_Position=projectionMatrix*viewMatrix*world;}`,
-    fragmentShader:this.lighting+`varying vec3 worldPoint;uniform float clipFloor;uniform vec3 color;uniform vec4 properties;
+    fragmentShader:this.lighting+surfaceRelief+`varying vec3 worldPoint,detailCoord,detailNormal;flat varying vec3 dimensions;uniform mat4 projectionMatrix;uniform vec3 grain;uniform float clipFloor;uniform vec3 color;uniform vec4 properties;
     #ifdef ELLIPSOID
-     varying vec3 localPosition;varying vec3 eye;varying mat3 normalToWorld;uniform mat4 projectionMatrix;
+     varying vec3 localPosition;varying vec3 eye;varying mat3 normalToWorld;
     #else
      varying vec3 faceNormal;
     #endif
-    void main(){vec3 p=worldPoint,n;
+    void main(){float depth=gl_FragCoord.z;vec3 p=worldPoint,n,coord=detailCoord,ln=detailNormal;
     #ifdef ELLIPSOID
      vec3 delta=localPosition-eye,d=normalize(delta),perp=cross(eye,d);
      float b=dot(eye,d),h=1.-dot(perp,perp);if(h<0.)discard;
      float t=-b-sqrt(h);if(t<=0.)t=-b+sqrt(h);if(t<=0.)discard;
-     n=normalize(normalToWorld*(eye+d*t));
+     ln=normalize(eye+d*t);coord=(eye+d*t)*dimensions;n=normalize(normalToWorld*ln);
      p=mix(cameraPosition,worldPoint,t/length(delta));
-     vec4 clip=projectionMatrix*viewMatrix*vec4(p,1.);gl_FragDepth=.5+.5*clip.z/clip.w;
+     vec4 clip=projectionMatrix*viewMatrix*vec4(p,1.);depth=.5+.5*clip.z/clip.w;
     #else
      n=normalize(faceNormal);
     #endif
      if(p.y<clipFloor)discard;
-     gl_FragColor=vec4(shade(color,n,p,properties),1.);
+     vec3 base=color,prior=n;float lift=grainSurface(coord,ln,grain,n,base,cameraPosition-p);gl_FragDepth=reliefDepth(depth,p,prior,lift,projectionMatrix);gl_FragColor=vec4(shade(base,n,p,properties),1.);
      #include <tonemapping_fragment>
      #include <colorspace_fragment>
     }`});
    mat.name='Studio implicit '+stamp.shape;this.materials.set(key,mat);
   }
-  mat.uniforms.color.value.set(m.color);mat.uniforms.properties.value.set(m.roughness,m.metallic,m.opacity,m.emission);
+  mat.uniforms.grain.value.set(...grainParams(m));mat.uniforms.color.value.set(m.color);mat.uniforms.properties.value.set(m.roughness,m.metallic,m.opacity,m.emission);
   const proxy=new THREE.Object3D();proxy.position.fromArray(stamp.position);proxy.scale.fromArray(stamp.size);proxy.userData.implicit=stamp.shape;
   let batch=this.batches.get(key);
   if(!batch){

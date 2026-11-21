@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Studio material test</title></head><body><script type="module">
+import {startStudioApp} from '/src/asset-studio/main.js';
+import {seedLibrary,asset,part,stamp,transform} from '/src/asset-studio/model.js';
+const l=seedLibrary(),choice=new URLSearchParams(location.search).get('ground')||'bronze';
+l.world.groundMaterialId=l.materials.some(m=>m.id===choice)?choice:'bronze';
+l.materials.find(m=>m.id==='water').organicLoad=.72;
+l.world.instances=[{id:'arch',assetId:'arch',transform:{...transform(),position:[-2.5,0,-1.5]}}];
+l.assets.find(a=>a.id==='arch').parts[0].physics={fixed:true};
+for(const [x,z,mat] of [[-.8,.6,'sand'],[1.4,.2,'water'],[2.2,-2,'wood']]){
+ const a=asset(mat==='water'?'Water volume':mat==='sand'?'Loose sand':'Wood block');
+ a.parts=[part(a.name,[stamp('box','add',[0,0,0],[.58,.58,.58],mat)])];l.assets.push(a);
+ l.world.instances.push({id:mat,assetId:a.id,transform:{...transform(),position:[x,1.25,z]}});
+}
+l.world.wind={speed:choice==='water'?18:choice==='sand'?32:4,heading:20};
+const store={load:async()=>({library:l,message:'Material test · changes stay in this tab.'}),save:async()=>'Material test · changes held in memory.'};
+startStudioApp(undefined,{store,cpuOnly:true}).catch(e=>document.body.append(e.message));
+</script></body></html>
