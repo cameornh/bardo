@@ -16,7 +16,7 @@ This first version includes:
 - Asset and material duplication, shared library placement, undo/redo and an unbounded ground material preview. The ground follows the camera's covered region without changing its world-space coordinates or material. There are no beach boundary walls.
 - Seven editable starter materials and three sample assets, including an animated two-part object.
 
-The studio now includes a bounded CPU rigid-body/joint preview. Density, friction, restitution and joint retention affect it. The ground always remains a solid support plane even when its selected material is water. Freely flowing parts remain visual previews without rigid contacts or joints. Fire, phase changes, fluids and soft-body deformation are not implemented here.
+The studio now includes a bounded CPU rigid-body/joint preview. Density, friction, restitution and joint retention affect it. In the world workspace, liquid ground supplies wind waves, displaced-volume buoyancy and drag. The asset editor uses a solid work plane. Freely flowing parts remain visual previews without rigid contacts or joints. Fire, phase changes and soft-body deformation remain future work.
 
 ## Materials
 
@@ -43,7 +43,7 @@ An exported, reviewed library can later be committed under `assets/library/` wit
 
 ## Rendering and bounded work
 
-Assets use tangent-oriented 3D covariance matrices, projected through the perspective Jacobian into screen-space Gaussian ellipses. A small depth prepass rejects hidden surfaces and a color pass blends nearby splats. Lighting uses nine real spherical-harmonic environment coefficients plus a direct light. The infinite ground preview is an analytic plane; editor gizmos are conventional meshes. Rendering is WebGL 2 and capped at 60 FPS.
+Composite, painted, translucent and fibrous surfaces use 3D covariance matrices, projected through the perspective Jacobian into screen-space Gaussian ellipses. A small depth prepass rejects hidden surfaces and a color pass blends nearby splats. Lighting uses nine real spherical-harmonic environment coefficients plus a direct light. Solid ground uses an analytic plane. Liquid ground uses a graded grid sampling a periodic wave spectrum; editor gizmos are conventional meshes. Rendering is WebGL 2 and capped at 60 FPS.
 
 WebGPU compute evaluates the sculpt distance/material grid. Before automatic use, four fixtures (including cross-batch carry-over) compare all distances and material IDs against the independent CPU sampler. Batches contain at most 16 operations, use at most 140,000 grid vertices, submit sequentially, and have bounded completion timeouts. CPU surface extraction runs in a worker. A checkbox selects the CPU reference. Physics transforms are CPU-side and do not rebuild visual geometry. No beach physics shaders are imported.
 
@@ -80,3 +80,13 @@ The isolated preview uses Rapier 0.21 CPU WebAssembly for contacts, constraints 
 Collision preparation runs in serial CPU workers with six-second timeouts, with the same direct CPU reference used by numerical tests. Collision geometry is independent of the camera and Gaussian bake spacing. Single boxes, spheres and capsules use exact shapes (scaled round shapes use bounded convex hulls when needed). General CSG is sampled into merged occupied boxes, at most 10,000 cells and 128 boxes per part, with a reported approximation spacing; openings wider than that spacing remain open, but small features and contact silhouettes can differ. A shear-producing nonuniform placement scale is explicitly rejected. Preview bodies remain capped at 32. Low-speed sleeping is disabled in this small force-testing world so tiny free-flight nudges do not disappear into a sleep threshold.
 
 Validation: [numerical and visual evidence](tests/results/studio-joints-2026-11-16/report.md). Sources: [Rapier joints](https://rapier.rs/docs/user_guides/javascript/joints/), [forces and impulses](https://rapier.rs/docs/user_guides/javascript/rigid_body_forces_and_impulses/), and [colliders](https://rapier.rs/docs/user_guides/javascript/colliders/). This uses explicit forces rather than Rapier's target-position motors.
+
+## Wind, surfaces and controls · November 20
+
+In the world workspace, select a liquid ground material and adjust wind speed and heading. A 40 m periodic tile contains a deterministic directional spectrum. A 32 × 32 inverse FFT supplies two bracketing height fields at 20 Hz. The CPU samples the interpolated field for buoyancy. WebGL samples the same pair for displacement and smoothly filters distant slopes. Local ripples and up to 96 droplets handle impacts, splashing and dragging a handful of water. This surface model approximates deep water. A shoreline needs a separate volume-conserving coupling to the beach solver. [Ocean simulation course](https://jtessen.people.clemson.edu/reports/papers_files/waterslides2001.pdf)
+
+Automatic rendering draws eligible opaque, single-stamp ellipsoids and boxes in batches sharing shape and material. Ellipsoids use direct ray intersection and boxes rasterize their exact faces. Both use the studio lighting. Fibre length adds normal-aligned Gaussian strands. Surface rendering can also be set to Gaussian explicitly, independently of roughness.
+
+Joint breaking load is specified in newtons at full material retention. The preview estimates transmitted force and bending load from changes in momentum, external loads and normal contact impulses. Torque is converted to an equivalent force using the part's characteristic radius. Breakage releases the runtime joint. Reset restores its authored connection.
+
+Left drag uses the selected tool. Drag a gizmo handle to transform, or click another object to select it. Right drag or the Camera tool orbits. Middle drag or Shift + right drag pans. The wheel zooms.

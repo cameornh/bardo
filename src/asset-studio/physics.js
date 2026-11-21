@@ -1,3 +1,6 @@
+import {WindSea} from './ocean.js';
+import {flotationSamples,applyEnvironment} from './fluid-forces.js';
+import {prepareLoads,releaseOverloaded} from './joint-load.js';
 import * as THREE from 'three';
 import {collisionProxy} from './collision.js';
 import {partRetention,liquidity,sampleForces} from './physics-data.js';
@@ -7,14 +10,16 @@ function partTransform(p){const m=compose({...p.transform,position:p.transform.p
 let engine;
 export async function loadPhysics(){if(!engine)engine=import('@dimforge/rapier3d-compat').then(async m=>{const R=m.default;await R.init();return R;});return engine;}
 export class StudioPhysics {
- static async create(library,mode,assetId,gravity=9.81){const R=await loadPhysics(),p=new StudioPhysics(R,gravity);try{await p.build(library,mode,assetId);return p;}catch(e){p.dispose();throw e;}}
+ static async create(library,mode,assetId,gravity=9.81,sea=null){const R=await loadPhysics(),p=new StudioPhysics(R,gravity);p.wind=library.world.wind||{speed:0,heading:0};
+ const liquid=mode==='world'&&library.materials.find(m=>m.id===library.world.groundMaterialId)?.phase==='liquid';
+ p.sea=liquid?(sea??new WindSea(p.wind.speed,p.wind.heading)):null;p.broken=0;try{await p.build(library,mode,assetId);return p;}catch(e){p.dispose();throw e;}}
  constructor(R,gravity){this.R=R;this.world=new R.World({x:0,y:-gravity,z:0});this.world.timestep=1/120;this.world.numSolverIterations=8;this.bodies=new Map();this.joints=[];this.pulses=[];this.time=0;this.accumulator=0;this.steps=0;this.skipped=[];this.maxProxySpacing=0;this.motorEnabled=true;this.lastStepMs=0;this.colliderCount=0;}
  async proxy(part){if(typeof Worker==='undefined')return collisionProxy(part);const worker=new Worker(new URL('./collision-worker.js',import.meta.url),{type:'module'});try{return await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Collision preparation exceeded six seconds; simplify or split this part.')),6000);worker.onmessage=({data})=>{clearTimeout(timer);data.error?reject(Error(data.error)):resolve(data.proxy);};worker.onerror=e=>{clearTimeout(timer);reject(Error(e.message));};worker.postMessage(part);});}finally{worker.terminate();}}
  async build(library,mode,assetId){
   const R=this.R,ground=library.materials.find(m=>m.id===library.world.groundMaterialId);
   this.ground=this.world.createRigidBody(R.RigidBodyDesc.fixed());
-  // Keep the support plane rigid in this authoring test, including liquid ground previews.
-  this.world.createCollider(R.ColliderDesc.cuboid(100000,.1,100000).setTranslation(0,-.1,0).setFriction(ground.friction).setRestitution(ground.restitution),this.ground);
+  this.waterDensity=ground.density;
+  if(!this.sea)this.world.createCollider(R.ColliderDesc.cuboid(100000,.1,100000).setTranslation(0,-.1,0).setFriction(ground.friction).setRestitution(ground.restitution),this.ground);
   const instances=mode==='asset'?[{id:'editor',assetId,transform:{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}}]:library.world.instances,cache=new Map();let total=0;
   for(const i of instances){const asset=library.assets.find(a=>a.id===i.assetId),im=compose(i.transform);
    for(const p of asset.parts){
@@ -35,7 +40,7 @@ export class StudioPhysics {
      if(!shape)throw Error('Cannot build collision shape for '+p.name);
      this.world.createCollider(shape.setTranslation(...center.toArray()).setDensity(mat.density).setFriction(mat.friction).setRestitution(mat.restitution),body);this.colliderCount++;
     }
-    const record={body,part:p,asset,instance:i,scale,initialRotation:rotation.clone(),matrix:m,retention:partRetention(p,library.materials)};this.bodies.set(i.id+':'+p.id,record);this.maxProxySpacing=Math.max(this.maxProxySpacing,proxy.spacing*Math.max(...scale.toArray()));
+    const record={body,part:p,asset,instance:i,scale,initialRotation:rotation.clone(),matrix:m,retention:partRetention(p,library.materials)};record.floats=flotationSamples(proxy.shapes,scale);record.fluidVolume=record.floats.reduce((sum,p)=>sum+p.volume,0);this.bodies.set(i.id+':'+p.id,record);this.maxProxySpacing=Math.max(this.maxProxySpacing,proxy.spacing*Math.max(...scale.toArray()));
     await new Promise(resolve=>setTimeout(resolve,0));
    }
   }
@@ -68,7 +73,7 @@ export class StudioPhysics {
  applyForce(f){const r=this.bodies.get(f.key);if(r)r.body.addForceAtPoint(f.force,this.worldPoint(r,f.localPoint),true);}
  step(dt=1/120){
   if(dt<=0||dt>1/60)throw Error('Invalid physics timestep');const start=performance.now();this.world.timestep=dt;
-  for(const r of this.bodies.values()){r.body.resetForces(false);r.body.resetTorques(false);}
+  for(const r of this.bodies.values()){r.body.resetForces(false);r.body.resetTorques(false);if(this.sea||this.wind.speed)applyEnvironment(r,this.sea,this.waterDensity,this.wind,-this.world.gravity.y,dt);}
   for(const link of this.joints){const {child,parent,j,support,rest}=link,b=child.body,a=parent?.body||this.ground;
    if(j.type!=='fixed'){
     const qa=q(a.rotation()),relative=qa.clone().invert().multiply(q(b.rotation())),err=relative.multiply(rest.clone().invert());if(err.w<0)err.set(-err.x,-err.y,-err.z,-err.w);
@@ -84,10 +89,11 @@ export class StudioPhysics {
    }
   }
   this.pulses=this.pulses.filter(f=>f.until>this.time);for(const pulse of this.pulses){const fraction=Math.min(1,(pulse.until-this.time)/dt);this.applyForce({...pulse,force:pulse.force.clone().multiplyScalar(fraction)});}if(this.drag)this.applyForce(this.drag);
-  this.world.step();this.time+=dt;this.steps++;this.lastStepMs=performance.now()-start;
+  const loads=prepareLoads(this.joints,this.world.gravity);
+  this.world.step();releaseOverloaded(this,loads,dt);this.sea?.advance(dt);this.time+=dt;this.steps++;this.lastStepMs=performance.now()-start;
   for(const r of this.bodies.values()){const p=r.body.translation(),rot=r.body.rotation();if(![p.x,p.y,p.z,rot.x,rot.y,rot.z,rot.w].every(Number.isFinite))throw Error('Physics stopped: non-finite body state');r.matrix.compose(v(p),q(rot),r.scale);}
  }
  advance(seconds){this.accumulator=Math.min(.1,this.accumulator+Math.max(0,seconds));let n=0;while(this.accumulator>=1/120&&n<12){this.step();this.accumulator-=1/120;n++;}return n/120;}
  dispose(){this.world?.free();this.world=null;this.bodies.clear();}
- diagnostics(){return {backend:'CPU · Rapier WASM',bodies:this.bodies.size,joints:this.joints.length,colliders:this.colliderCount,steps:this.steps,seconds:this.time,stepMs:this.lastStepMs,proxySpacing:this.maxProxySpacing,skipped:this.skipped,poses:[...this.bodies].map(([id,r])=>({id,position:r.body.translation(),rotation:r.body.rotation(),mass:r.body.mass()}))};}
+ diagnostics(){return {backend:'CPU · Rapier WASM',bodies:this.bodies.size,joints:this.joints.length,broken:this.broken,colliders:this.colliderCount,steps:this.steps,seconds:this.time,stepMs:this.lastStepMs,proxySpacing:this.maxProxySpacing,skipped:this.skipped,poses:[...this.bodies].map(([id,r])=>({id,position:r.body.translation(),rotation:r.body.rotation(),mass:r.body.mass()}))};}
 }

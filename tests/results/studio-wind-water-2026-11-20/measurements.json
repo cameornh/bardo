@@ -1,0 +1,32 @@
+{
+  "studio": {
+    "fixture": "/tests/studio-surface-cost.html?dense=1",
+    "placements": 24,
+    "spacingMetres": 0.05,
+    "gaussiansPerReferencePass": 56832,
+    "output": [640, 360],
+    "framesPerBlock": 72,
+    "warmupFrames": 6,
+    "windMetresPerSecond": 8,
+    "physicsHz": 120,
+    "presentationCapHz": 60,
+    "rows": [
+      {"surface":"gaussian","fps":27.79,"realtime":0.991,"completedFrameMs":32.28},
+      {"surface":"batched implicit","fps":32.21,"realtime":0.988,"completedFrameMs":21.92},
+      {"surface":"batched implicit","fps":30.03,"realtime":0.990,"completedFrameMs":24.07},
+      {"surface":"gaussian","fps":26.85,"realtime":0.979,"completedFrameMs":32.23}
+    ],
+    "contextLost": false
+  },
+  "beach": {
+    "fixture": "/tests/scene-performance.html?cycles=1",
+    "markers": 3024,
+    "edits": 48,
+    "render": [320,200],
+    "output": [960,540],
+    "reference": {"fps":5.50959444224184,"realtime":0.6944384661575657},
+    "optimized": {"fps":5.496865069140256,"realtime":0.7100117380972834},
+    "contextLost": false,
+    "note": "Independent existing beach regression. Both sides use the beach particle and field solver."
+  }
+}
