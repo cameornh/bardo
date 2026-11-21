@@ -11,7 +11,7 @@ const affected = {
 function appearance(m, index) {
   return {
     tint:new THREE.Color(m.color).toArray(), properties:[m.roughness, m.metallic, m.opacity, m.emission],
-    grainSettings:grainParams(m), phaseId:[looseKind(m), index], fiberLength:[Math.fround(m.fiberLength || 0)]
+    grainSettings:grainParams(m), phaseId:[m.phase==='gas'?1:looseKind(m), index], fiberLength:[Math.fround(m.fiberLength || 0)]
   };
 }
 

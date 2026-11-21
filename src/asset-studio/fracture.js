@@ -164,7 +164,7 @@ function evaluate(sim,r,dt){
  // Defer irreversible damage if a large iterative solve still needs refinement.
  if(net.pending)return;
  for(const e of net.edges){
-  const ratio=e.ratio,axial=e.axial;
+  const ratio=e.ratio/Math.min(r.fieldStrength?.get(e.a)??1,r.fieldStrength?.get(e.b)??1),axial=e.axial;
   if(beam?.status==='intact'&&e.axis===beam.axis&&Math.abs(e.center[e.axis]-s.bucklingPlane)<1e-5)compression-=axial;
   e.damage=Math.max(0,e.damage+dt*(ratio>1?Math.min(7,ratio-1):-2));
   if(e.damage>0)r.accumulating=true;
@@ -213,7 +213,7 @@ function worldInertia(body){
 }
 function separate(sim,r,groups){
  const s=r.structure,old=r.body,rot=new Quaternion().copy(old.rotation()),origin=vec(old.translation()),spin=vec(old.angvel()),v=vec(old.linvel());
- const previousRegions=r.regions;
+ const previousRegions=r.regions,previousField=r.field;
  const held=regionAt(r,s.anchor);
  groups.sort((a,b)=>Number(b.includes(held))-Number(a.includes(held))||b.length-a.length);
  const originalColliders=old.numColliders(),records=[];
@@ -266,6 +266,7 @@ function separate(sim,r,groups){
   sim.rebindJoint(l);
  }
  for(const f of sim.drag?[...sim.pulses,sim.drag]:sim.pulses)if(f.key===r.key&&!f.loose)f.key=structureBody(r,f.localPoint,previousRegions).key;
+ sim.materialWorld?.inherit(previousField,records);
  sim.world.removeRigidBody(old);sim.colliderCount-=originalColliders;
  return records;
 }

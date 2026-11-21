@@ -41,7 +41,7 @@ export class LooseMatter{
    const shape=R.ColliderDesc.ball(p.radius).setMass(p.volume*material.density)
     .setRestitution(.015).setFriction(kind===2?.018:material.friction+.18*material.moisture);
    if(sim.sandTerrain&&material.id===sim.groundMaterial.id)shape.setCollisionGroups(0x0002fff9);
-   if(material.phase==='gas'){body.setGravityScale(0,true);body.setLinearDamping(1.8);}
+   if(material.phase==='gas'){shape.setSensor(true);body.setGravityScale(0,true);body.setLinearDamping(1.8);}
    world.createCollider(shape,body);p.body=body;this.count++;
   }
   return group;
@@ -65,7 +65,7 @@ export class LooseMatter{
   for(const [id,g] of this.parts){
    g.age+=dt;
    const m=g.material,r=g.radius,liquid=g.kind===2;
-   const shear=Math.max(0,wind.speed-entrainment(m)),packets=g.packets;
+   const shear=Math.max(0,wind.speed-entrainment(m)-32*((g.surfaceMoisture??m.moisture)-m.moisture)),packets=g.packets;
    const pressure=liquid?Math.min(8,3.5/(1+m.viscosity)):0;
    for(let i=packets.length-1;i>=0;i--){
     const p=packets[i],pos=p.position.copy(p.body.translation()),v=p.body.linvel();

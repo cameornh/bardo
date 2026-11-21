@@ -66,7 +66,7 @@ export class SectionView{
     for(const [r,surface] of fragmentSurfaces(s,batch.skin,changed)){
      const geometry=this.view.geometry(surface,this.view.library.materials);let mesh=batch.pieces.get(r);
      if(mesh){mesh.geometry.dispose();mesh.geometry=geometry;}
-     else{mesh=new Mesh(geometry,this.view.material);mesh.matrixAutoUpdate=false;this.view.assetScene.add(mesh);batch.pieces.set(r,mesh);}
+     else{mesh=new Mesh(geometry,this.view.material);this.view.bindFinish(mesh,()=>r);mesh.matrixAutoUpdate=false;this.view.assetScene.add(mesh);batch.pieces.set(r,mesh);}
      mesh.userData.regions=r.regions;
     }
     batch.count=s.bodies.size;

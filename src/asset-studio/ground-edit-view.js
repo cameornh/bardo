@@ -50,7 +50,7 @@ export class GroundEditView{
     mesh.userData.chunk=c;
     this.view.scene.add(mesh);this.meshes.set(c,mesh);
    }
-   mesh.position.copy(c.body.translation());mesh.quaternion.copy(c.body.rotation());
+   mesh.scale.setScalar(c.field?.scale??1);mesh.position.copy(c.body.translation());mesh.quaternion.copy(c.body.rotation());
   }
  }
  remove(mesh){mesh.removeFromParent();mesh.geometry.dispose();mesh.material.dispose();}

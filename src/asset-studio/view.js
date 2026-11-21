@@ -1,3 +1,4 @@
+import {MaterialFieldView} from './material-field-view.js';
 import {PaintedView} from './painted-view.js';
 import {studioGeometry,updateMaterialAttribute} from './surface-attributes.js';
 import {SectionView} from './section-view.js';
@@ -95,7 +96,17 @@ export class StudioView{
    vec3 surface=(cameraWorld*vec4(ray*t,1.)).xyz;
    vec3 n=normalize(vNormal),col=vec3(1.);float h=grainSurface(localCoord+worldToLocal*(surface-vWorld),localN,grain,n,col,cameraPosition-surface);
    gl_FragDepth=reliefDepth(clip.z/clip.w*.5+.5,surface,normalize(vNormal),h,projectionMatrix);gl_FragColor=vec4(0.);`);
-  this.paintView=new PaintedView(this.uniforms,LIGHTING);this.sectionView=new SectionView(this);this.matterView=new MatterView(this,LIGHTING);this.liquidMats=new Map();
+  // The finish is evaluated on the existing surface, including its silhouettes.
+  // The shared geometry stays immutable across instances and resets.
+  this.uniforms.finishCount={value:0};this.uniforms.finishSites={value:Array.from({length:8},()=>new THREE.Vector4())};
+  this.uniforms.finishState={value:Array.from({length:8},()=>new THREE.Vector2())};
+  this.material.vertexShader='uniform int finishCount;uniform vec4 finishSites[8];uniform vec2 finishState[8];\n'+this.material.vertexShader.replace('vColor=tint;',`
+   float finish=0.;
+   for(int i=0;i<8;i++){if(i>=finishCount)break;if(abs(finishState[i].x-phaseId.y)>.1)continue;
+    vec3 delta=mat3(modelMatrix)*(center-finishSites[i].xyz);
+    finish=max(finish,exp(-dot(delta,delta)*finishSites[i].w)*finishState[i].y);}
+   vColor=tint*(1.-finish);`);
+  this.fieldView=new MaterialFieldView(this.uniforms,LIGHTING);this.paintView=new PaintedView(this.uniforms,LIGHTING);this.sectionView=new SectionView(this);this.matterView=new MatterView(this,LIGHTING);this.liquidMats=new Map();
  }
  this.groundMaterial=new THREE.ShaderMaterial({uniforms:{environment:this.uniforms.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},vertexShader:GROUND_VERTEX,fragmentShader:GROUND_FRAGMENT});
  if(liveStudio){
@@ -138,15 +149,28 @@ export class StudioView{
   }
   const mat=this.liquidMats.get(key);Object.assign(mat.uniforms,liquidUniforms(this.oceanView.uniforms,m));mat.uniforms.selected.value=index;return mat;
  }
- rebuild(library,mode,assetId){this.gizmo.detach();this.root.clear();this.groups.clear();this.library=library;this.mode=mode;this.hasFiniteLiquid=false;this.implicitCount=0;this.gaussianCount=0;this.implicit?.clear();const instances=mode==='asset'?[{id:'editor',assetId,transform:{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}}]:library.world.instances;
+ rebuild(library,mode,assetId){this.gizmo.detach();this.root.clear();this.groups.clear();this.library=library;this.materialIndices=new Map(library.materials.map((m,i)=>[m.id,i]));this.mode=mode;this.hasFiniteLiquid=false;this.implicitCount=0;this.gaussianCount=0;this.implicit?.clear();const instances=mode==='asset'?[{id:'editor',assetId,transform:{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}}]:library.world.instances;
  for(const instance of instances){const a=library.assets.find(a=>a.id===instance.assetId);if(!a)continue;const group=new THREE.Group();group.userData={instanceId:instance.id,assetId:a.id};poseObject(group,instance.transform);this.root.add(group);this.groups.set(instance.id,group);for(const p of a.parts){const object=new THREE.Group();object.userData={partId:p.id,assetId:a.id};object.matrixAutoUpdate=false;object.matrix.copy(partMatrix(p.transform,p.pivot));group.add(object);const direct=this.liveStudio&&implicitStamp(p,library.materials);
  if(direct){object.userData.stampMaterial=direct.materialId;object.add(this.implicit.mesh(direct,library.materials.find(m=>m.id===direct.materialId)));this.implicitCount++;continue;}
- const key=a.id+':'+p.id,geometry=this.cache.get(key);if(geometry){this.gaussianCount+=geometry.instanceCount;const mesh=new THREE.Mesh(geometry,this.material);mesh.userData.surfaceKey=key;object.add(mesh);
+ const key=a.id+':'+p.id,geometry=this.cache.get(key);if(geometry){this.gaussianCount+=geometry.instanceCount;const mesh=new THREE.Mesh(geometry,this.material);mesh.userData.surfaceKey=key;if(this.liveStudio)this.bindFinish(mesh,()=>this.activePhysics?.get(instance.id,p.id));object.add(mesh);
  if(this.liveStudio)for(const mid of geometry.userData.materialIds??new Set(this.surfaces.get(key)?.materials)){
   const index=library.materials.findIndex(m=>m.id===mid),m=library.materials[index];
   if(looseKind(m)!==2)continue;this.hasFiniteLiquid=true;
   const optical=new THREE.Mesh(geometry,this.liquidMaterial(m,index));optical.userData.surfaceKey=key;optical.layers.set(1);object.add(optical);
  }}}}this.setGround(this.liveStudio&&mode==='asset'?this.workPlane:library.materials.find(m=>m.id===library.world.groundMaterialId));this.paintView?.rebuild(this);}
+ bindFinish(mesh,record){
+  mesh.onBeforeRender=(_renderer,_scene,_camera,_geometry,material)=>{
+   if(material!==this.material)return;
+   const r=record(),u=this.uniforms;let n=0;
+   for(const s of r?.field?.sites??[]){
+    if(s.mark||s.finish<.01)continue;
+    const data=u.finishSites.value[n];data.set(s.local.x/r.scale.x,s.local.y/r.scale.y,s.local.z/r.scale.z,.65/(s.radius*s.radius));
+    u.finishState.value[n].set(this.materialIndices.get(s.material.id),s.finish);
+    if(++n===8)break;
+   }
+   u.finishCount.value=n;material.uniformsNeedUpdate=true;
+  };
+ }
  applyPhysics(physics){if(this.liveStudio){this.activePhysics=physics;this.uniforms.matterPlaying.value=1;this.matterView.update(physics);this.sectionView.update(physics);}for(const [id,group]of this.groups){group.updateMatrix();const inverse=group.matrix.clone().invert();for(const object of group.children){const body=physics.get(id,object.userData.partId);if(body)object.matrix.copy(inverse).multiply(body.matrix);}}}
  animate(time,playing){if(this.activePhysics){this.sectionView?.update(null);this.activePhysics=null;this.uniforms.matterPlaying.value=0;this.matterView.reset();}for(const group of this.groups.values()){const a=this.library.assets.find(a=>a.id===group.userData.assetId);for(const obj of group.children){const p=a.parts.find(p=>p.id===obj.userData.partId);if(this.gizmo.dragging&&this.gizmo.object===obj)continue;obj.matrix.copy(partMatrix(playing?sampleTrack(p,time%a.duration):p.transform,p.pivot));}}}
  attach(instanceId,partId,tool){this.gizmo.detach();if(!['translate','rotate','scale'].includes(tool))return;const group=this.groups.get(this.mode==='asset'?'editor':instanceId);if(!group)return;const obj=this.mode==='asset'?group.children.find(p=>p.userData.partId===partId):group;if(!obj)return;
@@ -234,11 +258,12 @@ export class StudioView{
  this.groundEdits.update(this.activePhysics);this.sandView.update(this.sand,this.groundSurface,this.camera.position);this.groundMaterial.uniforms.granular.value=!!this.sand;
  this.ground.visible=!this.sea;this.uniforms.clipFloor.value=this.sea||this.activePhysics?.sandTerrain?.version||this.activePhysics?.cuts?.nodes.size?-1e10:0;
  if(this.sea)this.oceanView.update(this.sea,this.camera,this.library.materials.find(m=>m.id===this.library.world.groundMaterialId));else this.oceanView.show(false);
- }if(this.implicitCount){this.assetScene.updateMatrixWorld(true);this.implicit.update();}this.ground.position.set(this.liveStudio?Math.round(this.camera.position.x*4)/4:this.camera.position.x,0,this.liveStudio?Math.round(this.camera.position.z*4)/4:this.camera.position.z);this.scene.updateMatrixWorld(true);if(this.liveStudio&&(this.sea||this.visibleLiquid)){
+ }if(this.implicitCount){this.assetScene.updateMatrixWorld(true);this.implicit.update(this.activePhysics);}this.ground.position.set(this.liveStudio?Math.round(this.camera.position.x*4)/4:this.camera.position.x,0,this.liveStudio?Math.round(this.camera.position.z*4)/4:this.camera.position.z);this.scene.updateMatrixWorld(true);if(this.liveStudio&&(this.sea||this.visibleLiquid)){
  this.oceanView.capture.render(this);
  }else{if(this.liveStudio&&this.groundSurface.metallic>.02)this.oceanView.capture.render(this,true);this.drawObjects(this.camera);}
+ this.fieldView?.draw(this.renderer,this.camera,this.activePhysics?.materialWorld,this.fieldDisplay);
  if(this.eyeScene?.children.some(o=>o.visible)){this.renderer.autoClear=false;this.renderer.render(this.eyeScene,this.camera);}}
  drawObjects(camera){this.renderer.autoClear=true;this.renderer.render(this.scene,camera);this.renderer.autoClear=false;
  this.assetScene.overrideMaterial=this.depthMaterial;this.renderer.render(this.assetScene,camera);this.assetScene.overrideMaterial=null;this.renderer.render(this.assetScene,camera);if(this.paintView?.scene.children.length)this.renderer.render(this.paintView.scene,camera);if(this.grainScene?.children.some(o=>o.visible))this.renderer.render(this.grainScene,camera);}
- dispose(){this.paintView?.dispose();this.sectionView?.clear();this.groundEdits?.dispose();this.matterView?.reset();this.uniforms.grainMap?.value.dispose();for(const mat of this.liquidMats?.values()||[])mat.dispose();this.sandView?.dispose();this.oceanView?.dispose();this.implicit?.dispose();this.forceLine.geometry.dispose();this.forceLine.material.dispose();this.resizeObserver.disconnect();this.controls.dispose();this.gizmo.dispose();for(const g of this.cache.values())g.dispose();this.material.dispose();this.depthMaterial.dispose();this.ground.geometry.dispose();this.groundMaterial.dispose();this.brush.geometry.dispose();this.brush.material.dispose();this.renderer.dispose();}
+ dispose(){this.fieldView?.dispose();this.paintView?.dispose();this.sectionView?.clear();this.groundEdits?.dispose();this.matterView?.reset();this.uniforms.grainMap?.value.dispose();for(const mat of this.liquidMats?.values()||[])mat.dispose();this.sandView?.dispose();this.oceanView?.dispose();this.implicit?.dispose();this.forceLine.geometry.dispose();this.forceLine.material.dispose();this.resizeObserver.disconnect();this.controls.dispose();this.gizmo.dispose();for(const g of this.cache.values())g.dispose();this.material.dispose();this.depthMaterial.dispose();this.ground.geometry.dispose();this.groundMaterial.dispose();this.brush.geometry.dispose();this.brush.material.dispose();this.renderer.dispose();}
 }

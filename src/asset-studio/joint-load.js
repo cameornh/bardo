@@ -67,7 +67,7 @@ export function releaseOverloaded(sim,records,dt,links=sim.joints){
   recordLoad(l.parent,w.force,anchor,moment);recordLoad(l.child,w.force.clone().negate(),anchor,moment.clone().negate());
   const lever=Math.max(.05,Math.cbrt(l.child.fluidVolume)*.5);
   const load=Math.hypot(w.force.length(),moment.length()/lever);
-  if(l.section?sectionFailure(sim,l,w.force,moment,dt):load>(l.j.breakForce??50000)*l.support){
+  if(l.section?sectionFailure(sim,l,w.force,moment,dt):load>(l.j.breakForce??50000)*l.support*Math.min(l.child.materialStrength??1,l.parent?.materialStrength??1)){
    sim.world.removeImpulseJoint(l.joint,true);const list=l.section?sim.internalLinks:sim.joints;list.splice(list.indexOf(l),1);if(!l.section)sim.broken++;
   }
  }

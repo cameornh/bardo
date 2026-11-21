@@ -14,26 +14,29 @@ This first version includes:
 - Named parts, local pivots and move/rotate/scale gizmos plus numeric entry.
 - Authored rest transforms and pivots plus looping force/torque keys applied to physical joints. Older position/rotation/scale keys remain saved as pose guides; they no longer drive playback. There is no skinning, IK or soft-body animation yet.
 - Asset and material duplication, shared library placement, undo/redo and an unbounded ground material preview. The ground follows the camera's covered region without changing its world-space coordinates or material. There are no beach boundary walls.
-- Seven editable starter materials and three sample assets, including an animated two-part object.
+- Nineteen editable starter materials and three sample assets, including an animated two-part object.
 
-The studio now includes a bounded CPU rigid-body/joint preview. Density, friction, restitution and joint retention affect it. In the world workspace, liquid ground supplies wind waves, displaced-volume buoyancy and drag. The asset editor uses a solid work plane. Freely flowing parts release mobile material when physics starts. Fire, phase changes and soft-body deformation remain future work.
+The studio now includes a bounded CPU rigid-body/joint preview. Density, friction, restitution and joint retention affect it. In the world workspace, liquid ground supplies wind waves, displaced-volume buoyancy and drag. The asset editor uses a solid work plane. Freely flowing parts release mobile material when physics starts. Surface temperature, moisture, electrical potential and combustion evolve during physics playback. Melting weakens contacts and joints. Continuous bulk reshaping of a melting sculpt remains a follow-up.
 
 ## Materials
 
-All parameters are continuous numeric properties, not hardcoded dry/wet behavior levels. Phase presets initialize liquidity; the numeric liquidity and strength properties control joint retention continuously. Color, roughness, metalness, opacity and emission affect this preview. Opacity is a Gaussian surface approximation; it is not full refractive glass or water optics.
+A material definition supplies starting conditions and coefficients. Each placement has its own transient state. A custom material goes through the same calculations as a preset. The twelve additional presets are copper, aluminium, graphite, porcelain, cork, cotton felt, cellulose sponge, beeswax, ice, salt water, vegetable oil and pumice.
 
-Stored physical properties have explicit SI units where applicable:
-
-| Area | Properties |
+| Material controls | What changes during playback |
 | --- | --- |
-| Mechanics | Density; friction; restitution; elastic modulus; Poisson ratio; yield and tensile strength; cohesion; adhesion; dynamic viscosity |
-| Thermal | Specific heat; thermal conductivity; emissivity; expansion; melting and boiling temperatures; latent heat of fusion |
-| Combustion | Ignition temperature; fuel energy (zero means inert); burn rate; smoke yield |
-| Electrical | Electrical conductivity |
-| Moisture | Initial water mass fraction; porosity; permeability; water affinity |
-| Optics | Refractive index; bulk absorption |
+| Density, friction, restitution, liquidity and viscosity | Mass, buoyancy, resistance to sliding, rebound, fluid movement and whether a joint can hold. |
+| Elastic modulus, Poisson ratio, yield stress, tensile strength, cohesion and adhesion | Elastic recovery, deformation, transfer of loads and fracture within and between materials. Local melting and fuel loss weaken connections. |
+| Starting temperature, heat capacity, thermal conductivity, emissivity and expansion | Initial temperature, heating per joule, heat flow across touching surfaces, radiative exchange with air and changes to both visible and collision dimensions. |
+| Melting and boiling temperatures, latent heat of fusion and bulk water content | Energy goes into changing phase at the transition temperature. Melting softens the surface. Boiling transfers mass to the air, where the aqueous fraction contributes to humidity and the rest becomes a separate vapour. |
+| Initial moisture, porosity, permeability and water affinity | Water storage and uptake, wicking at contacts, wet friction, evaporative cooling and resistance to ignition. Cold surfaces collect condensate from humid air. |
+| Electrical conductivity | Potential and current through connected material regions. Damp surfaces can conduct better. Resistance dissipates electrical energy as heat. |
+| Ignition temperature, fuel energy, burn rate and smoke yield | Hot fuel consumes local oxygen, heats the surface and the air, emits smoke, chars and weakens. Moisture inhibits burning. Wind carries smoke, heat and humidity. |
+| Color, opacity, roughness, metalness, emission, refractive index, absorption and scattering | Surface appearance, directional highlights, reflection and transmission. Liquid ground uses depth-dependent absorption and in-scattering. |
+| Fibre length, grain relief, elongation and spacing, organic load | Surface fibres and textured Gaussian grains. Organic load changes the tint and persistence/coverage of sea foam. |
 
-Later: distinguish bulk material definitions from per-parcel temperature, moisture, damage and phase state. Add property curves versus temperature/moisture with unit-aware interpolation. Preserve dried sand's residual adhesion and shape history. Introduce thermal/electrical transport, combustion and elastic/yield response only with numerical fixtures and explicit conservation budgets. Avoid suggesting that setting ignition temperature already enables fire.
+Open **Material interactions** to probe an object or a spot on the ground. Attach a supply and a return to distinct points on a conducting path. Inspect the potential and local heating, then separate the contacts to open the circuit. Heat or wet a piece of cotton to compare how it burns. The material workbench at `/tests/studio-material-fields.html` opens an isolated, in-memory library.
+
+The CPU updates connected surface samples and a sparse world-space atmosphere eight times per simulated second. Each connected material region has two samples along its longest axis. Painted Gaussian details have individual samples connected to their roots. Ground uses up to 150 active surface tiles and air uses up to 384 one-cubic-metre cells. The outer boundary exchanges with ambient air. Bulk interior heat fronts, molten geometry flowing off a formerly rigid sculpt, and calibrated chemistry remain future work. Field overlays show sampled values, and the surface keeps its wet or charred finish during the run. Reset physics restores the authored starting state.
 
 ## Local ownership and repository path
 
@@ -57,7 +60,7 @@ This first editor deliberately limits a part to 512 stamps, 24,000 surface sampl
 4. Sparse editable field bricks, incremental brush updates, demand-loaded library caches and GPU instance transforms. These should remove operation-history limits and lower save/undo memory while retaining the original editable definition.
 5. Reusable force clips, optional inverse-dynamics authoring from pose guides, joint limits/breakage, quaternion rig editing, bones/skin weights and deformation cages. Preserve local pivots and covariance transforms under deformation.
 6. Native wgpu studio integration and portable renderer, using the same authoring schema and controls. Existing beach performance work remains in DEVELOPMENT_BACKLOG.md and is paused at the user's request.
-7. Physically meaningful temperature/moisture-dependent property curves; elasticity, fracture, combustion, conduction and phase changes. Each needs its own conservation and stability tests, not only extra sliders.
+7. Calibrate the coupled material responses against reference measurements. Add interior thermal resolution and mass-conserving conversion between a melting rigid sculpt and mobile material. Extend transport tests to cover spatially separated deposits and larger connected circuits.
 
 ## Inspiration and reuse
 

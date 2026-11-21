@@ -1,3 +1,4 @@
+import {MaterialWorld} from './material-world.js';
 import {PaintedHinges} from './painted-hinges.js';
 import {BearingLoad} from './bearing-load.js';
 import {beamSection,bindBuckledSection} from './structural-section.js';
@@ -22,6 +23,7 @@ let engine;
 export async function loadPhysics(){if(!engine)engine=import('@dimforge/rapier3d-compat').then(async m=>{const R=m.default;await R.init();return R;});return engine;}
 export class StudioPhysics {
  static async create(library,mode,assetId,gravity=9.81,sea=null,sand=null){const R=await loadPhysics(),p=new StudioPhysics(R,gravity);p.wind=library.world.wind||{speed:0,heading:0};
+ p.materialWorld=new MaterialWorld(library.materials);
  p.groundMaterial=library.materials.find(m=>m.id===library.world.groundMaterialId);
  const kind=mode==='world'?looseKind(p.groundMaterial):0,liquid=kind===2;p.sand=kind===1?(sand??new WindSand()):null;
  p.bearing=mode==='world'&&p.groundMaterial.phase==='solid'?new BearingLoad():null;
@@ -46,8 +48,7 @@ export class StudioPhysics {
     const proxy={...original,shapes:[]},loose=new Map();
     for(const shape of original.shapes){
      const mat=library.materials.find(v=>v.id===shape.materialId);
-     if(mat.phase==='gas')continue;
-     if(!looseKind(mat)){proxy.shapes.push(shape);continue;}
+     if(mat.phase!=='gas'&&!looseKind(mat)){proxy.shapes.push(shape);continue;}
      if(!loose.has(mat))loose.set(mat,[]);loose.get(mat).push(shape);
     }
     const budget=Math.max(1,Math.min(64,Math.floor(768/(Math.max(1,partCount)*Math.max(1,loose.size)))));
@@ -77,11 +78,12 @@ export class StudioPhysics {
      record.floats=flotationSamples(shapes,scale);record.fluidVolume=record.floats.reduce((sum,p)=>sum+p.volume,0);const bounds=new THREE.Box3();
      for(const s of record.floats){const reach=s.extent.clone().multiplyScalar(2);bounds.expandByPoint(s.p.clone().sub(reach));bounds.expandByPoint(s.p.clone().add(reach));}
      record.probeCenter=bounds.getCenter(new THREE.Vector3());record.probeRadius=bounds.getSize(new THREE.Vector3()).length()*.5;
-     record.nextProbe=(total%7)*.024;this.bodies.set(recordKey,record);return record;
+     this.materialWorld.bind(record,shapes);record.nextProbe=(total%7)*.024;this.bodies.set(recordKey,record);return record;
     };
     const record=makeBody(proxy.shapes,recordKey,p.physics?.fixed,p.stamps);
     attachStructure(this,record,proxy.shapes,materials,anchor,section,makeBody);
     this.paintedHinges.attach(record,materials);
+    this.materialWorld.attachMarks(record,this.paintedHinges.parts.get(record.key));
     this.maxProxySpacing=Math.max(this.maxProxySpacing,proxy.spacing*Math.max(...scale.toArray()));
     await new Promise(resolve=>setTimeout(resolve,0));
    }
@@ -149,12 +151,13 @@ export class StudioPhysics {
   if(this.sand)this.sand.advance(dt,this.wind,this.groundMaterial);
   this.sandTerrain?.advance(dt,this.wind);this.cuts.relax(dt);
   if(!this.flatFloor&&!this.sea||[...this.matter.beds.values()].some(b=>!b.liquid))this.dunes.update(this);
-  this.matter.update(this,dt);this.world.step();this.bearing?.advance(this,dt);if(this.sea)for(const record of this.bodies.values())waveImpact(this,record);releaseOverloaded(this,loads,dt,links);advanceFractures(this,dt);this.time+=dt;this.steps++;this.lastStepMs=performance.now()-start;
-  for(const r of this.bodies.values()){const p=r.body.translation(),rot=r.body.rotation();if(![p.x,p.y,p.z,rot.x,rot.y,rot.z,rot.w].every(Number.isFinite))throw Error('Physics stopped: non-finite body state');r.matrix.compose(v(p),q(rot),r.scale);}
+  this.matter.update(this,dt);this.world.step();this.bearing?.advance(this,dt);if(this.sea)for(const record of this.bodies.values())waveImpact(this,record);releaseOverloaded(this,loads,dt,links);advanceFractures(this,dt);this.time+=dt;this.steps++;
+  for(const r of this.bodies.values()){const p=r.body.translation(),rot=r.body.rotation();if(![p.x,p.y,p.z,rot.x,rot.y,rot.z,rot.w].every(Number.isFinite))throw Error('Physics stopped: non-finite body state');r.matrix.compose(v(p),q(rot),r.field.scale===1?r.scale:r.scale.clone().multiplyScalar(r.field.scale));}
   if(this.paintedHinges.parts.size)this.paintedHinges.step(dt,this.wind,this.world.gravity.y,this.time);
-  this.sea?.advance(dt,this.collideDrop);
+  this.materialWorld?.step(this,dt);
+  this.sea?.advance(dt,this.collideDrop);this.lastStepMs=performance.now()-start;
  }
  advance(seconds){this.accumulator=Math.min(.1,this.accumulator+Math.max(0,seconds));let n=0;while(this.accumulator>=1/120&&n<12){this.step();this.accumulator-=1/120;n++;}return n/120;}
  dispose(){this.world?.free();this.world=null;this.bodies.clear();this.structures.length=0;this.sections.length=0;this.internalLinks.length=0;this.joints.length=0;this.fractureMotion?.clear();this.matter.parts.clear();this.matter.beds.clear();}
- diagnostics(){return {backend:'CPU · Rapier WASM',bodies:this.bodies.size,joints:this.joints.length,broken:this.broken,brokenBonds:this.structures.reduce((n,s)=>n+s.brokenBonds,0),fragments:this.structures.reduce((n,s)=>n+s.bodies.size-1,0),colliders:this.colliderCount,steps:this.steps,seconds:this.time,looseParcels:this.matter.count,stepMs:this.lastStepMs,proxySpacing:this.maxProxySpacing,skipped:this.skipped,poses:[...this.bodies].map(([id,r])=>({id,position:r.body.translation(),rotation:r.body.rotation(),mass:r.body.mass()}))};}
+ diagnostics(){return {backend:'CPU · Rapier WASM',materialSamples:this.materialWorld?.nodes.length??0,airCells:this.materialWorld?.air.cells.size??0,bodies:this.bodies.size,joints:this.joints.length,broken:this.broken,brokenBonds:this.structures.reduce((n,s)=>n+s.brokenBonds,0),fragments:this.structures.reduce((n,s)=>n+s.bodies.size-1,0),colliders:this.colliderCount,steps:this.steps,seconds:this.time,looseParcels:this.matter.count,stepMs:this.lastStepMs,proxySpacing:this.maxProxySpacing,skipped:this.skipped,poses:[...this.bodies].map(([id,r])=>({id,position:r.body.translation(),rotation:r.body.rotation(),mass:r.body.mass()}))};}
 }

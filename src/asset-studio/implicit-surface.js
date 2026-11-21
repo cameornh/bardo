@@ -2,6 +2,7 @@ import {reflectedSurfaceClip} from './wave-surface.js';
 import {surfaceRelief,grainParams} from './surface-grain.js';
 import * as THREE from 'three';
 import {LIMITS} from './model.js';
+const finishColor=new THREE.Color();
 
 export function implicitStamp(part,materials){
  if(part.stamps.length!==1)return null;
@@ -27,13 +28,13 @@ export class ImplicitSurfaces {
   if(!mat){
    mat=new THREE.ShaderMaterial({side:sphere?THREE.BackSide:THREE.FrontSide,defines:sphere?{ELLIPSOID:1}:{},
     uniforms:{grainMap:this.grainMap,grain:{value:new THREE.Vector3()},...this.clipUniforms,environment:this.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},
-    vertexShader:`varying vec3 worldPoint,detailCoord,detailNormal;flat varying vec3 dimensions;
+    vertexShader:`varying float finishTint;varying vec3 worldPoint,detailCoord,detailNormal;flat varying vec3 dimensions;
     #ifdef ELLIPSOID
      varying vec3 localPosition;varying vec3 eye;varying mat3 normalToWorld;
     #else
      varying vec3 faceNormal;
     #endif
-    void main(){mat4 transform=modelMatrix*instanceMatrix;vec4 world=transform*vec4(position,1.);
+    void main(){finishTint=instanceColor.r;mat4 transform=modelMatrix*instanceMatrix;vec4 world=transform*vec4(position,1.);
      mat3 normalTransform=transpose(inverse(mat3(transform)));worldPoint=world.xyz;dimensions=vec3(length(transform[0].xyz),length(transform[1].xyz),length(transform[2].xyz));detailCoord=position*dimensions;detailNormal=normal;
     #ifdef ELLIPSOID
      localPosition=position;eye=(inverse(transform)*vec4(cameraPosition,1.)).xyz;normalToWorld=normalTransform;
@@ -41,7 +42,7 @@ export class ImplicitSurfaces {
      faceNormal=normalize(normalTransform*normal);
     #endif
      gl_Position=projectionMatrix*viewMatrix*world;}`,
-    fragmentShader:reflectedSurfaceClip+this.lighting+surfaceRelief+`varying vec3 worldPoint,detailCoord,detailNormal;flat varying vec3 dimensions;uniform mat4 projectionMatrix;uniform vec3 grain;uniform vec3 color;uniform vec4 properties;
+    fragmentShader:reflectedSurfaceClip+this.lighting+surfaceRelief+`varying float finishTint;varying vec3 worldPoint,detailCoord,detailNormal;flat varying vec3 dimensions;uniform mat4 projectionMatrix;uniform vec3 grain;uniform vec3 color;uniform vec4 properties;
     #ifdef ELLIPSOID
      varying vec3 localPosition;varying vec3 eye;varying mat3 normalToWorld;
     #else
@@ -59,7 +60,7 @@ export class ImplicitSurfaces {
      n=normalize(faceNormal);
     #endif
      if(belowReflector(p))discard;
-     vec3 base=color,prior=n;float lift=grainSurface(coord,ln,grain,n,base,cameraPosition-p);gl_FragDepth=reliefDepth(depth,p,prior,lift,projectionMatrix);gl_FragColor=vec4(shade(base,n,p,properties),1.);
+     vec3 base=color*finishTint,prior=n;float lift=grainSurface(coord,ln,grain,n,base,cameraPosition-p);gl_FragDepth=reliefDepth(depth,p,prior,lift,projectionMatrix);gl_FragColor=vec4(shade(base,n,p,properties),1.);
      #include <tonemapping_fragment>
      #include <colorspace_fragment>
     }`});
@@ -69,15 +70,19 @@ export class ImplicitSurfaces {
   const proxy=new THREE.Object3D();proxy.position.fromArray(stamp.position);proxy.scale.fromArray(stamp.size);proxy.userData.implicit=stamp.shape;
   let batch=this.batches.get(key);
   if(!batch){
-   const mesh=new THREE.InstancedMesh(this.geometry,mat,LIMITS.previewParts);mesh.frustumCulled=false;mesh.count=0;
+   const mesh=new THREE.InstancedMesh(this.geometry,mat,LIMITS.previewParts);mesh.frustumCulled=false;mesh.count=0;mesh.setColorAt(0,finishColor.setScalar(1));
    batch={mesh,parts:[]};this.batches.set(key,batch);this.scene.add(mesh);
   }
   batch.parts.push(proxy);batch.mesh.count=batch.parts.length;
   return proxy;
  }
- update(){
+ update(sim){
   for(const {mesh,parts} of this.batches.values()){
-   let count=0;for(const part of parts)if(part.parent.visible)mesh.setMatrixAt(count++,part.matrixWorld);mesh.count=count;
+   let count=0;for(const part of parts)if(part.parent.visible){
+    const parent=part.parent,body=sim?.get(parent.parent.userData.instanceId,parent.userData.partId);
+    let finish=0,area=0;for(const s of body?.field?.sites??[])if(!s.mark){finish+=s.finish*s.area;area+=s.area;}
+    mesh.setColorAt(count,finishColor.setScalar(1-(area?finish/area:0)));mesh.setMatrixAt(count++,part.matrixWorld);
+   }mesh.count=count;mesh.instanceColor.needsUpdate=true;
    mesh.instanceMatrix.needsUpdate=true;
   }
  }

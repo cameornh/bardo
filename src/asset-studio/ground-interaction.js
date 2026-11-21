@@ -26,6 +26,12 @@ export function liftGround(sim,point){
   sim.world.createCollider(hull.setDensity(m.density).setRestitution(m.restitution).setFriction(m.friction),body);
  }
  const chunk={key,cut:c,body,material:m,loose,target:c.top.clone(),offset:c.top.clone().sub(point)};
+ if(sim.materialWorld){
+  chunk.scale=new Vector3(1,1,1);
+  const shapes=c.ring.map((p,i)=>({type:'box',materialId:m.id,center:[(p.x+c.ring[(i+1)%6].x)/3,-c.depth/4,(p.z+c.ring[(i+1)%6].z)/3],half:[.12,c.depth/2,.12]}));
+  sim.materialWorld.bind(chunk,shapes);
+  sim.materialWorld.liftSkin(sim.materialWorld.ground(sim,point.x,point.z,false),chunk.field.sites);
+ }
  sim.chunks.set(key,chunk);sim.heldChunk=chunk;sim.dunes.next=0;if(!sim.sandTerrain)sim.dunes.update(sim);return true;
 }
 export function moveChunk(sim,point){
@@ -41,7 +47,8 @@ export function releaseChunk(sim,finishDrag=false){
  const packets=chunkPackets(c.cut,c.material,new Vector3(),sim.sandTerrain?8:18);
  for(const p of packets){p.position.applyQuaternion(rot);p.velocity=new Vector3().copy(omega).cross(p.position).add(v);p.position.add(origin);}
  sim.world.removeRigidBody(c.body);sim.chunks.delete(c.key);
- sim.matter.addPackets(sim,c.key,c.material,packets,true);
+ const group=sim.matter.addPackets(sim,c.key,c.material,packets,true);
+ if(c.field){group.skin=c.field.sites;sim.materialWorld.collectLoose(sim);}
  for(const p of packets)p.body.setLinvel(p.velocity,true);
 }
 export function stepChunks(sim,dt){
@@ -61,7 +68,11 @@ export function stepChunks(sim,dt){
  }
 }
 export function strikeGround(sim,point,force){
- const m=sim.groundMaterial,{reach,dent,recovery}=impactResponse(m,force);
+ const tile=sim.materialWorld?.ground(sim,point.x,point.z,false),base=tile?.material??sim.groundMaterial;
+ const strength=tile?.strength??1;
+ const m=tile?{...base,moisture:Math.min(1,tile.water/tile.mass),youngModulus:base.youngModulus*strength,
+  yieldStress:base.yieldStress*strength,cohesion:base.cohesion*strength,adhesion:base.adhesion*strength}:base;
+ const {reach,dent,recovery}=impactResponse(m,force);
  // Project onto actual collision shapes so a bulk impulse only reaches things touching the ground.
  for(const [key,r] of [...sim.bodies,...sim.chunks]){
   const b=r.body;if(!b.isDynamic()&&!r.structure)continue;
@@ -85,8 +96,9 @@ export function strikeGround(sim,point,force){
   if(force<=CELL*CELL*m.cohesion)return true;
   if(sim.matter.count+(sim.sandTerrain?8:18)*(sim.heldChunk?.loose?2:1)>768)return false;
   const cut=excavate(sim,point,Math.min(.3,.15*Math.sqrt(force/5000)));if(!cut)return false;
-  const packets=chunkPackets(cut,m,cut.top,sim.sandTerrain?8:18),speed=Math.min(6,force*.06/(cut.volume*m.density));
-  sim.matter.addPackets(sim,'strike-'+(++sim.chunkSerial),m,packets,true);
+  const packets=chunkPackets(cut,base,cut.top,sim.sandTerrain?8:18),speed=Math.min(6,force*.06/(cut.volume*m.density));
+  const group=sim.matter.addPackets(sim,'strike-'+(++sim.chunkSerial),base,packets,true);
+  if(tile){group.sourceTile=tile;sim.materialWorld.collectLoose(sim);}
   for(const [i,p] of packets.entries()){
    const v=p.position.clone().sub(cut.top);v.y=0;v.normalize().multiplyScalar(speed*.65);v.y=speed*(.8+.4*(i%5)/4);
    p.body.setLinvel(v,true);

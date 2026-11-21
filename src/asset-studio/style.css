@@ -16,3 +16,5 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#202a2e;col
 #studio-brush-bar button{background:#253238ed;color:#f2f5f4;padding:3px 9px;min-height:26px}
 #studio-brush-bar button[aria-pressed=true]{background:#426574;border-color:#b8dde3}
 @media(max-width:580px){#studio-brush-bar{top:auto;bottom:4px}#asset-studio:has(#studio-brush-bar:not([hidden])) .studio-readouts{bottom:36px}}
+
+#asset-studio .studio-field-readout{display:block;float:none;white-space:pre-line;font:12px/1.5 monospace;margin-top:.5em;}
