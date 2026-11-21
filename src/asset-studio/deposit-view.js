@@ -10,7 +10,7 @@ export class DepositSurface extends THREE.Mesh{
  }
  update(sim){
   const bed=this.bed;
-  let supportVersion=sim.sand?.version||0;
+  let supportVersion=(sim.sand?.version||0)+(sim.cuts?.version||0);
   if(bed.liquid)for(const other of sim.matter.beds.values())if(!other.liquid)supportVersion+=other.version;
   if(this.version===bed.version&&this.supportVersion===supportVersion)return;
   this.version=bed.version;this.supportVersion=supportVersion;
@@ -19,7 +19,7 @@ export class DepositSurface extends THREE.Mesh{
   const vertex=(x,z)=>{
    const k=id(x,z);let i=lookup.get(k);if(i!==undefined)return i;
    const h=bed.at(x,z)?.h||0,wx=x*cell,wz=z*cell;
-   const support=bed.liquid?sim.matter.groundHeight(sim,wx,wz):sim.sand?.height(wx,wz)||0;
+   const support=bed.liquid?sim.matter.groundHeight(sim,wx,wz):(sim.sand?.height(wx,wz)||0)+(sim.cuts?.offset(wx,wz)||0);
    i=points.length;lookup.set(k,i);points.push([wx,support+h,wz,h]);return i;
   };
   for(const c of bed.nodes.values()){

@@ -22,7 +22,8 @@ export const waveHeight=sampling+`
  float surfaceHeight(vec2 p,float spacing){
   vec4 h;float y=0.;
   ${heightSum}
-  for(int i=0;i<12;i++){if(i>=ringCount)break;vec4 r=rings[i];float q=length(p-r.xy)-2.*r.z;
+  for(int i=0;i<12;i++){if(i>=ringCount)break;vec4 r=rings[i];if(r.z<0.){vec2 d=p-r.xy;float h=max(0.,1.+dot(d,d)/r.z);y-=r.w*h*h;continue;}
+   float q=length(p-r.xy)-2.*r.z;
    y+=r.w*cos(6.*q)*exp(-3.*q*q-1.3*r.z)/(1.+spacing*spacing);
   }return y;
  }
@@ -32,7 +33,9 @@ export const wave=waveHeight+bandGLSL(i=>'uniform sampler2D slope'+i+';')+`
  vec2 waterSlope(vec2 p){
   vec2 slope=vec2(0.);vec4 h;
   ${bandGLSL(i=>`h=texture2D(slope${i},uv${i}(p));slope+=transpose(rot${i})*((mix(h.xy,h.zw,bandMix[${i}])*255.-128.)/120.);`)}
-  for(int i=0;i<12;i++){if(i>=ringCount)break;vec4 r=rings[i];vec2 dv=p-r.xy;float d=length(dv),q=d-2.*r.z;
+  for(int i=0;i<12;i++){if(i>=ringCount)break;vec4 r=rings[i];vec2 dv=p-r.xy;
+   if(r.z<0.){slope-=4.*r.w*dv*max(0.,1.+dot(dv,dv)/r.z)/r.z;continue;}
+   float d=length(dv),q=d-2.*r.z;
    slope+=dv/max(.001,d)*r.w*exp(-3.*q*q-1.3*r.z)*(-6.*sin(6.*q)-6.*q*cos(6.*q));
   }return slope;
  }

@@ -81,6 +81,11 @@ class SpectralBand {
 }
 
 export const MAX_PARCELS=96;
+export function scoopProfile(r,time){
+ // A spreading depression of fixed integral. Its deficit decreases as the lifted water returns.
+ const width2=.44**2+.8*(time-r.t)**2;
+ return {width2,depth:3*r.volume/(Math.PI*width2)};
+}
 export class WindSea {
  constructor(speed=0,heading=0){
   this.bands=WAVE_BANDS.map(b=>new SpectralBand(b));
@@ -103,12 +108,17 @@ export class WindSea {
  height(x,z){
   let y=this.bulk(x,z);
   for(const p of this.ripples){const dist=Math.hypot(x-p.x,z-p.z),age=this.time-p.t,q=dist-2*age;
+   if(p.scoop){const {width2,depth}=scoopProfile(p,this.time);y-=depth*Math.max(0,1-dist*dist/width2)**2;continue;}
    y+=p.a*Math.cos(6*q)*Math.exp(-3*q*q-1.3*age);}
   return y;
  }
- ripple(x,z,a){
-  if(this.ripples.length>=12)this.ripples.shift();
-  this.ripples.push({x,z,t:this.time,a});
+ ripple(x,z,a,scoop=false){
+  if(this.ripples.length>=12){
+   const oldestWave=this.ripples.findIndex(p=>!p.scoop||p.volume<=1e-8);
+   if(oldestWave<0&&!scoop)return;
+   this.ripples.splice(Math.max(0,oldestWave),1);
+  }
+  const ring={x,z,t:this.time,a,scoop,volume:0};this.ripples.push(ring);return ring;
  }
  reset(){
   this.mergedVolume=0;
@@ -118,7 +128,7 @@ export class WindSea {
   if(this.drops.length>=MAX_PARCELS){
    const index=this.drops.findIndex(p=>!p.held);
    if(index<0)return;
-   this.drops.splice(index,1);
+   this.returnDrop(this.drops[index]);this.drops.splice(index,1);
   }
   this.drops.push(drop);
  }
@@ -160,23 +170,27 @@ export class WindSea {
   }
   if(best>.105)this.breakCrest(bx,bz,Math.min(2.5,best*4),this.wx,this.wz,true);
  }
+ returnDrop(d){
+  if(d.scoop){d.scoop.volume=Math.max(0,d.scoop.volume-4*Math.PI*d.r**3/3);d.scoop=null;}
+ }
  lift(x,z){
-  this.release();const y=this.height(x,z);this.ripple(x,z,-.15);
+  this.release();const y=this.height(x,z),scoop=this.ripple(x,z,0,true);
   this.held=[];this.grip={x,y,z,t:this.time,vx:0,vy:0,vz:0};
   for(let i=0;i<10;i++){
    const a=i*2.3999632,r=.070*Math.sqrt(i),offset=[Math.cos(a)*r,.06*Math.sin(a),Math.sin(a)*r];
    const drop={x:x+offset[0],y:y+offset[1],z:z+offset[2],r:.105+.053*this.random(),vx:0,vy:0,vz:0,held:true};
+   drop.scoop=scoop;scoop.volume+=4*Math.PI*drop.r**3/3;
    this.held.push({drop,offset});this.appendDrop(drop);
   }
  }
- moveLift(p){
+ moveLift(p,collide){
   if(!this.held)return;
   const g=this.grip,dt=Math.max(1/60,this.time-g.t);
   for(const axis of ['x','y','z'])g['v'+axis]=Math.max(-3,Math.min(3,(p[axis]-g[axis])/dt));
   Object.assign(g,{x:p.x,y:p.y,z:p.z,t:this.time});
   for(const {drop,offset} of this.held){
-   const lag=(.16-drop.r)*.46;
-   drop.x=p.x+offset[0]-g.vx*lag;drop.y=p.y+offset[1]-g.vy*lag;drop.z=p.z+offset[2]-g.vz*lag;
+   const from={x:drop.x,y:drop.y,z:drop.z},lag=(.16-drop.r)*.46;
+   drop.x=p.x+offset[0]-g.vx*lag;drop.y=p.y+offset[1]-g.vy*lag;drop.z=p.z+offset[2]-g.vz*lag;collide?.(drop,from);
   }
  }
  release(){
@@ -193,12 +207,13 @@ export class WindSea {
    if(emission!==c.emitted){c.emitted=emission;this.whitewater.emit(this,c,age);}
   }
   this.whitewater.advance(this,dt);
-  this.ripples=this.ripples.filter(p=>this.time-p.t<3);
+  this.ripples=this.ripples.filter(p=>p.scoop?p.volume>1e-8&&scoopProfile(p,this.time).depth>.0002:this.time-p.t<3);
   if(this.held){
    const relax=1-Math.exp(-12*dt),g=this.grip;
    for(const axis of ['vx','vy','vz'])g[axis]*=1-relax;
    for(const {drop,offset} of this.held){
-    drop.x+=(g.x+offset[0]-drop.x)*relax;drop.y+=(g.y+offset[1]-drop.y)*relax;drop.z+=(g.z+offset[2]-drop.z)*relax;
+    const from={x:drop.x,y:drop.y,z:drop.z};
+    drop.x+=(g.x+offset[0]-drop.x)*relax;drop.y+=(g.y+offset[1]-drop.y)*relax;drop.z+=(g.z+offset[2]-drop.z)*relax;collide?.(drop,from);
    }
   }
   for(let i=this.drops.length-1;i>=0;i--){
@@ -214,12 +229,10 @@ export class WindSea {
    }
    const drag=1-Math.exp(-dt*.009*this.speed/Math.max(.05,d.r));
    d.vx+=(this.speed*.26*this.wx-d.vx)*drag;d.vz+=(this.speed*.26*this.wz-d.vz)*drag;
-   if(collide&&!d.windCrest&&!d.previous)d.previous={x:d.x,y:d.y,z:d.z,t:this.time};
+   const from=collide?{x:d.x,y:d.y,z:d.z}:null;
    d.vy-=9.81*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.z+=d.vz*dt;
-   if(collide&&d.previous&&this.time-d.previous.t>=1/30){
-    collide(d,d.previous);d.previous=null;
-   }
-   if(d.vy<0&&d.y+d.r<=this.height(d.x,d.z)){this.drops.splice(i,1);if(!d.windCrest&&i%3===0)this.ripple(d.x,d.z,.022);}
+   if(from)collide(d,from);
+   if(d.vy<0&&d.y+d.r<=this.height(d.x,d.z)){this.returnDrop(d);this.drops.splice(i,1);if(!d.windCrest&&i%3===0)this.ripple(d.x,d.z,.022);}
   }
  }
 }

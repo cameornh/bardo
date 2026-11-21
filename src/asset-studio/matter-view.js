@@ -21,10 +21,11 @@ void main(){
  p=(modelMatrix*vec4(position,1.)).xyz;n=transpose(inverse(mat3(modelMatrix)))*normal;
  gl_Position=projectionMatrix*viewMatrix*vec4(p,1.);}`;
 export class MatterView{
- constructor(view,lighting){this.view=view;this.lighting=lighting;this.meshes=new Map();this.beds=new Map();this.saltation=new Map();this.last=-1;}
+ constructor(view,lighting){this.view=view;this.lighting=lighting;this.meshes=new Map();this.beds=new Map();this.saltation=new Map();this.puffs=new Map();this.last=-1;}
  reset(){
   for(const mesh of [...this.meshes.values(),...this.beds.values()]){mesh.removeFromParent();mesh.material.dispose();mesh.geometry.dispose();}
   for(const renderer of this.saltation.values())renderer.dispose();this.saltation.clear();
+  for(const puff of this.puffs.values())puff.dispose();this.puffs.clear();
   this.meshes.clear();this.beds.clear();this.last=-1;this.state=null;
  }
  material(m,water,radius,deposit=false){
@@ -71,11 +72,21 @@ export class MatterView{
    if(!mesh){mesh=new DepositSurface(bed,this.material(bed.material,bed.liquid,0,true));this.beds.set(id,mesh);this.view.scene.add(mesh);}
    mesh.update(sim);
    if(!bed.liquid&&(bed.grains.length||this.saltation.has(id))){
-    if(!this.saltation.has(id))this.saltation.set(id,new SandDriftView(this.view.scene,this.view.uniforms,this.lighting,true));
-    this.saltation.get(id).update(bed,bed.material);
+    if(!this.saltation.has(id))this.saltation.set(id,new SandDriftView(this.view.grainScene,this.view.uniforms,this.lighting,true,this.view.eyeScene));
+    this.saltation.get(id).update(bed,bed.material,this.view.camera.position);
    }
   }
+  for(const [key,mesh] of this.meshes)if(!sim.matter.parts.has(key)){
+   mesh.removeFromParent();mesh.geometry.dispose();mesh.material.dispose();this.meshes.delete(key);
+  }
+  for(const [key,puff] of this.puffs)if(!sim.matter.parts.has(key)){puff.dispose();this.puffs.delete(key);}
   for(const [key,g] of sim.matter.parts){
+   if(g.material.phase==='gas'){
+    let puff=this.puffs.get(key);if(!puff){puff=new SandDriftView(this.view.grainScene,this.view.uniforms,this.lighting,true);this.puffs.set(key,puff);}
+    const grains=g.packets.map(p=>({...p.position,r:p.radius*(1+g.age),vx:0,vy:0,vz:0}));
+    puff.update({grains},g.material);puff.mesh.material.uniforms.coverage.value=g.material.opacity*.4*Math.max(0,1-g.age/2.4)**2;
+    continue;
+   }
    if(!g.packets.length&&!this.meshes.has(key))continue;
    const mesh=this.surface(key,g),size=mesh.size,packets=g.packets;
    mesh.visible=!!packets.length;if(!packets.length)continue;

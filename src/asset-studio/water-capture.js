@@ -80,7 +80,8 @@ export class WaterCapture{
    view.uniforms.viewport.value.set(this.mirror.width,this.mirror.height);
    view.uniforms.cameraWorld.value=c.matrixWorld;
    view.uniforms.clipFloor.value=-.012;u.clipWaves.value=!!sea;
-   const floor=view.ground.visible;view.ground.visible=false;view.drawObjects(c);view.ground.visible=floor;
+   const patch=view.groundEdits?.patch,hadPatch=patch?.visible;if(patch)patch.visible=false;
+   const floor=view.ground.visible;view.ground.visible=false;view.drawObjects(c);view.ground.visible=floor;if(patch)patch.visible=hadPatch;
   }
   r.setClearColor(this.clearColor,alpha);r.setRenderTarget(mirrorOnly?output:this.source);
   view.uniforms.viewport.value.copy(u.viewport.value);

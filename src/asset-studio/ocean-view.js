@@ -1,3 +1,4 @@
+import {scoopProfile} from './ocean.js';
 import * as THREE from 'three';
 import {WhitewaterView} from './whitewater-view.js';
 import {WaterCapture} from './water-capture.js';
@@ -79,11 +80,14 @@ export class OceanView{
   u.opacity.value=m.opacity;u.ior.value=m.ior;u.absorption.value=m.absorption;u.scattering.value=m.scattering;
   // The interpolated wave cannot leave the sum of its individual band ranges.
   // Include the signed ripple envelope and the packed texture interpolation error.
-  const margin=sea.ripples.reduce((a,r)=>a+Math.abs(r.a)*Math.exp(-1.3*(sea.time-r.t)),.01);
+  const margin=sea.ripples.reduce((a,r)=>a+(r.scoop?scoopProfile(r,sea.time).depth:Math.abs(r.a)*Math.exp(-1.3*(sea.time-r.t))),.01);
   u.clipHeights.value.set(-margin,margin);
   for(const b of this.bands){u.clipHeights.value.x+=b.low;u.clipHeights.value.y+=b.high;}
   u.ringCount.value=sea.ripples.length;
-  sea.ripples.forEach((r,i)=>u.rings.value[i].set(r.x,r.z,sea.time-r.t,r.a));
+  sea.ripples.forEach((r,i)=>{
+   if(r.scoop){const {width2,depth}=scoopProfile(r,sea.time);u.rings.value[i].set(r.x,r.z,-width2,depth);}
+   else u.rings.value[i].set(r.x,r.z,sea.time-r.t,r.a);
+  });
   this.parcels.update(sea,camera);this.effects.update(sea,camera);
  }
  dispose(){this.mesh.removeFromParent();this.mesh.geometry.dispose();this.mesh.material.dispose();this.parcels.dispose();this.capture.dispose();this.effects.dispose();for(const b of this.bands){b.height.dispose();b.slope.dispose();}}

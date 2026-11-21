@@ -1,3 +1,4 @@
+import {CELL,MAX_CUTS} from './ground-tools.js';
 import * as THREE from 'three';
 import {SAND_SIDE,SAND_METRES} from './wind-sand.js';
 import {surfaceRelief} from './surface-grain.js';
@@ -14,19 +15,31 @@ export function groundSurface(view,lighting){
   grainMap:view.uniforms.grainMap,mirrorColor:shared.mirrorColor,mirrorVP:shared.mirrorVP});
  view.groundMaterial.vertexShader=bed+`varying vec3 worldPosition;
   void main(){worldPosition=(modelMatrix*vec4(position,1.)).xyz;
-   if(granular)worldPosition.y=sandHeight(worldPosition.xz)*(1.-smoothstep(25.,65.,length(cameraPosition.xz-worldPosition.xz)));
+   if(granular)worldPosition.y+=sandHeight(worldPosition.xz)*(1.-smoothstep(25.,65.,length(cameraPosition.xz-worldPosition.xz)));
    gl_Position=projectionMatrix*viewMatrix*vec4(worldPosition,1.);}`;
  view.groundMaterial.fragmentShader=lighting.replace('n=faceforward(n,-v,n);','')+surfaceRelief+bed+`
+ #ifndef GROUND_PATCH
+ uniform int cutCount;uniform vec4 cutBounds;uniform vec2 cutCenters[${MAX_CUTS}];
+ #endif
  uniform mat4 projectionMatrix;uniform vec3 color,grain;uniform vec4 properties;uniform sampler2D mirrorColor;uniform mat4 mirrorVP;
  varying vec3 worldPosition;
  void main(){
   vec3 p=worldPosition,base=color,n=vec3(0,1,0);
+  #ifndef GROUND_PATCH
+  if(cutCount>0&&all(greaterThanEqual(p.xz,cutBounds.xy))&&all(lessThanEqual(p.xz,cutBounds.zw))){
+   for(int i=0;i<${MAX_CUTS};i++){if(i>=cutCount)break;vec2 d=p.xz-cutCenters[i];
+    if(max(max(abs(d.x),abs(d.y)),abs(d.x+d.y))<${CELL.toFixed(5)})discard;}
+  }
+  #endif
   if(granular){
    const float d=${(SAND_METRES/SAND_SIDE*.5).toFixed(5)};
    float fade=1.-smoothstep(25.,65.,length(cameraPosition.xz-p.xz));
    n=normalize(vec3((sandHeight(p.xz-vec2(d,0))-sandHeight(p.xz+vec2(d,0)))*fade,2.*d,
       (sandHeight(p.xz-vec2(0,d))-sandHeight(p.xz+vec2(0,d)))*fade));
   }
+  #ifdef GROUND_PATCH
+  n=normalize(cross(dFdx(p),dFdy(p)));if(n.y<0.)n=-n;
+  #endif
   vec3 prior=n;float lift=grainSurface(p,vec3(0,1,0),grain,n,base,cameraPosition-p);gl_FragDepth=reliefDepth(gl_FragCoord.z,p,prior,lift,projectionMatrix);vec3 lit=shade(base,n,p,properties);
   if(properties.y>.02){
    vec3 offset=(n-vec3(0,1,0))*min(.7,length(cameraPosition-p)*.11);

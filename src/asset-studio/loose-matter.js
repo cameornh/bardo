@@ -29,17 +29,21 @@ export function seedMatter(shapes,matrix,material,count){
 export class LooseMatter{
  constructor(){this.parts=new Map();this.beds=new Map();this.count=0;this.bedTime=0;}
  add(sim,key,shapes,matrix,material,budget){
-  if(this.count+budget>768)throw Error('This physics preview exceeds the 768 loose parcel budget. Preview fewer mixed-material parts together.');
-  const {R,world}=sim,kind=looseKind(material);
-  const packets=seedMatter(shapes,matrix,material,budget),id=key+'/'+material.id;
-  const group={key,material,kind,packets,radius:packets[0].radius};this.parts.set(id,group);
+  return this.addPackets(sim,key,material,seedMatter(shapes,matrix,material,budget));
+ }
+ addPackets(sim,key,material,packets,groundTool=false){
+  if(this.count+packets.length>768)throw Error('This physics preview exceeds the 768 loose parcel budget.');
+  const {R,world}=sim,kind=looseKind(material),id=key+'/'+material.id;
+  const group={key,material,kind,packets,groundTool,age:0,radius:packets[0].radius};this.parts.set(id,group);
   for(const p of packets){
    const body=world.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(p.position.x,p.position.y,p.position.z)
     .setLinearDamping(kind===2?.8:.3).setAngularDamping(3).lockRotations().setCcdEnabled(true));
    const shape=R.ColliderDesc.ball(p.radius).setMass(p.volume*material.density)
     .setRestitution(.015).setFriction(kind===2?.018:material.friction+.18*material.moisture);
+   if(material.phase==='gas'){body.setGravityScale(0,true);body.setLinearDamping(1.8);}
    world.createCollider(shape,body);p.body=body;this.count++;
   }
+  return group;
  }
  liquidColumn(sim,x,z){
   let depth=0,densityMass=0;
@@ -50,19 +54,26 @@ export class LooseMatter{
   const bottom=this.groundHeight(sim,x,z);return {top:bottom+depth,bottom,density:densityMass/depth};
  }
  groundHeight(sim,x,z){
-  let y=sim.sand?.height(x,z)||0;
+  let y=(sim.sand?.height(x,z)||0)+(sim.cuts?.offset(x,z)||0);
   for(const bed of this.beds.values())if(!bed.liquid)y+=bed.sample(x,z);
   return y;
  }
  update(sim,dt){
   const {world,sea,wind}=sim;
   const wx=Math.cos(wind.heading*Math.PI/180),wz=Math.sin(wind.heading*Math.PI/180);
-  for(const g of this.parts.values()){
+  for(const [id,g] of this.parts){
+   g.age+=dt;
    const m=g.material,r=g.radius,liquid=g.kind===2;
    const shear=Math.max(0,wind.speed-entrainment(m)),packets=g.packets;
    const pressure=liquid?Math.min(8,3.5/(1+m.viscosity)):0;
    for(let i=packets.length-1;i>=0;i--){
     const p=packets[i],pos=p.position.copy(p.body.translation()),v=p.body.linvel();
+    if(m.phase==='gas'){
+     if(g.age>=2.4){world.removeRigidBody(p.body);packets.splice(i,1);this.count--;continue;}
+     const drag=p.body.mass()*Math.min(.1,dt*2);
+     p.body.applyImpulse({x:(wx*wind.speed*.2-v.x)*drag,y:(.45-v.y)*drag,z:(wz*wind.speed*.2-v.z)*drag},true);
+     continue;
+    }
     const surface=sea?sea.height(pos.x,pos.z):-Infinity;
     if(sea&&m.id===sim.groundMaterial.id&&pos.y<=surface+r*.15){
      if(!g.merged||sim.time-g.merged>.12)sea.splash(pos.x,pos.z,Math.min(1.2,.35+Math.abs(v.y)*.12));
@@ -79,7 +90,7 @@ export class LooseMatter{
     if(floorContact){
      let bed=this.beds.get(m.id);
      if(!bed){bed=new MaterialBed(m,liquid);this.beds.set(m.id,bed);}
-     if(bed.add(pos.x,pos.z,p.volume,g.key)){
+     if(bed.add(pos.x,pos.z,p.volume,g.groundTool?'ground:'+m.id:g.key)){
       world.removeRigidBody(p.body);packets.splice(i,1);this.count--;continue;
      }
     }
@@ -108,6 +119,7 @@ export class LooseMatter{
      other.body.applyImpulse({x:-dx*amount,y:0,z:-dz*amount},true);
     }
    }
+   if(g.groundTool&&!packets.length)this.parts.delete(id);
   }
   this.bedTime+=dt;
   if(this.bedTime+1e-8>=1/20){
@@ -118,7 +130,7 @@ export class LooseMatter{
      obstacles.push({center,radius:r.probeRadius,body:r.body});
     }
     for(const bed of this.beds.values()){
-     const floor=(x,z)=>bed.liquid?this.groundHeight(sim,x,z):sim.sand?.height(x,z)||0;
+     const floor=(x,z)=>bed.liquid?this.groundHeight(sim,x,z):(sim.sand?.height(x,z)||0)+(sim.cuts?.offset(x,z)||0);
      const obstructed=(i,j)=>{
       const x=i*BED_CELL,z=j*BED_CELL,y=floor(x,z)+.025;
       let hit=false;
@@ -136,7 +148,7 @@ export class LooseMatter{
   }
  }
  nudge(key,point,force,dt){
-  for(const bed of this.beds.values())if([...this.parts.values()].some(g=>g.key===key&&g.material.id===bed.material.id))bed.push(point,force,dt);
+  for(const bed of this.beds.values())if(key==='ground:'+bed.material.id||[...this.parts.values()].some(g=>g.key===key&&g.material.id===bed.material.id))bed.push(point,force,dt);
   let total=0;const picked=[];
   for(const group of this.parts.values())if(group.key===key)for(const p of group.packets){
    const w=Math.exp(-p.position.distanceToSquared(point)/(5*p.radius*p.radius));if(w>.01){picked.push([p,w]);total+=w;}
@@ -154,18 +166,20 @@ export class DuneContacts{
    for(let x=Math.floor((p.x-r)/L);x<=Math.floor((p.x+r)/L);x++)
     for(let z=Math.floor((p.z-r)/L);z<=Math.floor((p.z+r)/L);z++)needed.add(x+','+z);
   };
+  for(const node of sim.cuts?.nodes.values()||[])mark(node,L/n+.01);
   for(const r of sim.bodies.values())mark(r.body.translation(),Math.min(L,1+r.probeRadius));
+  for(const c of sim.chunks?.values()||[])mark(c.body.translation(),1);
   for(const g of sim.matter.parts.values())for(const p of g.packets)mark(p.position,p.radius+.5);
   const sand=sim.sand,R=sim.R,scale={x:L,y:1,z:L};
   const solids=[...sim.matter.beds.values()].filter(b=>!b.liquid);
-  const version=(sand?.version||0)+solids.reduce((n,b)=>n+b.version,0);
+  const version=(sim.cuts?.version||0)+(sand?.version||0)+solids.reduce((n,b)=>n+b.version,0);
   let base;
   for(const key of needed){
    const old=this.tiles.get(key);if(old&&version===this.version)continue;
    const [tx,tz]=key.split(',').map(Number);
    let heights=base;
    if(!heights){heights=new Float32Array((n+1)**2);for(let x=0;x<=n;x++)for(let z=0;z<=n;z++)
-    heights[x*(n+1)+z]=sim.matter.groundHeight(sim,tx*L+x*L/n,tz*L+z*L/n);if(!solids.length)base=heights;}
+    heights[x*(n+1)+z]=sim.matter.groundHeight(sim,tx*L+x*L/n,tz*L+z*L/n);if(!solids.length&&!sim.cuts?.nodes.size)base=heights;}
    if(old)old.setShape(new R.Heightfield(n,n,heights,scale));
    else{const [x,z]=key.split(',').map(Number);
     this.tiles.set(key,sim.world.createCollider(R.ColliderDesc.heightfield(n,n,heights,scale).setTranslation((x+.5)*L,0,(z+.5)*L)

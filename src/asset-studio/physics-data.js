@@ -3,8 +3,8 @@ export const jointDefaults = () => ({parentId:'ground',type:'ball',anchor:[0,0,0
 export const bodyDefaults = () => ({fixed:false});
 export function liquidity(m){return m.liquidity ?? (['liquid','gas'].includes(m.phase)?1:0);}
 export function retention(m){
- const flowing=liquidity(m),strength=m.phase==='granular'?m.cohesion:Math.max(m.tensileStrength,m.cohesion);
- return (1-flowing)**2 * m.youngModulus/(m.youngModulus+10000) * strength/(strength+100);
+ const flowing=liquidity(m),strength=m.phase==='granular'?m.cohesion:(m.tensileStrength+m.cohesion);
+ return (1-flowing)**2 * m.youngModulus/(m.youngModulus+10000) * strength/(strength+100) * m.adhesion/(m.adhesion+50);
 }
 export function partRetention(p,materials){const solids=p.stamps.filter(s=>s.mode==='add').map(s=>materials.find(m=>m.id===s.materialId)).filter(Boolean);return solids.length?Math.min(...solids.map(retention)):0;}
 export function sampleForces(keys,time,duration){
