@@ -1,3 +1,4 @@
+import {firstSurfaceHit} from './ground-tools.js';
 import {planarSurface,surfaceFragment} from './surface-support.js';
 import {MaterialFieldView} from './material-field-view.js';
 import {PaintedView} from './painted-view.js';
@@ -109,7 +110,7 @@ export class StudioView{
   this.oceanView=new OceanView(this.waterScene,this.uniforms.environment,LIGHTING);
   const ocean=this.oceanView.uniforms;this.uniforms.clipFloor={value:0};
   const clipUniforms={clipFloor:this.uniforms.clipFloor};
-  for(const key of ['height0','height1','height2','bandMix','rings','ringCount','clipWaves','clipHeights'])clipUniforms[key]=ocean[key];
+  for(const key of ['height0','height1','height2','bandMix','rings','ringCount','ringAttenuation','clipWaves','clipHeights'])clipUniforms[key]=ocean[key];
   Object.assign(this.uniforms,clipUniforms);
   this.implicit=new ImplicitSurfaces(this.scene,this.uniforms.environment,LIGHTING,this.uniforms.grainMap,clipUniforms);
   // Stretch each fibre along its surface normal, retaining the projected covariance.
@@ -119,10 +120,11 @@ export class StudioView{
     .replace('mat3 rotation=', 'if(fiberLength>0.)covariance=mat3(1.)*r2*.10+mat3(n*n.x,n*n.y,n*n.z)*fiberLength*fiberLength*.2;mat3 rotation=')
     .replace('modelMatrix*vec4(center,1.)','modelMatrix*vec4(fiberCenter,1.)');
   }
-  const grainV='attribute vec3 grainSettings,supportMin,supportMax;attribute vec2 phaseId;varying vec2 phase;varying vec3 grain,localCoord,localN;flat varying mat3 worldToLocal;flat varying vec4 boundsLo;flat varying vec3 boundsHi;';
+  const grainV='attribute vec4 seamPlane;flat varying vec4 seam;attribute vec3 grainSettings,supportMin,supportMax;attribute vec2 phaseId;varying vec2 phase;varying vec3 grain,localCoord,localN;flat varying mat3 worldToLocal;flat varying vec4 boundsLo;flat varying vec3 boundsHi;';
   for(const mat of [this.material,this.depthMaterial]){
+   mat.defaultAttributeValues.seamPlane=[0,0,0,0];
    mat.vertexShader=grainV+mat.vertexShader.replace('vec4 c=modelViewMatrix',`
-    grain=grainSettings;phase=phaseId;localCoord=center;localN=surfaceNormal;
+    seam=seamPlane;grain=grainSettings;phase=phaseId;localCoord=center;localN=surfaceNormal;
     worldToLocal=inverse(mat3(modelMatrix));boundsLo=vec4(supportMin,float(phaseId.x<.5&&fiberLength<=0.&&properties.z>=.999));boundsHi=supportMax;
     vec4 c=modelViewMatrix`);
    mat.fragmentShader=surfaceFragment(mat===this.depthMaterial,LIGHTING,surfaceRelief,reflectedSurfaceClip);
@@ -249,14 +251,10 @@ export class StudioView{
  }
  const ground=this.sea||this.sand||this.activePhysics?.cuts?.nodes.size?this.waterHit(ray):ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());if(ground&&(!nearest||ground.distanceTo(ray.origin)<nearest.distance))nearest={point:ground,normal:new THREE.Vector3(0,1,0),distance:ground.distanceTo(ray.origin),ground:true};return nearest;}
  waterHit(ray){
-  if(Math.abs(ray.direction.y)<1e-6)return null;
-  const t=-ray.origin.y/ray.direction.y,span=(5+(this.activePhysics?.sandTerrain?.maxOffset||0))/Math.abs(ray.direction.y);
-  let lo=Math.max(0,t-span),hi=Math.min(this.camera.far,t+span);
-  if(hi<lo)return null;
-  const delta=t=>{const p=ray.at(t,new THREE.Vector3());return p.y-((this.sea||this.activePhysics?.sandTerrain||this.sand)?.height(p.x,p.z)||0)-(this.activePhysics?.cuts?.offset(p.x,p.z)||0);};
-  const sign=Math.sign(delta(lo));if(Math.sign(delta(hi))===sign)return null;
-  for(let i=0;i<15;i++){const mid=(lo+hi)/2;if(Math.sign(delta(mid))===sign)lo=mid;else hi=mid;}
-  return ray.at((lo+hi)/2,new THREE.Vector3());
+  const terrain=this.sea||this.activePhysics?.sandTerrain||this.sand,cuts=this.activePhysics?.cuts;
+  if(!terrain&&!cuts?.nodes.size)return ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
+  const height=(x,z)=>(terrain?.height(x,z)??0)+(cuts?.offset(x,z)??0);
+  return firstSurfaceHit(ray,height,this.camera.far,5+(this.activePhysics?.sandTerrain?.maxOffset||0));
  }
  localPoint(point,partId){const obj=this.groups.get('editor')?.children.find(p=>p.userData.partId===partId);return obj?obj.worldToLocal(point.clone()).toArray():point.toArray();}
  showForce(from,to){this.forceLine.visible=!!from;if(from){const p=this.forceLine.geometry.attributes.position;p.setXYZ(0,...from.toArray());p.setXYZ(1,...to.toArray());p.needsUpdate=true;}}

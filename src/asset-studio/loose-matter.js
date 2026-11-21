@@ -5,7 +5,7 @@ import {liquidity} from './physics-data.js';
 import {entrainment,SAND_SIDE,SAND_METRES} from './wind-sand.js';
 
 export const looseKind=m=>m.phase==='gas'?0:m.phase==='liquid'||liquidity(m)>=.999?2:m.phase==='granular'?1:0;
-const volume=s=>s.type==='box'?8*s.half[0]*s.half[1]*s.half[2]:Math.PI*s.radius**2*(4*s.radius/3+2*(s.halfHeight||0));
+const volume=s=>s.volume??(s.type==='box'?8*s.half[0]*s.half[1]*s.half[2]:Math.PI*s.radius**2*(4*s.radius/3+2*(s.halfHeight||0)));
 const frac=x=>x-Math.floor(x);
 // Stratified volume sampling of the carved collider. One authored part can
 // contain several materials. Mass is apportioned by occupied volume.
@@ -21,6 +21,11 @@ export function seedMatter(shapes,matrix,material,count){
   for(let j=0;j<120;j++){
    const n=i+1+j*count;
    q=[frac(n*.754877666),frac(n*.569840291),frac(n*.43857902)].map((v,k)=>(2*v-1)*half[k]);
+   if(s.planes){
+    if(s.planes.every(([x,y,z,d])=>x*(c.x+q[0])+y*(c.y+q[1])+z*(c.z+q[2])<=d+1e-8))break;
+    if(j===119)q=s.vertices.slice(0,3);
+    continue;
+   }
    if(s.type==='box'||Math.hypot(q[0],Math.max(0,Math.abs(q[1])-(s.halfHeight||0)),q[2])<s.radius)break;
   }
   out.push({position:c.add(new Vector3(...q)).applyMatrix4(matrix),radius,volume:massVolume,material});

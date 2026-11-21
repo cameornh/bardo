@@ -76,22 +76,25 @@ export function strikeGround(sim,point,force){
  // Project onto actual collision shapes so a bulk impulse only reaches things touching the ground.
  for(const [key,r] of [...sim.bodies,...sim.chunks]){
   const b=r.body;if(!b.isDynamic()&&!r.structure)continue;
-  const origin=b.translation();if(Math.hypot(origin.x-point.x,origin.z-point.z)>4*reach+(r.probeRadius||CELL))continue;
+  const origin=b.translation(),center=r.probeCenter?.clone().applyQuaternion(b.rotation()).add(origin)??origin;
+  if(Math.hypot(center.x-point.x,center.z-point.z)>8*reach+(r.probeRadius||CELL))continue;
+  const probe=sim.sea?point:{x:point.x,y:Math.min(point.y,origin.y)-.3,z:point.z};
   let best=null,nearest=Infinity;
   for(let i=0;i<b.numColliders();i++){
-   const contact=b.collider(i).projectPoint({x:point.x,y:Math.min(point.y,origin.y)-.3,z:point.z},false)?.point;
+   const contact=b.collider(i).projectPoint(probe,!!sim.sea)?.point;
    if(!contact)continue;
    const surface=sim.sea?.height(contact.x,contact.z)??sim.matter.groundHeight(sim,contact.x,contact.z);
    const gap=contact.y-surface;
-   const distance=Math.hypot(point.x-contact.x,point.z-contact.z);
-   if(Math.abs(gap)<.09&&distance<nearest){nearest=distance;best=contact;}
+   const distance=Math.hypot(point.x-contact.x,point.z-contact.z,sim.sea?point.y-contact.y:0);
+   const touching=sim.sea?gap<.09:Math.abs(gap)<.09;
+   if(touching&&distance<nearest){nearest=distance;best=contact;}
   }
-  if(!best||nearest>4*reach)continue;
+  if(!best||nearest>8*reach)continue;
   const pulse=new Vector3(0,force*Math.exp(-nearest/reach),0);
   if(r.part)sim.addPulse(key,sim.localPoint(r,new Vector3().copy(best)),pulse,.075);
   else b.applyImpulseAtPoint(pulse.multiplyScalar(.075),best,true);
  }
- if(sim.sea){sim.sea.splash(point.x,point.z,Math.min(3,Math.sqrt(force/5000)));return true;}
+ if(sim.sea){sim.sea.splash(point.x,point.z,Math.min(3,Math.sqrt(force/5000)),0,0,reach);return true;}
  if(looseKind(m)===1||m.phase==='gas'){
   if(force<=CELL*CELL*m.cohesion)return true;
   if(sim.matter.count+(sim.sandTerrain?8:18)*(sim.heldChunk?.loose?2:1)>768)return false;

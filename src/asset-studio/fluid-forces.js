@@ -5,8 +5,8 @@ import {Vector3, Quaternion} from 'three';
 export function flotationSamples(shapes,scale){
  const points=[],centroid=new Vector3();let total=0;
  for(const s of shapes){
-  const box=s.type==='box',h=box?s.half:[s.radius,s.radius+(s.halfHeight||0),s.radius];
-  const v0=box?8*h[0]*h[1]*h[2]:Math.PI*s.radius**2*(4*s.radius/3+2*(s.halfHeight||0));
+  const h=s.half??[s.radius,s.radius+(s.halfHeight||0),s.radius];
+  const v0=s.volume??(s.half?8*h[0]*h[1]*h[2]:Math.PI*s.radius**2*(4*s.radius/3+2*(s.halfHeight||0)));
   const volume=v0*scale.x*scale.y*scale.z/8;
   for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1]){
    const p=new Vector3(s.center[0]+x*h[0]*.45,s.center[1]+y*h[1]*.45,s.center[2]+z*h[2]*.45).multiply(scale);

@@ -1,3 +1,4 @@
+import {LOCAL_IMPULSE_REACH} from './ground-tools.js';
 import {windAt} from './wind.js';
 import {crestFrame,crestLevel,lipPoint} from './breaking-wave.js';
 import {Whitewater} from './whitewater.js';
@@ -121,16 +122,16 @@ export class WindSea {
   let y=this.bulk(x,z);
   for(const p of this.ripples){const dist=Math.hypot(x-p.x,z-p.z),age=this.time-p.t,q=dist-2*age;
    if(p.scoop){const {width2,depth}=scoopProfile(p,this.time);y-=depth*Math.max(0,1-dist*dist/width2)**2;continue;}
-   y+=p.a*Math.cos(6*q)*Math.exp(-3*q*q-1.3*age);}
+   y+=p.a*Math.cos(6*q)*Math.exp(-3*q*q-1.3*age-dist*p.attenuation);}
   return y;
  }
- ripple(x,z,a,scoop=false){
+ ripple(x,z,a,scoop=false,reach=LOCAL_IMPULSE_REACH){
   if(this.ripples.length>=12){
    const oldestWave=this.ripples.findIndex(p=>!p.scoop||p.volume<=1e-8);
    if(oldestWave<0&&!scoop)return;
    this.ripples.splice(Math.max(0,oldestWave),1);
   }
-  const ring={x,z,t:this.time,a,scoop,volume:0};this.ripples.push(ring);return ring;
+  const ring={x,z,t:this.time,a,scoop,attenuation:1/reach,volume:0};this.ripples.push(ring);return ring;
  }
  reset(){
   this.mergedVolume=0;
@@ -148,10 +149,10 @@ export class WindSea {
   const a=Math.sin(++this.serial*127.1)*43758.5453;
   return a-Math.floor(a);
  }
- splash(x,z,strength=1,dx=0,dz=0){
-  const y=this.height(x,z);this.ripple(x,z,.14*Math.min(1.8,strength));
+ splash(x,z,strength=1,dx=0,dz=0,reach=LOCAL_IMPULSE_REACH){
+  const y=this.height(x,z);this.ripple(x,z,.14*Math.min(1.8,strength),false,reach);
   for(let i=0;i<8;i++){
-   const a=this.random()*TAU,spread=(.22+.95*this.random())*strength;
+   const a=this.random()*TAU,spread=(.16+.7*this.random())*Math.sqrt(strength);
    const vx=spread*Math.cos(a)+dx,vz=spread*Math.sin(a)+dz;
    this.appendDrop({x:x+vx*.018,y:y+.035,z:z+vz*.018,vx,vz,
     vy:(1.35+2*this.random())*Math.sqrt(strength),r:(.029+.058*this.random())*Math.sqrt(strength),foam:.25});
@@ -192,13 +193,13 @@ export class WindSea {
  advanceBreakers(){
   const tick=Math.floor(this.time*8);if(this.breakTick===tick)return;this.breakTick=tick;
   if(this.speed<7)return;
-  // Sample an interleaved set of physical grid cells around the studio origin and recent interactions.
+  // Wind searches a physical patch independently of tool and contact events.
   const threshold=.13/(1+.23*this.turbulence*Math.sin(this.time*1.31));
   let best=threshold,bx=0,bz=0,sideSlope=0;
   for(let j=0;j<24;j++){
-   const index=(tick*73+j*137)%(N*N),origin=j%2?this.ripples.at(-1):null;
-   const x=(origin?.x??0)+(index%N-N/2+this.random())*cell*1.6;
-   const z=(origin?.z??0)+(Math.floor(index/N)-N/2+this.random())*cell*1.6;
+   const index=(tick*73+j*137)%(N*N);
+   const x=(index%N-N/2+((tick*31+j*13)%53)/53)*cell*1.6;
+   const z=(Math.floor(index/N)-N/2+((tick*23+j*29)%61)/61)*cell*1.6;
    const crest=this.bulk(x,z),front=this.bulk(x+this.wx*cell,z+this.wz*cell);
    const back=this.bulk(x-this.wx*cell,z-this.wz*cell);
    const steepness=(crest-front)/cell;

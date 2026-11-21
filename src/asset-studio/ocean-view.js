@@ -18,7 +18,7 @@ function waveTexture(){
 export class OceanView{
  constructor(scene,environment,lighting) {
   this.scene=scene;this.bands=WAVE_BANDS.map(()=>({height:waveTexture(),slope:waveTexture()}));
-  this.uniforms={environment,bandMix:{value:new THREE.Vector3()},ringCount:{value:0},clipWaves:{value:false},clipHeights:{value:new THREE.Vector2()},
+  this.uniforms={environment,bandMix:{value:new THREE.Vector3()},ringCount:{value:0},ringAttenuation:{value:new Float32Array(12)},clipWaves:{value:false},clipHeights:{value:new THREE.Vector2()},
    rings:{value:Array.from({length:12},()=>new THREE.Vector4())},color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}};
   this.bands.forEach((b,i)=>{
    this.uniforms['height'+i]={value:b.height};this.uniforms['slope'+i]={value:b.slope};
@@ -111,6 +111,7 @@ export class OceanView{
   for(const b of this.bands){u.clipHeights.value.x+=b.low;u.clipHeights.value.y+=b.high;}
   u.ringCount.value=sea.ripples.length;
   sea.ripples.forEach((r,i)=>{
+   u.ringAttenuation.value[i]=r.attenuation;
    if(r.scoop){const {width2,depth}=scoopProfile(r,sea.time);u.rings.value[i].set(r.x,r.z,-width2,depth);}
    else u.rings.value[i].set(r.x,r.z,sea.time-r.t,r.a);
   });

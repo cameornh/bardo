@@ -1,6 +1,7 @@
 import {planarSurface} from './surface-support.js';
 import {Mesh,Vector3} from 'three';
 import {charSurfacePoint,roundCharChip} from './char-fracture.js';
+import {cellOwner} from './fracture-cells.js';
 import {nearestRegion} from './fracture-grid.js';
 import {bakeFast} from './sculpt-fast.js';
 import {field} from './sculpt.js';
@@ -19,58 +20,86 @@ function partitionSkin(s,surface){
  return skin;
 }
 function fragmentSurfaces(s,skin,changed){
- const surfaces=new Map(),limits=new Map();
- const cuts=s.grid.bonds.filter(e=>s.owners[e.a]!==s.owners[e.b]);
- // The two sides of a separated bond no longer share exterior skin.
- for(const edge of cuts)for(const [id,side] of [[edge.a,1],[edge.b,-1]]){
-  if(!limits.has(id))limits.set(id,{lo:[-Infinity,-Infinity,-Infinity],hi:[Infinity,Infinity,Infinity]});
-  const bounds=limits.get(id),axis=edge.axis,plane=edge.patches[0].lo[axis];
-  if(side>0)bounds.hi[axis]=Math.min(bounds.hi[axis],plane);else bounds.lo[axis]=Math.max(bounds.lo[axis],plane);
- }
+ const surfaces=new Map(),grid=s.grid,cells=grid.voronoi;
+ const cuts=grid.bonds.filter(e=>s.owners[e.a]!==s.owners[e.b]);
+ const nodeChar=new Float32Array(grid.nodes.length);
+ for(const e of cuts)if(e.char)for(const i of [e.a,e.b])nodeChar[i]=Math.max(nodeChar[i],e.char);
+ const materialCuts=cuts.filter(e=>grid.nodes[e.a].material.id!==grid.nodes[e.b].material.id);
+ const p=new Vector3();
  for(const r of changed){
-  const out=emptySurface(skin[0].spacing);surfaces.set(r,out);
+  const out=emptySurface(skin[0].spacing);out.seamPlanes=[];surfaces.set(r,out);
   for(const i of r.regions){
-   const node=skin[i];
-   for(const x of node.positions)out.positions.push(x);
-   for(const x of node.normals)out.normals.push(x);
-   for(const m of node.materials)out.materials.push(m);
-   const bounds=limits.get(i);
-   for(let j=0;j<node.positions.length;j++){
-    out.supportMin.push(Math.max(node.supportMin[j],bounds?.lo[j%3]??-Infinity));
-    out.supportMax.push(Math.min(node.supportMax[j],bounds?.hi[j%3]??Infinity));
+   const node=skin[i],planes=cells.planes[i].filter(f=>s.owners[f.j]!==r);
+   for(const e of materialCuts){
+    if(e.a!==i&&e.b!==i)continue;
+    const sign=e.a===i?1:-1,n=new Vector3().setComponent(e.axis,sign);
+    planes.push({n,d:sign*e.patches[0].lo[e.axis]});
    }
+   for(let j=0;j<node.positions.length;j+=3){
+    p.fromArray(node.positions,j);let nearest=null,dist=Infinity;
+    for(const plane of planes){const gap=plane.d-plane.n.dot(p);if(gap>=-1e-6&&gap<dist){dist=gap;nearest=plane;}}
+    out.seamPlanes.push(...(nearest?[...nearest.n.toArray(),nearest.d]:[0,0,0,0]));
+   }
+   for(const key of ['positions','normals','materials','supportMin','supportMax'])for(const value of node[key])out[key].push(value);
   }
  }
- const area=cuts.reduce((total,e)=>total+e.area/(s.grid.scale[(e.axis+1)%3]*s.grid.scale[(e.axis+2)%3]),0);
- const spacing=Math.max(skin[0].spacing,Math.sqrt(area/12000));
- for(const e of cuts){
-  if(!surfaces.has(s.owners[e.a])&&!surfaces.has(s.owners[e.b]))continue;
-  const axis=e.axis,u=(axis+1)%3,v=(axis+2)%3;
+ // Tessellate each newly exposed convex face in its own tangent frame. Both
+ // fragments use the same polygon. Only an original material seam is planar
+ // by construction. Intact interior faces never enter the draw list.
+ const facets=[];
+ for(const [i,shapes] of cells.parts.entries())for(const shape of shapes)for(const f of shape.faces??[]){
+  if(f.neighbor==null||f.neighbor<=i||s.owners[i]===s.owners[f.neighbor])continue;
+  if(surfaces.has(s.owners[i])||surfaces.has(s.owners[f.neighbor]))facets.push({...f,a:i,b:f.neighbor});
+ }
+ // Different materials abut at the original contact proxy. Sample the actual
+ // Voronoi owner on either side as their fragments can separate independently.
+ for(const e of grid.bonds){
+  if(grid.nodes[e.a].material.id===grid.nodes[e.b].material.id)continue;
+  const k=e.axis,u=(k+1)%3,v=(k+2)%3;
   for(const patch of e.patches){
-   const w=patch.hi[u]-patch.lo[u],h=patch.hi[v]-patch.lo[v],nx=Math.max(1,Math.ceil(w/spacing)),ny=Math.max(1,Math.ceil(h/spacing));
-   for(let x=0;x<nx;x++)for(let y=0;y<ny;y++){
-    const p=patch.lo.slice();p[u]+=(x+.5)*w/nx;p[v]+=(y+.5)*h/ny;
-    const depth=-field(p,s.root.part.stamps)[0];if(depth<0)continue;
-    const position=e.char?charSurfacePoint(p,s.grid,depth,e.char):p;
-    const faceNormal=[0,0,0];faceNormal[axis]=1;
-    if(e.char){
-     const delta=spacing*.25,tu=p.slice(),tv=p.slice();tu[u]+=delta;tv[v]+=delta;
-     const tangent=q=>new Vector3(...charSurfacePoint(q,s.grid,-field(q,s.root.part.stamps)[0],e.char)).sub(new Vector3(...position));
-     tangent(tu).cross(tangent(tv)).normalize().toArray(faceNormal);
-    }
-    for(const [node,sign] of [[e.a,1],[e.b,-1]]){
-     const out=surfaces.get(s.owners[node]);if(!out)continue;
-     const normal=faceNormal.map(x=>x*sign);
-     out.positions.push(...position);out.normals.push(...normal);out.materials.push(s.grid.nodes[node].material.id);
-     for(let k=0;k<3;k++){
-      // A charred seam can curl out of its original plane.
-      const shift=position[k]-p[k];
-      out.supportMin.push(k===axis?-Infinity:patch.lo[k]+shift);
-      out.supportMax.push(k===axis?Infinity:patch.hi[k]+shift);
-     }
-    }
-   }
+   const points=[[0,0],[1,0],[1,1],[0,1]].map(([x,y])=>new Vector3(...patch.lo)
+    .setComponent(u,x?patch.hi[u]:patch.lo[u]).setComponent(v,y?patch.hi[v]:patch.lo[v]));
+   facets.push({points,normal:new Vector3().setComponent(k,1),a:e.a,b:e.b,interface:true});
   }
+ }
+ let area=0;
+ for(const f of facets)for(let k=2;k<f.points.length;k++)area+=new Vector3().subVectors(f.points[k-1],f.points[0])
+  .cross(new Vector3().subVectors(f.points[k],f.points[0])).length()*.5;
+ const spacing=Math.max(skin[0].spacing,Math.sqrt(area/12000));
+ for(const f of facets){
+  const {points,normal}=f,origin=points[0];
+  const edge=points.find(p=>p.distanceToSquared(origin)>1e-14);if(!edge)continue;
+  const u=edge.clone().sub(origin).normalize(),v=new Vector3().crossVectors(normal,u);
+  const uv=points.map(p=>{const d=p.clone().sub(origin);return [d.dot(u),d.dot(v)];});
+  const edges=[];
+  for(let k=0;k<points.length;k++){
+   const a=points[k],b=points[(k+1)%points.length],n=b.clone().sub(a).cross(normal);
+   if(n.lengthSq()>1e-16){n.normalize();edges.push({n,d:n.dot(a)});}
+  }
+  const lo=[0,1].map(k=>Math.min(...uv.map(p=>p[k]))),hi=[0,1].map(k=>Math.max(...uv.map(p=>p[k])));
+  const count=lo.map((x,k)=>Math.max(1,Math.ceil((hi[k]-x)/spacing)));
+  const emit=pos=>{
+   let closest=null,best=Infinity;
+   for(const edge of edges){const gap=edge.d-edge.n.dot(pos);if(gap<-.000001)return false;if(gap<best){best=gap;closest=edge;}}
+   const point=pos.toArray(),depth=-field(point,s.root.part.stamps)[0];if(depth<-.000001)return false;
+   const a=f.interface?cellOwner(grid,point,f.a):f.a,b=f.interface?cellOwner(grid,point,f.b):f.b;
+   if(s.owners[a]===s.owners[b])return false;
+   const char=Math.max(nodeChar[a],nodeChar[b]),position=char?charSurfacePoint(point,grid,depth,char):point;
+   for(const [i,sign] of [[a,1],[b,-1]]){
+    const out=surfaces.get(s.owners[i]);if(!out)continue;
+    out.positions.push(...position);out.materials.push(grid.nodes[i].material.id);
+    out.normals.push(sign*normal.x,sign*normal.y,sign*normal.z);
+    out.supportMin.push(-Infinity,-Infinity,-Infinity);out.supportMax.push(Infinity,Infinity,Infinity);
+    out.seamPlanes.push(...(closest?[...closest.n.toArray(),closest.d+closest.n.dot(new Vector3(...position).sub(pos))]:[0,0,0,0]));
+   }
+   return true;
+  };
+  let sampled=false;
+  for(let x=0;x<count[0];x++)for(let y=0;y<count[1];y++){
+   const pos=origin.clone().addScaledVector(u,lo[0]+(hi[0]-lo[0])*(x+.5)/count[0]).addScaledVector(v,lo[1]+(hi[1]-lo[1])*(y+.5)/count[1]);
+   if(emit(pos))sampled=true;
+  }
+  if(!sampled)emit(points.reduce((v,p)=>v.add(p),new Vector3()).divideScalar(points.length));
  }
  const char=new Map();
  for(const e of cuts)if(e.char)for(const owner of [s.owners[e.a],s.owners[e.b]])
@@ -81,7 +110,7 @@ function fragmentSurfaces(s,skin,changed){
   const before=out.positions.slice();
   roundCharChip(out,s.grid,r.regions,amount);
   for(let i=0;i<before.length;i++){
-   const shift=out.positions[i]-before[i];out.supportMin[i]+=shift;out.supportMax[i]+=shift;
+   const shift=out.positions[i]-before[i],j=Math.floor(i/3)*4;out.seamPlanes[j+3]+=out.seamPlanes[j+i%3]*shift;out.supportMin[i]+=shift;out.supportMax[i]+=shift;
   }
  }
  return surfaces;

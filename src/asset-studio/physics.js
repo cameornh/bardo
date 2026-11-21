@@ -66,6 +66,7 @@ export class StudioPhysics {
      const body=this.world.createRigidBody(desc);
      for(const s of shapes){const mat=library.materials.find(x=>x.id===s.materialId),center=V(s.center).multiply(scale);let shape;
       if(s.type==='box')shape=R.ColliderDesc.cuboid(...V(s.half).multiply(scale).toArray());
+      else if(s.type==='hull')shape=R.ColliderDesc.convexHull(Float32Array.from(s.vertices,(v,k)=>v*scale.getComponent(k%3)));
       else if(s.type==='ball'&&Math.abs(scale.x-scale.y)+Math.abs(scale.x-scale.z)<1e-6)shape=R.ColliderDesc.ball(s.radius*scale.x);
       else if(s.type==='capsule'&&Math.abs(scale.x-scale.y)+Math.abs(scale.x-scale.z)<1e-6)shape=R.ColliderDesc.capsule(s.halfHeight*scale.y,s.radius*scale.x);
       else {const points=[];for(let y=0;y<=12;y++)for(let x=0;x<24;x++){const a=Math.PI*y/12,b=2*Math.PI*x/24;points.push(s.radius*Math.sin(a)*Math.cos(b)*scale.x,(s.radius*Math.cos(a)+(s.type==='capsule'?(Math.cos(a)>=0?1:-1)*s.halfHeight:0))*scale.y,s.radius*Math.sin(a)*Math.sin(b)*scale.z);}shape=R.ColliderDesc.convexHull(new Float32Array(points));}

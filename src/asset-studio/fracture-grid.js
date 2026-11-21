@@ -1,5 +1,6 @@
 // Subdivide the occupied contact proxy only. Adjacent pieces retain their local
 // material; touching corners and edges alone cannot transmit a force.
+import {cellOwner,mergeBoxes} from './fracture-cells.js';
 const axes=[0,1,2],EPS=1e-7;
 function unionFind(n){
  const ids=Array.from({length:n},(_,i)=>i);
@@ -40,14 +41,14 @@ export function fractureGrid(boxes,scale,materials){
  // across all three axes. The collision proxy still supplies fine cutouts.
  const pitch=Math.min(longest/3,Math.max(.075,longest/10,Math.cbrt(width[0]*width[1]*width[2]/38)));
  const dims=width.map(w=>w<longest*.24?1:Math.max(1,Math.round(w/pitch))),step=hi.map((x,k)=>(x-lo[k])/dims[k]);
- const pieces=[];
- for(const box of boxes){
+ const pieces=[],sourceNodes=[];
+ for(const [source,box] of boxes.entries()){
   const min=box.center.map((x,k)=>x-box.half[k]),max=box.center.map((x,k)=>x+box.half[k]);
   const start=min.map((x,k)=>Math.max(0,Math.floor((x-lo[k]+EPS)/step[k])));
   const end=max.map((x,k)=>Math.min(dims[k]-1,Math.floor((x-lo[k]-EPS)/step[k])));
   for(let z=start[2];z<=end[2];z++)for(let y=start[1];y<=end[1];y++)for(let x=start[0];x<=end[0];x++){
    const cell=[x,y,z],lower=cell.map((n,k)=>Math.max(min[k],lo[k]+n*step[k])),upper=cell.map((n,k)=>Math.min(max[k],lo[k]+(n+1)*step[k]));
-   pieces.push({lo:lower,hi:upper,cell:x+dims[0]*(y+dims[1]*z),materialId:box.materialId});
+   pieces.push({source,lo:lower,hi:upper,cell:x+dims[0]*(y+dims[1]*z),materialId:box.materialId});
   }
  }
  const sets=unionFind(pieces.length),contacts=[];
@@ -64,7 +65,7 @@ export function fractureGrid(boxes,scale,materials){
   n.shapes.push({type:'box',half,center,materialId:p.materialId});
   const mass=half.reduce((v,h,k)=>v*2*h*scale[k],n.material.density);
   for(const k of axes)n.center[k]+=mass*center[k]*scale[k];
-  n.mass+=mass;p.node=n.index;
+  n.mass+=mass;p.node=n.index;sourceNodes[p.source]=n.index;
  }
  for(const n of nodes){
   for(const k of axes)n.center[k]/=n.mass;
@@ -110,7 +111,7 @@ export function fractureGrid(boxes,scale,materials){
   e.spring=axes.map(k=>k===e.axis?e.stiffness:shear*e.area/length);
   e.spring.push(...axes.map(k=>k===e.axis?shear*(iu+iv)/length:modulus*(k===u?iu:iv)/length));
  }
- return {nodes,bonds,scale,lo,step,dims,cells};
+ return {nodes,bonds,scale,lo,step,dims,cells,boxes,sourceNodes};
 }
 export function islands(grid){
  const uf=unionFind(grid.nodes.length);
@@ -136,6 +137,7 @@ export function nearestRegion(grid,point,candidates,preferred){
  };
  if(cell)search(candidates.length===grid.nodes.length?cell:cell.filter(id=>candidates.includes(id)));
  if(dist>0)search(candidates);
+ if(best!==undefined&&grid.voronoi)return cellOwner(grid,point,best,candidates);
  return best??(preferred?nearestRegion(grid,point,candidates):undefined);
 }
 
@@ -159,25 +161,5 @@ export function fractureBoxes(shapes){
 // Erase internal collider faces after a split without changing the occupied
 // volume, surface material, or any remaining structural bonds.
 export function fragmentBoxes(grid,ids){
- let boxes=ids.flatMap(i=>grid.nodes[i].shapes);
- for(const axis of axes){
-  const u=(axis+1)%3,v=(axis+2)%3,rows=new Map();
-  for(const s of boxes){
-   const key=[s.materialId,...[s.center[u],s.center[v],s.half[u],s.half[v]].map(x=>Math.round(x/EPS))].join('|');
-   if(!rows.has(key))rows.set(key,[]);rows.get(key).push(s);
-  }
-  boxes=[];
-  for(const row of rows.values()){
-   row.sort((a,b)=>a.center[axis]-b.center[axis]);let current;
-   for(const s of row){
-    const lo=s.center[axis]-s.half[axis],hi=s.center[axis]+s.half[axis];
-    if(!current||Math.abs(current.center[axis]+current.half[axis]-lo)>EPS){
-     current={...s,center:s.center.slice(),half:s.half.slice()};boxes.push(current);continue;
-    }
-    const start=current.center[axis]-current.half[axis];
-    current.half[axis]=(hi-start)*.5;current.center[axis]=(start+hi)*.5;
-   }
-  }
- }
- return boxes;
+ return mergeBoxes(ids.flatMap(i=>grid.nodes[i].shapes));
 }

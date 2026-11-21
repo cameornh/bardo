@@ -1,5 +1,6 @@
 // The six triangles share the same diagonal as the Rapier terrain heightfield.
 // Removing one node's linear basis function cuts exactly CELL² * depth.
+import {liquidity} from './physics-data.js';
 import {Vector3} from 'three';
 import {SAND_SIDE,SAND_METRES} from './wind-sand.js';
 export const CELL=SAND_METRES/SAND_SIDE,MAX_CUTS=64;
@@ -66,9 +67,46 @@ export function chunkPackets(c,m,origin,count=18){
  }
  return out;
 }
+// Distance in metres for a ground impulse to fall to 1/e of its contact force.
+export const LOCAL_IMPULSE_REACH=.32;
+export function impulseReach(m){
+ const strength=m.cohesion+(m.phase==='granular'?0:m.tensileStrength);
+ const connected=(1-liquidity(m))**2*strength/(strength+18000);
+ const speed=Math.sqrt(m.youngModulus/Math.max(.01,m.density));
+ return LOCAL_IMPULSE_REACH+4.7*connected*speed/(speed+170*(1+m.friction));
+}
 export function impactResponse(m,force){
  const stress=force/(CELL*CELL),binding=m.cohesion+m.yieldStress;
  const compression=Math.max(0,stress-binding)/Math.max(1,m.youngModulus);
  return {dent:Math.min(.22,CELL*compression),recovery:m.restitution,
-  reach:Math.min(5,.35+.018*Math.sqrt(m.youngModulus/Math.max(.01,m.density))/(1+m.friction))};
+  reach:impulseReach(m)};
+}
+
+// At a grazing angle a ray can cross several crests before the mean plane.
+// Walk from the eye to bracket the first crossing, then refine that bracket.
+export function firstSurfaceHit(ray,height,far,bound){
+ const dy=ray.direction.y,y=ray.origin.y;
+ let start=0,end=far;
+ if(Math.abs(dy)>1e-8){
+  const a=(-bound-y)/dy,b=(bound-y)/dy;
+  start=Math.max(0,Math.min(a,b));end=Math.min(far,Math.max(a,b));
+ }else if(Math.abs(y)>bound)return null;
+ if(start>end)return null;
+ const p=new Vector3();
+ const residual=t=>{ray.at(t,p);return p.y-height(p.x,p.z);};
+ let lo=start,prior=residual(lo);
+ if(Math.abs(prior)<1e-7)return ray.at(lo,p);
+ const span=end-start,steps=Math.min(384,Math.max(1,Math.ceil(span/.25)));
+ const logSpan=span>steps*.25?Math.log1p(span/6):0;
+ for(let i=1;i<=steps;i++){
+  let hi=start+(logSpan?6*Math.expm1(logSpan*i/steps):span*i/steps);const next=residual(hi);
+  if((prior<0)!==(next<0)||next===0){
+   for(let j=0;j<16;j++){
+    const mid=(lo+hi)*.5;if((residual(mid)<0)===(prior<0))lo=mid;else hi=mid;
+   }
+   return ray.at((lo+hi)*.5,p);
+  }
+  lo=hi;prior=next;
+ }
+ return null;
 }

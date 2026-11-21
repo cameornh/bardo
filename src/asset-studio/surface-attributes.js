@@ -28,6 +28,7 @@ export function studioGeometry(surface, materials) {
   const attribute = (name, array, size) => geometry.setAttribute(name, new THREE.InstancedBufferAttribute(array, size));
   geometry.setAttribute('position', new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0], 3));
   geometry.setIndex([0,1,2,0,2,3]);
+  if(surface.seamPlanes)attribute('seamPlane',new Float32Array(surface.seamPlanes),4);
   attribute('center', new Float32Array(surface.positions), 3);
   const box=new THREE.Box3().setFromArray(surface.positions).expandByScalar(surface.spacing*.2);
   const lo=new Float32Array(count*3),hi=new Float32Array(count*3);

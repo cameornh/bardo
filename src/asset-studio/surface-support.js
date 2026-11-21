@@ -42,7 +42,7 @@ export function surfaceFragment(depth, lighting, relief, reflectionClip) {
  uniform vec2 viewport;uniform mat4 projectionMatrix,cameraWorld;uniform float matterPlaying;
  varying vec2 footprint,phase;varying vec3 vNormal,vColor,vWorld,grain,localCoord,localN;
  varying float vRadius;varying vec4 vProps;flat varying mat3 worldToLocal;
- flat varying vec4 boundsLo;flat varying vec3 boundsHi;
+ flat varying vec4 boundsLo,seam;flat varying vec3 boundsHi;
  void main(){
   if(phase.x>1.5||(matterPlaying>.5&&phase.x>.5))discard;
   bool hard=boundsLo.w>.5;float q=dot(footprint,footprint);
@@ -54,7 +54,7 @@ export function surfaceFragment(depth, lighting, relief, reflectionClip) {
   if(!hard)t=clamp(t,length(centerView)-vRadius,length(centerView)+vRadius);
   if(t<.03)discard;
   vec3 delta=worldToLocal*(mat3(cameraWorld)*(ray*t-centerView)),coord=localCoord+delta;
-  if(hard&&(dot(delta,delta)>6.76*vRadius*vRadius||any(lessThan(coord,boundsLo.xyz))||any(greaterThan(coord,boundsHi))))discard;
+  if(hard&&(dot(coord,seam.xyz)>seam.w+.000002||dot(delta,delta)>6.76*vRadius*vRadius||any(lessThan(coord,boundsLo.xyz))||any(greaterThan(coord,boundsHi))))discard;
   vec3 surface=(cameraWorld*vec4(ray*t,1.)).xyz;if(belowReflector(surface))discard;
   vec3 n=normalize(vNormal),base=vColor;
   float h=grainSurface(coord,localN,grain,n,base,cameraPosition-surface);

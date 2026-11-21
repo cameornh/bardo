@@ -17,14 +17,14 @@ const heightSum=bandGLSL((i,b)=>`
   y+=mix(dot(h.rg,unpack16),dot(h.ba,unpack16),bandMix[${i}])*12.-6.;`);
 export const waveHeight=sampling+`
  uniform vec3 bandMix;
- uniform vec4 rings[12];uniform int ringCount;
+ uniform vec4 rings[12];uniform float ringAttenuation[12];uniform int ringCount;
  const vec2 unpack16=vec2(65280.,255.)/65535.;
  float surfaceHeight(vec2 p,float spacing){
   vec4 h;float y=0.;
   ${heightSum}
   for(int i=0;i<12;i++){if(i>=ringCount)break;vec4 r=rings[i];if(r.z<0.){vec2 d=p-r.xy;float h=max(0.,1.+dot(d,d)/r.z);y-=r.w*h*h;continue;}
-   float q=length(p-r.xy)-2.*r.z;
-   y+=r.w*cos(6.*q)*exp(-3.*q*q-1.3*r.z)/(1.+spacing*spacing);
+   float d=length(p-r.xy),q=d-2.*r.z;
+   y+=r.w*cos(6.*q)*exp(-3.*q*q-1.3*r.z-d*ringAttenuation[i])/(1.+spacing*spacing);
   }return y;
  }
  float elevation(vec2 p){return surfaceHeight(p,0.);}
@@ -36,7 +36,7 @@ export const wave=waveHeight+bandGLSL(i=>'uniform sampler2D slope'+i+';')+`
   for(int i=0;i<12;i++){if(i>=ringCount)break;vec4 r=rings[i];vec2 dv=p-r.xy;
    if(r.z<0.){slope-=4.*r.w*dv*max(0.,1.+dot(dv,dv)/r.z)/r.z;continue;}
    float d=length(dv),q=d-2.*r.z;
-   slope+=dv/max(.001,d)*r.w*exp(-3.*q*q-1.3*r.z)*(-6.*sin(6.*q)-6.*q*cos(6.*q));
+   slope+=dv/max(.001,d)*r.w*exp(-3.*q*q-1.3*r.z-d*ringAttenuation[i])*(-6.*sin(6.*q)-(6.*q+ringAttenuation[i])*cos(6.*q));
   }return slope;
  }
 `;

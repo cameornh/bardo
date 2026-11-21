@@ -1,5 +1,6 @@
 import {Matrix3,Quaternion,Vector3} from 'three';
-import {fractureBoxes,fractureGrid,fragmentBoxes,islands,nearestRegion} from './fracture-grid.js';
+import {fractureBoxes,fractureGrid,islands,nearestRegion} from './fracture-grid.js';
+import {cellShapes,fractureCells,mergeBoxes} from './fracture-cells.js';
 import {charBondStrength} from './char-fracture.js';
 import {factorNetwork,solveBonds} from './fracture-stress.js';
 
@@ -19,7 +20,7 @@ function assignRegions(r,s,ids){
 }
 export function attachStructure(sim,r,shapes,materials,anchor,beam,makeBody){
  if(!shapes.some(s=>materials.get(s.materialId).youngModulus>0)&&shapes.every(s=>s.materialId===shapes[0].materialId))return;
- const grid=fractureGrid(fractureBoxes(shapes),r.scale.toArray(),materials);
+ const grid=fractureGrid(mergeBoxes(fractureBoxes(shapes)),r.scale.toArray(),materials);
  if(!grid||grid.nodes.length<2)return;
  const indices=grid.nodes.map(n=>n.index);
  const s={grid,indices,owners:[],root:r,anchor,makeBody,serial:0,beam,
@@ -237,6 +238,7 @@ function worldInertia(body){
 function separate(sim,r,groups){
  const s=r.structure,old=r.body,rot=new Quaternion().copy(old.rotation()),origin=vec(old.translation()),spin=vec(old.angvel()),v=vec(old.linvel());
  const previousRegions=r.regions,previousField=r.field;
+ fractureCells(s.grid);
  const held=regionAt(r,s.anchor);
  groups.sort((a,b)=>Number(b.includes(held))-Number(a.includes(held))||b.length-a.length);
  const originalColliders=old.numColliders(),records=[];
@@ -244,13 +246,20 @@ function separate(sim,r,groups){
  // Capture all incident attachments before replacing the old collider/body.
  for(const l of jointLinks)sim.world.removeImpulseJoint(l.joint,true);
  const mass=old.isDynamic()?old.mass():r.regions.reduce((sum,i)=>sum+s.grid.nodes[i].mass,0)*(r.massScale??1);
- const total=r.regions.reduce((sum,i)=>sum+s.grid.nodes[i].mass,0),densityScale=mass/total;
+ const geometry=groups.map(ids=>cellShapes(s.grid,ids));
+ const scaledVolume=r.scale.x*r.scale.y*r.scale.z;
+ const pieceMass=geometry.map(shapes=>shapes.reduce((sum,p)=>{
+  const volume=p.volume??8*p.half[0]*p.half[1]*p.half[2];
+  return sum+volume*scaledVolume*sim.materialWorld.palette.get(p.materialId).density;
+ },0));
+ const densityScale=mass/pieceMass.reduce((a,b)=>a+b,0);
  for(const [j,ids] of groups.entries()){
-  const shapes=fragmentBoxes(s.grid,ids);
+  const shapes=geometry[j];
   const key=j?r.key.split('#fragment')[0]+'#fragment'+(++s.serial):r.key;
   const fresh=s.makeBody(shapes,key,!j&&old.isFixed(),r.part.stamps,densityScale);
   fresh.body.setTranslation(origin,true);fresh.body.setRotation(rot,true);
-  fresh.matrix.compose(origin,rot,fresh.scale);fresh.massScale=densityScale;
+  fresh.matrix.compose(origin,rot,fresh.scale);
+  fresh.massScale=pieceMass[j]*densityScale/ids.reduce((sum,i)=>sum+s.grid.nodes[i].mass,0);
   let rec=fresh;
   if(!j){
    if(r.obstacle)sim.parcelObstacles.splice(sim.parcelObstacles.indexOf(r.obstacle),1);

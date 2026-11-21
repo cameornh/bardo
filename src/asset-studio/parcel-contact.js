@@ -29,7 +29,9 @@ function obstacleDistance(o,p){
  let nearest=Infinity;
  for(const s of o.fragments){
   const x=Math.abs(p.x-s.center[0])-s.half[0],y=Math.abs(p.y-s.center[1])-s.half[1],z=Math.abs(p.z-s.center[2])-s.half[2];
-  nearest=Math.min(nearest,Math.hypot(Math.max(0,x),Math.max(0,y),Math.max(0,z))+Math.min(0,Math.max(x,y,z)));
+  let distance=Math.hypot(Math.max(0,x),Math.max(0,y),Math.max(0,z))+Math.min(0,Math.max(x,y,z));
+  if(s.planes&&distance<nearest)for(const [nx,ny,nz,d] of s.planes)distance=Math.max(distance,nx*p.x+ny*p.y+nz*p.z-d);
+  nearest=Math.min(nearest,distance);
  }
  return Math.max(d,nearest);
 }
