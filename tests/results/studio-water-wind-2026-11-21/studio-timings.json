@@ -1,0 +1,37 @@
+{
+  "rows": [
+    {
+      "mode": "gaussian",
+      "fps": 12.26,
+      "realtime": 0.955,
+      "completedFrameMs": 77.18
+    },
+    {
+      "mode": "auto",
+      "fps": 17.01,
+      "realtime": 0.978,
+      "completedFrameMs": 54.47
+    },
+    {
+      "mode": "auto",
+      "fps": 17.54,
+      "realtime": 0.981,
+      "completedFrameMs": 53.62
+    },
+    {
+      "mode": "gaussian",
+      "fps": 11.93,
+      "realtime": 0.9,
+      "completedFrameMs": 78.97
+    }
+  ],
+  "placements": 24,
+  "spacing": 0.05,
+  "framesPerBlock": 72,
+  "submittedSamplesPerGaussianPass": 56832,
+  "dimensions": [
+    640,
+    360
+  ],
+  "lost": false
+}

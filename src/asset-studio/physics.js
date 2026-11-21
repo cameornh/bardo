@@ -1,5 +1,5 @@
 import {WindSea} from './ocean.js';
-import {flotationSamples,applyEnvironment} from './fluid-forces.js';
+import {flotationSamples,applyEnvironment,waveImpact} from './fluid-forces.js';
 import {prepareLoads,releaseOverloaded} from './joint-load.js';
 import * as THREE from 'three';
 import {collisionProxy} from './collision.js';
@@ -13,7 +13,15 @@ export class StudioPhysics {
  static async create(library,mode,assetId,gravity=9.81,sea=null){const R=await loadPhysics(),p=new StudioPhysics(R,gravity);p.wind=library.world.wind||{speed:0,heading:0};
  const liquid=mode==='world'&&library.materials.find(m=>m.id===library.world.groundMaterialId)?.phase==='liquid';
  p.sea=liquid?(sea??new WindSea(p.wind.speed,p.wind.heading)):null;p.broken=0;try{await p.build(library,mode,assetId);return p;}catch(e){p.dispose();throw e;}}
- constructor(R,gravity){this.R=R;this.world=new R.World({x:0,y:-gravity,z:0});this.world.timestep=1/120;this.world.numSolverIterations=8;this.bodies=new Map();this.joints=[];this.pulses=[];this.time=0;this.accumulator=0;this.steps=0;this.skipped=[];this.maxProxySpacing=0;this.motorEnabled=true;this.lastStepMs=0;this.colliderCount=0;}
+ constructor(R,gravity){this.R=R;this.collideDrop=(d,from)=>{
+   const delta=v(d).sub(from),distance=delta.length();if(distance<.001)return;
+   const ray=new R.Ray(from,delta.divideScalar(distance)),hit=this.world.castRayAndGetNormal(ray,distance,false);
+   if(!hit)return;
+   const n=hit.normal,speed=d.vx*n.x+d.vy*n.y+d.vz*n.z;if(speed>=0)return;
+   const p=ray.pointAt(hit.timeOfImpact);d.x=p.x+n.x*d.r;d.y=p.y+n.y*d.r;d.z=p.z+n.z*d.r;
+   d.vx=(d.vx-1.14*speed*n.x)*.72;d.vy=(d.vy-1.14*speed*n.y)*.72;d.vz=(d.vz-1.14*speed*n.z)*.72;
+   d.foam=Math.min(.7,.12+Math.abs(speed)*.075);
+  };this.world=new R.World({x:0,y:-gravity,z:0});this.world.timestep=1/120;this.world.numSolverIterations=8;this.bodies=new Map();this.joints=[];this.pulses=[];this.time=0;this.accumulator=0;this.steps=0;this.skipped=[];this.maxProxySpacing=0;this.motorEnabled=true;this.lastStepMs=0;this.colliderCount=0;}
  async proxy(part){if(typeof Worker==='undefined')return collisionProxy(part);const worker=new Worker(new URL('./collision-worker.js',import.meta.url),{type:'module'});try{return await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Collision preparation exceeded six seconds; simplify or split this part.')),6000);worker.onmessage=({data})=>{clearTimeout(timer);data.error?reject(Error(data.error)):resolve(data.proxy);};worker.onerror=e=>{clearTimeout(timer);reject(Error(e.message));};worker.postMessage(part);});}finally{worker.terminate();}}
  async build(library,mode,assetId){
   const R=this.R,ground=library.materials.find(m=>m.id===library.world.groundMaterialId);
@@ -40,7 +48,10 @@ export class StudioPhysics {
      if(!shape)throw Error('Cannot build collision shape for '+p.name);
      this.world.createCollider(shape.setTranslation(...center.toArray()).setDensity(mat.density).setFriction(mat.friction).setRestitution(mat.restitution),body);this.colliderCount++;
     }
-    const record={body,part:p,asset,instance:i,scale,initialRotation:rotation.clone(),matrix:m,retention:partRetention(p,library.materials)};record.floats=flotationSamples(proxy.shapes,scale);record.fluidVolume=record.floats.reduce((sum,p)=>sum+p.volume,0);this.bodies.set(i.id+':'+p.id,record);this.maxProxySpacing=Math.max(this.maxProxySpacing,proxy.spacing*Math.max(...scale.toArray()));
+    const record={body,part:p,asset,instance:i,scale,initialRotation:rotation.clone(),matrix:m,retention:partRetention(p,library.materials)};record.floats=flotationSamples(proxy.shapes,scale);record.fluidVolume=record.floats.reduce((sum,p)=>sum+p.volume,0);const bounds=new THREE.Box3();
+    for(const s of record.floats){const reach=s.extent.clone().multiplyScalar(2);bounds.expandByPoint(s.p.clone().sub(reach));bounds.expandByPoint(s.p.clone().add(reach));}
+    record.probeCenter=bounds.getCenter(new THREE.Vector3());record.probeRadius=bounds.getSize(new THREE.Vector3()).length()*.5;
+    record.nextProbe=(total%7)*.024;this.bodies.set(i.id+':'+p.id,record);this.maxProxySpacing=Math.max(this.maxProxySpacing,proxy.spacing*Math.max(...scale.toArray()));
     await new Promise(resolve=>setTimeout(resolve,0));
    }
   }
@@ -90,7 +101,7 @@ export class StudioPhysics {
   }
   this.pulses=this.pulses.filter(f=>f.until>this.time);for(const pulse of this.pulses){const fraction=Math.min(1,(pulse.until-this.time)/dt);this.applyForce({...pulse,force:pulse.force.clone().multiplyScalar(fraction)});}if(this.drag)this.applyForce(this.drag);
   const loads=prepareLoads(this.joints,this.world.gravity);
-  this.world.step();releaseOverloaded(this,loads,dt);this.sea?.advance(dt);this.time+=dt;this.steps++;this.lastStepMs=performance.now()-start;
+  this.world.step();if(this.sea)for(const record of this.bodies.values())waveImpact(this,record);releaseOverloaded(this,loads,dt);this.sea?.advance(dt,this.collideDrop);this.time+=dt;this.steps++;this.lastStepMs=performance.now()-start;
   for(const r of this.bodies.values()){const p=r.body.translation(),rot=r.body.rotation();if(![p.x,p.y,p.z,rot.x,rot.y,rot.z,rot.w].every(Number.isFinite))throw Error('Physics stopped: non-finite body state');r.matrix.compose(v(p),q(rot),r.scale);}
  }
  advance(seconds){this.accumulator=Math.min(.1,this.accumulator+Math.max(0,seconds));let n=0;while(this.accumulator>=1/120&&n<12){this.step();this.accumulator-=1/120;n++;}return n/120;}

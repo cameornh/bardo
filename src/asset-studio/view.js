@@ -1,4 +1,6 @@
 import {ImplicitSurfaces,implicitStamp,intersectImplicit} from './implicit-surface.js';
+import {SandDriftView} from './sand-drift-view.js';
+import {SAND_METRES,SAND_SIDE} from './wind-sand.js';
 import {OceanView} from './ocean-view.js';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
@@ -52,7 +54,8 @@ export class StudioView{
   this.controls.enableDamping=false;
   this.controls.mouseButtons={LEFT:null,MIDDLE:THREE.MOUSE.PAN,RIGHT:THREE.MOUSE.ROTATE};
   this.implicit=new ImplicitSurfaces(this.scene,this.uniforms.environment,LIGHTING);
-  this.oceanView=new OceanView(this.scene,this.uniforms.environment,LIGHTING);
+  this.waterScene=new THREE.Scene();
+  this.oceanView=new OceanView(this.waterScene,this.uniforms.environment,LIGHTING);
   // Stretch each fibre along its surface normal, retaining the projected covariance.
   for(const mat of [this.material,this.depthMaterial]){
    mat.uniforms.clipFloor={value:0};
@@ -64,6 +67,20 @@ export class StudioView{
   }
  }
  this.groundMaterial=new THREE.ShaderMaterial({uniforms:{environment:this.uniforms.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},vertexShader:GROUND_VERTEX,fragmentShader:GROUND_FRAGMENT});
+ if(liveStudio){
+  this.sandView=new SandDriftView(this.scene,this.uniforms,LIGHTING);
+  this.groundMaterial.uniforms.sandBed={value:this.sandView.texture};this.groundMaterial.uniforms.granular={value:false};
+  this.groundMaterial.fragmentShader='uniform bool granular;uniform sampler2D sandBed;\n'+GROUND_FRAGMENT.replace('vec3 lit=shade(base,vec3(0,1,0),p,properties);',`
+   vec3 n=vec3(0,1,0);
+   if(granular){
+    vec2 uv=p.xz/${SAND_METRES.toFixed(1)};float cell=1./${SAND_SIDE.toFixed(1)};
+    float bed=texture2D(sandBed,uv).r-.502;
+    vec2 slope=vec2(texture2D(sandBed,uv+vec2(cell,0.)).r-texture2D(sandBed,uv-vec2(cell,0.)).r,
+                    texture2D(sandBed,uv+vec2(0.,cell)).r-texture2D(sandBed,uv-vec2(0.,cell)).r);
+    n=normalize(vec3(-slope.x*.032,1.,-slope.y*.032));base*=1.+bed*.22;
+   }
+   vec3 lit=shade(base,n,p,properties);`);
+ }
  this.ground=new THREE.Mesh(new THREE.PlaneGeometry(20000,20000),this.groundMaterial);this.ground.rotation.x=-Math.PI/2;this.scene.add(this.ground);
  this.root=new THREE.Group();this.assetScene=new THREE.Scene();this.assetScene.add(this.root);this.cache=new Map();this.groups=new Map();this.surfaces=new Map();
  this.gizmo=new TransformControls(this.camera,canvas);this.scene.add(this.gizmo.getHelper());this.gizmo.addEventListener('dragging-changed',e=>{this.controls.enabled=!e.value;this.dragging=e.value;if(e.value)onDragStart();else onChange(this.gizmo.object);});this.gizmo.addEventListener('objectChange',()=>onChange(this.gizmo.object,true));
@@ -73,14 +90,14 @@ export class StudioView{
  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();this.failed=true;});
  }
  resize(){const r=this.canvas.parentElement.getBoundingClientRect();this.renderer.setSize(r.width,r.height,false);this.camera.aspect=r.width/r.height;this.camera.updateProjectionMatrix();this.renderer.getDrawingBufferSize(this.uniforms.viewport.value);}
- setGround(m){this.groundMaterial.uniforms.color.value.set(m.color);this.groundMaterial.uniforms.properties.value.set(m.roughness,m.metallic,m.opacity,m.emission);}
+ setGround(m){this.groundSurface=m;this.groundMaterial.uniforms.color.value.set(m.color);this.groundMaterial.uniforms.properties.value.set(m.roughness,m.metallic,m.opacity,m.emission);}
  geometry(surface,materials){const geometry=new THREE.InstancedBufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));geometry.setIndex([0,1,2,0,2,3]);const count=surface.positions.length/3,colors=new Float32Array(count*3),props=new Float32Array(count*4),radii=new Float32Array(count),fiber=new Float32Array(count);let maxFiber=0;for(let i=0;i<count;i++){const m=materials.find(m=>m.id===surface.materials[i])||materials[0],c=new THREE.Color(m.color);colors.set([c.r,c.g,c.b],i*3);props.set([m.roughness,m.metallic,m.opacity,m.emission],i*4);radii[i]=surface.spacing*.61;fiber[i]=m.fiberLength||0;maxFiber=Math.max(maxFiber,fiber[i]);}for(const [name,array,itemSize]of [['center',new Float32Array(surface.positions),3],['surfaceNormal',new Float32Array(surface.normals),3],['tint',colors,3],['properties',props,4],['radius',radii,1]])geometry.setAttribute(name,new THREE.InstancedBufferAttribute(array,itemSize));if(this.liveStudio)geometry.setAttribute('fiberLength',new THREE.InstancedBufferAttribute(fiber,1));geometry.instanceCount=count;const box=new THREE.Box3().setFromArray(surface.positions);box.expandByScalar(surface.spacing*2+maxFiber*2);geometry.boundingBox=box;geometry.boundingSphere=box.getBoundingSphere(new THREE.Sphere());return geometry;}
  setSurface(key,surface,materials){this.surfaces.set(key,surface);const old=this.cache.get(key),geometry=this.geometry(surface,materials);this.cache.set(key,geometry);for(const group of this.groups.values())group.traverse(o=>{if(o.userData.surfaceKey===key)o.geometry=geometry;});old?.dispose();}
  recolor(materials){for(const [key,s]of this.surfaces)this.setSurface(key,s,materials);}
- rebuild(library,mode,assetId){this.gizmo.detach();this.root.clear();this.groups.clear();this.library=library;this.mode=mode;this.implicitCount=0;this.implicit?.clear();const instances=mode==='asset'?[{id:'editor',assetId,transform:{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}}]:library.world.instances;
+ rebuild(library,mode,assetId){this.gizmo.detach();this.root.clear();this.groups.clear();this.library=library;this.mode=mode;this.implicitCount=0;this.gaussianCount=0;this.implicit?.clear();const instances=mode==='asset'?[{id:'editor',assetId,transform:{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}}]:library.world.instances;
  for(const instance of instances){const a=library.assets.find(a=>a.id===instance.assetId);if(!a)continue;const group=new THREE.Group();group.userData={instanceId:instance.id,assetId:a.id};poseObject(group,instance.transform);this.root.add(group);this.groups.set(instance.id,group);for(const p of a.parts){const object=new THREE.Group();object.userData={partId:p.id,assetId:a.id};object.matrixAutoUpdate=false;object.matrix.copy(partMatrix(p.transform,p.pivot));group.add(object);const direct=this.liveStudio&&implicitStamp(p,library.materials);
  if(direct){object.add(this.implicit.mesh(direct,library.materials.find(m=>m.id===direct.materialId)));this.implicitCount++;continue;}
- const key=a.id+':'+p.id,geometry=this.cache.get(key);if(geometry){const mesh=new THREE.Mesh(geometry,this.material);mesh.userData.surfaceKey=key;object.add(mesh);}}}this.setGround(library.materials.find(m=>m.id===library.world.groundMaterialId));}
+ const key=a.id+':'+p.id,geometry=this.cache.get(key);if(geometry){this.gaussianCount+=geometry.instanceCount;const mesh=new THREE.Mesh(geometry,this.material);mesh.userData.surfaceKey=key;object.add(mesh);}}}this.setGround(library.materials.find(m=>m.id===library.world.groundMaterialId));}
  applyPhysics(physics){for(const [id,group]of this.groups){group.updateMatrix();const inverse=group.matrix.clone().invert();for(const object of group.children){const body=physics.get(id,object.userData.partId);if(body)object.matrix.copy(inverse).multiply(body.matrix);}}}
  animate(time,playing){for(const group of this.groups.values()){const a=this.library.assets.find(a=>a.id===group.userData.assetId);for(const obj of group.children){const p=a.parts.find(p=>p.id===obj.userData.partId);if(this.gizmo.dragging&&this.gizmo.object===obj)continue;obj.matrix.copy(partMatrix(playing?sampleTrack(p,time%a.duration):p.transform,p.pivot));}}}
  attach(instanceId,partId,tool){this.gizmo.detach();if(!['translate','rotate','scale'].includes(tool))return;const group=this.groups.get(this.mode==='asset'?'editor':instanceId);if(!group)return;const obj=this.mode==='asset'?group.children.find(p=>p.userData.partId===partId):group;if(!obj)return;
@@ -107,9 +124,13 @@ export class StudioView{
  showBrush(hit,size){this.brush.visible=!!hit;if(hit){this.brush.position.copy(hit.point);this.brush.scale.setScalar(size);}}
  focus(mode='world'){this.controls.target.set(0,1,0);this.camera.position.set(...(mode==='asset'?[4,3,5]:[8,5,10]));this.controls.update();}
  draw(){if(this.failed)throw Error('Studio graphics context lost; stopped.');this.controls.update();if(this.liveStudio){
+ this.sandView.update(this.sand,this.groundSurface);this.groundMaterial.uniforms.granular.value=!!this.sand;
  this.ground.visible=!this.sea;this.uniforms.clipFloor.value=this.sea?-1e10:0;
  if(this.sea)this.oceanView.update(this.sea,this.camera,this.library.materials.find(m=>m.id===this.library.world.groundMaterialId));else this.oceanView.show(false);
- }if(this.implicitCount){this.assetScene.updateMatrixWorld(true);this.implicit.update();}this.ground.position.set(this.camera.position.x,0,this.camera.position.z);this.scene.updateMatrixWorld(true);this.renderer.autoClear=true;this.renderer.render(this.scene,this.camera);this.renderer.autoClear=false;
- this.assetScene.overrideMaterial=this.depthMaterial;this.renderer.render(this.assetScene,this.camera);this.assetScene.overrideMaterial=null;this.renderer.render(this.assetScene,this.camera);}
- dispose(){this.oceanView?.dispose();this.implicit?.dispose();this.forceLine.geometry.dispose();this.forceLine.material.dispose();this.resizeObserver.disconnect();this.controls.dispose();this.gizmo.dispose();for(const g of this.cache.values())g.dispose();this.material.dispose();this.depthMaterial.dispose();this.ground.geometry.dispose();this.groundMaterial.dispose();this.brush.geometry.dispose();this.brush.material.dispose();this.renderer.dispose();}
+ }if(this.implicitCount){this.assetScene.updateMatrixWorld(true);this.implicit.update();}this.ground.position.set(this.camera.position.x,0,this.camera.position.z);this.scene.updateMatrixWorld(true);if(this.liveStudio&&this.sea){
+ this.oceanView.capture.render(this);
+ }else this.drawObjects(this.camera);}
+ drawObjects(camera){this.renderer.autoClear=true;this.renderer.render(this.scene,camera);this.renderer.autoClear=false;
+ this.assetScene.overrideMaterial=this.depthMaterial;this.renderer.render(this.assetScene,camera);this.assetScene.overrideMaterial=null;this.renderer.render(this.assetScene,camera);}
+ dispose(){this.sandView?.dispose();this.oceanView?.dispose();this.implicit?.dispose();this.forceLine.geometry.dispose();this.forceLine.material.dispose();this.resizeObserver.disconnect();this.controls.dispose();this.gizmo.dispose();for(const g of this.cache.values())g.dispose();this.material.dispose();this.depthMaterial.dispose();this.ground.geometry.dispose();this.groundMaterial.dispose();this.brush.geometry.dispose();this.brush.material.dispose();this.renderer.dispose();}
 }

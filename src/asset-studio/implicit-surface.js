@@ -12,7 +12,7 @@ export function implicitStamp(part,materials){
 // The box hull bounds rasterization; the shader writes the exact surface depth.
 export class ImplicitSurfaces {
  constructor(scene,environment,lighting){
-  this.scene=scene;this.geometry=new THREE.BoxGeometry(2,2,2);
+  this.clipFloor={value:-1e10};this.scene=scene;this.geometry=new THREE.BoxGeometry(2,2,2);
   this.materials=new Map();this.batches=new Map();this.environment=environment;this.lighting=lighting;
  }
  clear(){
@@ -24,7 +24,7 @@ export class ImplicitSurfaces {
   let mat=this.materials.get(key);
   if(!mat){
    mat=new THREE.ShaderMaterial({side:sphere?THREE.BackSide:THREE.FrontSide,defines:sphere?{ELLIPSOID:1}:{},
-    uniforms:{environment:this.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},
+    uniforms:{clipFloor:this.clipFloor,environment:this.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},
     vertexShader:`varying vec3 worldPoint;
     #ifdef ELLIPSOID
      varying vec3 localPosition;varying vec3 eye;varying mat3 normalToWorld;
@@ -39,7 +39,7 @@ export class ImplicitSurfaces {
      faceNormal=normalize(normalTransform*normal);
     #endif
      gl_Position=projectionMatrix*viewMatrix*world;}`,
-    fragmentShader:this.lighting+`varying vec3 worldPoint;uniform vec3 color;uniform vec4 properties;
+    fragmentShader:this.lighting+`varying vec3 worldPoint;uniform float clipFloor;uniform vec3 color;uniform vec4 properties;
     #ifdef ELLIPSOID
      varying vec3 localPosition;varying vec3 eye;varying mat3 normalToWorld;uniform mat4 projectionMatrix;
     #else
@@ -56,6 +56,7 @@ export class ImplicitSurfaces {
     #else
      n=normalize(faceNormal);
     #endif
+     if(p.y<clipFloor)discard;
      gl_FragColor=vec4(shade(color,n,p,properties),1.);
      #include <tonemapping_fragment>
      #include <colorspace_fragment>

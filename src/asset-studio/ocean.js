@@ -19,17 +19,18 @@ function inverseLine(real, imag, offset, stride) {
  }
 }
 
+export const MAX_PARCELS=96;
 export class WindSea {
  constructor(speed=0,heading=0) {
   this.frames=[new Float32Array(N*N),new Float32Array(N*N)];
   this.imag=new Float32Array(N*N);this.frame=-Infinity;this.version=0;
-  this.ripples=[];this.drops=[];this.serial=0;this.time=0;this.setWind(speed,heading);
+  this.ripples=[];this.drops=[];this.serial=0;this.breakTick=-1;this.time=0;this.setWind(speed,heading);
  }
  setWind(speed,heading){
   if(this.speed===speed&&this.heading===heading)return;
   this.speed=speed;this.heading=heading;this.frame=-Infinity;
   const angle=heading*Math.PI/180, wx=Math.cos(angle),wz=Math.sin(angle),L=speed*speed/9.81;
-  this.modes=[];let energy=0,seed=1701;
+  this.wx=wx;this.wz=wz;this.modes=[];let energy=0,seed=1701;
   const random=()=>((seed=(Math.imul(1664525,seed)+1013904223)>>>0)+.5)/4294967296;
   // Sample one half-plane, add its conjugate explicitly, and use deep-water dispersion.
   for(let iz=0;iz<N/2;iz++)for(let ix=1-N/2;ix<N/2;ix++){
@@ -40,7 +41,7 @@ export class WindSea {
    this.modes.push({a,phase,omega,index:wrap(ix)+N*iz,mirror:wrap(-ix)+N*wrap(-iz)});
    energy+=2*a*a;
   }
-  const rms=Math.min(.8,.0028*speed*speed);
+  const rms=.0028*speed*speed/(1+(speed/21)**3)**(2/3);
   for(const m of this.modes)m.a=energy>1e-20?m.a*rms/Math.sqrt(energy):0;
   this.sampleTime(this.time);
  }
@@ -60,11 +61,20 @@ export class WindSea {
   if(frame===this.frame+1)this.frames.reverse();else this.fill(this.frames[0],frame/WAVE_HZ);
   this.fill(this.frames[1],(frame+1)/WAVE_HZ);this.frame=frame;this.version++;
  }
- height(x,z){
+ bulk(x,z,frameMix=this.mix){
   const gx=x/cell,gz=z/cell,i=Math.floor(gx),j=Math.floor(gz),u=gx-i,v=gz-j;
   const a=wrap(i),b=wrap(i+1),c=N*wrap(j),d=N*wrap(j+1);
   const interp=h=>(h[a+c]*(1-u)+h[b+c]*u)*(1-v)+(h[a+d]*(1-u)+h[b+d]*u)*v;
-  let y=interp(this.frames[0])*(1-this.mix)+interp(this.frames[1])*this.mix;
+  return interp(this.frames[0])*(1-frameMix)+interp(this.frames[1])*frameMix;
+ }
+ flow(x,z){
+  const a=this.bulk(x,z,0),b=this.bulk(x,z,1);
+  // Deep-water orbital velocity at the surface using the dominant resolved frequency.
+  const along=(a+(b-a)*this.mix)*1.65;
+  return {x:this.wx*along,y:(b-a)*WAVE_HZ,z:this.wz*along};
+ }
+ height(x,z){
+  let y=this.bulk(x,z);
   for(const p of this.ripples){const dist=Math.hypot(x-p.x,z-p.z),age=this.time-p.t,q=dist-2*age;
    y+=p.a*Math.cos(6*q)*Math.exp(-3*q*q-1.3*age);}
   return y;
@@ -74,37 +84,122 @@ export class WindSea {
   this.ripples.push({x,z,t:this.time,a});
  }
  reset(){
-  this.release();this.ripples.length=0;this.drops.length=0;this.sampleTime(0);
+  this.release();this.breakTick=-1;this.serial=0;this.ripples.length=0;this.drops.length=0;this.sampleTime(0);
  }
  appendDrop(drop){
-  if(this.drops.length>=96)this.drops.splice(this.drops.findIndex(p=>!p.held),1);
+  if(this.drops.length>=MAX_PARCELS){
+   const index=this.drops.findIndex(p=>!p.held);
+   if(index<0)return;
+   this.drops.splice(index,1);
+  }
   this.drops.push(drop);
  }
- splash(x,z){
-  this.ripple(x,z,.14);
-  const y=this.height(x,z);
+ random(){
+  const a=Math.sin(++this.serial*127.1)*43758.5453;
+  return a-Math.floor(a);
+ }
+ splash(x,z,strength=1,dx=0,dz=0){
+  const y=this.height(x,z);this.ripple(x,z,.14*Math.min(1.8,strength));
   for(let i=0;i<8;i++){
-   const angle=++this.serial*2.3999632,spread=.4+.9*(i%4)/3;
-   this.appendDrop({x,y:y+.025,z,vx:spread*Math.cos(angle),vz:spread*Math.sin(angle),vy:1.6+i*.19,r:.035+i*.004});
+   const a=this.random()*TAU,spread=(.22+.95*this.random())*strength;
+   const vx=spread*Math.cos(a)+dx,vz=spread*Math.sin(a)+dz;
+   this.appendDrop({x:x+vx*.018,y:y+.035,z:z+vz*.018,vx,vz,
+    vy:(1.35+2*this.random())*Math.sqrt(strength),r:(.029+.058*this.random())*Math.sqrt(strength),foam:.25});
   }
+ }
+ breakCrest(x,z,energy,dx,dz,periodic=false){
+  const width=Math.min(.9,.34+energy*.23),launch=Math.min(4.,1+energy);
+  const crest={x,z,dx,dz,t:this.time,width,speed:launch,duration:.32+.07*energy};
+  // Four cross-sections form a curling lip. Each has a broad lateral kernel
+  // and a narrow vertical cross-section. The foot remains connected as the tip spills.
+  for(let layer=0;layer<4;layer++)for(let lane=-1;lane<=1;lane++){
+   const u=layer/3,lateral=lane*width*.46;
+   const d={x,y:this.height(x,z),z,r:width*(.33-.085*u)*(.91+.14*this.random()),
+    vx:0,vy:0,vz:0,crest,u,lateral,tangentX:-dz,tangentZ:dx,
+    foam:(.025+.16*u*u)*(.8+.4*this.random()),periodic};
+   this.rollLip(d,0);this.appendDrop(d);
+  }
+  for(let i=0;i<5;i++){
+   const lateral=(this.random()-.5)*width,side=(this.random()-.5)*launch;
+   const px=x-dz*lateral,pz=z+dx*lateral;
+   this.appendDrop({x:px,y:this.height(px,pz)+.12,z:pz,vx:dx*launch-dz*side,
+    vz:dz*launch+dx*side,vy:launch*(.9+this.random()*.75),r:.012+.033*this.random(),
+    foam:.19+.23*this.random(),periodic});
+  }
+ }
+ rollLip(drop,age){
+  const c=drop.crest,u=drop.u,v=1-u;
+  const h=c.width*Math.min(1,.14+age/c.duration),arcX=(-.66*v*v*u+5.1*v*u*u+1.18*u*u*u);
+  const arcY=3.7*v*v*u+5.45*v*u*u+.55*u*u*u;
+  const advance=c.speed*age*.52+arcX*h,side=drop.lateral*(1+.18*age/c.duration);
+  drop.x=c.x+c.dx*advance-c.dz*side;drop.z=c.z+c.dz*advance+c.dx*side;
+  drop.y=this.height(drop.x,drop.z)+h*arcY-drop.r*.24;
+ }
+ advanceBreakers(){
+  const tick=Math.floor(this.time*8);if(this.breakTick===tick)return;this.breakTick=tick;
+  if(this.speed<7)return;
+  // Sample an interleaved set of physical grid cells on the periodic wave tile.
+  let best=.105,bx=0,bz=0;
+  for(let j=0;j<24;j++){
+   const index=(tick*73+j*137)%(N*N),x=(index%N)*cell,z=Math.floor(index/N)*cell;
+   const crest=this.bulk(x,z),front=this.bulk(x+this.wx*cell,z+this.wz*cell);
+   const back=this.bulk(x-this.wx*cell,z-this.wz*cell);
+   const steepness=(crest-front)/cell;
+   if(crest>0&&2*crest>front+back&&steepness>best){best=steepness;bx=x;bz=z;}
+  }
+  if(best>.105)this.breakCrest(bx,bz,Math.min(2.5,best*4),this.wx,this.wz,true);
  }
  lift(x,z){
   this.release();const y=this.height(x,z);this.ripple(x,z,-.15);
-  this.held=[];
+  this.held=[];this.grip={x,y,z,t:this.time,vx:0,vy:0,vz:0};
   for(let i=0;i<10;i++){
-   const a=i*2.3999632,r=.038*Math.sqrt(i),offset=[Math.cos(a)*r,.05*Math.sin(a),Math.sin(a)*r];
-   const drop={x:x+offset[0],y:y+offset[1],z:z+offset[2],r:.075,vx:0,vy:0,vz:0,held:true};
+   const a=i*2.3999632,r=.070*Math.sqrt(i),offset=[Math.cos(a)*r,.06*Math.sin(a),Math.sin(a)*r];
+   const drop={x:x+offset[0],y:y+offset[1],z:z+offset[2],r:.105+.053*this.random(),vx:0,vy:0,vz:0,held:true};
    this.held.push({drop,offset});this.appendDrop(drop);
   }
  }
- moveLift(p){for(const {drop,offset} of this.held||[]){drop.x=p.x+offset[0];drop.y=p.y+offset[1];drop.z=p.z+offset[2];}}
- release(){for(const {drop} of this.held||[])drop.held=false;this.held=null;}
- advance(dt){
+ moveLift(p){
+  if(!this.held)return;
+  const g=this.grip,dt=Math.max(1/60,this.time-g.t);
+  for(const axis of ['x','y','z'])g['v'+axis]=Math.max(-3,Math.min(3,(p[axis]-g[axis])/dt));
+  Object.assign(g,{x:p.x,y:p.y,z:p.z,t:this.time});
+  for(const {drop,offset} of this.held){
+   const lag=(.16-drop.r)*.46;
+   drop.x=p.x+offset[0]-g.vx*lag;drop.y=p.y+offset[1]-g.vy*lag;drop.z=p.z+offset[2]-g.vz*lag;
+  }
+ }
+ release(){
+  for(const {drop} of this.held||[]){drop.held=false;drop.vx=this.grip.vx;drop.vy=this.grip.vy;drop.vz=this.grip.vz;}
+  this.held=null;this.grip=null;
+ }
+ advance(dt,collide){
   this.sampleTime(this.time+dt);
+  this.advanceBreakers();
   this.ripples=this.ripples.filter(p=>this.time-p.t<3);
+  if(this.held){
+   const relax=1-Math.exp(-12*dt),g=this.grip;
+   for(const axis of ['vx','vy','vz'])g[axis]*=1-relax;
+   for(const {drop,offset} of this.held){
+    drop.x+=(g.x+offset[0]-drop.x)*relax;drop.y+=(g.y+offset[1]-drop.y)*relax;drop.z+=(g.z+offset[2]-drop.z)*relax;
+   }
+  }
   for(let i=this.drops.length-1;i>=0;i--){
-   const d=this.drops[i];if(d.held)continue;d.vy-=9.81*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.z+=d.vz*dt;
-   if(d.vy<0&&d.y<=this.height(d.x,d.z)){this.drops.splice(i,1);if(i%3===0)this.ripple(d.x,d.z,.022);}
+   const d=this.drops[i];
+   if(d.held)continue;
+   if(d.crest){
+    const c=d.crest,age=this.time-c.t;
+    if(age<c.duration){this.rollLip(d,age);continue;}
+    d.vx=c.dx*c.speed*(.45+.5*d.u);d.vz=c.dz*c.speed*(.45+.5*d.u);
+    d.vy=(.8-d.u)*c.speed*.55;d.crest=null;
+   }
+   const drag=1-Math.exp(-dt*.009*this.speed/Math.max(.05,d.r));
+   d.vx+=(this.speed*.26*this.wx-d.vx)*drag;d.vz+=(this.speed*.26*this.wz-d.vz)*drag;
+   if(collide&&!d.periodic&&!d.previous)d.previous={x:d.x,y:d.y,z:d.z,t:this.time};
+   d.vy-=9.81*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.z+=d.vz*dt;
+   if(collide&&d.previous&&this.time-d.previous.t>=1/30){
+    collide(d,d.previous);d.previous=null;
+   }
+   if(d.vy<0&&d.y+d.r<=this.height(d.x,d.z)){this.drops.splice(i,1);if(!d.periodic&&i%3===0)this.ripple(d.x,d.z,.022);}
   }
  }
 }

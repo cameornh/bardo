@@ -1,5 +1,6 @@
 import {validatePhysics} from './physics-data.js';
 // Versioned authoring data. Derived Gaussian samples are disposable caches.
+export const MAX_WIND_SPEED=100;
 export const VERSION=1, STORAGE_KEY='bardo.asset-studio.v1';
 export const LIMITS={assets:128,parts:24,stamps:512,instances:256,materials:128,keys:120,grid:140000,splats:24000,previewParts:32};
 export const clone=x=>structuredClone(x);
@@ -40,7 +41,7 @@ export function validateLibrary(value){
  for(const a of value.assets){list(a.parts,LIMITS.parts,'part');ids(a.parts,'part');if(!finite(a.spacing,.05,.5)||!finite(a.duration,.1,120))fail('asset spacing/duration');for(const p of a.parts){if(!checkTransform(p.transform)||!vector(p.pivot))fail('part transform');if(!Array.isArray(p.stamps)||p.stamps.length>LIMITS.stamps)fail('stamp budget');for(const s of p.stamps)if(!['sphere','box','capsule'].includes(s.shape)||!['add','subtract','paint'].includes(s.mode)||!vector(s.position,-500,500)||!vector(s.size,.025,50)||!finite(s.blend,0,2)||!mids.has(s.materialId))fail('invalid sculpt stamp');if(!Array.isArray(p.keys)||p.keys.length>LIMITS.keys)fail('keyframe count');const times=new Set();for(const k of p.keys){if(!finite(k.time,0,a.duration)||!checkTransform(k)||times.has(k.time))fail('invalid keyframe');times.add(k.time);}}}
  for(const a of value.assets)validatePhysics(a);
  if(!value.world||!mids.has(value.world.groundMaterialId)||!Array.isArray(value.world.instances)||value.world.instances.length>LIMITS.instances)fail('world');
- const wind=value.world.wind;if(wind&&(!finite(wind.speed,0,40)||!finite(wind.heading,-180,180)))fail('invalid wind');
+ const wind=value.world.wind;if(wind&&(!finite(wind.speed,0,MAX_WIND_SPEED)||!finite(wind.heading,-180,180)))fail('invalid wind');
  const instanceIds=new Set();for(const i of value.world.instances){if(typeof i.id!=='string'||instanceIds.has(i.id)||!aids.has(i.assetId)||!checkTransform(i.transform))fail('instance');instanceIds.add(i.id);}
  if(worldPartCount(value)>LIMITS.previewParts)fail('world preview part budget (32); keep additional assets in the library');
  return value;
