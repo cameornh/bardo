@@ -17,7 +17,7 @@ export function driftGrain(g,dt,wind,wx,wz){
  g.x+=g.vx*dt;g.z+=g.vz*dt;g.y+=g.vy*dt-4.905*dt*dt;g.vy-=9.81*dt;
 }
 export class WindSand{
- constructor(){this.reset();}
+ constructor(landscape=null){this.landscape=landscape;this.reset();}
  reset(){
   this.bed=new Float64Array(N*N);this.substrate=new Float64Array(N*N);this.delta=new Float64Array(N*N);
   for(let z=0;z<N;z++)for(let x=0;x<N;x++){
@@ -29,7 +29,8 @@ export class WindSand{
   this.grains=[];this.credit=0;this.seed=1733;this.version=0;this.clock=0;
  }
  random(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296;}
- height(x,z){
+ height(x,z){return this.driftHeight(x,z)+(this.landscape?.height(x,z)??0);}
+ driftHeight(x,z){
   const u=x/CELL,v=z/CELL,i=Math.floor(u),j=Math.floor(v),a=u-i,b=v-j,h=this.bed;
   return (1-b)*((1-a)*h[index(i,j)]+a*h[index(i+1,j)])+b*((1-a)*h[index(i,j+1)]+a*h[index(i+1,j+1)])-BASE;
  }
@@ -63,13 +64,13 @@ export class WindSand{
   this.credit=excess?Math.min(24,this.credit+dt*excess*11):0;
   for(let i=this.grains.length-1;i>=0;i--){
    const g=this.grains[i];driftGrain(g,dt,wind,wx,wz);g.x=wrap(g.x);g.z=wrap(g.z);
-   if(g.y<=this.height(g.x,g.z)){this.bed[index(Math.round(g.x/CELL),Math.round(g.z/CELL))]+=g.load;this.grains.splice(i,1);this.version++;}
+   if(g.y<=this.driftHeight(g.x,g.z)){this.bed[index(Math.round(g.x/CELL),Math.round(g.z/CELL))]+=g.load;this.grains.splice(i,1);this.version++;}
   }
   while(this.credit>=1&&this.grains.length<SAND_CAP){
    this.credit--;const x=this.random()*SAND_METRES,z=this.random()*SAND_METRES,i=index(Math.round(x/CELL),Math.round(z/CELL));
    const noise=this.random(),load=Math.min(this.bed[i],.0008+.002*noise);if(load<=0)continue;
    this.bed[i]-=load;this.version++;
-   this.grains.push(launchGrain(x,this.height(x,z),z,load,wind,wx,wz,excess,()=>this.random()));
+   this.grains.push(launchGrain(x,this.driftHeight(x,z),z,load,wind,wx,wz,excess,()=>this.random()));
   }
  }
 }

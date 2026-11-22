@@ -15,6 +15,7 @@ import {liftGround,moveChunk,releaseChunk,strikeGround} from './ground-interacti
 import {AuthoredWaveContacts} from './authored-wave-contacts.js';
 import {looseKind} from './loose-matter.js';
 import {windAt} from './wind.js';
+import {Wetland,disturbPond} from './wetland.js';
 import {WindSand} from './wind-sand.js';
 import {WindSea} from './ocean.js';
 import {implicitStamp} from './implicit-surface.js';
@@ -112,6 +113,9 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  if(physics){view.gizmo.detach();return;}view.attach(selectedInstance,selectedPart,mode==='asset'?$('tool').value:worldTool);}
  function refresh(){hover.invalidate();const active=new Set(mode==='asset'?[selectedAsset]:library.world.instances.map(i=>i.assetId));for(const [key,g]of view.cache)if(!active.has(key.split(':')[0])){g.dispose();view.cache.delete(key);view.surfaces.delete(key);}view.rebuild(library,mode,selectedAsset);
  const groundKind=mode==='world'?looseKind(view.groundSurface):0;
+ const landscapeSeed=library.world.wetlandSeed;
+ if(sand.landscape?.seed!==landscapeSeed)sand.landscape=Number.isInteger(landscapeSeed)?new Wetland(landscapeSeed):null;
+ view.setLandscape(groundKind===1?sand.landscape:null,library);
  view.sand=groundKind===1?sand:null;view.sea=groundKind===2?sea:null;
  if(view.sea){sea.organicLoad=view.groundSurface.organicLoad||0;authoredWater.rebuild(view);}
  $('splash').disabled=$('lift').disabled=mode!=='world';updateWind();attach();}
@@ -174,7 +178,7 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  $('asset-name').onchange=()=>{const name=$('asset-name').value.trim();if(!name)return sync();begin();currentAsset().name=name;changed();};
  $('add-part').onclick=()=>{if(currentAsset().parts.length>=LIMITS.parts)return notice('Part limit reached.');if(worldPartCount(library)+library.world.instances.filter(i=>i.assetId===selectedAsset).length>LIMITS.previewParts)return notice('World preview limit reached. Remove a placement before adding a part.');begin();const p=part('Part '+(currentAsset().parts.length+1));currentAsset().parts.push(p);selectedPart=p.id;changed();};
  $('delete-part').onclick=()=>{if(currentAsset().parts.length===1)return notice('Keep at least one part; carve or undo to change it.');begin();currentAsset().parts=currentAsset().parts.filter(p=>p.id!==selectedPart);for(const p of currentAsset().parts)if(p.joint?.parentId===selectedPart)p.joint=null;selectedPart=currentAsset().parts[0].id;removeUnused();changed();};$('part-name').onchange=()=>{const name=$('part-name').value.trim();if(!name)return sync();begin();currentPart().name=name;changed();};
- $('place').onclick=()=>{if(library.world.instances.length>=LIMITS.instances||worldPartCount(library)+currentAsset().parts.length>LIMITS.previewParts)return notice('World preview limit reached (32 placed parts). Additional assets stay in the library.');let n;try{n=assembly.seed();}catch(e){return notice(e.message);}const variant=familySampler(currentAsset().variation,n);begin();const p=(mode==='asset'&&worldCamera?worldCamera.target:view.controls.target).clone();p.y=0;const i={id:uid(),assetId:selectedAsset,transform:{position:p.toArray(),rotation:[0,variant.twist,0],scale:[variant.size,variant.size,variant.size]}};assembly.advance(n);library.world.instances.push(i);selectedInstance=i.id;worldTool='translate';switchMode('world');changed();notice('Placed at the orbit target. Drag the arrows to move it.');};
+ $('place').onclick=()=>{if(library.world.instances.length>=LIMITS.instances||worldPartCount(library)+currentAsset().parts.length>LIMITS.previewParts)return notice('World preview limit reached (32 placed parts). Additional assets stay in the library.');let n;try{n=assembly.seed();}catch(e){return notice(e.message);}const variant=familySampler(currentAsset().variation,n);begin();const p=(mode==='asset'&&worldCamera?worldCamera.target:view.controls.target).clone();p.y=sand.landscape&&looseKind(library.materials.find(m=>m.id===library.world.groundMaterialId))===1?Math.max(0,sand.height(p.x,p.z)):0;const i={id:uid(),assetId:selectedAsset,transform:{position:p.toArray(),rotation:[0,variant.twist,0],scale:[variant.size,variant.size,variant.size]}};assembly.advance(n);library.world.instances.push(i);selectedInstance=i.id;worldTool='translate';switchMode('world');changed();notice('Placed at the orbit target. Drag the arrows to move it.');};
  $('copy-instance').onclick=()=>{const i=currentInstance();if(!i)return;if(worldPartCount(library)+library.assets.find(a=>a.id===i.assetId).parts.length>LIMITS.previewParts)return notice('World preview limit reached (32 placed parts).');begin();const copy=clone(i);copy.id=uid();copy.transform.position[0]+=2;library.world.instances.push(copy);selectedInstance=copy.id;changed();};$('delete-instance').onclick=()=>{if(!currentInstance())return;begin();library.world.instances=library.world.instances.filter(i=>i.id!==selectedInstance);changed();};
  $('tool').onchange=()=>{if(previewPose&&['translate','rotate','scale'].includes($('tool').value)){begin();currentPart().transform=sampleTrack(currentPart(),time);previewPose=false;playing=false;refresh();syncPose();}view.controls.enabled=true;attach();view.showBrush(null,1);};document.querySelectorAll('[data-world-tool]').forEach(e=>e.onclick=()=>{worldTool=e.dataset.worldTool;attach();});$('radius').oninput=()=>{$('radius-label').textContent=Number($('radius').value).toFixed(2);};
  $('spacing').onchange=()=>{const v=Number($('spacing').value);if(!Number.isFinite(v)||v<.05||v>.5)return sync();begin();currentAsset().spacing=v;enqueue();changed(false);};$('gpu').onchange=()=>{enqueue();};
@@ -300,7 +304,7 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  },true);
  function groundAction(tool,e){
   const hit=view.pick(e);
-  const point=(tool==='lift'||hit?.bedMaterial?hit?.point:null)??view.waterHit(view.ray(e));
+  const point=(tool==='lift'||hit?.bedMaterial||hit?.pond?hit?.point:null)??view.waterHit(view.ray(e));
   if(!point||tool==='lift'&&hit&&!hit.ground&&!hit.chunk&&!hit.bedMaterial)return;
   if(tool==='splash'&&lastSplash?.distanceToSquared(point)<.09)return;
   lastSplash=point;
@@ -310,7 +314,12 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
   const run=()=>{
    if(mode!=='world'||worldTool!==tool)return;
    const limitNotice=physics?.sandTerrain?'Let airborne sand settle before using the ground tool again.':'Ground preview limit reached. Reset physics to clear it.';
-   if(hit?.bedMaterial&&physics){
+   if(hit?.pond&&physics){
+    if(!disturbPond(physics,point,library.materials.find(m=>m.id==='water'),tool==='splash'?force:null)){liftPlane=null;return;}
+    view.garden.splash(point.x,point.z,physics.time,tool==='splash'?force:100);
+    if(tool==='lift'&&state.target)moveChunk(physics,state.target);
+    if(tool==='lift'&&state.released)releaseChunk(physics,true);
+   }else if(hit?.bedMaterial&&physics){
     if(!disturbDeposit(physics,physics.matter.beds.get(hit.bedMaterial),point,tool==='splash'?force:null)){
      liftPlane=null;notice('Let the loose material settle, or try a thicker spot.');return;
     }

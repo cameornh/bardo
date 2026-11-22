@@ -6,6 +6,7 @@ import {entrainment,SAND_SIDE,SAND_METRES} from './wind-sand.js';
 
 export const looseKind=m=>m.phase==='gas'?0:m.phase==='liquid'||liquidity(m)>=.999?2:m.phase==='granular'?1:0;
 const volume=s=>s.volume??(s.type==='box'?8*s.half[0]*s.half[1]*s.half[2]:Math.PI*s.radius**2*(4*s.radius/3+2*(s.halfHeight||0)));
+const stillWater={x:0,y:0,z:0};
 const frac=x=>x-Math.floor(x);
 // Stratified volume sampling of the carved collider. One authored part can
 // contain several materials. Mass is apportioned by occupied volume.
@@ -61,8 +62,11 @@ export class LooseMatter{
   for(const bed of this.beds.values())if(bed.liquid){
    const h=bed.sample(x,z);depth+=h;densityMass+=h*bed.material.density;
   }
+  if(!sim.pondDensity&&depth<.001)return null;
+  const bottom=this.groundHeight(sim,x,z);
+  if(sim.pondDensity&&bottom<0){depth-=bottom;densityMass-=bottom*sim.pondDensity;}
   if(depth<.001)return null;
-  const bottom=this.groundHeight(sim,x,z);return {top:bottom+depth,bottom,density:densityMass/depth};
+  return {top:bottom+depth,bottom,density:densityMass/depth};
  }
  groundHeight(sim,x,z){
   let y=(sim.sandTerrain?.height(x,z)??sim.sand?.height(x,z)??0)+(sim.cuts?.offset(x,z)||0);
@@ -93,7 +97,10 @@ export class LooseMatter{
      p.body.applyImpulse({x:(wx*wind.speed*.2-v.x)*drag,y:(.45-v.y)*drag,z:(wz*wind.speed*.2-v.z)*drag},true);
      continue;
     }
-    const surface=sea?sea.height(pos.x,pos.z):-Infinity;
+    const surface=sea?sea.height(pos.x,pos.z):sim.pondDensity&&this.groundHeight(sim,pos.x,pos.z)<0?0:-Infinity;
+    if(sim.pondDensity&&m.id==='water'&&pos.y<=surface+r*.15&&v.y<=0){
+     world.removeRigidBody(p.body);packets.splice(i,1);this.count--;continue;
+    }
     if(sea&&m.id===sim.groundMaterial.id&&pos.y<=surface+r*.15){
      if(!g.merged||sim.time-g.merged>.12)sea.splash(pos.x,pos.z,Math.min(1.2,.35+Math.abs(v.y)*.12));
      g.merged=sim.time;sea.mergedVolume=(sea.mergedVolume||0)+p.volume;world.removeRigidBody(p.body);packets.splice(i,1);this.count--;continue;
@@ -126,7 +133,7 @@ export class LooseMatter{
     // surrounding water. Only their exposed area receives direct wind load.
     const submerged=Math.max(0,Math.min(1,.5+(surface-pos.y)/(2*r)));
     if(submerged>0){
-     const flow=sea.flow(pos.x,pos.z),displaced=p.volume*sim.waterDensity*submerged;
+     const flow=sea?.flow(pos.x,pos.z)??stillWater,displaced=p.volume*(sim.pondDensity??sim.waterDensity)*submerged;
      const drag=Math.min(.4*p.body.mass(),dt*displaced*(2+.45*Math.hypot(flow.x-v.x,flow.y-v.y,flow.z-v.z)));
      p.body.applyImpulse({x:(flow.x-v.x)*drag,y:(flow.y-v.y)*drag-dt*displaced*world.gravity.y,z:(flow.z-v.z)*drag},true);
     }
@@ -185,10 +192,10 @@ export class LooseMatter{
   for(const [p,w] of picked){const scale=dt*w/total;p.body.applyImpulse({x:force.x*scale,y:force.y*scale,z:force.z*scale},true);}
  }
 }
-// Periodic terrain collision tiles exist around physical bodies, independently
+// Terrain collision tiles exist around physical bodies, independently
 // of the camera. Reuse tiles until the sand bed changes by a measurable amount.
 export class DuneContacts{
- constructor(){this.tiles=new Map();this.localVersions=new Map();this.next=0;this.version=-1;}
+ constructor(){this.tiles=new Map();this.substrates=new Map();this.localVersions=new Map();this.next=0;this.version=-1;}
  update(sim){
   if(sim.time<this.next)return;this.next=sim.time+.16;
   const n=SAND_SIDE,L=SAND_METRES,needed=new Set(),mark=(p,r)=>{
@@ -213,9 +220,19 @@ export class DuneContacts{
    if(!solids.length&&!sim.cuts?.nodes.size){
     if(!base){
      base=new Float32Array((n+1)**2);
-     if(sand)for(let i=0;i<=n;i++)for(let j=0;j<=n;j++)base[i*(n+1)+j]=sand.height(i*L/n,j*L/n);
+     if(sand)for(let i=0;i<=n;i++)for(let j=0;j<=n;j++)base[i*(n+1)+j]=sand.driftHeight(i*L/n,j*L/n);
     }
-    heights=revision?base.slice():base;if(revision)sim.sandTerrain.addTileHeights(heights,tx,tz);
+    heights=revision||sand?.landscape?base.slice():base;
+    if(sand?.landscape){
+     let substrate=this.substrates.get(key);
+     if(!substrate){
+      substrate=new Float32Array((n+1)**2);
+      for(let i=0;i<=n;i++)for(let j=0;j<=n;j++)substrate[i*(n+1)+j]=sand.landscape.height(tx*L+i*L/n,tz*L+j*L/n);
+      this.substrates.set(key,substrate);
+     }
+     for(let i=0;i<heights.length;i++)heights[i]+=substrate[i];
+    }
+    if(revision)sim.sandTerrain.addTileHeights(heights,tx,tz);
    }else{
     heights=new Float32Array((n+1)**2);
     for(let i=0;i<=n;i++)for(let j=0;j<=n;j++)heights[i*(n+1)+j]=sim.matter.groundHeight(sim,tx*L+i*L/n,tz*L+j*L/n);
@@ -229,7 +246,7 @@ export class DuneContacts{
     this.tiles.set(key,sim.world.createCollider(R.ColliderDesc.heightfield(n,n,heights,scale).setTranslation((x+.5)*L,0,(z+.5)*L).setCollisionGroups(0x0004ffff)
      .setFriction(sim.groundMaterial.friction).setRestitution(sim.groundMaterial.restitution),sim.ground));}
   }
-  for(const [key,tile] of this.tiles)if(!needed.has(key)){sim.world.removeCollider(tile,false);this.tiles.delete(key);this.localVersions.delete(key);}
+  for(const [key,tile] of this.tiles)if(!needed.has(key)){sim.world.removeCollider(tile,false);this.tiles.delete(key);this.localVersions.delete(key);this.substrates.delete(key);}
   this.version=version;
  }
 }

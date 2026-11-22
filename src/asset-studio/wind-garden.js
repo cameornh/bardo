@@ -2,6 +2,7 @@
 // Shared crown vigour sets height potential; later-born shoots have had less time
 // to elongate. Leaf rank controls deployment separately from the height of the stalk.
 import {Euler, Quaternion, Vector3} from 'three';
+import {Wetland} from './wetland.js';
 import {part, stamp} from './model.js';
 import {randomSequence} from './family.js';
 import {brushFrame} from './gaussian-marks.js';
@@ -121,18 +122,21 @@ export function populateWindGarden(library,place,seed=GARDEN_SEED) {
   library.materials.push({...fibre,id:'reed-blade',name:'Reed blade',color:'#638040',roughness:.68},
     {...fibre,id:'reed-husk',name:'Reed husk',color:'#b5955c',roughness:.9});
   library.world.wind.turbulence=.8;
-  const orientation=random()*tau;
+  const orientation=random()*tau, landscape=new Wetland(seed);
+  library.world.wetlandSeed=landscape.seed;
   // Sample positions within a patch, with a little space between crowns.
   // Stratify crown age so each small stand spans life stages; sites are random.
   const crowns=[];
   for(let i=0;i<5;i++){
-    let x,z,bestDistance=-1;
+    let x,z,bestDistance=-Infinity;
     for(let attempt=0;attempt<24;attempt++){
       const angle=random()*tau, distance=Math.sqrt(random());
       const cx=2.65*distance*Math.cos(angle),cz=1.65*distance*Math.sin(angle);
       const clearance=crowns.reduce((min,p)=>Math.min(min,Math.hypot(cx-p.x,cz-p.z)),Infinity);
-      if(clearance>bestDistance){x=cx;z=cz;bestDistance=clearance;}
-      if(clearance>1.24)break;
+      const h=landscape.height(cx,cz);
+      const score=Math.min(1.5,clearance)-2*Math.abs(h-.07);
+      if(score>bestDistance){x=cx;z=cz;bestDistance=score;}
+      if(clearance>1.24&&Math.abs(h-.07)<.18)break;
     }
     crowns.push({x,z});
     const age=.62+.36*((i+.12+.76*random())/5);
@@ -141,6 +145,6 @@ export function populateWindGarden(library,place,seed=GARDEN_SEED) {
     const id='example-reed-clump-'+(i+1);
     const asset=growCrown(id,'Reed clump '+(i+1),Math.floor(random()*4294967296),age,vigour);
     library.assets.push(asset);family.members.push({assetId:id,weight:1});
-    place(id.slice('example-'.length),x,0,z,random()*360,1,'crown-'+(i+1));
+    place(id.slice('example-'.length),x,landscape.height(x,z),z,random()*360,1,'crown-'+(i+1));
   }
 }

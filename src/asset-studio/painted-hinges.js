@@ -57,6 +57,12 @@ export class PaintedHinges {
       if(h.initialized){
         this.force.subVectors(this.probe,h.previous).multiplyScalar(1/dt);
         acceleration=(this.force.dot(this.normal)-h.speed.dot(this.normal))/dt;
+        // A flexing stem can carry tiny contact corrections at the physics
+        // frequency. Its blade responds to sustained acceleration and gusts.
+        if(h.body.part.joint?.type==='flexure'){
+          h.acceleration=(h.acceleration??0)+(acceleration-(h.acceleration??0))*(-Math.expm1(-dt/.055));
+          acceleration=h.acceleration;
+        }
         h.speed.copy(this.force);
       }
       h.initialized=true;h.previous.copy(this.probe);

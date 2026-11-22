@@ -25,6 +25,7 @@ const bed=`
   vec2 h=texture2D(sandBed,q/${SAND_METRES.toFixed(1)}+.5/${SAND_SIDE.toFixed(1)}).rg;
   return (dot(h,vec2(65280.,255.))/65535.-.5)*4.;
  }`;
+export {bed as sandReliefShader};
 export function groundSurface(view,lighting){
  const u=view.groundMaterial.uniforms,shared=view.oceanView.uniforms;
  view.finishMap=new GroundFinish();Object.assign(u,view.finishMap.uniforms);

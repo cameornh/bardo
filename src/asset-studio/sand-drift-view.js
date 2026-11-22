@@ -1,3 +1,4 @@
+import {wetlandGLSL} from './wetland.js';
 import {reflectedSurfaceClip} from './wave-surface.js';
 import * as THREE from 'three';
 import {SAND_CAP,SAND_SIDE,SAND_METRES} from './wind-sand.js';
@@ -61,13 +62,30 @@ export class SandDriftView{
   this.texture=new THREE.DataTexture(this.bytes,SAND_SIDE,SAND_SIDE,THREE.RGBAFormat);
   this.texture.wrapS=this.texture.wrapT=THREE.RepeatWrapping;this.texture.magFilter=this.texture.minFilter=THREE.LinearFilter;this.texture.needsUpdate=true;
  }
+ setLandscape(land){
+  if(this.landscape===land)return;
+  this.landscape=land;
+  for(const mesh of [this.mesh,this.eye]){
+   if(!mesh)continue;
+   const mat=mesh.material;mat.userData.flatVertex??=mat.vertexShader;
+   mat.uniforms.survey??={value:new THREE.Vector2()};
+   if(land)mat.uniforms.survey.value.set(land.x,land.z);
+   mat.vertexShader=land?wetlandGLSL+mat.userData.flatVertex.replace('vec3 v=(viewMatrix',`
+    float bed=landHeight(p.xz);p.y+=bed;
+    if(bed<.025){gl_Position=vec4(2.,2.,2.,1.);return;}
+    vec3 v=(viewMatrix`):mat.userData.flatVertex;
+   mat.needsUpdate=true;
+  }
+ }
  updateEye(camera){
   const state=this.state;
   if(this.eye){
    this.eye.visible=!!state&&!!camera&&state.grains.some(g=>{
     let dx=g.x-camera.x,dz=g.z-camera.z;
     if(!this.finite){dx-=Math.round(dx/SAND_METRES)*SAND_METRES;dz-=Math.round(dz/SAND_METRES)*SAND_METRES;}
-    return dx*dx+dz*dz+(g.y-camera.y)**2<.14**2;
+    if(dx*dx+dz*dz>=.14**2)return false;
+    const bed=this.landscape?.height(camera.x+dx,camera.z+dz)??0;
+    return dx*dx+dz*dz+(g.y+bed-camera.y)**2<.14**2;
    });
   }
  }
@@ -79,7 +97,7 @@ export class SandDriftView{
   if(state.grains.length)this.centers.needsUpdate=this.velocities.needsUpdate=true;
   if(!this.finite&&(this.version!==state.version||changed)){
    for(let i=0;i<state.bed.length;i++){
-    const h=state.height(i%SAND_SIDE*SAND_METRES/SAND_SIDE,Math.floor(i/SAND_SIDE)*SAND_METRES/SAND_SIDE);
+    const h=state.driftHeight(i%SAND_SIDE*SAND_METRES/SAND_SIDE,Math.floor(i/SAND_SIDE)*SAND_METRES/SAND_SIDE);
     const encoded=Math.round(Math.max(0,Math.min(1,.5+h/4))*65535);
     this.bytes[4*i]=encoded>>8;this.bytes[4*i+1]=encoded&255;
    }
