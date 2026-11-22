@@ -160,7 +160,7 @@ export class SectionView{
    const hit=r.body.collider(i).castRayAndGetNormal(ray,nearest?.distance??raycaster.far,true);
    if(!hit||nearest&&hit.timeOfImpact>=nearest.distance)continue;
    nearest={point:raycaster.ray.at(hit.timeOfImpact,new Vector3()),distance:hit.timeOfImpact,normal:new Vector3().copy(hit.normal),
-    bodyKey:r.key,instanceId:r.instance.id,partId:r.part.id,assetId:r.asset.id};
+    bodyKey:r.key,instanceId:r.instance.id,partId:r.part.id,assetId:r.asset.id,materialId:r.field.shapes[i].materialId};
   }
   return nearest;
  }

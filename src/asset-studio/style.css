@@ -19,3 +19,17 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#202a2e;col
 
 #asset-studio .studio-field-readout{display:block;float:none;white-space:pre-line;font:12px/1.5 monospace;margin-top:.5em;}
 #asset-studio header .studio-guide{flex-basis:100%;margin:0;max-width:85ch}
+
+#studio-hover-material {
+ position:absolute;
+ z-index:1;
+ pointer-events:none;
+ max-width:calc(50% - 14px);
+ padding:3px 7px;
+ border-radius:3px;
+ background:#1b2b32ed;
+ color:#fff;
+ font-size:12px;
+ line-height:1.4;
+ overflow-wrap:anywhere;
+}

@@ -275,6 +275,15 @@ export class StudioView{
    const [instanceId,partId]=owner.split(':');nearest={point:hit.point,distance:hit.distance,normal:hit.face.normal,instanceId,partId,assetId:this.groups.get(instanceId)?.userData.assetId,loose:true,looseKey:owner,bedMaterial:mesh.bed.material.id};}
  }
  const ground=this.sea||this.sand||this.activePhysics?.cuts?.nodes.size?this.waterHit(ray):ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());if(ground&&(!nearest||ground.distanceTo(ray.origin)<nearest.distance))nearest={point:ground,normal:new THREE.Vector3(0,1,0),distance:ground.distanceTo(ray.origin),ground:true};return nearest;}
+ materialAtPointer(pointer){
+  const hit=this.pick(pointer,{optimized:true});
+  if(hit?.ground)return this.groundSurface;
+  if(this.sea&&this.oceanView.parcels.intersectsRay(this.raycaster.ray,hit?.distance??this.camera.far))return this.groundSurface;
+  if(hit?.chunk)return hit.chunk.material;
+  if(hit?.looseGroup)return this.activePhysics.matter.parts.get(hit.looseGroup)?.material;
+  const id=hit?.bedMaterial??hit?.materialId;
+  return this.library.materials[this.materialIndices.get(id)];
+ }
  waterHit(ray){
   const terrain=this.sea||this.activePhysics?.sandTerrain||this.sand,cuts=this.activePhysics?.cuts;
   if(!terrain&&!cuts?.nodes.size)return ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());

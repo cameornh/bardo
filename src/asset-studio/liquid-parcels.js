@@ -120,5 +120,26 @@ export class LiquidParcels{
   this.mesh.count=instances;
   if(instances){this.texture.needsUpdate=this.mesh.instanceMatrix.needsUpdate=this.ids.needsUpdate=true;}
  }
+ // Only visit rendered parcel batches and use the same ellipsoid axes as the
+ // shader. An opaque surface closer than the entry point wins the hover.
+ intersectsRay(ray,limit){
+  const {origin,direction}=ray,data=this.data;
+  for(let batch=0;batch<this.mesh.count;batch++){
+   const first=this.ids.getX(batch),count=data[4*(2*MAX_PARCELS+first)+1];
+   for(let k=0;k<count;k++){
+    const i=data[4*((3+(k>>2))*MAX_PARCELS+first)+(k%4)],p=i*4,q=p+4*MAX_PARCELS;
+    const x=origin.x-data[p],y=origin.y-data[p+1],z=origin.z-data[p+2];
+    const stretch=data[q+3],along=x*data[q]+y*data[q+1]+z*data[q+2];
+    const slope=direction.x*data[q]+direction.y*data[q+1]+direction.z*data[q+2];
+    const anisotropy=1/(stretch*stretch)-stretch;
+    const a=stretch+anisotropy*slope*slope;
+    const b=stretch*(x*direction.x+y*direction.y+z*direction.z)+anisotropy*along*slope;
+    const c=stretch*(x*x+y*y+z*z)+anisotropy*along*along-data[p+3]**2;
+    const t=Math.max(0,Math.min(limit,-b/a));
+    if((a*t+2*b)*t+c<=0)return true;
+   }
+  }
+  return false;
+ }
  dispose(){this.mesh.removeFromParent();this.mesh.geometry.dispose();this.mesh.material.dispose();this.mesh.dispose();this.texture.dispose();}
 }
