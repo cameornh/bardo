@@ -8,7 +8,7 @@ export function depositState(bed,c,cell){
  const m=bed.material,area=cell*cell;
  const s=surfaceState(m,'deposit/'+m.id+'/'+c.x+','+c.z,new Vector3(c.x*cell,0,c.z*cell),area);
  s.mass=c.h*area*m.density;s.water=s.mass*m.moisture;s.bulkWater=s.mass*m.waterContent;
- s.radius=cell*.5;c.thermal=s;s.deposit=c;bed.thermalCells.push(c);
+ s.radius=cell*.5;c.thermal=s;s.deposit=c;s.depositBed=bed;bed.thermalCells.push(c);
  return s;
 }
 export function mixDeposit(bed,c,volume,source,cell){
@@ -19,6 +19,7 @@ export function mixDeposit(bed,c,volume,source,cell){
  const src=source??surfaceState(m,'',dest.position,area,incoming);
  const fraction=incoming/activeMass(src);
  dest.h=(prior*dest.h+incoming*src.h)/total;
+ dest.trapped=((dest.trapped||0)*prior+(src.trapped||0)*incoming)/total;
  dest.fuel=(prior*dest.fuel+incoming*src.fuel)/total;
  dest.water+=src.water*fraction;dest.bulkWater+=src.bulkWater*fraction;
  dest.mass=total;dest.lost=0;Object.assign(dest,phaseState(m,dest.h));

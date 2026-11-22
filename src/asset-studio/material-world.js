@@ -5,7 +5,8 @@ import {BED_CELL} from './material-bed.js';
 import {MaterialAir,clamp} from './material-air.js';
 import {surfaceState,heat,addWater,react,exchangePair,chargeNetwork,activeMass,phaseState} from './material-reactions.js';
 
-const CELL=.65, MAX_GROUND=150, INTERVAL=.125;
+export const GROUND_FIELD_CELL=.65;
+const CELL=GROUND_FIELD_CELL, MAX_GROUND=150, INTERVAL=.125;
 const offsets=[[1,0],[-1,0],[0,1],[0,-1]];
 const v=()=>new Vector3();
 const groundKey=(x,z)=>x+','+z;
@@ -18,7 +19,7 @@ function nearest(sites,p,materialId){
 function average(sites,k){return sites.reduce((sum,s)=>sum+s[k],0)/sites.length;}
 // Redistribute extensive quantities when one skin is split into several.
 function splitSkin(oldSites,newSites){
- const shares=new Map(newSites.map(s=>[s,{weight:s.mass,mass:0,remaining:0,energy:0,water:0,bulk:0,fuel:0,charge:0}]));
+ const shares=new Map(newSites.map(s=>[s,{weight:s.mass,mass:0,remaining:0,energy:0,water:0,bulk:0,fuel:0,charge:0,trapped:0}]));
  for(const old of oldSites){
   let targets=newSites.filter(s=>nearestLocal(oldSites,s)===old);
   if(!targets.length)targets=[nearestLocal(newSites,old)];
@@ -26,12 +27,12 @@ function splitSkin(oldSites,newSites){
   for(const s of targets){
    const a=shares.get(s),w=a.weight/total,left=activeMass(old)*w;
    a.mass+=old.mass*w;a.remaining+=left;a.energy+=old.h*left;a.water+=old.water*w;
-   a.bulk+=old.bulkWater*w;a.fuel+=old.fuel*left;a.charge+=old.volts*old.area*w;
+   a.trapped+=(old.trapped||0)*left;a.bulk+=old.bulkWater*w;a.fuel+=old.fuel*left;a.charge+=old.volts*old.area*w;
   }
  }
  for(const [s,a] of shares){
   s.mass=a.mass;s.lost=1-a.remaining/a.mass;s.h=a.energy/a.remaining;s.water=a.water;s.bulkWater=a.bulk;
-  s.fuel=a.fuel/a.remaining;s.volts=a.charge/s.area;Object.assign(s,phaseState(s.material,s.h));
+  s.trapped=a.trapped/a.remaining;s.fuel=a.fuel/a.remaining;s.volts=a.charge/s.area;Object.assign(s,phaseState(s.material,s.h));
  }
 }
 function nearestLocal(sites,target){
@@ -185,6 +186,7 @@ export class MaterialWorld {
   // ground start at the bulk material's authored conditions.
   for(const s of sites){
    s.lost=tile.lost*fraction;
+   s.trapped=(tile.trapped||0)*(1-tile.lost)*fraction/(1-s.lost);
    s.h=(tile.h*(1-tile.lost)*fraction+original.h*(1-fraction))/(1-s.lost);
    s.water=s.mass*(tile.water/tile.mass*fraction+tile.material.moisture*(1-fraction));
    s.bulkWater=s.mass*(tile.bulkWater/tile.mass*fraction+tile.material.waterContent*(1-fraction));
@@ -192,6 +194,7 @@ export class MaterialWorld {
    Object.assign(s,phaseState(s.material,s.h));
   }
   const removed=Math.min(1,carried/tile.mass),lost=tile.lost*(1-removed);
+  tile.trapped=(tile.trapped||0)*(1-tile.lost)*(1-removed)/(1-lost);
   tile.h=(tile.h*(1-tile.lost)*(1-removed)+original.h*removed)/(1-lost);
   tile.fuel=(tile.fuel*(1-tile.lost)*(1-removed)+original.fuel*removed)/(1-lost);
   tile.water+=(original.water-tile.water)*removed;tile.bulkWater+=(original.bulkWater-tile.bulkWater)*removed;
@@ -252,9 +255,9 @@ export class MaterialWorld {
   if(!s)return false;this.probe=s;const level=clamp(strength,.01,5);
   if(tool==='heat'||tool==='cool')heat(s,(tool==='heat'?6e5:-6e5)*s.area*level);
   else if(tool==='bulkHeat'||tool==='bulkCool'){
-   if(!s.zone)return false;
+   if(!s.zone&&!s.deposit&&!s.group)return false;
    const dose=(tool==='bulkHeat'?1:-1)*400000*level;
-   for(const site of s.zone){
+   for(const site of s.zone??[s]){
     heat(site,dose*activeMass(site));
     if(site.core)heat(site.core,dose*activeMass(site.core));
    }
@@ -263,10 +266,28 @@ export class MaterialWorld {
   else if(tool==='positive'||tool==='return'||tool==='unpin'){s.electrode=tool==='unpin'?null:tool==='return'?0:48*level;this.activeCircuit=true;}
   this.version++;return true;
  }
+ heatVolumeOver(record,material,joulesPerKg,duration){
+  if(!record||duration<=0)return;
+  (this.heaters??=[]).push({instance:record.instance.id,part:record.part.id,material,
+   remaining:duration,power:joulesPerKg/duration});
+ }
  step(sim,dt){
   this.plume.step(dt,sim.wind,sim);
   this.clock+=dt;if(this.clock<INTERVAL-1e-8)return;this.clock-=INTERVAL;
   if(sim.matter.beds.size)for(const t of this.tiles.values())this.ground(sim,t.position.x,t.position.z,false,false,true);
+  if(this.heaters?.length){
+   for(const heater of this.heaters){
+    const duration=Math.min(heater.remaining,INTERVAL);
+    for(const r of sim.bodies.values())if(r.instance.id===heater.instance&&r.part.id===heater.part){
+     for(const s of r.field.sites)if(s.material.id===heater.material&&!s.mark){
+      heat(s,heater.power*duration*activeMass(s),duration);
+      if(s.core)heat(s.core,heater.power*duration*activeMass(s.core),duration);
+     }
+    }
+    heater.remaining-=duration;
+   }
+   this.heaters=this.heaters.filter(h=>h.remaining>0);
+  }
   this.collectLoose(sim);
   const nodes=[],edges=[],byBody=new Map(),seen=new Set();
   const link=(a,b,area)=>{if(!a||!b||a===b)return;const k=a.key<b.key?a.key+'|'+b.key:b.key+'|'+a.key;if(seen.has(k))return;seen.add(k);edges.push({a,b,area:Math.max(.00001,area)});};

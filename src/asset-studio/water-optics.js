@@ -14,7 +14,8 @@ export const medium = /* glsl */`
   float concentration=.3+1.6*opacity;
   vec3 tint=vec3(.009)+.14*color;
   vec3 sigmaS=scattering*tint/max(tint.r,max(tint.g,tint.b));
-  vec3 extinction=sigmaS+(.06+(1.-sqrt(color))*.4+absorption)*concentration;
+  vec3 filterColor=color/max(.001,max(color.r,max(color.g,color.b)));
+  vec3 extinction=sigmaS+(.06+(1.-sqrt(color))*.4+absorption*(1.-.85*filterColor))*concentration;
   vec3 transmission=exp(-extinction*min(travel,100.));
   vec3 scatter=env(vec3(0.,1.,0.),1.)*.88*sigmaS/extinction;
   return incident*transmission+scatter*(1.-transmission);

@@ -1,3 +1,4 @@
+import {GroundFinish,groundFinishShader} from './ground-finish.js';
 import {CELL,MAX_CUTS} from './ground-tools.js';
 import * as THREE from 'three';
 import {SAND_SIDE,SAND_METRES} from './wind-sand.js';
@@ -26,6 +27,7 @@ const bed=`
  }`;
 export function groundSurface(view,lighting){
  const u=view.groundMaterial.uniforms,shared=view.oceanView.uniforms;
+ view.finishMap=new GroundFinish();Object.assign(u,view.finishMap.uniforms);
  Object.assign(u,{sandBed:{value:view.sandView.texture},granular:{value:false},grain:{value:new THREE.Vector3()},
   grainMap:view.uniforms.grainMap,mirrorColor:shared.mirrorColor,mirrorVP:shared.mirrorVP});
  view.groundMaterial.vertexShader='#define SAND_VERTEX\n'+bed+`varying vec3 worldPosition;
@@ -38,7 +40,7 @@ export function groundSurface(view,lighting){
     editSlope=local.yz*fade;
    }
    gl_Position=projectionMatrix*viewMatrix*vec4(worldPosition,1.);}`;
- view.groundMaterial.fragmentShader=lighting.replace('n=faceforward(n,-v,n);','')+surfaceRelief+bed+`
+ view.groundMaterial.fragmentShader=lighting.replace('n=faceforward(n,-v,n);','')+surfaceRelief+groundFinishShader+bed+`
  #ifndef GROUND_PATCH
  uniform int cutCount;uniform vec4 cutBounds;uniform vec2 cutCenters[${MAX_CUTS}];
  #endif
@@ -61,7 +63,11 @@ export function groundSurface(view,lighting){
   #ifdef GROUND_PATCH
   n=normalize(cross(dFdx(p),dFdy(p)));if(n.y<0.)n=-n;
   #endif
-  vec3 prior=n;float lift=grainSurface(p,vec3(0,1,0),grain,n,base,cameraPosition-p);gl_FragDepth=reliefDepth(gl_FragCoord.z,p,prior,lift,projectionMatrix);vec3 lit=shade(base,n,p,properties);
+  vec3 prior=n;float lift=grainSurface(p,vec3(0,1,0),grain,n,base,cameraPosition-p);gl_FragDepth=reliefDepth(gl_FragCoord.z,p,prior,lift,projectionMatrix);vec2 finish=groundFinish(p.xz);
+  vec4 props=properties;float wet=clamp((finish.x-.92*finish.y)/.28,0.,1.);
+  base*=1.-min(.93,.88*finish.y+wet*(1.-properties.y)*.28);
+  props.x=mix(props.x,min(props.x,.13),wet*.84);
+  vec3 lit=shade(base,n,p,props);
   if(properties.y>.02){
    vec3 offset=(n-vec3(0,1,0))*min(.7,length(cameraPosition-p)*.11);
    vec4 clip=mirrorVP*vec4(p+offset,1.);vec2 uv=clip.xy/max(.001,clip.w)*.5+.5;

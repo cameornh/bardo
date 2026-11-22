@@ -1,0 +1,98 @@
+[
+  {
+    "test": "runoff",
+    "version": "baseline",
+    "fps": 11.711601805538614,
+    "realtime": 0.7157089992273636,
+    "physicsMs": 2.816666666418314,
+    "lost": false
+  },
+  {
+    "test": "runoff",
+    "version": "current",
+    "fps": 17.921146953564545,
+    "realtime": 0.824497212273366,
+    "physicsMs": 3.9479166691501937,
+    "lost": false
+  },
+  {
+    "test": "runoff",
+    "version": "current",
+    "fps": 23.63600551492921,
+    "realtime": 0.9561092508643206,
+    "physicsMs": 3.181249998509884,
+    "lost": false
+  },
+  {
+    "test": "runoff",
+    "version": "baseline",
+    "fps": 29.860031104199066,
+    "realtime": 0.9849663037843409,
+    "physicsMs": 1.2291666604578495,
+    "lost": false
+  },
+  {
+    "test": "thaw",
+    "version": "baseline",
+    "fps": 24.84986539702252,
+    "realtime": 0.9836405052988046,
+    "physicsMs": 12.570833337803682,
+    "lost": false
+  },
+  {
+    "test": "thaw",
+    "version": "current",
+    "fps": 24.60024600261032,
+    "realtime": 0.8370917042554872,
+    "physicsMs": 7.281250002483527,
+    "lost": false
+  },
+  {
+    "test": "thaw",
+    "version": "current",
+    "fps": 30.836438390893488,
+    "realtime": 0.9850528930424275,
+    "physicsMs": 5.695833330353101,
+    "lost": false
+  },
+  {
+    "test": "thaw",
+    "version": "baseline",
+    "fps": 20.34933016777913,
+    "realtime": 0.8832174551987438,
+    "physicsMs": 15.685416667411724,
+    "lost": false
+  },
+  {
+    "test": "load",
+    "version": "baseline",
+    "fps": 30.046948356807512,
+    "realtime": 0.9911319770474667,
+    "physicsMs": 4.600000002731879,
+    "lost": false
+  },
+  {
+    "test": "load",
+    "version": "current",
+    "fps": 26.75734433393051,
+    "realtime": 0.9523013174402319,
+    "physicsMs": 5.291666674117248,
+    "lost": false
+  },
+  {
+    "test": "load",
+    "version": "current",
+    "fps": 29.971901342491417,
+    "realtime": 0.9626391924237662,
+    "physicsMs": 3.9000000009934106,
+    "lost": false
+  },
+  {
+    "test": "load",
+    "version": "baseline",
+    "fps": 29.40996262440954,
+    "realtime": 0.9599085023244748,
+    "physicsMs": 4.374999997516473,
+    "lost": false
+  }
+]

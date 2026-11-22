@@ -34,10 +34,18 @@ export const exampleWorlds=[
    place('bridge',0,0,0);place('contact',-.682,0,0);place('contact',.682,0,0,180,1,'return');
   }),start(sim){affect(sim,'contact','positive',.75);affect(sim,'return','return');}},
  {id:'thaw',name:'Melting and absorption',guide:'Play to melt the wax seal and ice lens. Brine lands on a wicking pad. Use the moisture and liquid-fraction views to compare the materials.',
-  create:()=>world('stone',.6,20,place=>{
-   place('wax',-.70,0,.12);place('ice',.15,0,-.31);place('sponge',.75,0,.27);
-   place('brine',.75,.63,.27,0,.63);place('bowl',-.74,0,-.65,0,.60);
-  }),start(sim){affect(sim,'wax','bulkHeat',.79);affect(sim,'ice','bulkHeat',1.04);}},
+  framing:{direction:[.25,.72,1]},readout(sim){
+   const core=sim.get('ice','body')?.field.sites.find(s=>s.core)?.core;
+   if(core)return `Ice interior · ${(core.t-273.15).toFixed(1)} °C · ${Math.round(100*core.melt)}% melted`;
+   return sim.matter.meltedParts.has('ice:body')?'Ice lens melted into water':'';
+  },create:()=>world('stone',.6,20,(place,l)=>{
+   l.materials.find(m=>m.id==='stone').color='#545f69';
+   place('wax',-.70,0,.12);place('ice',.05,0,.40);place('sponge',.85,0,-.14);
+   place('brine',.85,.63,-.14,0,.63);place('bowl',-.74,0,-.65,0,.60);
+  }),start(sim){
+   for(const [id,dose] of [['wax',316000],['ice',370000]])
+    sim.materialWorld.heatVolumeOver(sim.get(id,'body'),id,dose,4);
+  }},
  {id:'wetland',name:'Wind garden',guide:'Play and change wind heading to bend the attached ribbons. Choose a grass in the family library to edit its shape or place a seeded variation.',
   create:()=>world('sand',8,-25,(place,l)=>{
    const f=l.families.find(f=>f.id===example('rushes'));
@@ -68,9 +76,15 @@ export const exampleWorlds=[
   display:'moisture',create:()=>world('porcelain',.7,5,place=>{
    place('contact',.36,0,.26);place('vapour',.27,.45,.26);place('sponge',1.04,0,.28);
   }),start(sim){affect(sim,'contact','bulkCool',.035);}},
- {id:'runoff',name:'Viscosity and rebound',tool:'nudge',guide:'Play to drop brine and oil side by side on bronze. Watch the rubber ball rebound higher than porcelain, then lift or splash either pool as it spreads.',
-  create:()=>world('bronze',0,0,place=>{
-   place('brine',-1.1,.92,.50);place('oil',.75,.92,.50);
+ {id:'runoff',name:'Viscosity and rebound',tool:'nudge',framing:{direction:[0,1,1],groundMargin:.95},guide:'Equal volumes fall from the same height. Blue brine spreads on the left, amber oil on the right. Compare their widths and the rebound of the two balls behind them.',
+  readout(sim){
+   const width=id=>((sim.matter.beds.get(id)?.spreadDiameter()??0)*100).toFixed(0);
+   return `Pool spread · brine ${width('brine')} cm · oil ${width('oil')} cm`;
+  },create:()=>world('porcelain',0,0,(place,l)=>{
+   // Optical tracers make shallow films visible against one neutral, level plate.
+   Object.assign(l.materials.find(m=>m.id==='brine'),{color:'#3194ef',absorption:92});
+   Object.assign(l.materials.find(m=>m.id==='oil'),{color:'#e6aa38',absorption:28});
+   place('brine',-1.25,.46,.66,0,1.18);place('oil',1.05,.46,.66,0,1.18);
    place('rubber-ball',-.90,1.45,-.68);place('china-ball',.78,1.45,-.68);
   })},
  {id:'deposition',name:'Dunes and vessels',tool:'nudge',guide:'Play to catch the sand in the bowl. Drag its rim to tip out the grains, then lift loose sand from the ground or increase the wind.',

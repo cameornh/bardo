@@ -17,12 +17,22 @@ export function surfaceState(material,key,position,area=1,mass=area*.008*materia
  mass=Math.max(.001,mass);area=Math.max(.001,area);
  const h=enthalpyAt(material,material.initialTemperature,material.initialTemperature>material.meltingPoint);
  return {material,key,position,area,mass,h,water:material.moisture*mass,fuel:material.fuelEnergy>0?1:0,
-  bulkWater:material.waterContent*mass,lost:0,volts:0,electrode:null,watts:0,burning:0,scale:1,strength:1,finish:0,...phaseState(material,h)};
+  bulkWater:material.waterContent*mass,lost:0,volts:0,electrode:null,watts:0,burning:0,scale:1,strength:1,finish:0,trapped:0,...phaseState(material,h)};
 }
-export function heat(s,joules){
- const m=s.material;
+// Entrapment is the cloudy fraction of the total mass. Fast growth
+// retains more inclusions. Melting removes them with the disappearing ice.
+export const opticalIce=m=>m.waterContent>.5&&m.phase==='solid'&&m.opacity<1;
+export function heat(s,joules,dt=.125){
+ if(joules===0)return;
+ const m=s.material,previous=s.melt;
  s.h=clamp(s.h+joules/activeMass(s),m.heatCapacity*50,enthalpyAt(m,12000));
  Object.assign(s,phaseState(m,s.h));
+ if(m.waterContent>.5&&s.melt!==previous){
+  const prior=s.trapped||0,frozen=previous-s.melt;
+  if(frozen>0)s.trapped=(s.trapped||0)+m.waterContent*frozen*(-Math.expm1(-frozen/(.09*dt)));
+  else s.trapped=prior*(1-s.melt)/(1-previous);
+  if(s.depositBed&&s.trapped!==prior)s.depositBed.version++;
+ }
 }
 export const activeMass=s=>Math.max(1e-9,s.mass*(1-s.lost));
 export const poreMass=s=>Math.max(.000001,s.area*.008*s.material.porosity*1000);
@@ -40,7 +50,7 @@ export function react(s,air,cell,dt,windSpeed){
  const conv=(8+2*Math.sqrt(windSpeed))*s.area;
  const radiative=m.emissivity*5.67e-8*s.area*(absolute+room)*(absolute*absolute+room*room);
  const capacity=cap*AIR_CAPACITY/(cap+AIR_CAPACITY),exchange=(gas.temperature-s.t)*capacity*(-Math.expm1(-dt*(conv+radiative)/capacity));
- heat(s,exchange);cell.heat-=exchange;
+ heat(s,exchange,dt);cell.heat-=exchange;
  // Liquid on a hot face can flash to steam even in saturated air. Take the
  // latent heat from the substrate, including energy stored in phase changes.
  if(s.water>0&&s.t>373.15){
@@ -99,7 +109,7 @@ export function exchangePair(a,b,area,dt){
  const k=(2*ma.thermalConductivity*mb.thermalConductivity)/(ma.thermalConductivity+mb.thermalConductivity||1);
  const ca=activeMass(a)*ma.heatCapacity,cb=activeMass(b)*mb.heatCapacity,c=ca*cb/(ca+cb);
  const q=(b.t-a.t)*c*(-Math.expm1(-dt*k*area/(.016*c)));
- heat(a,q);heat(b,-q);
+ heat(a,q,dt);heat(b,-q,dt);
  const wa=a.water/poreMass(a),wb=b.water/poreMass(b);
  const [from,to]=wa>wb?[a,b]:[b,a];
  const amount=Math.min(from.water,Math.abs(wa-wb)*dt*area*.075*mobility(to.material)*to.material.waterAffinity);

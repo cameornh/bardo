@@ -1,3 +1,4 @@
+import {depositState} from './deposit-heat.js';
 import {BED_CELL} from './material-bed.js';
 import {clamp} from './material-air.js';
 
@@ -26,9 +27,15 @@ export function bindFieldTools($,api){
   if(selected){
    const key=api.selectedKey();
    const records=[...sim.bodies.values()].filter(r=>r.instance.id+':'+r.part.id===key);
-   if(bulkAction&&records.length){
-    for(const r of records)for(const zone of new Set(r.field.mapping))world.apply(zone[0],action,power);
-    return;
+   if(bulkAction){
+    let applied=false;
+    for(const r of records)for(const zone of new Set(r.field.mapping)){world.apply(zone[0],action,power);applied=true;}
+    world.collectLoose(sim);
+    for(const site of world.loose.values())if(site.group.key===key){world.apply(site,action,power);applied=true;}
+    for(const bed of sim.matter.beds.values())for(const cell of bed.nodes.values())if(cell.owner===key&&cell.h>1e-7){
+     world.apply(depositState(bed,cell,BED_CELL),action,power);applied=true;
+    }
+    if(applied)return;
    }
    s=records[0]?.field.sites[0];
    if(!s){world.collectLoose(sim);s=[...world.loose.values()].find(s=>s.group.key===key);}
@@ -38,7 +45,7 @@ export function bindFieldTools($,api){
     if(cell){s=bed.thermalAt(cell.x*BED_CELL,cell.z*BED_CELL,true);break;}
    }
   }else s=world.target(sim,hit);
-  if(bulkAction&&!s?.zone){api.notice('Choose a solid sculpt to heat or cool its material volume.');return;}
+  if(bulkAction&&!s?.zone&&!s?.group&&!s?.deposit){api.notice('Choose a sculpt, detached parcel or puddle.');return;}
   if(!world.apply(s,action,power))api.notice('Select a placed part or point at a material surface.');
  };
  function showStrength(){

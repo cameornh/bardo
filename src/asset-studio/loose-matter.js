@@ -35,7 +35,11 @@ export function seedMatter(shapes,matrix,material,count){
 export class LooseMatter{
  constructor(){this.meltSerial=0;this.meltedMass=0;this.meltedParts=new Set();this.parts=new Map();this.beds=new Map();this.count=0;this.bedTime=0;}
  add(sim,key,shapes,matrix,material,budget){
-  return this.addPackets(sim,key,material,seedMatter(shapes,matrix,material,budget));
+  // Resolve finite liquid to the bed cell scale. Tiny drops previously cost
+  // the same 64 rigid contacts as a bucketful, even inside a sponge.
+  const litres=shapes.reduce((sum,s)=>sum+volume(s),0)*Math.abs(matrix.determinant())*1000;
+  const count=looseKind(material)===2?Math.min(budget,Math.max(16,Math.ceil(litres/.60))):budget;
+  return this.addPackets(sim,key,material,seedMatter(shapes,matrix,material,count));
  }
  addPackets(sim,key,material,packets,groundTool=false,id=key+'/'+material.id){
   if(this.count+packets.length>768)throw Error('This physics preview exceeds the 768 loose parcel budget.');
@@ -135,9 +139,10 @@ export class LooseMatter{
     // Pair impulses are equal and opposite; frictional contacts carry granular loads.
     if(!liquid||!pressure)continue;
     for(let j=0;j<i;j++){
-     const other=packets[j],q=other.position,dx=pos.x-q.x,dz=pos.z-q.z,h=Math.hypot(dx,dz);
-     const d=Math.hypot(h,pos.y-q.y),reach=1.55*(r+other.radius);
-     if(d>=reach||h<1e-5)continue;
+     const other=packets[j],q=other.position,dx=pos.x-q.x,dz=pos.z-q.z,dy=pos.y-q.y;
+     const horizontal=dx*dx+dz*dz,d2=horizontal+dy*dy,reach=1.55*(r+other.radius);
+     if(d2>=reach*reach||horizontal<1e-10)continue;
+     const h=Math.sqrt(horizontal),d=Math.sqrt(d2);
      const amount=dt*p.body.mass()*pressure*(1-d/reach)/h;
      p.body.applyImpulse({x:dx*amount,y:0,z:dz*amount},true);
      other.body.applyImpulse({x:-dx*amount,y:0,z:-dz*amount},true);

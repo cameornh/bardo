@@ -119,3 +119,19 @@ test('released wax reaches a spreading, probeable deposit in normal playback',as
   assert.equal(sim.materialWorld.target(sim,{bedMaterial:'wax',point:p.position}),p);
  }finally{sim.dispose();}
 });
+
+test('freezing rate controls trapped inclusions and remelting clears them',()=>{
+ const ice=materialBench().materials.find(m=>m.id==='ice');
+ const freeze=duration=>{
+  const site=surfaceState(ice,'lens',new Vector3(),1,1);
+  heat(site,ice.heatCapacity*(ice.meltingPoint-ice.initialTemperature)+ice.latentHeat);
+  assert.equal(site.melt,1);
+  for(let i=0;i<40;i++)heat(site,-ice.latentHeat/40,duration/40);
+  assert.ok(site.melt<1e-8);
+  return site;
+ };
+ const slow=freeze(180),fast=freeze(2);
+ assert.ok(slow.trapped<.08&&fast.trapped>.9);
+ heat(fast,ice.latentHeat+1);
+ assert.equal(fast.trapped,0);
+});

@@ -33,7 +33,7 @@ export function disturbDeposit(sim,bed,point,force=null){
   const kg=packet.volume*m.density;
   const source=cell.thermal??surfaceState(m,'',packet.position,area,kg);
   const share=kg/activeMass(source);
-  state.h+=source.h*packet.volume/total;state.fuel+=source.fuel*packet.volume/total;
+  state.trapped+=(source.trapped||0)*packet.volume/total;state.h+=source.h*packet.volume/total;state.fuel+=source.fuel*packet.volume/total;
   state.water+=source.water*share;state.bulkWater+=source.bulkWater*share;
   if(cell.thermal)takeDeposit(cell.thermal,kg);
   cell.h=Math.max(0,cell.h-packet.volume/area);

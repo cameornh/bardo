@@ -114,7 +114,7 @@ test('adding water to the burning tinder cools the touched face and puts out its
  assert.ok(hot.t<before-200);assert.equal(hot.burning,0);
 }));
 
-test('brine outruns oil, and a player can lift, drop and splash a finite oil pool on bronze',async()=>play('runoff',sim=>{
+test('brine outruns oil, and a player can lift, drop and splash a finite oil pool on a level plate',async()=>play('runoff',sim=>{
  step(sim,260);
  const oil=sim.matter.beds.get('oil'),brine=sim.matter.beds.get('brine');
  function weightedRadius(bed){
@@ -122,7 +122,9 @@ test('brine outruns oil, and a player can lift, drop and splash a finite oil poo
   const x=cells.reduce((s,c)=>s+c.x*c.h,0)/total,z=cells.reduce((s,c)=>s+c.z*c.h,0)/total;
   return cells.reduce((s,c)=>s+c.h*((c.x-x)**2+(c.z-z)**2),0)/total;
  }
- assert.ok(weightedRadius(brine)>1.25*weightedRadius(oil));
+ assert.ok(weightedRadius(brine)>2.25*weightedRadius(oil));
+ assert.ok(brine.spreadDiameter()>1.5*oil.spreadDiameter());
+ close(brine.volume(),oil.volume());
  const top=()=>{const c=[...oil.nodes.values()].reduce((a,b)=>a.h>b.h?a:b);return new Vector3(c.x*BED_CELL,c.h,c.z*BED_CELL);};
  const point=top(),initial=oil.volume(),world=sim.materialWorld;
  const contact=world.target(sim,{bedMaterial:'oil',point});assert.equal(contact.material.id,'oil');world.apply(contact,'heat',.03);

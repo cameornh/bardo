@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import {looseKind} from './loose-matter.js';
 import {clamp} from './material-air.js';
 
 const capacity=1536;
@@ -60,9 +59,8 @@ export class MaterialFieldView {
    };
    if(fieldChanged){
     const fromTemperature=t=>t<293?mix(neutral,cold,clamp((293-t)/40,0,1)):mix(neutral,hot,clamp((t-293)/220,0,1));
-    for(const s of world.nodes){
+    if(debug)for(const s of world.nodes){
      const p=s.position,r=clamp(s.radius*.47,.04,.55);
-     if(s.i!=null&&mode==='natural'&&s.finish>.015&&looseKind(s.material)!==2&&s.material.phase!=='gas')put(p.x,p.y+.006,p.z,r,.008,[.07,.055,.043],s.finish);
      if(mode==='temperature')put(p.x,p.y,p.z,r,r,fromTemperature(s.t),.8);
      else if(mode==='fusion')put(p.x,p.y,p.z,r,r,mix([.51,.34,.19],[.08,.77,1],s.core?.melt??s.melt),.83);
      else if(mode==='charge'){

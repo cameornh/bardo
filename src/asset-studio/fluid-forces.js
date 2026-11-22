@@ -25,6 +25,7 @@ export function flotationSamples(shapes,scale){
 }
 
 export function applyEnvironment(record,sea,waterDensity,wind,gravity,dt,column){
+ if(!sea&&!column&&!wind.speed){record.wetFraction=0;return;}
  const b=record.body;
  if(!b.isDynamic()&&!record.structure)return;
  const center=new Vector3().copy(b.translation()),rotation=new Quaternion().copy(b.rotation());
@@ -38,6 +39,7 @@ export function applyEnvironment(record,sea,waterDensity,wind,gravity,dt,column)
   const e=sample.extent,r=Math.max(.01,Math.abs(up.x)*e.x+Math.abs(up.y)*e.y+Math.abs(up.z)*e.z);
   const pool=column?.(pt.x,pt.z);
   const wet=sea?Math.max(0,Math.min(1,.5+(sea.height(pt.x,pt.z)-pt.y)/(2*r))):pool?Math.max(0,Math.min(pt.y+r,pool.top)-Math.max(pt.y-r,pool.bottom))/(2*r):0;
+  if(!wet&&!wind.speed)continue;
   const portion=sample.volume/record.fluidVolume,limit=b.mass()*portion*.38/dt;
   velocity.copy(b.velocityAtPoint(pt));force.set(0,0,0);
   if(wet){

@@ -14,6 +14,7 @@ export function groundWedge(x,z,depth,height){
 export class GroundCuts{
  constructor(){this.nodes=new Map();this.version=0;}
  offset(x,z){
+  if(!this.nodes.size)return 0;
   const u=x/CELL,v=z/CELL,i=Math.floor(u),j=Math.floor(v);let depth=0;
   for(let a=i;a<=i+1;a++)for(let b=j;b<=j+1;b++){
    const n=this.nodes.get(a+','+b);if(n)depth+=(n.depth+n.elastic+(n.bearing||0)+(n.compaction||0))*footprint(u-a,v-b);

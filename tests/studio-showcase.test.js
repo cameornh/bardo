@@ -115,7 +115,13 @@ test('the circuit runs through the separate graphite bridge and opens when it mo
 });
 
 test('the melting, humidity, vegetation, suspension, water and loose-ground fixtures run through their real solvers',async()=>{
- await play('thaw',120,sim=>assert.ok(sim.matter.meltedMass>0&&!sim.get('ice','body')&&!sim.get('wax','body')));
+ await play('thaw',120,sim=>{
+  const lens=sim.get('ice','body').field.sites[0];
+  assert.ok(lens.core.melt>0&&lens.core.melt<1);
+  assert.ok(Math.abs(lens.core.t-lens.material.meltingPoint)<1e-5);
+  for(let i=0;i<420;i++)sim.step();
+  assert.ok(sim.matter.meltedMass>0&&!sim.get('ice','body')&&!sim.get('wax','body'));
+ });
  await play('dew',120,sim=>assert.ok(sim.get('contact','body').field.sites.some(s=>s.water>0)));
  await play('wetland',60,sim=>{assert.equal(sim.paintedHinges.parts.size,6);assert.equal(sim.bodies.size,6);});
  await play('load',180,sim=>assert.deepEqual(new Set(sim.joints.map(l=>l.j.type)),new Set(['hinge','ball','spring','fixed'])));

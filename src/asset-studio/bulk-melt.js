@@ -12,7 +12,7 @@ export function conductInterior(a,dt,peer=null,area=a.area){
  const conductance=area/(a.depth/ka+(peer?peer.depth/kb:0));
  const ca=activeMass(from)*from.material.heatCapacity,cb=activeMass(b)*b.material.heatCapacity;
  const capacity=ca*cb/(ca+cb),energy=(from.t-b.t)*capacity*(-Math.expm1(-dt*conductance/capacity));
- heat(from,-energy);heat(b,energy);
+ heat(from,-energy,dt);heat(b,energy,dt);
 }
 
 function fused(zone){
@@ -41,6 +41,11 @@ function zoneOf(node,r){
 
 function emit(sim,r,zone,available){
  const m=zone[0].material,liquid={...m,phase:'liquid',liquidity:1,fromSolid:true};
+ if(m.waterContent>.5){
+  const water=sim.materialWorld.palette.get('water');
+  if(water)for(const prop of ['color','ior','roughness','scattering','absorption','opacity'])
+   liquid[prop]=water[prop];
+ }
  const shapes=r.field.shapes.filter((_,i)=>r.field.mapping[i]===zone);
  const samples=zone.flatMap(s=>s.core?[s,s.core]:[s]);
  const mass=samples.reduce((sum,s)=>sum+activeMass(s),0);

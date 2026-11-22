@@ -36,7 +36,14 @@ test('a granular sculpt and a liquid sculpt deform and retain their authored vol
   assert.ok(sim.matter.liquidColumn(sim,2,0).top>0);
   const mesh=new DepositSurface(beds.get('custom-powder'),null);mesh.update(sim);const i=mesh.geometry.index;
   assert.ok(i&&mesh.geometry.drawRange.count>50);assert.equal(mesh.ownerAt(new Vector3(-2,0,0)),'both:'+shape.id);
-  assert.ok([...mesh.geometry.attributes.position.array].every(Number.isFinite));mesh.geometry.dispose();
+  assert.ok([...mesh.geometry.attributes.position.array].every(Number.isFinite));
+  const revision=i.version,heights=mesh.geometry.attributes.layerDepth,peak=Math.max(...heights.array);
+  for(const c of mesh.bed.nodes.values())if(c.h>=.0006)c.h*=1.1;
+  mesh.bed.version++;mesh.update(sim);
+  assert.equal(mesh.geometry.index.version,revision);assert.ok(Math.max(...heights.array)>peak);
+  for(const c of mesh.bed.nodes.values())c.h=0;
+  mesh.bed.version++;mesh.update(sim);assert.equal(mesh.geometry.drawRange.count,0);
+  mesh.geometry.dispose();
  }finally{sim.dispose();}
 });
 

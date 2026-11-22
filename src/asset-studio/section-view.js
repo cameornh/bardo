@@ -1,3 +1,4 @@
+import {opticalIce} from './material-reactions.js';
 import {planarSurface} from './surface-support.js';
 import {Mesh,Vector3} from 'three';
 import {charSurfacePoint,roundCharChip} from './char-fracture.js';
@@ -117,6 +118,7 @@ function fragmentSurfaces(s,skin,changed){
 }
 export class SectionView{
  constructor(view){this.view=view;this.meshes=new Map();}
+ clearOptics(mesh){for(const child of [...mesh.children]){this.view.frozenOptics.delete(child);mesh.remove(child);}}
  update(sim){
   if(this.sim!==sim){this.clear();this.sim=sim;}
   for(const s of sim?.structures||[]){
@@ -133,13 +135,17 @@ export class SectionView{
    if(batch.count!==s.bodies.size||batch.meltRevision!==s.meltRevision){
     batch.meltRevision=s.meltRevision;
     for(const [r,mesh] of batch.pieces)if(!s.bodies.has(r)){
-     mesh.removeFromParent();mesh.geometry.dispose();batch.pieces.delete(r);
+     this.clearOptics(mesh);mesh.removeFromParent();mesh.geometry.dispose();batch.pieces.delete(r);
     }
     const changed=[...s.bodies].filter(r=>batch.pieces.get(r)?.userData.regions!==r.regions);
     for(const [r,surface] of fragmentSurfaces(s,batch.skin,changed)){
      const geometry=this.view.geometry(surface,this.view.library.materials);let mesh=batch.pieces.get(r);
-     if(mesh){mesh.geometry.dispose();mesh.geometry=geometry;}
+     if(mesh){this.clearOptics(mesh);mesh.geometry.dispose();mesh.geometry=geometry;}
      else{mesh=new Mesh(geometry,this.view.material);this.view.bindFinish(mesh,()=>r);mesh.matrixAutoUpdate=false;this.view.assetScene.add(mesh);batch.pieces.set(r,mesh);}
+     for(const id of geometry.userData.materialIds){
+      const index=this.view.materialIndices.get(id),m=this.view.library.materials[index];
+      if(opticalIce(m))this.view.attachOptics(mesh,geometry,m,index,null,()=>r);
+     }
      mesh.userData.regions=r.regions;
     }
     batch.count=s.bodies.size;
@@ -160,7 +166,7 @@ export class SectionView{
  }
  clear(){
   for(const {root,pieces} of this.meshes.values()){
-   root.visible=true;for(const mesh of pieces.values()){mesh.removeFromParent();mesh.geometry.dispose();}
+   root.visible=true;for(const mesh of pieces.values()){this.clearOptics(mesh);mesh.removeFromParent();mesh.geometry.dispose();}
   }
   this.meshes.clear();
  }

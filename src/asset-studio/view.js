@@ -1,3 +1,4 @@
+import {opticalIce} from './material-reactions.js';
 import {firstSurfaceHit} from './ground-tools.js';
 import {planarSurface,surfaceFragment} from './surface-support.js';
 import {MaterialFieldView} from './material-field-view.js';
@@ -79,7 +80,7 @@ function frameBounds(view,bounds,preset,emptyMode){
   if(bounds.isEmpty())return view.focus(emptyMode);
   const target=bounds.getCenter(new THREE.Vector3()), direction=view.camera.position.clone().sub(view.controls.target);
   const presets={threeQuarter:[2,2.6,3],front:[0,0,1],side:[1,0,0],top:[0,1,.0001]};
-  if(presets[preset])direction.fromArray(presets[preset]);if(!direction.lengthSq())direction.set(4,2,5);direction.normalize();
+  if(Array.isArray(preset))direction.fromArray(preset);else if(presets[preset])direction.fromArray(presets[preset]);if(!direction.lengthSq())direction.set(4,2,5);direction.normalize();
   const right=new THREE.Vector3().crossVectors(view.camera.up,direction).normalize(),up=direction.clone().cross(right);
   const tanV=Math.tan(view.camera.fov*Math.PI/360),tanH=tanV*view.camera.aspect;
   let distance=view.controls.minDistance;
@@ -98,7 +99,7 @@ export class StudioView{
  this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(48,1,.03,10000);this.camera.position.set(7,5,9);this.controls=new OrbitControls(this.camera,canvas);this.controls.target.set(0,1,0);this.controls.enableDamping=true;this.controls.dampingFactor=.12;this.controls.maxDistance=4000;this.controls.minDistance=.25;this.controls.update();
  const sh=projectSH(n=>[.44+.24*n[1],.49+.26*n[1],.53+.3*n[1]]),environment=Array.from({length:9},(_,i)=>new THREE.Vector3(...sh.slice(i*3,i*3+3)));
  this.uniforms={environment:{value:environment},viewport:{value:new THREE.Vector2(1,1)},cameraWorld:{value:this.camera.matrixWorld}};
- this.material=new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:VERTEX,fragmentShader:FRAGMENT,transparent:true,depthWrite:false,side:THREE.DoubleSide});this.material.name='studio covariance Gaussian';this.depthMaterial=new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:VERTEX,fragmentShader:DEPTH_FRAGMENT,colorWrite:false,depthWrite:true,side:THREE.DoubleSide});
+ this.material=new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:VERTEX,fragmentShader:FRAGMENT,transparent:true,forceSinglePass:liveStudio,depthWrite:false,side:THREE.DoubleSide});this.material.name='studio covariance Gaussian';this.depthMaterial=new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:VERTEX,fragmentShader:DEPTH_FRAGMENT,colorWrite:false,depthWrite:true,side:THREE.DoubleSide});
  this.liveStudio=liveStudio;
  if(liveStudio){
   this.workPlane=studioMaterial('studio-workplane','Work plane','#818a8d',{roughness:.96,grainDepth:0});
@@ -145,7 +146,7 @@ export class StudioView{
  if(liveStudio){
   this.grainScene=new THREE.Scene();this.eyeScene=new THREE.Scene();this.sandView=new SandDriftView(this.grainScene,this.uniforms,LIGHTING,false,this.eyeScene);
  }
- this.ground=new THREE.Mesh(liveStudio?groundSurface(this,LIGHTING):new THREE.PlaneGeometry(20000,20000),this.groundMaterial);this.ground.rotation.x=-Math.PI/2;this.scene.add(this.ground);if(liveStudio)this.groundEdits=new GroundEditView(this);
+ this.ground=new THREE.Mesh(liveStudio?groundSurface(this,LIGHTING):new THREE.PlaneGeometry(20000,20000),this.groundMaterial);this.ground.rotation.x=-Math.PI/2;this.scene.add(this.ground);if(liveStudio){this.reliefFloor=this.ground.geometry;this.flatFloor=new THREE.PlaneGeometry(19970,19970);this.groundEdits=new GroundEditView(this);}
  this.root=new THREE.Group();this.assetScene=new THREE.Scene();this.assetScene.add(this.root);this.cache=new Map();this.groups=new Map();this.surfaces=new Map();
  this.gizmo=new TransformControls(this.camera,canvas);this.scene.add(this.gizmo.getHelper());this.gizmo.addEventListener('dragging-changed',e=>{this.controls.enabled=!e.value;this.dragging=e.value;if(e.value)onDragStart();else onChange(this.gizmo.object);});this.gizmo.addEventListener('objectChange',()=>onChange(this.gizmo.object,true));
  this.brush=new THREE.Mesh(new THREE.SphereGeometry(1,16,10),new THREE.MeshBasicMaterial({color:0xe9ede7,wireframe:true,transparent:true,opacity:.55,depthWrite:false}));this.scene.add(this.brush);this.brush.visible=false;
@@ -167,30 +168,51 @@ export class StudioView{
  liquidMaterial(m,index){
   const key=m.id;
   if(!this.liquidMats.has(key)){
-   const uniforms={...this.uniforms,...liquidUniforms(this.oceanView.uniforms,m),selected:{value:index}};
+   const uniforms={...this.uniforms,...liquidUniforms(this.oceanView.uniforms,m),selected:{value:index},iceHaze:{value:0},iceDepth:{value:0}};
    // The optical pass shades only samples owned by this material. Their authored
    // covariance and depth are identical to the sculpted surface used for picking.
    const fragment=FRAGMENT.slice(FRAGMENT.indexOf('uniform vec2 viewport;uniform mat4 projectionMatrix;'))
     .replace('uniform vec2 viewport;uniform mat4 projectionMatrix;','')
-    .replace('if(vWorld.y<0.||','if(matterPlaying>.5||abs(phase.y-selected)>.1||')
-    .replace('shade(vColor,normalize(vNormal),vWorld,vProps)','opticalSurface(vWorld,normalize(vNormal),max(.05,vRadius*4.),0.)')
+    .replace('if(vWorld.y<0.||','if((matterPlaying>.5&&phase.x<2.5)||abs(phase.y-selected)>.1||')
+    .replace('shade(vColor,normalize(vNormal),vWorld,vProps)','opticalSurface(vWorld,normalize(vNormal),max(max(.05,vRadius*4.),iceDepth),.92*(1.-exp(-iceHaze*iceDepth*12.)))')
+    .replace('t-=vRadius*4.;','')
     .replace('coverage*vProps.z','coverage');
    const mat=new THREE.ShaderMaterial({uniforms,defines:{PARCEL_OPTICS:1},vertexShader:this.material.vertexShader,
-    fragmentShader:LIGHTING+medium+interfaceOptics+'varying vec2 footprint,phase;varying vec3 vNormal,vWorld,vColor;varying vec4 vProps;varying float vRadius;uniform float selected,matterPlaying;'+fragment,
-    side:THREE.DoubleSide,transparent:true,depthWrite:true});
+    fragmentShader:LIGHTING+medium+interfaceOptics+'varying vec2 footprint,phase;varying vec3 vNormal,vWorld,vColor;varying vec4 vProps;varying float vRadius;uniform float selected,matterPlaying,iceDepth,iceHaze;'+fragment,
+    side:THREE.DoubleSide,transparent:true,forceSinglePass:true,depthWrite:true});
    this.liquidMats.set(key,mat);
   }
   const mat=this.liquidMats.get(key);Object.assign(mat.uniforms,liquidUniforms(this.oceanView.uniforms,m));mat.uniforms.selected.value=index;return mat;
  }
- rebuild(library,mode,assetId){this.gizmo.detach();this.root.clear();this.groups.clear();this.library=library;this.materialIndices=new Map(library.materials.map((m,i)=>[m.id,i]));this.mode=mode;this.hasFiniteLiquid=false;this.implicitCount=0;this.gaussianCount=0;this.implicit?.clear();const instances=mode==='asset'?[{id:'editor',assetId,transform:{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}}]:library.world.instances;
+ rebuild(library,mode,assetId){this.gizmo.detach();this.root.clear();this.groups.clear();this.library=library;this.materialIndices=new Map(library.materials.map((m,i)=>[m.id,i]));this.mode=mode;this.hasFiniteLiquid=false;this.frozenOptics=new Set();this.implicitCount=0;this.gaussianCount=0;this.implicit?.clear();const instances=mode==='asset'?[{id:'editor',assetId,transform:{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}}]:library.world.instances;
  for(const instance of instances){const a=library.assets.find(a=>a.id===instance.assetId);if(!a)continue;const group=new THREE.Group();group.userData={instanceId:instance.id,assetId:a.id};poseObject(group,instance.transform);this.root.add(group);this.groups.set(instance.id,group);for(const p of a.parts){const object=new THREE.Group();object.userData={partId:p.id,assetId:a.id};object.matrixAutoUpdate=false;object.matrix.copy(partMatrix(p.transform,p.pivot));group.add(object);const direct=this.liveStudio&&implicitStamp(p,library.materials);
  if(direct){object.userData.stampMaterial=direct.materialId;object.add(this.implicit.mesh(direct,library.materials.find(m=>m.id===direct.materialId)));this.implicitCount++;continue;}
  const key=a.id+':'+p.id,geometry=this.cache.get(key);if(geometry){this.gaussianCount+=geometry.instanceCount;const mesh=new THREE.Mesh(geometry,this.material);mesh.userData.surfaceKey=key;if(this.liveStudio)this.bindFinish(mesh,()=>this.activePhysics?.get(instance.id,p.id));object.add(mesh);
+ if(this.liveStudio)object.userData.fullyLoose=[...geometry.userData.materialIds].every(id=>{
+  const m=library.materials[this.materialIndices.get(id)];return looseKind(m)>0||m.phase==='gas';
+ })&&!p.marks?.length;
  if(this.liveStudio)for(const mid of geometry.userData.materialIds??new Set(this.surfaces.get(key)?.materials)){
   const index=library.materials.findIndex(m=>m.id===mid),m=library.materials[index];
-  if(looseKind(m)!==2)continue;this.hasFiniteLiquid=true;
-  const optical=new THREE.Mesh(geometry,this.liquidMaterial(m,index));optical.userData.surfaceKey=key;optical.layers.set(1);object.add(optical);
+  if(looseKind(m)!==2&&!opticalIce(m))continue;this.hasFiniteLiquid=true;
+  this.attachOptics(object,geometry,m,index,key,()=>this.activePhysics?.get(instance.id,p.id));
  }}}}this.setGround(this.liveStudio&&mode==='asset'?this.workPlane:library.materials.find(m=>m.id===library.world.groundMaterialId));this.paintView?.rebuild(this);}
+ attachOptics(parent,geometry,m,index,key,record){
+  const mesh=new THREE.Mesh(geometry,this.liquidMaterial(m,index));
+  mesh.layers.set(1);mesh.userData.surfaceKey=key;parent.add(mesh);
+  if(!opticalIce(m))return;
+  this.frozenOptics.add(mesh);
+  const size=geometry.boundingBox.getSize(new THREE.Vector3());
+  const span=Math.max(.02,Math.min(size.x,size.y,size.z));
+  mesh.onBeforeRender=(_r,_s,_c,_g,mat)=>{
+   let mass=0,inclusions=0;
+   for(const site of record()?.field?.sites??[])if(site.material.id===m.id&&!site.mark){
+    mass+=site.mass;inclusions+=site.mass*(site.trapped||0);
+    if(site.core){mass+=site.core.mass;inclusions+=site.core.mass*(site.core.trapped||0);}
+   }
+   mat.uniforms.iceDepth.value=span*Math.cbrt(Math.abs(mesh.matrixWorld.determinant()));
+   mat.uniforms.iceHaze.value=mass?inclusions/mass:0;mat.uniformsNeedUpdate=true;
+  };
+ }
  bindFinish(mesh,record){
   mesh.onBeforeRender=(_renderer,_scene,_camera,_geometry,material)=>{
    if(material!==this.material)return;
@@ -211,6 +233,9 @@ export class StudioView{
    for(const object of group.children){
     const partId=object.userData.partId,body=physics.get(id,partId);
     if(this.liveStudio&&physics.matter.meltedParts.has(id+':'+partId)){object.visible=false;object.userData.meltHidden=true;}
+    if(this.liveStudio&&object.userData.fullyLoose){
+     object.visible=false;object.userData.meltHidden=true;
+    }
     if(body)object.matrix.copy(inverse).multiply(body.matrix);
    }
   }
@@ -264,18 +289,23 @@ export class StudioView{
   expandAuthoredBounds(bounds,asset);
   frameBounds(this,bounds,preset,'asset');
  }
- frameWorld(library){
+ frameWorld(library,{direction,groundMargin=0}={}){
   const bounds=new THREE.Box3();
   for(const instance of library.world.instances){
    const asset=library.assets.find(a=>a.id===instance.assetId);
    expandAuthoredBounds(bounds,asset,partMatrix(instance.transform,[0,0,0]));
   }
-  frameBounds(this,bounds,null,'world');
+  if(groundMargin&&!bounds.isEmpty()){
+   bounds.min.y=Math.min(0,bounds.min.y);bounds.min.x-=groundMargin;bounds.max.x+=groundMargin;
+   bounds.min.z-=groundMargin;bounds.max.z+=groundMargin;
+  }
+  frameBounds(this,bounds,direction,'world');
  }
  focus(mode='world'){this.controls.target.set(0,1,0);this.camera.position.set(...(mode==='asset'?[4,3,5]:[8,5,10]));this.controls.update();}
  get visibleLiquid(){
   const matter=this.activePhysics?.matter;
   if(!matter)return this.hasFiniteLiquid;
+  for(const mesh of this.frozenOptics??[])if(mesh.parent?.visible)return true;
   for(const g of matter.parts.values())if(usesLiquidOptics(g.material,g.kind===2)&&g.packets.length)return true;
   for(const bed of matter.beds.values())if(usesLiquidOptics(bed.material,bed.liquid)&&bed.nodes.size)return true;
   return false;
@@ -283,7 +313,7 @@ export class StudioView{
  draw(){if(this.failed)throw Error('Studio graphics context lost; stopped.');this.controls.update();if(this.liveStudio){
  this.paintView.update(this,this.activePhysics??null);
  for(const drift of this.matterView.saltation.values())drift.updateEye(this.camera.position);
- this.groundEdits.update(this.activePhysics);this.sandView.update(this.sand,this.groundSurface,this.camera.position);this.groundMaterial.uniforms.granular.value=!!this.sand;
+ this.groundEdits.update(this.activePhysics);this.sandView.update(this.sand,this.groundSurface,this.camera.position);this.finishMap.update(this.sea?null:this.activePhysics?.materialWorld,this.groundSurface);this.ground.geometry=this.sand?this.reliefFloor:this.flatFloor;this.groundMaterial.uniforms.granular.value=!!this.sand;
  this.ground.visible=!this.sea;this.uniforms.clipFloor.value=this.sea||this.activePhysics?.sandTerrain?.version||this.activePhysics?.cuts?.nodes.size?-1e10:0;
  if(this.sea)this.oceanView.update(this.sea,this.camera,this.library.materials.find(m=>m.id===this.library.world.groundMaterialId));else this.oceanView.show(false);
  }if(this.implicitCount){this.assetScene.updateMatrixWorld(true);this.implicit.update(this.activePhysics);}this.ground.position.set(this.liveStudio?Math.round(this.camera.position.x*4)/4:this.camera.position.x,0,this.liveStudio?Math.round(this.camera.position.z*4)/4:this.camera.position.z);this.scene.updateMatrixWorld(true);if(this.liveStudio&&(this.sea||this.visibleLiquid)){
@@ -293,5 +323,5 @@ export class StudioView{
  if(this.eyeScene?.children.some(o=>o.visible)){this.renderer.autoClear=false;this.renderer.render(this.eyeScene,this.camera);}}
  drawObjects(camera){this.renderer.autoClear=true;this.renderer.render(this.scene,camera);this.renderer.autoClear=false;
  this.assetScene.overrideMaterial=this.depthMaterial;this.renderer.render(this.assetScene,camera);this.assetScene.overrideMaterial=null;this.renderer.render(this.assetScene,camera);if(this.paintView?.scene.children.length)this.renderer.render(this.paintView.scene,camera);if(this.grainScene?.children.some(o=>o.visible))this.renderer.render(this.grainScene,camera);}
- dispose(){this.fieldView?.dispose();this.paintView?.dispose();this.sectionView?.clear();this.groundEdits?.dispose();this.matterView?.reset();this.uniforms.grainMap?.value.dispose();for(const mat of this.liquidMats?.values()||[])mat.dispose();this.sandView?.dispose();this.oceanView?.dispose();this.implicit?.dispose();this.forceLine.geometry.dispose();this.forceLine.material.dispose();this.resizeObserver.disconnect();this.controls.dispose();this.gizmo.dispose();for(const g of this.cache.values())g.dispose();this.material.dispose();this.depthMaterial.dispose();this.ground.geometry.dispose();this.groundMaterial.dispose();this.brush.geometry.dispose();this.brush.material.dispose();this.renderer.dispose();}
+ dispose(){this.fieldView?.dispose();this.paintView?.dispose();this.sectionView?.clear();this.groundEdits?.dispose();this.matterView?.reset();this.uniforms.grainMap?.value.dispose();for(const mat of this.liquidMats?.values()||[])mat.dispose();this.sandView?.dispose();this.oceanView?.dispose();this.implicit?.dispose();this.forceLine.geometry.dispose();this.forceLine.material.dispose();this.resizeObserver.disconnect();this.controls.dispose();this.gizmo.dispose();for(const g of this.cache.values())g.dispose();this.material.dispose();this.depthMaterial.dispose();if(this.liveStudio){this.reliefFloor.dispose();this.flatFloor.dispose();this.finishMap.dispose();}else this.ground.geometry.dispose();this.groundMaterial.dispose();this.brush.geometry.dispose();this.brush.material.dispose();this.renderer.dispose();}
 }

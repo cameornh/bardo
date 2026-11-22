@@ -82,21 +82,30 @@ function contactLoads(sim,r,dt){
  const level=floor.reduce((n,c)=>n+c.point.y,0)/floor.length;
  const rot=new Quaternion().copy(b.rotation()),origin=vec(b.translation()),normal=up.clone().applyQuaternion(rot.clone().invert());
  const faces=[];let area=0;
- for(const i of r.regions)for(const shape of r.structure.grid.nodes[i].shapes){
-  const half=new Vector3(...shape.half).multiply(r.scale),center=new Vector3(...shape.center).multiply(r.scale).applyQuaternion(rot).add(origin);
-  for(const k of [0,1,2]){
-   const vertical=normal.getComponent(k);if(Math.abs(vertical)<.985)continue;
-   const off=new Vector3().setComponent(k,-Math.sign(vertical)*half.getComponent(k)).applyQuaternion(rot);
-   const point=center.clone().add(off);if(Math.abs(point.y-level)>.016)continue;
-   const weight=4*half.getComponent((k+1)%3)*half.getComponent((k+2)%3);
-   faces.push({i,weight,point});area+=weight;
+ // Only one local axis can be within the coplanar tolerance. Cache its
+ // local face centres until the fragment splits or rolls onto another side.
+ const axis=[0,1,2].find(k=>Math.abs(normal.getComponent(k))>=.985);
+ if(axis!==undefined){
+  const sign=Math.sign(normal.getComponent(axis)),cache=r.supportFaces;
+  if(cache?.regions!==r.regions||cache.axis!==axis||cache.sign!==sign){
+   const candidates=[];
+   for(const i of r.regions)for(const shape of r.structure.grid.nodes[i].shapes){
+    const half=new Vector3(...shape.half).multiply(r.scale),local=new Vector3(...shape.center).multiply(r.scale);
+    local.setComponent(axis,local.getComponent(axis)-sign*half.getComponent(axis));
+    candidates.push({i,local,weight:4*half.getComponent((axis+1)%3)*half.getComponent((axis+2)%3)});
+   }
+   r.supportFaces={regions:r.regions,axis,sign,candidates};
+  }
+  for(const f of r.supportFaces.candidates){
+   if(Math.abs(normal.dot(f.local)+origin.y-level)>.016)continue;
+   faces.push(f);area+=f.weight;
   }
  }
  const total=floor.reduce((v,c)=>v.add(c.force),new Vector3());
  if(!area||total.y>1.6*b.mass()*Math.max(.01,-sim.world.gravity.y)){
   for(const c of floor)recordLoad(r,c.force,c.point);
  }else for(const face of faces){
-  r.forceSamples.push({force:total.clone().multiplyScalar(face.weight/area),point:face.point,region:face.i});
+  r.forceSamples.push({force:total.clone().multiplyScalar(face.weight/area),point:face.local.clone().applyQuaternion(rot).add(origin),region:face.i});
  }
 
 }

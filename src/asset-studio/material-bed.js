@@ -40,6 +40,14 @@ export class MaterialBed{
   return cell?depositState(this,cell,BED_CELL):null;
  }
  volume(){let h=0;for(const c of this.nodes.values())h+=c.h;return h*area;}
+ // Diameter of a uniform disc with the same volume-weighted second moment.
+ spreadDiameter(){
+  let mass=0,x=0,z=0;
+  for(const c of this.nodes.values()){mass+=c.h;x+=c.h*c.x;z+=c.h*c.z;}
+  if(!mass)return 0;x/=mass;z/=mass;
+  let moment=0;for(const c of this.nodes.values())moment+=c.h*((c.x-x)**2+(c.z-z)**2);
+  return BED_CELL*Math.sqrt(8*(moment/mass+1/6));
+ }
  move(c,nx,nz,amount){
   if(amount<=0||(!this.at(nx,nz)&&this.nodes.size>=MAX_BED_NODES))return;
   const neighbour=this.node(nx,nz,c.owner);
@@ -68,13 +76,13 @@ export class MaterialBed{
  advance(dt,wind,floor,obstructed){
   if(!this.nodes.size)return;
   const m=this.material,angle=wind.heading*Math.PI/180,wx=Math.cos(angle),wz=Math.sin(angle);
-  const threshold=this.liquid?.045:repose(m),shear=Math.max(0,wind.speed-entrainment(m));
+  const threshold=this.liquid?.009:repose(m),shear=Math.max(0,wind.speed-entrainment(m));
   // The viscosity slider is in Pa·s. Kinematic viscosity sets the time to
   // relax a shallow film; equal volumes still reach the same resting slope.
-  const mobility=this.liquid?1/(1+(m.viscosity/m.density)/1.5e-5):1;
-  const spread=Math.min(.20,dt*(this.liquid?4*mobility:3.5));
+  const mobility=this.liquid?1/(1+(m.viscosity/m.density)/8e-6):1;
+  const spread=Math.min(.20,dt*(this.liquid?5*mobility:3.5));
   // A shallow liquid keeps a thin film. Grain friction and cohesion permit a finite slope.
-  const film=this.liquid?.008:.0015,keys=[...this.nodes.values()];
+  const film=this.liquid?.002:.0015,keys=[...this.nodes.values()];
   if(!this.liquid)this.saltate(dt,wind,wx,wz,shear,keys,floor);
   const support=new Map(),flux=new Float64Array(directions.length);
   const elevation=(x,z)=>{

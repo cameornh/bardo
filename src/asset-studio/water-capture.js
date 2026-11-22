@@ -37,7 +37,7 @@ export class WaterCapture{
   camera.updateMatrixWorld();r.getDrawingBufferSize(u.viewport.value);
   const {x:w,y:h}=u.viewport.value;
   const resized=this.mirror.width!==Math.ceil(w*.5)||this.mirror.height!==Math.ceil(h*.5);
-  if(!mirrorOnly){this.source.setSize(w,h);this.bulk.setSize(w,h);}
+  if(!mirrorOnly){this.source.setSize(w,h);this.bulk.setSize(sea?w:1,sea?h:1);}
   this.mirror.setSize(Math.max(1,Math.ceil(w*.5)),Math.max(1,Math.ceil(h*.5)));
   u.inverseProjection.value.copy(camera.projectionMatrixInverse);
   u.submerged.value=Number(!!sea&&camera.position.y<sea.height(camera.position.x,camera.position.z));

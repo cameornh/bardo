@@ -15,11 +15,11 @@ export function liquidUniforms(shared,m){
 }
 const vertex=`varying vec3 p,n;
 #ifdef DEPOSIT
- attribute float layerDepth;varying float depthMetres;
+ attribute float layerDepth,trappedFraction;varying float depthMetres,clouded;
 #endif
 void main(){
  #ifdef DEPOSIT
- depthMetres=layerDepth;
+ depthMetres=layerDepth;clouded=trappedFraction;
  #endif
  p=(modelMatrix*vec4(position,1.)).xyz;n=transpose(inverse(mat3(modelMatrix)))*normal;
  gl_Position=projectionMatrix*viewMatrix*vec4(p,1.);}`;
@@ -33,25 +33,26 @@ export class MatterView{
  }
  material(m,water,radius,deposit=false){
   const uniforms=liquidUniforms(this.view.oceanView.uniforms,m);
-  uniforms.clipFloor=this.view.uniforms.clipFloor;uniforms.grainMap=this.view.uniforms.grainMap;uniforms.grain={value:new THREE.Vector3(...grainParams(m))};uniforms.thickness={value:2*radius};
+  uniforms.clipFloor=this.view.uniforms.clipFloor;uniforms.grainMap=this.view.uniforms.grainMap;uniforms.grain={value:new THREE.Vector3(...grainParams(m))};uniforms.thickness={value:2*radius};uniforms.parcelClouded={value:0};
   const shader=new THREE.ShaderMaterial({uniforms,transparent:deposit,side:deposit?THREE.FrontSide:THREE.DoubleSide,defines:{...(water?{PARCEL_OPTICS:1}:{}),...(deposit?{DEPOSIT:1}:{})},
    vertexShader:vertex,fragmentShader:this.lighting+(water?medium+interfaceOptics:reflectedSurfaceClip+surfaceRelief)+`
-    varying vec3 p,n;uniform float thickness;uniform vec3 grain;
+    varying vec3 p,n;uniform float thickness,parcelClouded;uniform vec3 grain;
     ${water?'':'uniform mat4 projectionMatrix;uniform vec3 color;uniform vec4 properties;'}
     #ifdef DEPOSIT
-     varying float depthMetres;
+     varying float depthMetres,clouded;
     #endif
     void main(){
      ${water?'':'if(belowReflector(p))discard;'}
-     vec3 norm=normalize(n),base=color;float travel=thickness;
+     vec3 norm=normalize(n),base=color;float travel=thickness,inclusions=parcelClouded;
      #ifdef DEPOSIT
       if(depthMetres<.0006)discard;
       travel=depthMetres/max(.18,abs(dot(norm,normalize(cameraPosition-p))));
+      inclusions=clouded;
      #endif
-     ${water?'vec3 result=opticalSurface(p,norm,travel,0.);':'vec3 prior=norm;float lift=grainSurface(p,prior,grain,norm,base,cameraPosition-p);gl_FragDepth=reliefDepth(gl_FragCoord.z,p,prior,lift,projectionMatrix);vec3 result=shade(base,norm,p,properties);'}
+     ${water?'vec3 result=opticalSurface(p,norm,travel,.92*(1.-exp(-32.*inclusions*travel)));':'vec3 prior=norm;float lift=grainSurface(p,prior,grain,norm,base,cameraPosition-p);gl_FragDepth=reliefDepth(gl_FragCoord.z,p,prior,lift,projectionMatrix);vec3 result=shade(base,norm,p,properties);'}
      float coverage=1.;
      #ifdef DEPOSIT
-      coverage=smoothstep(.0006,.012,depthMetres);
+      coverage=smoothstep(.0006,${water?'.0035':'.012'},depthMetres);
      #endif
      gl_FragColor=vec4(result,coverage);
      #include <tonemapping_fragment>
@@ -103,6 +104,7 @@ export class MatterView{
    if(!g.packets.length&&!this.meshes.has(key))continue;
    const mesh=this.surface(key,g),size=mesh.size,packets=g.packets;
    mesh.visible=!!packets.length;if(!packets.length)continue;
+   mesh.material.uniforms.parcelClouded.value=g.thermal?.trapped||0;
    const lo=new THREE.Vector3(Infinity,Infinity,Infinity),hi=lo.clone().negate(),r=g.radius;
    for(const p of packets){lo.min(p.position);hi.max(p.position);}
    // Compact Gaussians blend to a common isosurface. Anisotropic grids retain

@@ -1,17 +1,18 @@
 import * as THREE from 'three';
+import {opticalIce} from './material-reactions.js';
 import {looseKind} from './loose-matter.js';
 import {grainParams} from './surface-grain.js';
 
 const affected = {
   color:'tint', roughness:'properties', metallic:'properties', opacity:'properties', emission:'properties',
   grainDepth:'grainSettings', grainLength:'grainSettings', grainScale:'grainSettings',
-  phase:'phaseId', liquidity:'phaseId', fiberLength:'fiberLength'
+  phase:'phaseId', waterContent:'phaseId', liquidity:'phaseId', fiberLength:'fiberLength'
 };
 
 function appearance(m, index) {
   return {
     tint:new THREE.Color(m.color).toArray(), properties:[m.roughness, m.metallic, m.opacity, m.emission],
-    grainSettings:grainParams(m), phaseId:[m.phase==='gas'?1:looseKind(m), index], fiberLength:[Math.fround(m.fiberLength || 0)]
+    grainSettings:grainParams(m), phaseId:[opticalIce(m)?3:m.phase==='gas'?1:looseKind(m), index], fiberLength:[Math.fround(m.fiberLength || 0)]
   };
 }
 
@@ -79,6 +80,7 @@ export function updateMaterialAttribute(geometry, surface, materials, material, 
     if (surface.materials[i] === material.id) attr.array.set(value, i * attr.itemSize);
   }
   attr.needsUpdate = true;
+  if(field==='opacity')updateMaterialAttribute(geometry,surface,materials,material,'phase');
   if (name === 'fiberLength') {
     let maxFiber = 0;
     for (const m of materials) if (geometry.userData.materialIds.has(m.id)) maxFiber = Math.max(maxFiber, Math.fround(m.fiberLength || 0));
