@@ -9,7 +9,7 @@ export function validateVariation(v) {
   }
 }
 
-function randomSequence(seed) {
+export function randomSequence(seed) {
   let state=Number(seed)>>>0;
   return ()=>{
     state=(state+0x6d2b79f5)>>>0;

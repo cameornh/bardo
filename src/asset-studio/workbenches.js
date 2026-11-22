@@ -133,9 +133,9 @@ export const studioTests = [
   {id:'sculpts',name:'Example sculpts',create:sculptBench,guide:'Edit a sample to inspect its shapes. In the world, press Play to see the stem swing from its bracket and try nudging the clay.'}
 ];
 
-export function workbenchStore(test,ground) {
+export function workbenchStore(test,ground,seed) {
   return {
-    load:async()=>({library:test.create(ground),message:test.name+' · changes last for this visit.'}),
+    load:async()=>({library:test.create(ground,seed),message:test.name+' · changes last for this visit.'}),
     save:async()=>'Test changes are temporary. Export to keep a copy.'
   };
 }

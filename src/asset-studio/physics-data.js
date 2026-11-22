@@ -21,7 +21,7 @@ export function validatePhysics(asset){
  for(const p of asset.parts){
   if(p.physics&&(typeof p.physics.fixed!=='boolean'))throw Error('Library: invalid body settings');
   const j=p.joint;
-  if(j){if(j.breakForce!==undefined&&!finite(j.breakForce,1,1e9))throw Error('Library: invalid joint breaking force');if(!['ball','hinge','spring','fixed'].includes(j.type)||j.parentId===p.id||!(j.parentId==='ground'||asset.parts.some(q=>q.id===j.parentId))||!vec(j.anchor,10000)||!vec(j.axis,1)||Math.hypot(...j.axis)<.1||!finite(j.looseness,0,180)||!finite(j.stiffness,0,100000)||!finite(j.damping,0,10000)||!finite(j.extensionStiffness,1,1000000))throw Error('Library: invalid joint');}
+  if(j){if(j.breakForce!==undefined&&!finite(j.breakForce,1,1e9))throw Error('Library: invalid joint breaking force');if(!['ball','hinge','spring','fixed','flexure'].includes(j.type)||j.parentId===p.id||!(j.parentId==='ground'||asset.parts.some(q=>q.id===j.parentId))||!vec(j.anchor,10000)||!vec(j.axis,1)||Math.hypot(...j.axis)<.1||!finite(j.looseness,0,180)||!finite(j.stiffness,0,100000)||!finite(j.damping,0,10000)||!finite(j.extensionStiffness,1,1000000))throw Error('Library: invalid joint');}
   if(p.forceKeys){if(!Array.isArray(p.forceKeys)||p.forceKeys.length>120)throw Error('Library: force key budget');const times=new Set();for(const k of p.forceKeys){if(!finite(k.time,0,asset.duration)||!vec(k.force,100000)||!vec(k.torque,100000)||times.has(k.time))throw Error('Library: invalid force key');times.add(k.time);}}
  }
  // Cyclic articulation graphs can over-constrain the solver. Reject before creating any bodies.

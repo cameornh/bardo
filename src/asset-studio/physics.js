@@ -20,6 +20,15 @@ import {sampleForces} from './physics-data.js';
 const v=x=>new THREE.Vector3(x.x,x.y,x.z),q=x=>new THREE.Quaternion(x.x,x.y,x.z,x.w),V=a=>new THREE.Vector3(...a),rad=Math.PI/180;
 const compose=t=>new THREE.Matrix4().compose(V(t.position),new THREE.Quaternion().setFromEuler(new THREE.Euler(...t.rotation.map(x=>x*rad))),V(t.scale));
 function partTransform(p){const m=compose({...p.transform,position:p.transform.position.map((x,k)=>x+p.pivot[k])});return m.multiply(new THREE.Matrix4().makeTranslation(...p.pivot.map(x=>-x)));}
+// An elastic flexure has three rotational modes. A slender member can bend
+// easily yet have orders of magnitude less inertia about its long axis.
+// Implicitly damp each mode with the relative inverse inertia of both bodies.
+function flexureTorque(out, child, parent, response, matrix){
+ const b=child.effectiveWorldInvInertia(),a=parent.effectiveWorldInvInertia();
+ const xx=1+response*(a.m11+b.m11),yy=1+response*(a.m22+b.m22),zz=1+response*(a.m33+b.m33);
+ const xy=response*(a.m12+b.m12),xz=response*(a.m13+b.m13),yz=response*(a.m23+b.m23);
+ out.applyMatrix3(matrix.set(xx,xy,xz,xy,yy,yz,xz,yz,zz).invert());
+}
 let engine;
 export async function loadPhysics(){if(!engine)engine=import('@dimforge/rapier3d-compat').then(async m=>{const R=m.default;await R.init();return R;});return engine;}
 export class StudioPhysics {
@@ -154,8 +163,12 @@ export class StudioPhysics {
     const qa=q(a.rotation()),relative=qa.clone().invert().multiply(q(b.rotation())),err=relative.multiply(rest.clone().invert());if(err.w<0)err.set(-err.x,-err.y,-err.z,-err.w);
     const angle=2*Math.acos(Math.min(1,Math.max(-1,err.w))),axis=new THREE.Vector3(err.x,err.y,err.z).normalize().applyQuaternion(qa),velocity=v(b.angvel()).sub(v(a.angvel()));
     // Passive elastic rest is distinct from the open-loop animation. No pose motor is used.
-    const inertia=Math.max(.00001,Math.min(...Object.values(b.principalInertia()))),k=j.stiffness*support,d=j.damping*support;
-    const torque=axis.multiplyScalar(-Math.max(0,angle-j.looseness*rad)*k).addScaledVector(velocity,-d).multiplyScalar(1/(1+dt*d/inertia+dt*dt*k/inertia)).clampLength(0,100000);
+    const k=j.stiffness*support,d=j.damping*support;
+    const torque=axis.multiplyScalar(-Math.max(0,angle-j.looseness*rad)*k).addScaledVector(velocity,-d);
+    const response=dt*(d+dt*k);
+    if(j.type==='flexure')flexureTorque(torque,b,a,response,this.springMatrix??=new THREE.Matrix3());
+    else torque.multiplyScalar(1/(1+response/Math.max(.00001,Math.min(...Object.values(b.principalInertia())))));
+    torque.clampLength(0,100000);
     recordLoad(child,new THREE.Vector3(),this.worldPoint(child,link.anchorChild),torque);b.addTorque(torque,true);if(parent){const opposite=torque.clone().negate();recordLoad(parent,new THREE.Vector3(),this.worldPoint(parent,link.anchorParent),opposite);a.addTorque(opposite,true);}
    }
    if(this.motorEnabled&&!link.section){const f=sampleForces(child.part.forceKeys,this.time,child.asset.duration),orientation=q(a.rotation());

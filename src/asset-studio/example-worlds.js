@@ -1,5 +1,5 @@
 import {seedLibrary,transform} from './model.js';
-import {familySampler,pickFamilyMember} from './family.js';
+import {GARDEN_SEED,populateWindGarden} from './wind-garden.js';
 import {installCatalog} from './example-catalog.js';
 
 const example=id=>'example-'+id;
@@ -46,16 +46,9 @@ export const exampleWorlds=[
    for(const [id,dose] of [['wax',316000],['ice',370000]])
     sim.materialWorld.heatVolumeOver(sim.get(id,'body'),id,dose,4);
   }},
- {id:'wetland',name:'Wind garden',guide:'Play and change wind heading to bend the attached ribbons. Choose a grass in the family library to edit its shape or place a seeded variation.',
-  create:()=>world('sand',8,-25,(place,l)=>{
-   const f=l.families.find(f=>f.id===example('rushes'));
-   const positions=[[-1.12,-.69],[-.15,-.91],[.94,-.65],[-.73,.36],[.42,.40],[1.52,.23]];
-   for(const [i,[x,z]] of positions.entries()){
-    const assetId=i<3?f.members[i].assetId:pickFamilyMember(f.members,11*i);
-    const a=l.assets.find(a=>a.id===assetId),v=familySampler(a.variation,73+i);
-    place(assetId.slice(8),x,0,z,v.twist,v.size,'tuft-'+i);
-   }
-  })},
+ {id:'wetland',name:'Wind garden',seed:GARDEN_SEED,framing:{direction:[.32,.14,1]},tool:'nudge',
+  guide:'Play to see the stems bend. Turn the wind or nudge a shoot. Regrow the test with another seed for a different stand of the same reed.',
+  create:(_ground,seed=GARDEN_SEED)=>world('sand',8,-25,(place,l)=>populateWindGarden(l,place,seed))},
  {id:'tidepool',name:'Floats and breakers',tool:'splash',guide:'Play to release the floats onto the waves. Raise the wind for breaking crests, spray and organic foam. Use the ground tools to lift or throw water.',
   create:()=>world('water',13,32,(place,l)=>{
    l.materials.find(m=>m.id==='water').organicLoad=.67;
