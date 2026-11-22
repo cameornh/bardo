@@ -26,6 +26,8 @@ export function bindFieldTools($,api){
   let s;
   if(selected){
    const key=api.selectedKey();
+   const site=sim.stand?.planted.get(key.split(':')[0]);
+   if(site){const state=sim.stand.activate(site);if(state&&action!=='probe')state.fieldActive=true;}
    const records=[...sim.bodies.values()].filter(r=>r.instance.id+':'+r.part.id===key);
    if(bulkAction){
     let applied=false;
@@ -44,7 +46,10 @@ export function bindFieldTools($,api){
     const cell=[...bed.nodes.values()].find(c=>c.owner===key&&c.h>.0006);
     if(cell){s=bed.thermalAt(cell.x*BED_CELL,cell.z*BED_CELL,true);break;}
    }
-  }else s=world.target(sim,hit);
+  }else{
+   if(hit?.reedSite){const state=sim.stand?.activate(hit.reedSite);if(state&&action!=='probe')state.fieldActive=true;}
+   s=world.target(sim,hit);
+  }
   if(bulkAction&&!s?.zone&&!s?.group&&!s?.deposit){api.notice('Choose a sculpt, detached parcel or puddle.');return;}
   if(!world.apply(s,action,power))api.notice('Select a placed part or point at a material surface.');
  };

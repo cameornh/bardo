@@ -83,7 +83,7 @@ export function strikeGround(sim,point,force,water=sim.sea,waterMaterial=null){
  const {reach,dent,recovery}=impactResponse(m,force);
  // Project onto actual collision shapes so a bulk impulse only reaches things touching the ground.
  sim.stand?.around(point,Math.min(4,4*reach));
- for(const [key,r] of [...sim.bodies,...sim.chunks,...(sim.stand?.records??[])]){
+ for(const [key,r] of [...sim.bodies,...sim.chunks]){
   const b=r.body;if(!b.isDynamic()&&!r.structure)continue;
   const origin=b.translation(),center=r.probeCenter?.clone().applyQuaternion(b.rotation()).add(origin)??origin;
   if(Math.hypot(center.x-point.x,center.z-point.z)>8*reach+(r.probeRadius||CELL))continue;

@@ -208,7 +208,6 @@ export class DuneContacts{
   };
   for(const node of sim.cuts?.nodes.values()||[])mark(node,L/n+.01);
   for(const r of sim.bodies.values())mark(r.body.translation(),Math.min(L,1+r.probeRadius));
-  for(const r of sim.stand?.records.values()??[])mark(r.body.translation(),1);
   for(const c of sim.chunks?.values()||[])mark(c.body.translation(),1);
   for(const g of sim.matter.parts.values())if(!sim.sandTerrain||g.material.id!==sim.groundMaterial.id)for(const p of g.packets)mark(p.position,p.radius+.5);
   const sand=sim.sand,R=sim.R,scale={x:L,y:1,z:L};

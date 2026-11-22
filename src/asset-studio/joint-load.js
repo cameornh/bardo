@@ -68,10 +68,10 @@ export function releaseOverloaded(sim,records,dt,links=sim.joints){
   const lever=Math.max(.05,Math.cbrt(l.child.fluidVolume)*.5);
   const load=Math.hypot(w.force.length(),moment.length()/lever);
   if(l.section?sectionFailure(sim,l,w.force,moment,dt):load>(l.j.breakForce??50000)*l.support*Math.min(l.child.materialStrength??1,l.parent?.materialStrength??1)){
-   if(sim.stand?.owners.has(l.child.body.handle)&&l.j.parentId==='ground'){
+   if(sim.reedContacts?.owners.has(l.child.body.handle)&&l.j.parentId==='ground'){
     const body=l.child.body;for(let k=0;k<body.numColliders();k++)body.collider(k).setCollisionGroups(0x0008ffff);
    }
-   sim.world.removeImpulseJoint(l.joint,true);const list=l.section?sim.internalLinks:sim.joints;list.splice(list.indexOf(l),1);if(!l.section)sim.broken++;
+   l.child.jointBroken=true;sim.world.removeImpulseJoint(l.joint,true);const list=l.section?sim.internalLinks:sim.joints;list.splice(list.indexOf(l),1);if(!l.section)sim.broken++;
   }
  }
 }

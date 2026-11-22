@@ -94,7 +94,7 @@ export class WaterCapture{
    const floor=view.ground.visible;view.ground.visible=!!view.garden;
    // Even an untaken metallic branch must not bind the current render target.
    if(view.garden)u.mirrorColor.value=null;
-   view.drawObjects(c);
+   view.drawObjects(c);view.garden?.reeds.draw(r,c,1);
    u.mirrorColor.value=this.mirror.texture;view.ground.visible=floor;if(patch)patch.visible=hadPatch;
   }
   r.setClearColor(this.clearColor,alpha);r.setRenderTarget(mirrorOnly?output:this.source);
@@ -103,6 +103,7 @@ export class WaterCapture{
   view.uniforms.clipFloor.value=-1e10;u.clipWaves.value=false;
   if(mirrorOnly)return;
   view.drawObjects(camera);
+  view.garden?.reeds.draw(r,camera,u.submerged.value?1:-1);
   const ocean=view.oceanView;
   r.setRenderTarget(this.bulk);ocean.parcels.mesh.visible=false;
   r.autoClear=true;if(sea)r.render(view.waterScene,camera);else r.clear();ocean.parcels.mesh.visible=!!sea;
@@ -110,6 +111,9 @@ export class WaterCapture{
   if(sea&&ocean.parcels.mesh.count){
    ocean.mesh.visible=false;r.render(view.waterScene,camera);ocean.mesh.visible=true;
   }
+  // Composite the near-side reeds against finished solid and water depth.
+  // Submerged reeds already contributed to the refracted source above.
+  view.garden?.reeds.draw(r,camera,u.submerged.value?-1:1,!!u.submerged.value);
   if(sea)r.render(ocean.effectsScene,camera);
   if(view.visibleLiquid){
    const mask=camera.layers.mask;camera.layers.set(1);

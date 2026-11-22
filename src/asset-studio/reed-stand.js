@@ -1,11 +1,8 @@
-// Idle procedural roots need no rigid bodies. A contact or a grab instantiates
-// the authored capsules and flexures in the same Rapier world as placed parts.
+// Shared wind solves keep an unbounded habitat affordable. A local impact
+// forks the same authored bodies and flexures at their current poses.
 import {Vector3,Quaternion,Euler,Matrix4} from 'three';
-import {flotationSamples,applyEnvironment} from './fluid-forces.js';
+import {collisionProxy} from './collision.js';
 import {REED_TILE} from './wetland.js';
-import {parcelObstacle} from './parcel-contact.js';
-import {anchorRetention} from './attachment-material.js';
-import {windAt} from './wind.js';
 
 const rad=Math.PI/180;
 export const MAX_ACTIVE_CROWNS=12;
@@ -28,103 +25,153 @@ export function plantedCrown(instance,variant){
 // Free sections can strike the bed. Stems slide past their overlapping siblings.
 export function stemGroups(p){return p.joint.parentId==='ground'?0x0008fffb:0x0008ffff;}
 
+export function reedContactFilter(sim){
+ const owners=new Map(),events=new sim.R.EventQueue(true);
+ return {owners,events,hooks:{
+  filterContactPair:(_a,_b,first,second)=>owners.has(first)&&owners.get(first)===owners.get(second)?null:sim.R.SolverFlags.COMPUTE_IMPULSE,
+  filterIntersectionPair:()=>true
+ }};
+}
+export function crownTransform(site){
+ return new Matrix4().makeRotationY(site.yaw).scale(new Vector3().setScalar(site.size)).setPosition(site.x,site.y,site.z);
+}
+function placement(site,asset){
+ return {id:site.id,assetId:asset.id,transform:{position:[site.x,site.y,site.z],rotation:[0,site.yaw/rad,0],scale:Array(3).fill(site.size)}};
+}
+
+// Wind and gravity are common loads over an unbounded population. Solve the
+// actual asset in an isolated world for representative exposures. A local
+// contact forks that moving instance, including every already-broken joint.
 export class ReedStand{
  constructor(sim,library){
   this.sim=sim;this.library=library;this.assets=reedFamily(library);this.materials=new Map(library.materials.map(m=>[m.id,m]));
-  this.planted=library.world.instances.filter(i=>this.assets.some(a=>a?.id===i.assetId));
-  this.owners=new Map();
-  for(const r of sim.bodies.values())if(this.planted.some(p=>p.id===r.instance.id))this.owners.set(r.body.handle,r.instance.id);
-  this.events=new sim.R.EventQueue(true);
-  this.hooks={
-   filterContactPair:(_c1,_c2,a,b)=>this.owners.has(a)&&this.owners.get(a)===this.owners.get(b)?null:sim.R.SolverFlags.COMPUTE_IMPULSE,
-   filterIntersectionPair:()=>true
-  };
-  this.active=new Map();this.records=new Map();this.tiles=new Map();this.nextSurvey=0;
+  this.planted=new Map();
+  for(const i of library.world.instances){
+   const variant=this.assets.findIndex(a=>instancedReed(a)&&a.id===i.assetId);
+   if(variant>=0)this.planted.set(i.id,plantedCrown(i,variant));
+  }
+  this.proxies=this.assets.map(a=>instancedReed(a)?a.parts.map(collisionProxy):[]);
+  this.parked=new Map();this.active=new Map();this.records=new Map();this.tiles=new Map();this.nextSurvey=0;this.samples=[];this.exposures=this.assets.map(()=>[]);
  }
- eligible(crown){return this.planted.every(i=>Math.hypot(i.transform.position[0]-crown.x,i.transform.position[2]-crown.z)>1.1);}
- activate(site){
+ isPlanted(id){return this.planted.has(id);}
+ eligible(crown){for(const s of this.planted.values())if(Math.hypot(s.x-crown.x,s.z-crown.z)<=1.1)return false;return true;}
+ async prepareWind(create){
+  const count=this.assets.length===1?Math.min(3,Math.floor(32/(this.assets[0]?.parts.length||1))):1;
+  for(const [variant,a] of this.assets.entries())if(instancedReed(a))for(let i=0;i<count;i++){
+   const index=this.samples.length,site={id:'wind/'+index,x:index*9,y:0,z:0,yaw:2*Math.PI*i/count,size:1,variant};
+   const sample={site,inverse:crownTransform(site).invert(),instance:placement(site,a)};
+   this.samples.push(sample);this.exposures[variant].push(sample);
+  }
+  if(this.samples.length)this.windWorld=await create({...this.library.world,wetlandSeed:undefined,instances:this.samples.map(s=>s.instance)});
+ }
+ sample(site){
+  const samples=this.exposures[site.variant];
+  if(!samples?.length)return null;
+  if(samples.length===1)return samples[0];
+  const angle=site.yaw/(2*Math.PI);
+  return samples[Math.round((angle-Math.floor(angle))*samples.length)%samples.length];
+ }
+ // Used by drawing, cursor hits and physical hand-off alike.
+ pose(site,part,out){
+  const active=this.sim.get(site.id,part.id);
+  if(active)return out.copy(active.matrix);
+  const saved=this.parked.get(site.id)?.saved.get(part.id);if(saved)return out.copy(saved.matrix);
+  const sample=this.sample(site),r=sample&&this.windWorld?.get(sample.site.id,part.id);
+  return r?out.copy(crownTransform(site)).multiply(sample.inverse).multiply(r.matrix):out.copy(crownTransform(site)).multiply(reedPartMatrix(part));
+ }
+ activate(site,direct=true){
   const sim=this.sim,known=this.active.get(site.id);
   if(known){known.last=sim.time;return known;}
   const asset=this.assets[site.variant];if(!instancedReed(asset))return;
   if(this.active.size>=MAX_ACTIVE_CROWNS){
-   const stale=[...this.active.values()].filter(s=>sim.time-s.last>2&&s.links.every(l=>sim.joints.includes(l))&&s.records.every(r=>r.key!==sim.drag?.key&&!sim.paintedHinges.parts.get(r.key)?.some(h=>h.cursorForce))).sort((a,b)=>a.last-b.last)[0];
+   const candidates=[...this.active.values()].filter(s=>!s.fieldActive&&s.records.every(r=>
+    r.key!==sim.drag?.key&&!sim.pulses.some(f=>f.key===r.key)&&!sim.paintedHinges.parts.get(r.key)?.some(h=>h.cursorForce)));
+   const stale=candidates.filter(s=>direct||sim.time-s.last>2).sort((a,b)=>a.last-b.last)[0];
    if(!stale)return;
    this.release(stale);
   }
-  const state={site,records:[],links:[],born:sim.time,last:sim.time};
-  const im=new Matrix4().makeRotationY(site.yaw).scale(new Vector3().setScalar(site.size)).setPosition(site.x,site.y,site.z);
-  const R=sim.R;
-  for(const p of asset.parts){
-   const matrix=im.clone().multiply(reedPartMatrix(p)),pos=new Vector3(),rot=new Quaternion(),scale=new Vector3();
-   matrix.decompose(pos,rot,scale);
-   const s=p.stamps[0],m=this.materials.get(s.materialId),size=site.size;
-   const body=sim.world.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(pos.x,pos.y,pos.z).setRotation(rot).setAngularDamping(.04).setLinearDamping(.025).setCcdEnabled(true));
-   const collider=R.ColliderDesc.capsule(s.size[1]*size,s.size[0]*size).setTranslation(...s.position.map(v=>v*size));
-   sim.world.createCollider(collider.setDensity(m.density).setFriction(m.friction).setRestitution(m.restitution).setCollisionGroups(stemGroups(p)).setActiveHooks(R.ActiveHooks.FILTER_CONTACT_PAIRS),body);
-   this.owners.set(body.handle,site.id);
-   const floats=flotationSamples([{center:s.position,radius:s.size[0],halfHeight:s.size[1]}],scale),key=site.id+':'+p.id;
-   const r={key,body,part:p,asset,instance:{id:site.id,assetId:asset.id},matrix,scale,floats,fluidVolume:floats.reduce((a,f)=>a+f.volume,0)};
-   r.obstacle=parcelObstacle(p.stamps,()=>r.matrix,this.library.materials,true);
-   if(r.obstacle)sim.parcelObstacles.push(r.obstacle);
-   sim.paintedHinges.attach(r,this.materials);state.records.push(r);this.records.set(key,r);
+  const state={site,records:[],links:[],last:sim.time};
+  const im=crownTransform(site),instance=placement(site,asset);
+  for(const [j,p] of asset.parts.entries()){
+   const r=sim.instantiatePart(this.library,this.materials,instance,asset,p,im,this.proxies[site.variant][j],asset.parts.length);
+   if(r){this.records.set(r.key,r);state.records.push(r);}
   }
-  for(const child of state.records){
-   const j=child.part.joint,parent=this.records.get(site.id+':'+j.parentId)??null;
-   const anchor=new Vector3(...j.anchor).applyMatrix4(im),a=parent?sim.localPoint(parent,anchor):anchor,b=sim.localPoint(child,anchor);
-   const rest=new Quaternion().copy((parent?.body??sim.ground).rotation()).invert().multiply(new Quaternion().copy(child.body.rotation()));
-   const retention=(r,point)=>anchorRetention(r.part,this.library.materials,point.clone().divide(r.scale).toArray());
-   const support=Math.min(retention(child,b),parent?retention(parent,a):1);
-   if(support<1e-4)continue;
-   const link={child,parent,j,support,rest,anchorParent:a,anchorChild:b,data:R.JointData.spherical(a,b)};
-   sim.rebindJoint(link);sim.joints.push(link);state.links.push(link);
+  // Bind in the authored rest pose, then inherit current motion, so waking
+  // a wind-bent stem never resets its spring's neutral angle.
+  for(const r of state.records){const link=sim.attachPartJoint(this.library,r);if(link)state.links.push(link);}
+  const sample=this.sample(site);
+  if(sample&&this.windWorld){
+   const fromSample=im.clone().multiply(sample.inverse),rot=new Quaternion().setFromAxisAngle(new Vector3(0,1,0),site.yaw-sample.site.yaw);
+   const parked=this.parked.get(site.id);
+   for(const r of state.records){
+    const saved=parked?.saved.get(r.part.id);
+    const other=this.windWorld.get(sample.site.id,r.part.id);if(!other)continue;
+    if(saved)r.matrix.copy(saved.matrix);
+    else r.matrix.multiplyMatrices(fromSample,other.matrix);
+    const pos=new Vector3(),q=new Quaternion();r.matrix.decompose(pos,q,new Vector3());
+    r.body.setTranslation(pos,true);r.body.setRotation(q,true);
+    r.body.setLinvel(saved?.velocity??new Vector3().copy(other.body.linvel()).applyQuaternion(rot).multiplyScalar(site.size),true);
+    r.body.setAngvel(saved?.spin??new Vector3().copy(other.body.angvel()).applyQuaternion(rot),true);
+    const hinges=sim.paintedHinges.parts.get(r.key)||[],windHinges=this.windWorld.paintedHinges.parts.get(other.key)||[];
+    hinges.forEach((h,i)=>{const prev=saved?.hinges[i]??windHinges[i];if(prev){h.angle=prev.angle;h.velocity=prev.velocity;}});
+    if(saved?saved.jointBroken:other.jointBroken){
+     const link=state.links.find(l=>l.child===r);if(!link)continue;
+     sim.world.removeImpulseJoint(link.joint,true);sim.joints.splice(sim.joints.indexOf(link),1);r.jointBroken=true;
+     if(r.part.joint.parentId==='ground')r.body.collider(0).setCollisionGroups(0x0008ffff);
+    }
+   }
   }
-  this.active.set(site.id,state);return state;
+  this.parked.delete(site.id);this.active.set(site.id,state);return state;
  }
  release(state){
   const sim=this.sim;
+  const saved=new Map(),byId=new Map(state.records.map(r=>[r.part.id,r]));
+  for(const r of state.records){
+   let ancestor=r;
+   while(ancestor&&!ancestor.jointBroken)ancestor=byId.get(ancestor.part.joint.parentId);
+   if(!ancestor)continue;
+   saved.set(r.part.id,{matrix:r.matrix.clone(),jointBroken:!!r.jointBroken,
+    velocity:new Vector3().copy(r.body.linvel()),spin:new Vector3().copy(r.body.angvel()),
+    hinges:(sim.paintedHinges.parts.get(r.key)??[]).map(h=>({mark:h.mark,angle:h.angle,velocity:h.velocity}))});
+  }
+  if(saved.size)this.parked.set(state.site.id,{site:state.site,saved});
   for(const l of state.links){const i=sim.joints.indexOf(l);if(i>=0){sim.world.removeImpulseJoint(l.joint,false);sim.joints.splice(i,1);}}
   for(const r of state.records){
-   sim.paintedHinges.count-=sim.paintedHinges.parts.get(r.key)?.length??0;
-   sim.paintedHinges.parts.delete(r.key);
+   sim.paintedHinges.count-=sim.paintedHinges.parts.get(r.key)?.length??0;sim.paintedHinges.parts.delete(r.key);
    const i=sim.parcelObstacles.indexOf(r.obstacle);if(i>=0)sim.parcelObstacles.splice(i,1);
-   this.owners.delete(r.body.handle);sim.world.removeRigidBody(r.body);this.records.delete(r.key);
+   sim.reedContacts.owners.delete(r.body.handle);sim.colliderCount-=r.body.numColliders();
+   sim.world.removeRigidBody(r.body);this.records.delete(r.key);sim.bodies.delete(r.key);
   }
   this.active.delete(state.site.id);
  }
  around(point,radius){
   if(point.y-radius>5||point.y+radius<-1)return;
   const sim=this.sim,margin=radius+2;
+  const visit=c=>{
+   if(Math.hypot(c.x-point.x,c.z-point.z)<radius+.8&&point.y-radius<c.y+3*c.size)this.activate(c,false);
+  };
+  for(const c of this.planted.values())visit(c);
   for(let j=Math.floor((point.z-margin)/REED_TILE);j<=Math.floor((point.z+margin)/REED_TILE);j++)
    for(let i=Math.floor((point.x-margin)/REED_TILE);i<=Math.floor((point.x+margin)/REED_TILE);i++){
     const key=i+','+j;let tile=this.tiles.get(key);
     if(!tile){if(this.tiles.size>=64)this.tiles.delete(this.tiles.keys().next().value);
-     tile=sim.sand.landscape.crowns(i,j).filter(c=>this.eligible(c));this.tiles.set(key,tile);}
-    for(const c of tile)if(Math.hypot(c.x-point.x,c.z-point.z)<radius+.8&&point.y-radius<c.y+3*c.size)this.activate(c);
+     tile=sim.sand.landscape.crowns(i,j,this.assets.length).filter(c=>this.eligible(c));this.tiles.set(key,tile);}
+    for(const c of tile)visit(c);
    }
  }
- beforeStep(dt,pool){
+ step(dt){
   const sim=this.sim;
-  if(sim.time>=this.nextSurvey){
-   this.nextSurvey=sim.time+.12;
-   for(const r of sim.bodies.values())if(!this.planted.some(i=>i.id===r.instance.id)){
-    const center=r.probeCenter.clone().applyQuaternion(r.body.rotation()).add(r.body.translation());
-    this.around(center,Math.min(6,r.probeRadius+.12*Math.hypot(...Object.values(r.body.linvel()))));
-   }
-   if(sim.pondSea.grip)this.around(sim.pondSea.grip,.5);
-   for(const d of sim.pondSea.drops)if(!d.held&&d.scoop)this.around(d,d.r);
-   for(const c of sim.chunks.values())this.around(c.body.translation(),.65);
-   for(const group of sim.matter.parts.values())for(const p of group.packets)this.around(p.position,p.radius);
+  if(this.windWorld){this.windWorld.wind=sim.windSettings;this.windWorld.step(dt);}
+  if(sim.time<this.nextSurvey)return;
+  this.nextSurvey=sim.time+.12;
+  for(const r of sim.bodies.values())if(!this.records.has(r.key)){
+   const center=r.probeCenter.clone().applyQuaternion(r.body.rotation()).add(r.body.translation());
+   this.around(center,Math.min(6,r.probeRadius+.12*Math.hypot(...Object.values(r.body.linvel()))));
   }
-  for(const state of this.active.values()){
-   const {site}=state,air=windAt(sim.windSettings,sim.time,site.x,site.z,this.gust??={});
-   for(const r of state.records){
-    r.body.resetForces(false);r.body.resetTorques(false);
-    applyEnvironment(r,sim.pondSea,sim.pondDensity,air,-sim.world.gravity.y,dt,pool);
-   }
-  }
+  if(sim.pondSea.grip)this.around(sim.pondSea.grip,.5);
+  for(const d of sim.pondSea.drops)if(!d.held&&d.scoop)this.around(d,d.r);
+  for(const c of sim.chunks.values())this.around(c.body.translation(),.65);
+  for(const group of sim.matter.parts.values())for(const p of group.packets)this.around(p.position,p.radius);
  }
- afterStep(){
-  const q=this.rotation??=new Quaternion();
-  for(const r of this.records.values())r.matrix.compose(r.body.translation(),q.copy(r.body.rotation()),r.scale);
- }
+ dispose(){this.windWorld?.dispose();}
 }

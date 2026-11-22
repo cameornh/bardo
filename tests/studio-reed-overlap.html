@@ -1,0 +1,49 @@
+<!doctype html><meta charset="utf-8"><title>Reed overlap</title>
+<canvas width="160" height="160"></canvas><pre id="result">Checking crossed stems…</pre>
+<script type="module">
+import * as T from 'three';
+import {WetlandReeds} from '../src/asset-studio/wetland-reeds.js';
+import {growCrown} from '../src/asset-studio/wind-garden.js';
+
+function check(){
+ const size=160,camera=new T.PerspectiveCamera(40,1,.05,20);
+ camera.position.set(0,.75,3);camera.lookAt(0,.75,0);
+ const renderer=new T.WebGLRenderer({canvas:document.querySelector('canvas'),antialias:false,alpha:true});
+ renderer.setClearColor(0xffffff,0);renderer.setSize(size,size,false);
+ const viewport={value:new T.Vector2(size,size)},oceanView={uniforms:{}};
+ const reeds=new WetlandReeds({uniforms:{viewport},oceanView},'vec3 env(vec3 n,float r){return vec3(.5); }');
+ const make=(id,angle)=>{
+  const a=growCrown(id,id,10,.9,1),part=a.parts[0];
+  part.marks=[];part.transform.rotation=[0,0,angle];part.transform.position=[0,0,0];
+  a.parts=[part];return a;
+ };
+ const assets=[make('back',-30),make('front',30)];
+ const places=assets.map((a,i)=>({id:a.id,assetId:a.id,transform:{
+  position:[i?.4:-.4,0,i*.14],rotation:[0,0,0],scale:[1,1,1]}}));
+ reeds.configure(assets,[{id:'reed',color:'#39462a'},{id:'reed-husk',color:'#39462a'}],places);
+ reeds.update({crowns:()=>[]},camera,null,0,{});
+ const target=new T.WebGLRenderTarget(size,size);renderer.setRenderTarget(target);
+ function read(only,reverse){
+  for(const mesh of reeds.group.children){
+   mesh.visible=only===null||mesh.userData.variant===only;
+   mesh.renderOrder=reverse?-mesh.userData.variant:mesh.userData.variant;
+  }
+  reeds.draw(renderer,camera,0);
+  const bytes=new Uint8Array(size*size*4);renderer.readRenderTargetPixels(target,0,0,size,size,bytes);return bytes;
+ }
+ const a=read(0,false),b=read(1,false),forward=read(null,false),reverse=read(null,true);
+ let overlaps=0,worst=0;
+ for(let i=3;i<a.length;i+=4){
+  if(a[i]<10||b[i]<10)continue;
+  overlaps++;
+  const expected=255-(255-a[i])*(255-b[i])/255;
+  worst=Math.max(worst,Math.abs(expected-forward[i]),Math.abs(expected-reverse[i]));
+ }
+ renderer.setRenderTarget(null);reeds.draw(renderer,camera,0);
+ const error=renderer.getContext().getError();
+ target.dispose();reeds.dispose();renderer.dispose();
+ return {pass:overlaps>30&&worst<=3&&error===0,overlapPixels:overlaps,maxAlphaError:worst,glError:error};
+}
+try{document.querySelector('#result').textContent=JSON.stringify(check(),null,2);}
+catch(e){document.querySelector('#result').textContent=String(e.stack??e);}
+</script>

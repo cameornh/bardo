@@ -19,21 +19,23 @@ test('one seeded architecture grows editable, supported shoots at different stag
     validateLibrary(l);
     const clumps=plants(l), parts=clumps.flatMap(a=>a.parts);
     assert.ok(parts.length<=LIMITS.previewParts);
+    assert.ok(clumps.every(a=>a===clumps[0]));
     assert.deepEqual(new Set(l.families.find(f=>f.id==='example-rushes').members.map(m=>m.assetId)),new Set(clumps.map(a=>a.id)));
     const heights=[],flowering=[];
-    for(const a of clumps){
+    for(const [index,a] of clumps.entries()){
       const stems=a.parts.filter(p=>p.joint.parentId==='ground');
       const lengths=stems.map(base=>{
         const tip=a.parts.find(p=>p.joint.parentId===base.id);
         const length=2*(tip.stamps[0].size[1]+base.stamps[0].size[1]);
         assert.ok(base.stamps[0].size[0]>tip.stamps[0].size[0]);
         assert.ok(base.joint.stiffness>tip.joint.stiffness);
+        assert.ok(tip.marks.some(m=>m.id.startsWith('leaf-')&&Math.abs(m.root[1])<1e-8));
         for(const p of [base,tip])for(const m of p.marks)assert.ok(supportedMark(p,m,palette));
         flowering.push(tip.marks.some(m=>m.id.startsWith('spikelet')));
         return length;
       });
       assert.ok(lengths[0]>lengths.at(-1));
-      heights.push(...lengths);
+      heights.push(...lengths.map(h=>h*l.world.instances[index].transform.scale[1]));
     }
     assert.ok(Math.max(...heights)/Math.min(...heights)>2.5);
     assert.deepEqual(new Set(flowering),new Set([true,false]));
@@ -43,7 +45,8 @@ test('one seeded architecture grows editable, supported shoots at different stag
 test('stem tips follow reversed wind, recover in calm air and keep their roots attached',async()=>{
   const l=garden.create(),sim=await StudioPhysics.create(l,'world');
   try{
-    const tips=[...sim.bodies.values()].filter(r=>r.part.id.startsWith('tip-'));
+    const wind=sim.stand.windWorld;
+    const tips=[...wind.bodies.values()].filter(r=>r.part.id.startsWith('tip-'));
     const end=r=>new Vector3(0,2*r.part.stamps[0].size[1],0).applyMatrix4(r.matrix);
     const initial=tips.map(end);
     const heights=initial.map(v=>v.y), mean=v=>v.reduce((a,b)=>a+b,0)/v.length;
@@ -60,11 +63,49 @@ test('stem tips follow reversed wind, recover in calm air and keep their roots a
     assert.ok(east>calm+.1&&west<calm-.1,`calm ${calm}, east ${east}, west ${west}`);
     assert.ok(Math.abs(recovered-calm)<.1);
     assert.ok(tips.every((r,k)=>end(r).y>heights[k]*.87));
-    assert.equal(sim.broken,0);assert.deepEqual(sim.skipped,[]);
-    assert.equal(sim.bodies.size,2*tips.length);
-    for(const link of sim.joints){
-      const anchor=link.parent?sim.worldPoint(link.parent,link.anchorParent):link.anchorParent;
-      assert.ok(sim.worldPoint(link.child,link.anchorChild).distanceTo(anchor)<.008);
+    assert.equal(wind.broken,0);assert.deepEqual(wind.skipped,[]);
+    assert.equal(wind.bodies.size,2*tips.length);
+    for(const link of wind.joints){
+      const anchor=link.parent?wind.worldPoint(link.parent,link.anchorParent):link.anchorParent;
+      assert.ok(wind.worldPoint(link.child,link.anchorChild).distanceTo(anchor)<.008);
+    }
+  }finally{sim.dispose();}
+});
+
+test('a hit breaks only the struck placement; a gale can break untouched landscape joints',async()=>{
+  const library=garden.create(),sim=await StudioPhysics.create(library,'world');
+  try{
+    const stand=sim.stand,wind=stand.windWorld,land=sim.sand.landscape;
+    const center=[...stand.planted.values()][0],remote=land.crowns(8,4)[0]??land.crowns(9,4)[0];
+    assert.ok(remote&&Math.hypot(remote.x,remote.z)>50);
+    const asset=library.assets.find(a=>a.id===library.world.instances[0].assetId);
+    assert.equal(stand.assets[remote.variant],asset);
+    sim.wind={speed:0,heading:0,turbulence:0};
+    const target=stand.activate(remote),other=stand.activate(center);
+    assert.deepEqual(target.records.map(r=>r.part),other.records.map(r=>r.part));
+    const tip=target.records.find(r=>r.part.id==='tip-0');
+    sim.addPulse(tip.key,new Vector3(0,tip.part.stamps[0].size[1]*tip.scale.y,0),new Vector3(10000,0,0),.05);
+    for(let i=0;i<18;i++)sim.step();
+    assert.ok(target.records.some(r=>r.jointBroken));
+    assert.ok(other.records.every(r=>!r.jointBroken));assert.equal(wind.broken,0);
+    const damaged=target.records.find(r=>r.jointBroken);
+    const matrix=damaged.matrix.clone();
+    stand.release(target);
+    assert.ok(stand.pose(remote,damaged.part,matrix.clone()).equals(matrix));
+    const resumed=stand.activate(remote).records.find(r=>r.part===damaged.part);
+    assert.equal(resumed.jointBroken,true);assert.ok(resumed.matrix.equals(matrix));
+
+    sim.wind={speed:100,heading:0,turbulence:.8};
+    for(let i=0;i<160;i++)sim.step();
+    assert.ok(wind.broken>0);
+    const fresh=land.crowns(8,4).find(c=>c.id!==remote.id&&
+      asset.parts.some(p=>wind.get(stand.sample(c).site.id,p.id).jointBroken));
+    assert.ok(fresh&&!stand.active.has(fresh.id));
+    const sample=stand.sample(fresh),poses=asset.parts.map(p=>stand.pose(fresh,p,matrix.clone()));
+    const local=stand.activate(fresh);
+    for(const [i,r] of local.records.entries()){
+      assert.equal(!!r.jointBroken,!!wind.get(sample.site.id,r.part.id).jointBroken);
+      assert.ok(r.matrix.equals(poses[i]));
     }
   }finally{sim.dispose();}
 });

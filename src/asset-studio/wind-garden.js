@@ -23,7 +23,7 @@ function stemSection(id, name, start, direction, length, radius, parentId, stiff
   section.transform.position = start.toArray();
   section.transform.rotation = new Euler().setFromQuaternion(rotation).toArray().slice(0,3).map(x=>x*180/Math.PI);
   section.joint = {...jointDefaults(), parentId, anchor:start.toArray(), type:'flexure',
-    looseness:0, stiffness, damping, breakForce:5000};
+    looseness:0, stiffness, damping, breakForce:1250*(radius/.04)**3/Math.sqrt(length)};
   section.marks = [];
   return section;
 }
@@ -43,16 +43,21 @@ function growShoot(asset, random, base, heading, age, vigour, tiller) {
   const axis = (angle,slope) => new Vector3(slope*Math.cos(angle),1,slope*Math.sin(angle)).normalize();
   const lowerDirection = axis(heading,spread);
   const upperDirection = axis(heading+.50*centered(random),spread+.065+.15*random());
-  const split = .48+.06*centered(random);
+  // Articulate at an actual leaf-bearing node. The blade sheath brackets
+  // the node while the neighbouring internodes carry the bend.
+  const leafCount = 4+Math.floor(3.8*maturity);
+  const nodeAt=i=>.055+(.64+.12*(1-maturity))*((i+.45)/leafCount)**1.24;
+  const jointRank=Math.round(leafCount*.68);
+  const split=nodeAt(jointRank);
   const joint = base.clone().addScaledVector(lowerDirection,height*split);
   // Bending springs approximate EI/L. Each basal section also supports the
   // gravity moment of both segments. The upper internodes taper and yield first.
   const weightMoment = 360*Math.PI*radius**2*height**2*9.81*.5;
   const stiffness = weightMoment*2.8+16*(radius/.04)**4/height;
   const basal = stemSection('base-'+tiller,'Basal stem '+(tiller+1),base,lowerDirection,height*split,radius,
-    'ground',stiffness,1.2*height);
+    'ground',stiffness,2.4*height);
   const upper = stemSection('tip-'+tiller,'Upper stem '+(tiller+1),joint,upperDirection,height*(1-split),radius*.84,
-    basal.id,stiffness*.29,.47*height);
+    basal.id,stiffness*.29,.94*height);
   asset.parts.push(basal,upper);
 
   // An alternate (two-ranked) leaf sequence drifts gradually around the culm.
@@ -67,11 +72,11 @@ function growShoot(asset, random, base, heading, age, vigour, tiller) {
       (.32+.27*random())*height**.48,.044+.012*random(),-.9,.86,
       i===0&&age>.82?'reed-husk':'reed-blade');
   }
-  const leafCount = 4+Math.floor(3.8*maturity), twist=.24*centered(random);
+  const twist=.24*centered(random);
   let azimuth = heading+.80*centered(random);
   for(let i=0;i<leafCount;i++){
     const rank=(i+.45)/leafCount;
-    const node=.055+(.64+.12*(1-maturity))*rank**1.24+.018*centered(random);
+    const node=nodeAt(i)+(i===jointRank?0:.018*centered(random));
     const bladeLength=height**.65*(.22+.31*Math.sin(Math.PI*rank))*(1+.11*centered(random));
     blade(node<split?basal:upper,'leaf-'+i,(node-(node<split?0:split))*height,azimuth,
       .25+.91*rank+.12*centered(random),bladeLength,.042+.016*Math.sin(Math.PI*rank),
@@ -122,10 +127,12 @@ export function populateWindGarden(library,place,seed=GARDEN_SEED) {
   library.materials.push({...fibre,id:'reed-blade',name:'Reed blade',color:'#638040',roughness:.68},
     {...fibre,id:'reed-husk',name:'Reed husk',color:'#b5955c',roughness:.9});
   library.world.wind.turbulence=.8;
-  const orientation=random()*tau, landscape=new Wetland(seed);
+  const landscape=new Wetland(seed);
+  const asset=growCrown('example-reed-clump','Reed clump',Math.floor(random()*4294967296),.96,1);
+  library.assets.push(asset);family.members.push({assetId:asset.id,weight:1});
   library.world.wetlandSeed=landscape.seed;
   // Sample positions within a patch, with a little space between crowns.
-  // Stratify crown age so each small stand spans life stages; sites are random.
+  // Vary placement scale and orientation while keeping every reference editable.
   const crowns=[];
   for(let i=0;i<5;i++){
     let x,z,bestDistance=-Infinity;
@@ -139,12 +146,7 @@ export function populateWindGarden(library,place,seed=GARDEN_SEED) {
       if(clearance>1.24&&Math.abs(h-.07)<.18)break;
     }
     crowns.push({x,z});
-    const age=.62+.36*((i+.12+.76*random())/5);
-    const exposure=(x*Math.cos(orientation)+z*Math.sin(orientation))*.5;
-    const vigour=Math.exp(.11*Math.tanh(exposure)+.10*centered(random));
-    const id='example-reed-clump-'+(i+1);
-    const asset=growCrown(id,'Reed clump '+(i+1),Math.floor(random()*4294967296),age,vigour);
-    library.assets.push(asset);family.members.push({assetId:id,weight:1});
-    place(id.slice('example-'.length),x,landscape.height(x,z),z,random()*360,1,'crown-'+(i+1));
+    const size=.55+.53*(i+.2+.6*random())/5;
+    place('reed-clump',x,landscape.height(x,z),z,random()*360,size,'crown-'+(i+1));
   }
 }

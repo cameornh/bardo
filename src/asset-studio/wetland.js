@@ -69,7 +69,7 @@ export class Wetland {
   const moisture=smooth(clamp((h+.68)/.58))*smooth(clamp((.85-h)/.67));
   return moisture*(.08+.92*smooth(clamp((noise((x+this.x)/9,(z+this.z)/9)-.20)/.55)));
  }
- crowns(tx,tz){
+ crowns(tx,tz,assetCount=1){
   const salt=(Math.floor(hash(tx,tz)*4294967296)^this.seed)>>>0,r=randomSequence(salt),out=[];
   // Nearby ramets share a founder. Daughters may cross their founder's
   // tile boundary, and retain that tile as their sole owner.
@@ -81,7 +81,7 @@ export class Wetland {
     const angle=orientation+j*2.39996+.5*r(),reach=j?Math.sqrt(r())*1.7:0;
     const x=cx+reach*Math.cos(angle),z=cz+reach*Math.sin(angle),y=this.height(x,z);
     if(y<-.59||y>.70)continue;
-    out.push({id:'stand/'+tx+'/'+tz+'/'+i+'/'+j,x,y,z,yaw:r()*2*Math.PI,size:scale*(.78+.28*r()),variant:Math.floor(r()*5)});
+    out.push({id:'stand/'+tx+'/'+tz+'/'+i+'/'+j,x,y,z,yaw:r()*2*Math.PI,size:scale*(.78+.28*r()),variant:Math.floor(r()*assetCount)});
    }
   }
   return out;
