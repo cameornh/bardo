@@ -41,6 +41,13 @@ export function react(s,air,cell,dt,windSpeed){
  const radiative=m.emissivity*5.67e-8*s.area*(absolute+room)*(absolute*absolute+room*room);
  const capacity=cap*AIR_CAPACITY/(cap+AIR_CAPACITY),exchange=(gas.temperature-s.t)*capacity*(-Math.expm1(-dt*(conv+radiative)/capacity));
  heat(s,exchange);cell.heat-=exchange;
+ // Liquid on a hot face can flash to steam even in saturated air. Take the
+ // latent heat from the substrate, including energy stored in phase changes.
+ if(s.water>0&&s.t>373.15){
+  const excess=mass*(s.h-enthalpyAt(m,373.15));
+  const steam=Math.min(s.water,Math.max(0,excess)/WATER_LATENT);
+  s.water-=steam;cell.water+=steam;heat(s,-steam*WATER_LATENT);
+ }
  const roomWet=gas.water/saturation(s.t),wet=s.water/poreMass(s);
  // Free film evaporates; pores retain water according to affinity. At the
  // dew point even a non-porous surface condenses a thin film.

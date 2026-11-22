@@ -70,11 +70,19 @@ export class LooseMatter{
   const wx=Math.cos(wind.heading*Math.PI/180),wz=Math.sin(wind.heading*Math.PI/180);
   for(const [id,g] of this.parts){
    g.age+=dt;
-   const m=g.material,r=g.radius,liquid=g.kind===2;
+   const m=g.material,liquid=g.kind===2;
    const shear=Math.max(0,wind.speed-entrainment(m)-32*((g.surfaceMoisture??m.moisture)-m.moisture)),packets=g.packets;
    const pressure=liquid?Math.min(8,3.5/(1+m.viscosity)):0;
    for(let i=packets.length-1;i>=0;i--){
-    const p=packets[i],pos=p.position.copy(p.body.translation()),v=p.body.linvel();
+    const p=packets[i],r=p.radius,pos=p.position.copy(p.body.translation()),v=p.body.linvel();
+    if(g.grip){
+     if(sim.time<(g.grip.releaseAt??Infinity)){
+      const impulse=g.grip.target.clone().add(p.gripOffset).sub(pos).multiplyScalar(420)
+       .addScaledVector(v,-40).sub(world.gravity).clampLength(0,180).multiplyScalar(dt*p.body.mass());
+      p.body.applyImpulse(impulse,true);continue;
+     }
+     g.grip=null;sim.heldDeposit=null;
+    }
     if(m.phase==='gas'){
      if(g.age>=2.4){world.removeRigidBody(p.body);packets.splice(i,1);this.count--;continue;}
      const drag=p.body.mass()*Math.min(.1,dt*2);
@@ -91,7 +99,7 @@ export class LooseMatter{
     if(!sea&&v.y<(joinsGround?.04:.45)){
      const gap=pos.y-this.groundHeight(sim,pos.x,pos.z)-r;
      floorContact=gap<=r*.14;
-     if(!floorContact&&!joinsGround&&gap<.38&&Math.abs(v.y)<.2){
+     if(!floorContact&&!sim.flatFloor&&!joinsGround&&gap<.38&&Math.abs(v.y)<.2){
       world.contactPairsWith(p.body.collider(0),c=>{if(c.parent()?.handle===sim.ground.handle)floorContact=true;});
      }
     }
@@ -102,7 +110,7 @@ export class LooseMatter{
     if(floorContact){
      let bed=this.beds.get(m.id);
      if(!bed){bed=new MaterialBed(m,liquid);this.beds.set(m.id,bed);}
-     if(bed.add(pos.x,pos.z,p.volume,g.groundTool?'ground:'+m.id:g.key,g.thermal)){
+     if(bed.add(pos.x,pos.z,p.volume,p.owner??(g.groundTool?'ground:'+m.id:g.key),g.thermal)){
       if(g.thermal){
        takeDeposit(g.thermal,p.volume*m.density);
        if(packets.length===1&&sim.materialWorld.probe===g.thermal)sim.materialWorld.probe=bed.thermalAt(pos.x,pos.z);
@@ -128,7 +136,7 @@ export class LooseMatter{
     if(!liquid||!pressure)continue;
     for(let j=0;j<i;j++){
      const other=packets[j],q=other.position,dx=pos.x-q.x,dz=pos.z-q.z,h=Math.hypot(dx,dz);
-     const d=Math.hypot(h,pos.y-q.y),reach=3.1*r;
+     const d=Math.hypot(h,pos.y-q.y),reach=1.55*(r+other.radius);
      if(d>=reach||h<1e-5)continue;
      const amount=dt*p.body.mass()*pressure*(1-d/reach)/h;
      p.body.applyImpulse({x:dx*amount,y:0,z:dz*amount},true);

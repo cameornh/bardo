@@ -1,3 +1,4 @@
+import {BED_CELL} from './material-bed.js';
 import {clamp} from './material-air.js';
 
 const options=pairs=>pairs.map(([v,name])=>`<option value="${v}">${name}</option>`).join('');
@@ -33,7 +34,8 @@ export function bindFieldTools($,api){
    if(!s){world.collectLoose(sim);s=[...world.loose.values()].find(s=>s.group.key===key);}
    if(!s&&world.probe?.deposit?.owner===key)s=world.probe;
    if(!s)for(const bed of sim.matter.beds.values()){
-    const cell=bed.thermalCells.find(c=>c.owner===key&&c.h>.0006);if(cell){s=cell.thermal;break;}
+    const cell=[...bed.nodes.values()].find(c=>c.owner===key&&c.h>.0006);
+    if(cell){s=bed.thermalAt(cell.x*BED_CELL,cell.z*BED_CELL,true);break;}
    }
   }else s=world.target(sim,hit);
   if(bulkAction&&!s?.zone){api.notice('Choose a solid sculpt to heat or cool its material volume.');return;}

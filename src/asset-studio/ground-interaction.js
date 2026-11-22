@@ -16,7 +16,7 @@ function updateGroundContacts(sim){
 }
 export function liftGround(sim,point){
  const m=sim.groundMaterial,loose=looseKind(m)===1||m.phase==='gas';
- if(sim.heldChunk||sim.chunks.size>=32||loose&&sim.matter.count+(sim.sandTerrain?8:18)>768)return false;
+ if(sim.heldChunk||sim.heldDeposit||sim.chunks.size>=32||loose&&sim.matter.count+(sim.sandTerrain?8:18)>768)return false;
  const c=excavate(sim,point,.32);if(!c)return false;
  const key='ground-'+(++sim.chunkSerial),R=sim.R;
  const body=sim.world.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(c.top.x,c.top.y+.003,c.top.z)
@@ -35,9 +35,17 @@ export function liftGround(sim,point){
  sim.chunks.set(key,chunk);sim.heldChunk=chunk;sim.dunes.next=0;if(!sim.sandTerrain)sim.dunes.update(sim);return true;
 }
 export function moveChunk(sim,point){
+ if(sim.heldDeposit)sim.heldDeposit.grip.target.copy(point);
  const c=sim.heldChunk;if(c)c.target.copy(point).add(c.offset);
 }
 export function releaseChunk(sim,finishDrag=false){
+ if(sim.heldDeposit){
+  const grip=sim.heldDeposit.grip;
+  const first=sim.heldDeposit.packets[0];
+  if(finishDrag&&first&&grip.target.clone().add(first.gripOffset).distanceToSquared(first.body.translation())>.025**2)grip.releaseAt=sim.time+.06;
+  else{sim.heldDeposit.grip=null;sim.heldDeposit=null;}
+  return;
+ }
  const c=sim.heldChunk;if(!c)return;
  // Very fast pointer gestures can arrive entirely between physics ticks.
  if(finishDrag&&c.target.distanceToSquared(c.body.translation())>.025**2){c.releaseAt=sim.time+.09;return;}

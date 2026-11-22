@@ -69,7 +69,12 @@ function jointBench() {
   const library = emptyBench('stone'), sample = asset('Joint force test');
   const base = part('Anchored support',[stamp('box','add',[0,3.2,0],[.65,.12,.4],'wood')]);
   const arm = part('Swinging arm',[stamp('capsule','add',[0,2,0],[.18,.8,.18],'wood')]);
+  // The crosshead carries the swinging arm. Put the support reaction at the hinge.
+  base.pivot = [0,3.12,0];
   base.physics = {fixed:true};
+  const timber=library.materials.find(m=>m.id==='wood');
+  timber.tensileStrength=2.1e7;
+  timber.adhesion=4.5e6;
   arm.joint = {...jointDefaults(), parentId:base.id, type:'hinge', anchor:[0,3,0], stiffness:80, damping:6};
   arm.forceKeys = [0,1.5,3].map(time => ({time,force:[0,0,0],torque:[0,0,time===1.5?-160:160]}));
   sample.parts = [base,arm];
@@ -78,14 +83,54 @@ function jointBench() {
   return library;
 }
 
+function sculptBench(){
+ const library=seedLibrary(),[orb,arch,stem]=library.assets;
+ const [base,arm]=stem.parts;
+ base.physics={fixed:true};
+ base.stamps.push(stamp('box','add',[-.43,1.28,0],[.10,1.10,.13],'bronze',.02),
+  stamp('box','add',[-.19,2.32,0],[.32,.10,.13],'bronze',.02));
+ base.pivot=[-.43,.2,0];
+ arm.pivot=[0,2.32,0];arm.stamps[0].position=[0,1.53,0];arm.stamps.at(-1).position=[0,.74,0];
+ arm.joint={...jointDefaults(),parentId:base.id,type:'hinge',anchor:arm.pivot.slice(),looseness:6,stiffness:120,damping:55};
+ // A light cap allows the slender stem to swing under a finite applied torque.
+ arm.stamps.at(-1).materialId='wood';
+ arm.stamps.at(-1).size=[.31,.17,.31];
+ arm.stamps[0].size=[.17,.80,.17];
+ arm.forceKeys=[0,.75,1.5,2.25,3].map((time,i)=>({time,force:[0,0,0],torque:[0,0,[0,230,0,-230,0][i]]}));
+ arm.keys=[];
+ const timber=library.materials.find(m=>m.id==='wood');
+ timber.tensileStrength=2.1e7;timber.adhesion=4.5e6;
+ orb.parts[0].stamps[0].position[1]=.9;
+ arch.parts[0].pivot=[0,1.3,0];
+ return library;
+}
+
+function fractureBench(){
+ const library=emptyBench('stone');
+ // Matched test stock isolates grain geometry. Actual material presets retain
+ // their authored densities and strengths in the other scenes and library.
+ for(const [i,[id,grain]] of [['porcelain',0],['wood',.95],['graphite',-.95]].entries()){
+  const material=library.materials.find(m=>m.id===id);
+  Object.assign(material,{name:material.name+' test stock',density:700,youngModulus:2e7,
+   friction:.6,restitution:.1,tensileStrength:2500,yieldStress:12000,cohesion:120,fractureGrain:grain,fractureDelay:.18});
+  const sample=asset(material.name);
+  sample.parts=[part('Specimen',[stamp('box','add',[0,0,0],[.28,.24,.25],id,0)])];
+  library.assets.push(sample);
+  place(library,sample,id,[(i-1)*1.55,.90,0]);
+  library.world.instances.at(-1).transform.rotation=[9,0,42];
+ }
+ return library;
+}
+
 export const studioTests = [
   {id:'library',name:'My library'},
   ...exampleWorlds,
-  {id:'materials',name:'Material workbench',create:materialBench},
-  {id:'water',name:'Wind and water',create:waterBench},
-  {id:'ground',name:'Ground materials',create:groundBench},
-  {id:'joints',name:'Joint forces',create:jointBench},
-  {id:'sculpts',name:'Example sculpts',create:seedLibrary}
+  {id:'fracture',name:'Fracture comparison',create:fractureBench,tool:'nudge',guide:'Drop three equal-mass samples by pressing Play. From left to right, compare even grains, fibres and layers. The samples share bulk strength and overload time. Reset to repeat the drop.'},
+  {id:'materials',name:'Material workbench',create:materialBench,tool:'field',guide:'Point at a sample to probe it or choose a material action. Try heating ice, wetting felt, or attaching a supply and a return across the two touching conductors.'},
+  {id:'water',name:'Wind and water',create:waterBench,tool:'splash',guide:'Click beside a float to send it a wave. Change the wind heading, or lift a handful of water and throw it at the arch.'},
+  {id:'ground',name:'Ground materials',create:groundBench,tool:'lift',guide:'Play to drop sand, water and wood onto the same floor. Drag the ground to lift it. Change the ground material and repeat to compare the landings.'},
+  {id:'joints',name:'Joint forces',create:jointBench,tool:'nudge',guide:'Play to swing the arm. Drag against its motion, then turn off joint animation forces to watch the swing settle.'},
+  {id:'sculpts',name:'Example sculpts',create:sculptBench,guide:'Edit a sample to inspect its shapes. In the world, press Play to see the stem swing from its bracket and try nudging the clay.'}
 ];
 
 export function workbenchStore(test,ground) {

@@ -1,4 +1,4 @@
-import {mixDeposit,takeDeposit} from './deposit-heat.js';
+import {depositState,mixDeposit,takeDeposit} from './deposit-heat.js';
 import {entrainment,repose,launchGrain,driftGrain} from './wind-sand.js';
 
 // Finite, non-repeating deposits. h is the thickness in metres over a square
@@ -30,14 +30,14 @@ export class MaterialBed{
   return (1-a)*(1-b)*(this.at(i,j)?.h||0)+a*(1-b)*(this.at(i+1,j)?.h||0)
    +(1-a)*b*(this.at(i,j+1)?.h||0)+a*b*(this.at(i+1,j+1)?.h||0);
  }
- thermalAt(x,z){
-  if(!this.thermalCells.length)return null;
-  const u=x/BED_CELL,v=z/BED_CELL,i=Math.floor(u),j=Math.floor(v);let best=0,site=null;
+ thermalAt(x,z,probe=false){
+  if(!probe&&!this.thermalCells.length)return null;
+  const u=x/BED_CELL,v=z/BED_CELL,i=Math.floor(u),j=Math.floor(v);let best=0,cell=null;
   for(const dx of [0,1])for(const dz of [0,1]){
    const c=this.at(i+dx,j+dz),weight=(c?.h||0)*(1-Math.abs(i+dx-u))*(1-Math.abs(j+dz-v));
-   if(c?.thermal&&weight>best){best=weight;site=c.thermal;}
+   if((probe||c?.thermal)&&weight>best){best=weight;cell=c;}
   }
-  return site;
+  return cell?depositState(this,cell,BED_CELL):null;
  }
  volume(){let h=0;for(const c of this.nodes.values())h+=c.h;return h*area;}
  move(c,nx,nz,amount){
@@ -69,7 +69,10 @@ export class MaterialBed{
   if(!this.nodes.size)return;
   const m=this.material,angle=wind.heading*Math.PI/180,wx=Math.cos(angle),wz=Math.sin(angle);
   const threshold=this.liquid?.045:repose(m),shear=Math.max(0,wind.speed-entrainment(m));
-  const spread=Math.min(.20,dt*(this.liquid?4/(1+m.viscosity):3.5));
+  // The viscosity slider is in Pa·s. Kinematic viscosity sets the time to
+  // relax a shallow film; equal volumes still reach the same resting slope.
+  const mobility=this.liquid?1/(1+(m.viscosity/m.density)/1.5e-5):1;
+  const spread=Math.min(.20,dt*(this.liquid?4*mobility:3.5));
   // A shallow liquid keeps a thin film. Grain friction and cohesion permit a finite slope.
   const film=this.liquid?.008:.0015,keys=[...this.nodes.values()];
   if(!this.liquid)this.saltate(dt,wind,wx,wz,shear,keys,floor);
@@ -94,7 +97,7 @@ export class MaterialBed{
     flux[k]=value>1e-6?value:0;demand+=flux[k];
    }
    if(!demand)continue;
-   const scale=Math.min(1,(c.h-film)/demand)*(c.thermal?.melt??1);
+   const scale=Math.min(1,(c.h-film)/demand)*(this.liquid?(c.thermal?.melt??1):1);
    for(let k=0;k<directions.length;k++)if(flux[k]){
     this.move(c,c.x+directions[k][0],c.z+directions[k][1],flux[k]*scale);
    }
@@ -109,7 +112,7 @@ export class MaterialBed{
   for(const c of [...this.nodes.values()]){
    const d2=(c.x*BED_CELL-point.x)**2+(c.z*BED_CELL-point.z)**2;
    if(d2>.75**2)continue;
-   this.move(c,c.x+dx,c.z+dz,Math.min(c.h*.35,size*dt/(this.material.density*area)*.07*Math.exp(-8*d2))*(c.thermal?.melt??1));moved=true;
+   this.move(c,c.x+dx,c.z+dz,Math.min(c.h*.35,size*dt/(this.material.density*area)*.07*Math.exp(-8*d2))*(this.liquid?(c.thermal?.melt??1):1));moved=true;
   }
   if(moved)this.version++;
  }

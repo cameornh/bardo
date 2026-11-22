@@ -3,14 +3,18 @@ import {activeMass,phaseState,surfaceState} from './material-reactions.js';
 
 // Move a well-mixed fraction of a parcel or bed cell. h is specific enthalpy;
 // moisture and dissolved water are extensive, while fuel is a mass fraction.
+export function depositState(bed,c,cell){
+ if(c.thermal)return c.thermal;
+ const m=bed.material,area=cell*cell;
+ const s=surfaceState(m,'deposit/'+m.id+'/'+c.x+','+c.z,new Vector3(c.x*cell,0,c.z*cell),area);
+ s.mass=c.h*area*m.density;s.water=s.mass*m.moisture;s.bulkWater=s.mass*m.waterContent;
+ s.radius=cell*.5;c.thermal=s;s.deposit=c;bed.thermalCells.push(c);
+ return s;
+}
 export function mixDeposit(bed,c,volume,source,cell){
- const m=bed.material,area=cell*cell,priorVolume=c.h*area,incoming=volume*m.density;
+ const m=bed.material,area=cell*cell,incoming=volume*m.density;
  if(!source&&!c.thermal)return;
- if(!c.thermal){
-  const s=surfaceState(m,'deposit/'+m.id+'/'+c.x+','+c.z,new Vector3(c.x*cell,0,c.z*cell),area);
-  s.mass=priorVolume*m.density;s.water=s.mass*m.moisture;s.bulkWater=s.mass*m.waterContent;
-  s.radius=cell*.5;c.thermal=s;s.deposit=c;bed.thermalCells.push(c);
- }
+ depositState(bed,c,cell);
  const dest=c.thermal,prior=dest.mass*(1-dest.lost),total=prior+incoming;
  const src=source??surfaceState(m,'',dest.position,area,incoming);
  const fraction=incoming/activeMass(src);

@@ -122,9 +122,9 @@ export function installCatalog(library){
  }
  const plant={porosity:.42,fuelEnergy:1.6e7,burnRate:.02,smokeYield:.06,grainLength:.94};
  const grades=[
-  ['ash-stock','Ash timber','#98603b',{...plant,density:630,heatCapacity:1500,tensileStrength:2.1e7,
+  ['ash-stock','Ash timber','#98603b',{...plant,fractureGrain:.88,density:630,heatCapacity:1500,tensileStrength:2.1e7,
    youngModulus:9e9,yieldStress:3.6e7,adhesion:4.5e6}],
-  ['fibreboard','Pressed fibreboard','#ab8767',{...plant,density:480,youngModulus:2e8,
+  ['fibreboard','Pressed fibreboard','#ab8767',{...plant,fractureGrain:-.32,density:480,youngModulus:2e8,
    tensileStrength:300000,heatCapacity:1300,ignitionTemperature:530,burnRate:.08,meltingPoint:1700}],
   ['reed','Reed fibre','#73834b',{...plant,density:360,grainDepth:1.1,roughness:.76,youngModulus:8.4e7,
    tensileStrength:4.5e6,yieldStress:2.7e6,adhesion:2.4e5,moisture:.09}]

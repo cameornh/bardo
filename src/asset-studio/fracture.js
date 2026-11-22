@@ -172,8 +172,8 @@ function evaluate(sim,r,dt){
   if(beam?.status==='intact'&&e.axis===beam.axis&&Math.abs(e.center[e.axis]-s.bucklingPlane)<1e-5)compression-=axial;
   e.damage=Math.max(0,e.damage+dt*(ratio>1?Math.min(7,ratio-1):-2));
   if(e.damage>0)r.accumulating=true;
-  const shock=r.impactImpulse>0 && ratio*dt>.24 && r.impactImpulse>regionMass*massScale*.08;
-  if(ratio>1&&(e.damage>.24||shock)&&ratio>highest){selected=e;highest=ratio;}
+  const shock=r.impactImpulse>0 && ratio*dt>e.overloadTime && r.impactImpulse>regionMass*massScale*.08;
+  if(ratio>1&&(e.damage>e.overloadTime||shock)&&ratio>highest){selected=e;highest=ratio;}
  }
  if(beam?.status==='intact'){
   // The analytic column mode remains available for slender rectangular stock.
@@ -200,8 +200,11 @@ function evaluate(sim,r,dt){
  selected.char=Math.max(r.fieldChar?.get(selected.a)??0,r.fieldChar?.get(selected.b)??0);selected.broken=true;s.brokenBonds++;r.net=null;
  const groups=componentsOf(r);
  if(groups.length>1){
-  const records=separate(sim,r,groups);
-  if(beam?.status==='intact'){beam.status='fractured';beam.exposed=true;beam.tip=records[1];}
+  separate(sim,r,groups);
+  if(beam?.status==='intact'){beam.status='fractured';beam.exposed=true;}
+  if(beam?.status==='fractured'){
+   beam.tip=structureBody(r,beam.tipPoint);
+  }
  }
 }
 function componentsOf(r){
@@ -256,8 +259,8 @@ function separate(sim,r,groups){
  for(const [j,ids] of groups.entries()){
   const shapes=geometry[j];
   const key=j?r.key.split('#fragment')[0]+'#fragment'+(++s.serial):r.key;
-  const fresh=s.makeBody(shapes,key,!j&&old.isFixed(),r.part.stamps,densityScale);
-  fresh.body.setTranslation(origin,true);fresh.body.setRotation(rot,true);
+  // Create colliders at the current pose so CCD starts at the fracture site.
+  const fresh=s.makeBody(shapes,key,!j&&old.isFixed(),r.part.stamps,densityScale,origin,rot);
   fresh.matrix.compose(origin,rot,fresh.scale);
   fresh.massScale=pieceMass[j]*densityScale/ids.reduce((sum,i)=>sum+s.grid.nodes[i].mass,0);
   let rec=fresh;

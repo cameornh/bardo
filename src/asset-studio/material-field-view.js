@@ -65,16 +65,20 @@ export class MaterialFieldView {
      if(s.i!=null&&mode==='natural'&&s.finish>.015&&looseKind(s.material)!==2&&s.material.phase!=='gas')put(p.x,p.y+.006,p.z,r,.008,[.07,.055,.043],s.finish);
      if(mode==='temperature')put(p.x,p.y,p.z,r,r,fromTemperature(s.t),.8);
      else if(mode==='fusion')put(p.x,p.y,p.z,r,r,mix([.51,.34,.19],[.08,.77,1],s.core?.melt??s.melt),.83);
-     else if(mode==='charge')put(p.x,p.y,p.z,r,r,mix(cold,gold,clamp(s.volts/48,0,1)),s.electrode==null?.66:.94);
+     else if(mode==='charge'){
+      const active=s.electrode!=null||Math.abs(s.volts)>.02||s.watts>.01;
+      if(active||s.material.electricalConductivity>.01)
+       put(p.x,p.y,p.z,r*.70,r*.70,mix(cold,gold,clamp(s.volts/48,0,1)),s.electrode!=null?.78:active?.42:.16);
+     }
      else if(mode==='moisture'){
       const wet=clamp((s.material.waterContent*s.melt+s.water/(s.area*.12)),0,1);
-      put(p.x,p.y,p.z,r,r,mix([.43,.19,.06],[.04,.52,1],wet),.74);
+      put(p.x,p.y,p.z,r*.75,r*.75,[.04,.52,1],.56*wet);
      }
     }
     for(const c of world.air.cells.values()){
      const air=world.air.read(c),x=c.x+.5,y=c.y+.5,z=c.z+.5;
      if(mode==='temperature'){const a=clamp(Math.abs(air.temperature-world.air.temperature)/160,0,.35);put(x,y,z,.46,.46,fromTemperature(air.temperature),a);}
-     if(mode==='moisture')put(x,y,z,.42,.42,[.09,.57,1],Math.min(.45,Math.abs(air.humidity-world.air.humidity)*.7));
+     if(mode==='moisture')put(x,y,z,.42,.42,[.09,.57,1],Math.min(.20,Math.abs(air.humidity-world.air.humidity)*.36));
      if(mode==='natural'||mode==='reaction'){
       const fog=air.humidity>1?air.water*(1-1/air.humidity)+c.vapour:c.vapour;
       put(x,y,z,.42,.48,mist,1-Math.exp(-35*fog));

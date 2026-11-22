@@ -224,7 +224,7 @@ export class MaterialWorld {
    g.surfaceMoisture=clamp(s.water/s.mass,0,1);
   }
   for(const [key,s] of this.loose)if(!sim.matter.parts.get(key)?.packets.length){
-   if(s.group?.fromMelt){if(this.probe===s)this.probe=null;this.loose.delete(key);continue;}
+   if(s.group?.thermal){if(this.probe===s)this.probe=null;this.loose.delete(key);continue;}
    const tile=this.ground(sim,s.position.x,s.position.z,true,false,true);
    if(tile){
     const ct=activeMass(tile)*tile.material.heatCapacity,cs=activeMass(s)*s.material.heatCapacity;
@@ -239,7 +239,7 @@ export class MaterialWorld {
   }
  }
  target(sim,hit){
-  if(hit.bedMaterial){const site=sim.matter.beds.get(hit.bedMaterial)?.thermalAt(hit.point.x,hit.point.z);if(site)return site;}
+  if(hit.bedMaterial){const site=sim.matter.beds.get(hit.bedMaterial)?.thermalAt(hit.point.x,hit.point.z,true);if(site)return site;}
   if(hit.mark){const owner=sim.bodies.get(hit.bodyKey)??sim.get(hit.instanceId,hit.partId);const s=owner?.field.sites.find(s=>s.mark===hit.mark.id);if(s)return s;}
   if(hit.loose&&!hit.bedMaterial){this.collectLoose(sim);
    if(hit.looseGroup&&this.loose.has(hit.looseGroup))return this.loose.get(hit.looseGroup);
@@ -283,6 +283,9 @@ export class MaterialWorld {
      if(peer&&peer===r)return;
      if(!peer&&other.parent()?.handle!==sim.ground.handle)return;
      const contact=c.contactCollider(other,.003);if(!contact)return;
+     // A half-space stays in the broad phase at every altitude. Its world
+     // surface is y=0, so reject separated support points explicitly.
+     if(other.handle===sim.flatFloor?.handle&&contact.point1.y>.003)return;
      const a=nearest(sites,contact.point1),p=contact.point2;
      let peerSites;
      if(peer){for(let j=0;j<peer.body.numColliders();j++)if(peer.body.collider(j).handle===other.handle){peerSites=peer.field.mapping[j];break;}}
@@ -356,7 +359,7 @@ export class MaterialWorld {
    if(s.deposit){
     s.lastExchange=sim.time;
     if(s.lost){s.deposit.h=activeMass(s)/(s.material.density*BED_CELL**2);s.mass=activeMass(s);s.lost=0;sim.matter.beds.get(s.material.id).version++;}
-   }else if(s.group?.fromMelt&&s.lost){
+   }else if(s.group?.thermal&&s.lost){
     const remaining=1-s.lost,g=s.group;
     for(const p of g.packets){p.volume*=remaining;p.radius*=Math.cbrt(remaining);const c=p.body.collider(0);c.setRadius(p.radius);c.setMass(p.volume*s.material.density);}
     g.radius=g.packets[0]?.radius??g.radius;s.mass=activeMass(s);s.lost=0;

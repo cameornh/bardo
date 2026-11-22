@@ -13,7 +13,8 @@ export function beamSection(part,shapes,scale,rotation,anchor,material){
  const offset=anchor.getComponent(axis)-center.getComponent(axis);
  const sign=Math.abs(offset)>.01?-Math.sign(offset):(axisVector.clone().applyQuaternion(rotation).y<0?-1:1);
  const area=dims[b]*dims[c],ib=area*dims[c]**2/12,ic=area*dims[b]**2/12;
- return {axis,b,c,sign,center,length,area,ib,ic,zb:ib/(dims[c]/2),zc:ic/(dims[b]/2),
+ const tipPoint=center.clone().addScaledVector(axisVector,sign*length/2);
+ return {axis,b,c,sign,center,tipPoint,length,area,ib,ic,zb:ib/(dims[c]/2),zc:ic/(dims[b]/2),
   material,status:'intact',buckling:0,fracture:0,exposed:false};
 }
 
@@ -41,6 +42,6 @@ export function sectionFailure(sim,link,force,moment,dt){
  const stress=Math.max(Math.hypot(tensile,shear),m.youngModulus*strain);
  const ratio=stress/Math.max(1,m.cohesion+m.tensileStrength);
  s.fracture=Math.max(0,s.fracture+dt*(ratio>1?Math.min(5,ratio-1):-2));
- if(s.fracture<=.24)return false;
+ if(s.fracture<=(m.fractureDelay??.24))return false;
  s.status='fractured';return true;
 }

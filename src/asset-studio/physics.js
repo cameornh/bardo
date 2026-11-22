@@ -37,7 +37,11 @@ export class StudioPhysics {
   const R=this.R,ground=materials.get(library.world.groundMaterialId);
   this.ground=this.world.createRigidBody(R.RigidBodyDesc.fixed());
   this.waterDensity=ground.density;
-  if(!this.sea&&!this.sand)this.flatFloor=this.world.createCollider(R.ColliderDesc.cuboid(100000,.1,100000).setTranslation(0,-.1,0).setFriction(ground.friction).setRestitution(ground.restitution),this.ground);
+  if(!this.sea&&!this.sand){
+   // A true plane avoids the contact precision loss of a 200 km-wide box against thin shards.
+   const floor=new R.ColliderDesc(new R.HalfSpace({x:0,y:1,z:0}));
+   this.flatFloor=this.world.createCollider(floor.setFriction(ground.friction).setRestitution(ground.restitution),this.ground);
+  }
   const instances=mode==='asset'?[{id:'editor',assetId,transform:{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}}]:library.world.instances,cache=new Map();let total=0;
   const partCount=instances.reduce((n,i)=>n+library.assets.find(a=>a.id===i.assetId).parts.length,0);
   for(const i of instances){const asset=library.assets.find(a=>a.id===i.assetId),im=compose(i.transform);
@@ -61,8 +65,8 @@ export class StudioPhysics {
     const mat=library.materials.find(item=>item.id===proxy.shapes[0].materialId);
     const anchor=(p.joint?V(p.joint.anchor).applyMatrix4(im).applyMatrix4(m.clone().invert()):V(p.pivot)).multiply(scale);
     const section=beamSection(p,proxy.shapes,scale,rotation,anchor,mat);
-    const makeBody=(shapes,recordKey,fixed,stamps,densityScale=1)=>{
-     const desc=(fixed?R.RigidBodyDesc.fixed():R.RigidBodyDesc.dynamic()).setTranslation(...position.toArray()).setRotation(rotation).setCcdEnabled(true).setCanSleep(this.world.gravity.y!==0).setLinearDamping(.025).setAngularDamping(.04);
+    const makeBody=(shapes,recordKey,fixed,stamps,densityScale=1,origin=position,orientation=rotation)=>{
+     const desc=(fixed?R.RigidBodyDesc.fixed():R.RigidBodyDesc.dynamic()).setTranslation(origin.x,origin.y,origin.z).setRotation(orientation).setCcdEnabled(true).setCanSleep(this.world.gravity.y!==0).setLinearDamping(.025).setAngularDamping(.04);
      const body=this.world.createRigidBody(desc);
      for(const s of shapes){const mat=library.materials.find(x=>x.id===s.materialId),center=V(s.center).multiply(scale);let shape;
       if(s.type==='box')shape=R.ColliderDesc.cuboid(...V(s.half).multiply(scale).toArray());

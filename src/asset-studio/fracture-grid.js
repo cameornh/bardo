@@ -101,7 +101,13 @@ export function fractureGrid(boxes,scale,materials){
   }
   e.zu=iu/dv;e.zv=iv/du;e.zt=(iu+iv)/Math.hypot(du,dv);
   const m=nodes[e.a].material,n=nodes[e.b].material;
-  const strength=t=>(t.tensileStrength+t.cohesion)*(1-(t.liquidity??0))**2;
+  // A bond opening across fibres or between laminations sees less tensile strength.
+  const strength=t=>{
+   const grain=t.fractureGrain??0;
+   const weakness=grain<0?(e.axis===1?-grain:0):(e.axis!==0?grain:0);
+   return (t.tensileStrength+t.cohesion)*(1-(t.liquidity??0))**2*(1-.72*weakness);
+  };
+  e.overloadTime=Math.min(m.fractureDelay??.24,n.fractureDelay??.24);
   e.strength=Math.max(.01,Math.min(strength(m),strength(n),m.id===n.id?Infinity:Math.min(m.adhesion,n.adhesion)));
   e.compression=Math.max(e.strength,Math.min(m.yieldStress+strength(m),n.yieldStress+strength(n)));
   const length=Math.max(.001,Math.abs(nodes[e.a].center[e.axis]-nodes[e.b].center[e.axis]));

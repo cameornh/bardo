@@ -78,21 +78,31 @@ export function fractureCells(grid){
   byDomain.get(id).push(i);return p;
  });
  const widest=Math.max(...grid.step.map((v,k)=>v*grid.scale[k]));
- const metric=vector(grid.scale.map((s,k)=>1/Math.max(grid.step[k],.45*widest/s)**2));
- const normal=new Vector3(),delta=new Vector3(),center=new Vector3();
- const distance=(a,b)=>{delta.subVectors(a,b);return delta.dot(normal.copy(delta).multiply(metric));};
+ const baseMetric=vector(grid.scale.map((s,k)=>1/Math.max(grid.step[k],.45*widest/s)**2));
+ // A single metric per connected material keeps the two sides of every cut
+ // complementary. Fibres run along local X; layer normals follow local Y.
+ const metrics=new Map();
+ for(const [id,indices] of byDomain){
+  const grain=nodes[indices[0]].material.fractureGrain??0;
+  const metric=baseMetric.clone();
+  if(grain>0)metric.x*=Math.exp(-3.6*grain);
+  else metric.y*=Math.exp(-3.6*grain);
+  metrics.set(id,metric);
+ }
+ const center=new Vector3();
+ const distance=(a,b,metric)=>metric.x*(a.x-b.x)**2+metric.y*(a.y-b.y)**2+metric.z*(a.z-b.z)**2;
  const planes=sites.map((p,i)=>byDomain.get(root(i)).filter(j=>j!==i).map(j=>{
-  const q=sites[j],n=q.clone().sub(p).multiply(metric).normalize();
-  return {j,n,d:n.dot(p.clone().lerp(q,.5)),order:distance(p,q)};
+  const metric=metrics.get(root(i)),q=sites[j],n=q.clone().sub(p).multiply(metric).normalize();
+  return {j,n,d:n.dot(p.clone().lerp(q,.5)),order:distance(p,q,metric)};
  }).sort((a,b)=>a.order-b.order));
  for(const [index,box] of boxes.entries()){
   center.fromArray(box.center);
-  const ids=byDomain.get(root(grid.sourceNodes[index]));
-  let nearest=Infinity;for(const i of ids)nearest=Math.min(nearest,distance(center,sites[i]));
+  const id=root(grid.sourceNodes[index]),ids=byDomain.get(id),metric=metrics.get(id);
+  let nearest=Infinity;for(const i of ids)nearest=Math.min(nearest,distance(center,sites[i],metric));
   const radius=Math.sqrt(box.half.reduce((v,x,k)=>v+x*x*metric.getComponent(k),0));
   const limit=(Math.sqrt(nearest)+2*radius+epsilon)**2;
   for(const i of ids){
-   if(distance(center,sites[i])>limit)continue;
+   if(distance(center,sites[i],metric)>limit)continue;
    let faces;
    for(const {j,n,d} of planes[i]){
     const extent=box.half[0]*Math.abs(n.x)+box.half[1]*Math.abs(n.y)+box.half[2]*Math.abs(n.z);
@@ -108,7 +118,7 @@ export function fractureCells(grid){
    parts[i].push(shape);sourcePieces[index].push({i,shape});
   }
  }
- const cells={sites,parts,sourcePieces,planes,byDomain,domain:sites.map((_,i)=>root(i)),distance};
+ const cells={sites,parts,sourcePieces,planes,byDomain,domain:sites.map((_,i)=>root(i)),metrics,distance};
  grid.voronoi=cells;return cells;
 }
 export function cellShapes(grid,ids){
@@ -120,11 +130,11 @@ export function cellShapes(grid,ids){
  return [...mergeBoxes(shapes.filter(p=>p.type==='box')),...shapes.filter(p=>p.type==='hull')];
 }
 export function cellOwner(grid,point,coarse,candidates){
- const cells=grid.voronoi,indices=cells.byDomain.get(cells.domain[coarse]),p=vector(point);
+ const cells=grid.voronoi,domain=cells.domain[coarse],indices=cells.byDomain.get(domain),metric=cells.metrics.get(domain),p=vector(point);
  let nearest=Infinity,owner=coarse;
  for(const i of indices){
   if(candidates&&candidates.length!==grid.nodes.length&&!candidates.includes(i))continue;
-  const d=cells.distance(p,cells.sites[i]);if(d<nearest){nearest=d;owner=i;}
+  const d=cells.distance(p,cells.sites[i],metric);if(d<nearest){nearest=d;owner=i;}
  }
  return owner;
 }
