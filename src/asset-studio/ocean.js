@@ -159,6 +159,7 @@ export class WindSea {
   }
  }
  breakCrest(x,z,energy,dx,dz,windCrest=false,radius=Infinity){
+  if(this.bedHeight&&this.bedHeight(x,z)>=this.height(x,z))return;
   const norm=Math.hypot(dx,dz);if(norm<.01||energy<=0||this.crests.length>=16)return;
   dx/=norm;dz/=norm;
   const width=Math.min(.74,.12+energy*.23,radius*.63);
@@ -272,6 +273,7 @@ export class WindSea {
    const from=collide?{x:d.x,y:d.y,z:d.z}:null;
    d.vy-=9.81*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.z+=d.vz*dt;
    if(from)collide(d,from);
+   if(this.bedHeight&&d.vy<0&&d.y-d.r<=this.bedHeight(d.x,d.z)&&this.bedHeight(d.x,d.z)>this.height(d.x,d.z)){this.drops.splice(i,1);this.returnDrop(d);continue;}
    if(d.vy<0&&d.y+d.r<=this.height(d.x,d.z)){this.returnDrop(d);this.drops.splice(i,1);if(d.r>.065&&!d.windCrest&&i%3===0)this.ripple(d.x,d.z,Math.min(.023,d.r*.12));}
   }
  }

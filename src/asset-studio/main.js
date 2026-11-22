@@ -15,7 +15,7 @@ import {liftGround,moveChunk,releaseChunk,strikeGround} from './ground-interacti
 import {AuthoredWaveContacts} from './authored-wave-contacts.js';
 import {looseKind} from './loose-matter.js';
 import {windAt} from './wind.js';
-import {Wetland,disturbPond} from './wetland.js';
+import {Wetland} from './wetland.js';
 import {WindSand} from './wind-sand.js';
 import {WindSea} from './ocean.js';
 import {implicitStamp} from './implicit-surface.js';
@@ -116,8 +116,10 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  const landscapeSeed=library.world.wetlandSeed;
  if(sand.landscape?.seed!==landscapeSeed)sand.landscape=Number.isInteger(landscapeSeed)?new Wetland(landscapeSeed):null;
  view.setLandscape(groundKind===1?sand.landscape:null,library);
- view.sand=groundKind===1?sand:null;view.sea=groundKind===2?sea:null;
- if(view.sea){sea.organicLoad=view.groundSurface.organicLoad||0;authoredWater.rebuild(view);}
+ view.sand=groundKind===1?sand:null;view.sea=groundKind===2||view.garden?sea:null;
+ view.waterMaterial=view.garden?library.materials.find(m=>m.id==='water'):view.groundSurface;
+ sea.bedHeight=view.garden?(x,z)=>(physics?.sandTerrain??sand).height(x,z):null;
+ if(view.sea){sea.organicLoad=view.waterMaterial.organicLoad||0;authoredWater.rebuild(view);}
  $('splash').disabled=$('lift').disabled=mode!=='world';updateWind();attach();}
  async function save(){clearTimeout(saveTimer);saveTimer=null;const snapshot=clone(library);saveChain=saveChain.catch(()=>{}).then(()=>store.save(snapshot));try{notice(await saveChain);}catch(e){notice('Save warning: '+e.message);}return saveChain;}
  function changed(rebuild=true){previewPose=false;playing=false;$('play').textContent='Play physics';if(rebuild)refresh();sync();clearTimeout(saveTimer);saveTimer=setTimeout(()=>save().catch(()=>{}),400);}
@@ -310,15 +312,13 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
   lastSplash=point;
   const force=Number($('impact').value),plane=new THREE.Plane().setFromNormalAndCoplanarPoint(view.camera.getWorldDirection(new THREE.Vector3()),point);
   if(tool==='lift')liftPlane=plane;
-  const state={released:false,target:null};groundGesture=state;
+  const state={released:false,target:null,water:!!view.sea&&(!view.garden||!!hit?.pond)&&!hit?.bedMaterial&&!hit?.chunk};groundGesture=state;
   const run=()=>{
    if(mode!=='world'||worldTool!==tool)return;
    const limitNotice=physics?.sandTerrain?'Let airborne sand settle before using the ground tool again.':'Ground preview limit reached. Reset physics to clear it.';
-   if(hit?.pond&&physics){
-    if(!disturbPond(physics,point,library.materials.find(m=>m.id==='water'),tool==='splash'?force:null)){liftPlane=null;return;}
-    view.garden.splash(point.x,point.z,physics.time,tool==='splash'?force:100);
-    if(tool==='lift'&&state.target)moveChunk(physics,state.target);
-    if(tool==='lift'&&state.released)releaseChunk(physics,true);
+   if(hit?.pond){
+    if(tool==='splash')strikeGround(physics,point,force,sea,view.waterMaterial);
+    else sea.lift(point.x,point.z);
    }else if(hit?.bedMaterial&&physics){
     if(!disturbDeposit(physics,physics.matter.beds.get(hit.bedMaterial),point,tool==='splash'?force:null)){
      liftPlane=null;notice('Let the loose material settle, or try a thicker spot.');return;
@@ -327,7 +327,7 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
     if(tool==='lift'&&state.released)releaseChunk(physics,true);
    }else if(tool==='splash'){
     if(!strikeGround(physics,point,force))notice(limitNotice);
-   }else if(view.sea){sea.lift(point.x,point.z);}
+   }else if(state.water){sea.lift(point.x,point.z);}
    else{
     if(physics.heldChunk?.releaseAt!==undefined&&physics.heldChunk!==hit?.chunk)releaseChunk(physics);
     if(hit?.chunk){physics.heldChunk=hit.chunk;delete hit.chunk.releaseAt;hit.chunk.target.copy(hit.chunk.body.translation());hit.chunk.offset.copy(hit.chunk.target).sub(point);}
@@ -336,14 +336,14 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
     if(state.released)releaseChunk(physics,true);
    }
   };
-  if(physics||view.sea&&tool==='lift'){if(physics&&!playing){playing=true;$('play').textContent='Pause physics';}run();return;}
+  if(physics||state.water&&tool==='lift'){if(physics&&!playing){playing=true;$('play').textContent='Pause physics';}run();return;}
   pendingGround=run;if(!physicsBuilding)startPhysics();
  }
  let groundGesture=null;
  canvas.addEventListener('pointerdown',e=>{if(owner==='camera'||e.button!==0||view.dragging)return;const tool=activeTool();
  if(tool==='field'){const hit=view.pick(e);if(hit){e.stopImmediatePropagation();void fields.use(hit);}return;}
  if(mode==='world'&&(tool==='lift'||tool==='splash')){e.stopImmediatePropagation();lastSplash=null;groundAction(tool,e);return;}
- if(tool==='nudge'){const hit=view.pick(e);if(!hit||hit.ground)return;if(!physics||!playing){notice('Press Play physics before nudging.');return;}let r=hit.chunk||physics.bodies.get(hit.bodyKey)||physics.get(hit.instanceId,hit.partId);if(r?.structure&&!hit.bodyKey)r=structureBody(r,physics.localPoint(r,hit.point));if(!r&&!hit.loose)return notice('No movable material at this point.');e.stopImmediatePropagation();view.controls.enabled=false;canvas.setPointerCapture(e.pointerId);const normal=view.camera.getWorldDirection(new THREE.Vector3());forceDrag={key:hit.chunk?.key||hit.looseKey||r?.key||hit.instanceId+':'+hit.partId,loose:!!hit.loose,localPoint:hit.loose?hit.point.clone():physics.localPoint(r,hit.point),origin:hit.point.clone(),plane:new THREE.Plane().setFromNormalAndCoplanarPoint(normal,hit.point),force:new THREE.Vector3()};if(hit.mark)forceDrag.hinge=physics.paintedHinges.grab(hit.instanceId+':'+hit.partId,hit.mark.id,hit.point);if(hit.assetId){selectedPart=hit.partId;if(mode==='world'){selectedInstance=hit.instanceId;selectedAsset=hit.assetId;}sync();}return;}if(physics&&tool!=='select'){if(mode==='asset'&&['insert','gaussian','detail','add','subtract','paint'].includes(tool))notice('Reset physics to resume sculpting.');return;}
+ if(tool==='nudge'){const hit=view.pick(e);if(!hit||hit.ground)return;if(!physics||!playing){notice('Press Play physics before nudging.');return;}if(hit.reedSite&&!hit.assetId)physics.stand?.activate(hit.reedSite);let r=hit.chunk||physics.bodies.get(hit.bodyKey)||physics.get(hit.instanceId,hit.partId);if(r?.structure&&!hit.bodyKey)r=structureBody(r,physics.localPoint(r,hit.point));if(!r&&!hit.loose)return notice('No movable material at this point.');e.stopImmediatePropagation();view.controls.enabled=false;canvas.setPointerCapture(e.pointerId);const normal=view.camera.getWorldDirection(new THREE.Vector3());forceDrag={key:hit.chunk?.key||hit.looseKey||r?.key||hit.instanceId+':'+hit.partId,loose:!!hit.loose,localPoint:hit.loose?hit.point.clone():physics.localPoint(r,hit.point),origin:hit.point.clone(),plane:new THREE.Plane().setFromNormalAndCoplanarPoint(normal,hit.point),force:new THREE.Vector3()};if(hit.mark)forceDrag.hinge=physics.paintedHinges.grab(hit.instanceId+':'+hit.partId,hit.mark.id,hit.point);if(hit.assetId){selectedPart=hit.partId;if(mode==='world'){selectedInstance=hit.instanceId;selectedAsset=hit.assetId;}sync();}return;}if(physics&&tool!=='select'){if(mode==='asset'&&['insert','gaussian','detail','add','subtract','paint'].includes(tool))notice('Reset physics to resume sculpting.');return;}
  if(mode==='asset'&&tool==='insert'){
   e.stopImmediatePropagation();const hit=view.pick(e,{marks:false});
   if(hit&&!hit.ground)assembly.place(hit);else notice('Click the surface of a sculpted part.');
@@ -366,7 +366,7 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  e.stopImmediatePropagation();const hit=view.pick(e);if(hit&&!hit.ground&&hit.assetId&&hit.partId){if(mode==='world'){selectedInstance=hit.instanceId;selectedAsset=hit.assetId;}selectedPart=hit.partId;sync();}}},true);
  canvas.addEventListener('pointermove',e=>{if(owner==='camera'||(activePointer!==null&&e.pointerId!==activePointer))return;
  if(markBrush.pending){markBrush.move(e);return;}
- if(liftPlane){const p=view.ray(e).intersectPlane(liftPlane,new THREE.Vector3());if(p){if(view.sea&&!physics?.heldDeposit)sea.moveLift(p,physics?.collideDrop??authoredWater.collideDrop);else{groundGesture.target=p;if(physics)moveChunk(physics,p);}}return;}
+ if(liftPlane){const p=view.ray(e).intersectPlane(liftPlane,new THREE.Vector3());if(p){if(groundGesture?.water)sea.moveLift(p,physics?.collideDrop??authoredWater.collideDrop);else{groundGesture.target=p;if(physics)moveChunk(physics,p);}}return;}
  if(owner==='tool'&&activeTool()==='splash'&&mode==='world'){groundAction('splash',e);return;}if(forceDrag&&physics){const point=view.ray(e).intersectPlane(forceDrag.plane,new THREE.Vector3());if(point){forceDrag.force.copy(point).sub(forceDrag.origin).multiplyScalar(Math.max(1,Math.min(100000,Number($('force-strength').value)||1))).clampLength(0,100000);if(forceDrag.hinge)forceDrag.hinge.cursorForce.copy(forceDrag.force);else physics.setDrag(physics.drag?.key??forceDrag.key,forceDrag.localPoint,forceDrag.force,forceDrag.loose);view.showForce(forceDrag.origin,point);notice('Applied force: '+forceDrag.force.length().toFixed(0)+' N');}return;}if(physics)return;const tool=$('tool').value;if(mode==='asset'&&['add','subtract','paint'].includes(tool)){const hit=view.pick(e,{marks:false});view.showBrush(hit,Number($('radius').value));if(stroke)applyBrush(hit,e.shiftKey);}else view.showBrush(null,1);});
  const endStroke=e=>{if(owner==='camera'){
   if(e.type==='blur')cameraPointers.clear();else cameraPointers.delete(e.pointerId);
@@ -374,7 +374,7 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
   activePointer=e.pointerId??activePointer;
  }
  if(activePointer===null||(e.pointerId!=null&&e.pointerId!==activePointer))return;
- activePointer=null;lastSplash=null;owner=null;if(e.type!=='pointerup'&&view.gizmo.dragging)view.gizmo.pointerUp(null);if(liftPlane){if(groundGesture)groundGesture.released=true;if(view.sea&&!physics?.heldDeposit)sea.release();else if(physics)releaseChunk(physics,true);liftPlane=null;}
+ activePointer=null;lastSplash=null;owner=null;if(e.type!=='pointerup'&&view.gizmo.dragging)view.gizmo.pointerUp(null);if(liftPlane){if(groundGesture)groundGesture.released=true;if(groundGesture?.water)sea.release();else if(physics)releaseChunk(physics,true);liftPlane=null;}
  queueMicrotask(()=>{if(activePointer===null){view.controls.enabled=true;view.gizmo.enabled=true;}});
  if(markBrush.pending){
   if(e.type==='pointerup')markBrush.move(e);
@@ -395,7 +395,7 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  $('validate').onclick=async()=>{if(baking)return notice('Wait for the current sculpt bake to finish.');$('validate').disabled=true;validating=true;try{if(!baker.gpu)await baker.init();else baker.validation=await baker.gpu.validate();$('validation').textContent=JSON.stringify(baker.validation,null,2);}catch(e){notice(e.message);}finally{$('validate').disabled=false;validating=false;pump();}};
  refresh();sync();view.frameWorld(library,test.framing);notice(loaded.message);boot.mark('Preparing isolated studio sculpt backend');if(cpuOnly){$('gpu').checked=false;$('gpu').disabled=true;}else await baker.init();$('validation').textContent=JSON.stringify(baker.validation,null,2);ensureVisible();
  let last=performance.now(),lastDraw=0,rateAt=last,frames=0;
- function tick(now){if(disposed||stop)return;frame=requestAnimationFrame(tick);if(now-lastDraw<1000/60-.3)return;lastDraw=now;const dt=Math.min(.1,(now-last)/1000);last=now;if(physics){physics.motorEnabled=$('motors').checked;try{if(playing){const elapsed=physics.advance(dt);simulationTotal+=elapsed;}view.applyPhysics(physics);}catch(e){playing=false;notice(e.message);}$('physics-status').textContent=`CPU · Rapier WASM · ${physics.bodies.size} bodies / ${physics.matter.count} loose parcels / ${physics.joints.length} body joints (${physics.broken} broken) / ${physics.structures.reduce((n,s)=>n+s.brokenBonds,0)} broken bonds / ${physics.structures.reduce((n,s)=>n+Math.max(0,s.bodies.size-1),0)} separated pieces / ${physics.colliderCount} colliders · ${physics.paintedHinges.count} painted hinges${physics.matter.meltedMass?' · '+physics.matter.meltedMass.toFixed(2)+' kg melted':''}\n${physics.time.toFixed(2)} s simulated · ${physics.lastStepMs.toFixed(2)} ms last step\nCarved proxy spacing ≤ ${physics.maxProxySpacing.toFixed(3)} m`;if(playing){time=physics.time%currentAsset().duration;$('time').value=time;$('time-label').textContent=time.toFixed(2)+' s';}}else {view.animate(0,false);if(view.sea){authoredWater.advance(sea);sea.advance(dt,authoredWater.collideDrop);}if(view.sand){sandTime+=dt;view.sand.advance(dt,windAt(wind(),sandTime),view.groundSurface)};}try{view.draw();}catch(e){stop=true;cancelAnimationFrame(frame);notice(e.message);return;}hover.update(now,playing||view.sea||view.sand);frames++;if(now-rateAt>1000){fields.read(physics);$('comparison').textContent=physics&&test.readout?test.readout(physics):'';$('rates').textContent=`${(frames*1000/(now-rateAt)).toFixed(1)} FPS · ${mode==='asset'?'Asset editor':'World preview'} · ${Math.min(1,simulationTotal*1000/(now-rateAt)).toFixed(2)}× physics · ${view.gaussianCount} surface splats · ${view.paintView.batches.reduce((n,b)=>n+b.rows.length,0)} painted details · ${view.implicitCount} implicit parts${baking?' · rebuilding surface':''}`;frames=0;simulationTotal=0;rateAt=now;}}
+ function tick(now){if(disposed||stop)return;frame=requestAnimationFrame(tick);if(now-lastDraw<1000/60-.3)return;lastDraw=now;const dt=Math.min(.1,(now-last)/1000);last=now;if(physics){physics.motorEnabled=$('motors').checked;try{if(playing){const elapsed=physics.advance(dt);simulationTotal+=elapsed;}view.applyPhysics(physics);}catch(e){playing=false;notice(e.message);}$('physics-status').textContent=`CPU · Rapier WASM · ${physics.bodies.size+(physics.stand?.records.size??0)} bodies / ${physics.matter.count} loose parcels / ${physics.joints.length} body joints (${physics.broken} broken) / ${physics.structures.reduce((n,s)=>n+s.brokenBonds,0)} broken bonds / ${physics.structures.reduce((n,s)=>n+Math.max(0,s.bodies.size-1),0)} separated pieces / ${physics.colliderCount+(physics.stand?.records.size??0)} colliders · ${physics.paintedHinges.count} painted hinges${physics.matter.meltedMass?' · '+physics.matter.meltedMass.toFixed(2)+' kg melted':''}\n${physics.time.toFixed(2)} s simulated · ${physics.lastStepMs.toFixed(2)} ms last step\nCarved proxy spacing ≤ ${physics.maxProxySpacing.toFixed(3)} m`;if(playing){time=physics.time%currentAsset().duration;$('time').value=time;$('time-label').textContent=time.toFixed(2)+' s';}}else {view.animate(0,false);if(view.sea){authoredWater.advance(sea);sea.advance(dt,authoredWater.collideDrop);}if(view.sand){sandTime+=dt;view.sand.advance(dt,windAt(wind(),sandTime),view.groundSurface)};}try{view.draw();}catch(e){stop=true;cancelAnimationFrame(frame);notice(e.message);return;}hover.update(now,playing||view.sea||view.sand);frames++;if(now-rateAt>1000){fields.read(physics);$('comparison').textContent=physics&&test.readout?test.readout(physics):'';$('rates').textContent=`${(frames*1000/(now-rateAt)).toFixed(1)} FPS · ${mode==='asset'?'Asset editor':'World preview'} · ${Math.min(1,simulationTotal*1000/(now-rateAt)).toFixed(2)}× physics · ${view.gaussianCount} surface splats · ${view.paintView.batches.reduce((n,b)=>n+b.rows.length,0)} painted details · ${view.implicitCount} implicit parts${baking?' · rebuilding surface':''}`;frames=0;simulationTotal=0;rateAt=now;}}
  frame=requestAnimationFrame(tick);boot.finish();
  // Diagnostics are read-only; numerical oracle is also available from the UI.
  window.__assetStudio={get diagnostics(){return {test:test.id,mode,assets:library.assets.length,materials:library.materials.length,placements:library.world.instances.length,implicit:view.implicitCount,water:!!view.sea,waterTime:view.sea?.time,drops:view.sea?.drops.length,wind:wind(),camera:view.camera.position.toArray(),baking,backend:baker.backend,validation:baker.validation,graphicsLost:!!view.failed,splats:[...view.surfaces.values()].reduce((n,s)=>n+s.positions.length/3,0),bakeMs,physics:physics?.diagnostics()||null,physicsBuilding};}};

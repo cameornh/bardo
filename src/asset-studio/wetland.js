@@ -81,32 +81,9 @@ export class Wetland {
     const angle=orientation+j*2.39996+.5*r(),reach=j?Math.sqrt(r())*1.7:0;
     const x=cx+reach*Math.cos(angle),z=cz+reach*Math.sin(angle),y=this.height(x,z);
     if(y<-.59||y>.70)continue;
-    out.push({x,y,z,yaw:r()*2*Math.PI,size:scale*(.78+.28*r()),variant:Math.floor(r()*5)});
+    out.push({id:'stand/'+tx+'/'+tz+'/'+i+'/'+j,x,y,z,yaw:r()*2*Math.PI,size:scale*(.78+.28*r()),variant:Math.floor(r()*5)});
    }
   }
   return out;
  }
-}
-
-// The water table is a reservoir. Only the handful leaving it becomes loose
-// water; released parcels rejoin it on contact or settle on the dry bed.
-export function disturbPond(sim,point,material,force=null){
- if(!material||sim.heldDeposit||sim.heldChunk||sim.matter.count+9>768)return false;
- const packets=[];
- for(let i=0;i<9;i++){
-  const angle=i*2.399963,r=.17*Math.sqrt(i/8),offset=point.clone().set(r*Math.cos(angle),0,r*Math.sin(angle));
-  const position=point.clone().add(offset),depth=-sim.matter.groundHeight(sim,position.x,position.z);
-  if(depth<=.005)continue;
-  const volume=.009*Math.min(.10,depth),radius=.87*Math.cbrt(.238732*volume);
-  offset.y=radius;position.y=radius;
-  packets.push({position,volume,radius,material,gripOffset:offset});
- }
- if(!packets.length)return false;
- const key='pond-'+(++sim.chunkSerial),group=sim.matter.addPackets(sim,key,material,packets,true,key);
- if(force===null){group.grip={target:point.clone()};sim.heldDeposit=group;}
- else{
-  const speed=Math.min(4,.6+.018*Math.sqrt(force));
-  for(const p of packets)p.body.setLinvel({x:5*p.gripOffset.x,y:speed,z:5*p.gripOffset.z},true);
- }
- return true;
 }

@@ -1,7 +1,8 @@
 import * as T from 'three';
 import {wetlandGLSL} from './wetland.js';
+import {reedFamily,instancedReed} from './reed-stand.js';
 import {WetlandReeds} from './wetland-reeds.js';
-import {sandReliefShader} from './ground-surface.js';
+import {reflectedSurfaceClip} from './wave-surface.js';
 
 // Each axis is a nested world-space lattice. Adjacent strips share their
 // actual vertices, including at changes of spacing and across the origin.
@@ -31,75 +32,61 @@ const habitat=`
   return moist*(.08+.92*smoothstep(.20,.75,landNoise((p+survey)/9.)));
  }`;
 const lattice=`attribute vec2 gridStep;
- vec2 landPoint(){return floor(cameraPosition.xz/gridStep+.5)*gridStep+position.xz;}`;
+ uniform vec2 landEye;vec2 landPoint(){vec2 cell=landEye/gridStep;return (floor(cell)+smoothstep(vec2(0.),vec2(1.),fract(cell)))*gridStep+position.xz;}`;
 export class WetlandView{
  constructor(view,lighting){
   this.view=view;this.geometry=groundGrid();
-  this.uniforms={...view.groundMaterial.uniforms,survey:{value:new T.Vector2()},windClock:{value:0},flow:{value:new T.Vector2()},waterTint:{value:new T.Color()},rings:{value:Array.from({length:8},()=>new T.Vector4())}};
+  this.uniforms={...view.groundMaterial.uniforms,...Object.fromEntries(
+   ['height0','height1','height2','bandMix','rings','ringCount','ringAttenuation','clipWaves','clipHeights','clipFloor'].map(k=>[k,view.uniforms[k]])),
+   survey:{value:new T.Vector2()},landEye:{value:new T.Vector2()}};
   const bed=view.groundMaterial;
   this.terrain=new T.ShaderMaterial({uniforms:this.uniforms,
    vertexShader:wetlandGLSL+habitat+lattice+'varying vec2 duneSlope;\n'+bed.vertexShader
-    .replace('worldPosition=(modelMatrix*vec4(position,1.)).xyz;', 'vec2 p0=landPoint();float h=landHeight(p0);worldPosition=vec3(p0.x,h,p0.y);duneSlope=vec2(h-landHeight(p0+vec2(.3,0)),h-landHeight(p0+vec2(0,.3)))/.3;standCover=colony(p0,h);'),
-   fragmentShader:'varying vec2 duneSlope; varying float standCover;\n'+bed.fragmentShader.replace('vec3 prior=n;',`
-    n=normalize(vec3(duneSlope.x+n.x/n.y,1.,duneSlope.y+n.z/n.y));
-    float damp=1.-smoothstep(-.12,.84,p.y);
+    .replace('worldPosition=(modelMatrix*vec4(position,1.)).xyz;', 'vec2 p0=landPoint();float h=landHeight(p0);float flatten=smoothstep(10.,60.,abs(cameraPosition.y))*smoothstep(38.,120.,length(p0-landEye));worldPosition=vec3(p0.x,h*(1.-flatten),p0.y);duneSlope=vec2(h-landHeight(p0+vec2(.3,0)),h-landHeight(p0+vec2(0,.3)))/.3;standCover=colony(p0,h);'),
+   fragmentShader:wetlandGLSL+reflectedSurfaceClip+habitat+'varying vec2 duneSlope;\n'+bed.fragmentShader
+    .replace('length(cameraPosition-p)*.003','length(cameraPosition-p)*.00013')
+    .replace('vec3 prior=n;', `if(clipWaves&&belowReflector(p))discard;
+     float span=max(length(dFdx(p.xz)),length(dFdy(p.xz)));
+     float farMix=smoothstep(32.,110.,length(p.xz-cameraPosition.xz));
+     float h=p.y;vec2 slope=duneSlope;float cover=standCover;
+     if(farMix>0.){
+      float exact=landHeight(p.xz),dx=clamp(span,.35,5.);
+      slope=mix(slope,vec2(exact-landHeight(p.xz+vec2(dx,0)),exact-landHeight(p.xz+vec2(0,dx)))/dx,farMix);
+      h=mix(h,exact,farMix);cover=mix(cover,colony(p.xz,h),farMix);
+     }
+     vec3 prior=n;`)
+    .replace('vec3 prior=n;',`
+    n=normalize(vec3(slope.x+n.x/n.y,1.,slope.y+n.z/n.y));
+    float damp=1.-smoothstep(-.12,.84,h);
     base*=mix(vec3(1.),vec3(.51,.53,.44),damp);
     float remote=smoothstep(24.,66.,length(cameraPosition-p));
-    base=mix(base,vec3(.11,.145,.055),standCover*(.17+.62*remote));
-    vec3 prior=n;`)});
-  this.waterMaterial=new T.ShaderMaterial({uniforms:this.uniforms,transparent:true,depthWrite:false,side:T.DoubleSide,forceSinglePass:true,
-   vertexShader:'#define SAND_VERTEX\n'+sandReliefShader+wetlandGLSL+habitat+lattice+`
-    varying vec3 point;varying float depth;void main(){vec2 p=landPoint();point=vec3(p.x,0.,p.y);
-    float h=landHeight(p),nearby=1.-smoothstep(25.,65.,length(cameraPosition.xz-p));
-    if(nearby>0.)h+=nearby*(sandHeight(p)+localSurface(p).x);
-    depth=-h;standCover=colony(p,h);
-    gl_Position=projectionMatrix*viewMatrix*vec4(point,1.);}`,
-   fragmentShader:lighting+`
-    uniform vec2 flow;uniform float windClock;uniform vec3 waterTint;
-    varying vec3 point;varying float depth,standCover;uniform vec4 rings[8];
-    void main(){
-     if(depth<=0.)discard;
-     float speed=length(flow);vec2 d=speed>.001?flow/speed:vec2(1.,0.);
-     vec2 q=vec2(dot(point.xz,d),dot(point.xz,vec2(-d.y,d.x)));
-     float t=windClock*sqrt(speed+.01)*.6;
-     float detail=1.-smoothstep(.05,.7,length(fwidth(q)));
-     vec2 wave=vec2(cos(q.x*3.2+.67*sin(q.y*1.14)-t)+.38*cos(q.x*7.1+q.y*2.8-1.7*t),
-      .41*cos(q.y*2.3-q.x*4.5+t));
-     vec2 slope=(wave.x*d+wave.y*vec2(-d.y,d.x))*detail*min(.07,.005*speed);
-     for(int i=0;i<8;i++){vec2 delta=point.xz-rings[i].xy;float age=windClock-rings[i].z;
-      if(rings[i].w>0.&&age>=0.&&age<3.){float r=length(delta),crest=r-age*1.45;
-       slope+=detail*rings[i].w*delta/max(.06,r)*sin(crest*18.)*exp(-6.*crest*crest-age*1.2);}}
-     vec3 n=normalize(vec3(slope.x,1.,slope.y)),v=normalize(cameraPosition-point);
-     float fres=.025+.975*pow(1.-abs(dot(n,v)),5.);
-     vec3 sky=env(reflect(-v,n),0.);
-     float glint=pow(max(0.,dot(reflect(normalize(vec3(.6,-1.,-.5)),n),v)),120.);
-     float trans=exp(-max(.03,depth)*1.4/max(.30,abs(v.y)));
-     float opacity=1.-(1.-fres)*trans;
-     vec3 deep=mix(waterTint*vec3(.24,.46,.33),vec3(.08,.15,.065),standCover*.30);
-     vec3 water=(deep*(1.-trans)*(1.-fres)+sky*fres)/max(.001,opacity)+vec3(.9,.83,.65)*glint;
-     gl_FragColor=vec4(mix(water,vec3(.38,.45,.48),1.-exp(-.004*length(cameraPosition-point))),opacity);
-     #include <tonemapping_fragment>
-     #include <colorspace_fragment>
-    }`});
-  this.waterScene=new T.Scene();this.water=new T.Mesh(this.geometry,this.waterMaterial);this.water.frustumCulled=false;this.waterScene.add(this.water);
+    base=mix(base,vec3(.11,.145,.055),cover*(.17+.62*remote));
+    vec3 prior=n;`)
+    .replace('vec2 finish=groundFinish(p.xz);',`if(farMix>0.){
+      // Depth belongs to the ray through this pixel. A vertical correction
+      // projects to another pixel and exposes whole coarse triangles at a bank.
+      vec3 ray=p-cameraPosition;float delta=0.;
+      if(abs(ray.y)>.001)delta=clamp((h-p.y)/ray.y,-.35,.35);
+      vec3 at=mix(vec3(p.x,h,p.z),p+delta*ray,smoothstep(10.,60.,abs(cameraPosition.y)));
+      vec4 d=projectionMatrix*viewMatrix*vec4(at,1.);
+      gl_FragDepth=clamp(.5+.5*d.z/d.w,0.,1.);
+     }vec2 finish=groundFinish(p.xz);`)});
   this.reeds=new WetlandReeds(view,lighting);
  }
  configure(land,library){
   this.land=land;this.uniforms.survey.value.set(land.x,land.z);
-  this.uniforms.waterTint.value.set(library.materials.find(m=>m.id==='water')?.color??'#668d92');
-  const clumps=library.families.find(f=>f.id==='example-rushes')?.members??[];
-  const assets=clumps.map(m=>library.assets.find(a=>a.id===m.assetId)).filter(a=>a?.parts.every(p=>p.stamps[0]?.shape==='capsule'&&p.marks));
-  const placed=library.world.instances.filter(i=>assets.some(a=>a.id===i.assetId));
-  this.reeds.configure(assets,library.materials,placed.map(i=>i.transform.position));
+  const assets=reedFamily(library);
+  const placed=library.world.instances.filter(i=>assets.some(a=>instancedReed(a)&&a.id===i.assetId));
+  this.reeds.configure(assets,library.materials,placed);
+  for(const i of placed)this.view.groups.get(i.id).visible=false;
  }
  update(view,wind,time){
-  const u=this.uniforms,heading=wind.heading*Math.PI/180;u.flow.value.set(Math.cos(heading),Math.sin(heading)).multiplyScalar(wind.speed);
-  u.windClock.value=time;this.reeds.update(this.land,view.camera,wind,time);
+  // Preserve enough depth precision to resolve a centimetre of water over a bank
+  // when the orbit is kilometres above the terrain. Keep the close-up near plane.
+  const near=Math.max(.03,(Math.abs(view.camera.position.y)-9)*.012);
+  if(view.camera.near!==near){view.camera.near=near;view.camera.updateProjectionMatrix();}
+  this.uniforms.landEye.value.set(view.camera.position.x,view.camera.position.z);
+  this.reeds.update(this.land,view.camera,wind,time,view);
  }
- splash(x,z,time,force){
-  const rings=this.uniforms.rings.value;this.nextRing=((this.nextRing??-1)+1)%rings.length;
-  rings[this.nextRing].set(x,z,time,Math.min(.38,.08+Math.sqrt(force)*.0015));
- }
- drawWater(renderer,camera){renderer.autoClear=false;renderer.render(this.waterScene,camera);}
- dispose(){this.geometry.dispose();this.terrain.dispose();this.waterMaterial.dispose();this.reeds.dispose();}
+ dispose(){this.geometry.dispose();this.terrain.dispose();this.reeds.dispose();}
 }

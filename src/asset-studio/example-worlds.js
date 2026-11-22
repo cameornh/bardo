@@ -47,7 +47,7 @@ export const exampleWorlds=[
     sim.materialWorld.heatVolumeOver(sim.get(id,'body'),id,dose,4);
   }},
  {id:'wetland',name:'Wind garden',seed:GARDEN_SEED,framing:{direction:[.68,.42,-1],groundMargin:2.8},tool:'nudge',
-  guide:'Pan to explore dune ridges and flooded hollows. Play to see the reeds bend, or nudge one of the five editable clumps at the starting bank.',
+  guide:'Pan to explore dune ridges and flooded hollows. Play to nudge stems on any bank. Use Ground impulse or Lift / drop in the ponds.',
   create:(_ground,seed=GARDEN_SEED)=>world('sand',8,-25,(place,l)=>populateWindGarden(l,place,seed))},
  {id:'tidepool',name:'Floats and breakers',tool:'splash',guide:'Play to release the floats onto the waves. Raise the wind for breaking crests, spray and organic foam. Use the ground tools to lift or throw water.',
   create:()=>world('water',13,32,(place,l)=>{

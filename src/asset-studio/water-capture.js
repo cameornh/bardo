@@ -15,7 +15,7 @@ export class WaterCapture{
    sceneColor:{value:this.source.texture},sceneDepth:{value:this.source.depthTexture},
    mirrorColor:{value:this.mirror.texture},mirrorVP:{value:new THREE.Matrix4()},
    viewport:{value:new THREE.Vector2()},inverseProjection:{value:new THREE.Matrix4()},
-   submerged:{value:0},absorption:{value:0},scattering:{value:.05},ior:{value:1.333},opacity:{value:.45}
+   submerged:{value:0},finiteBed:{value:false},absorption:{value:0},scattering:{value:.05},ior:{value:1.333},opacity:{value:.45}
   });
   const geometry=new THREE.BufferGeometry();
   geometry.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,3,-1,0,-1,3,0],3));
@@ -40,7 +40,8 @@ export class WaterCapture{
   if(!mirrorOnly){this.source.setSize(w,h);this.bulk.setSize(sea?w:1,sea?h:1);}
   this.mirror.setSize(Math.max(1,Math.ceil(w*.5)),Math.max(1,Math.ceil(h*.5)));
   u.inverseProjection.value.copy(camera.projectionMatrixInverse);
-  u.submerged.value=Number(!!sea&&camera.position.y<sea.height(camera.position.x,camera.position.z));
+  u.finiteBed.value=!!view.garden;
+  u.submerged.value=Number(!!sea&&camera.position.y<sea.height(camera.position.x,camera.position.z)&&(!view.garden||camera.position.y>(view.activePhysics?.sandTerrain??view.sand).height(camera.position.x,camera.position.z)));
   // Only trace transmission where the refracted ray can reach authored geometry.
   // Sparse infinite ocean otherwise has a constant-cost deep-water solution.
   this.bounds.makeEmpty();view.assetScene.updateMatrixWorld(true);
@@ -65,6 +66,8 @@ export class WaterCapture{
     this.bounds.union(this.partBounds.applyMatrix4(mesh.matrixWorld));
    }
   }
+  if(view.garden){this.bounds.expandByPoint(this.partBounds.min.set(camera.position.x-12000,-12,camera.position.z-12000));
+   this.bounds.expandByPoint(this.partBounds.max.set(camera.position.x+12000,8,camera.position.z+12000));}
   if(this.bounds.isEmpty()){u.boundsMin.value.setScalar(1);u.boundsMax.value.setScalar(-1);}
   else{this.bounds.expandByScalar(.08);u.boundsMin.value.copy(this.bounds.min);u.boundsMax.value.copy(this.bounds.max);}
   const output=r.getRenderTarget(),alpha=r.getClearAlpha();r.getClearColor(this.clearColor);u.skyColor.value.copy(this.clearColor);
@@ -88,7 +91,11 @@ export class WaterCapture{
    view.uniforms.cameraWorld.value=c.matrixWorld;
    view.uniforms.clipFloor.value=-.012;u.clipWaves.value=!!sea;
    const patch=view.groundEdits?.patch,hadPatch=patch?.visible;if(patch)patch.visible=false;
-   const floor=view.ground.visible;view.ground.visible=false;view.drawObjects(c);view.ground.visible=floor;if(patch)patch.visible=hadPatch;
+   const floor=view.ground.visible;view.ground.visible=!!view.garden;
+   // Even an untaken metallic branch must not bind the current render target.
+   if(view.garden)u.mirrorColor.value=null;
+   view.drawObjects(c);
+   u.mirrorColor.value=this.mirror.texture;view.ground.visible=floor;if(patch)patch.visible=hadPatch;
   }
   r.setClearColor(this.clearColor,alpha);r.setRenderTarget(mirrorOnly?output:this.source);
   view.uniforms.viewport.value.copy(u.viewport.value);

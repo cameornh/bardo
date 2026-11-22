@@ -64,7 +64,10 @@ export class LooseMatter{
   }
   if(!sim.pondDensity&&depth<.001)return null;
   const bottom=this.groundHeight(sim,x,z);
-  if(sim.pondDensity&&bottom<0){depth-=bottom;densityMass-=bottom*sim.pondDensity;}
+  if(sim.pondDensity){
+   const water=Math.max(0,(sim.pondSea?.height(x,z)??0)-bottom);
+   depth+=water;densityMass+=water*sim.pondDensity;
+  }
   if(depth<.001)return null;
   return {top:bottom+depth,bottom,density:densityMass/depth};
  }
@@ -97,7 +100,8 @@ export class LooseMatter{
      p.body.applyImpulse({x:(wx*wind.speed*.2-v.x)*drag,y:(.45-v.y)*drag,z:(wz*wind.speed*.2-v.z)*drag},true);
      continue;
     }
-    const surface=sea?sea.height(pos.x,pos.z):sim.pondDensity&&this.groundHeight(sim,pos.x,pos.z)<0?0:-Infinity;
+    const level=(sea??sim.pondSea)?.height(pos.x,pos.z)??-Infinity;
+    const surface=sim.pondSea&&this.groundHeight(sim,pos.x,pos.z)>=level?-Infinity:level;
     if(sim.pondDensity&&m.id==='water'&&pos.y<=surface+r*.15&&v.y<=0){
      world.removeRigidBody(p.body);packets.splice(i,1);this.count--;continue;
     }
@@ -133,7 +137,7 @@ export class LooseMatter{
     // surrounding water. Only their exposed area receives direct wind load.
     const submerged=Math.max(0,Math.min(1,.5+(surface-pos.y)/(2*r)));
     if(submerged>0){
-     const flow=sea?.flow(pos.x,pos.z)??stillWater,displaced=p.volume*(sim.pondDensity??sim.waterDensity)*submerged;
+     const flow=(sea??sim.pondSea)?.flow(pos.x,pos.z)??stillWater,displaced=p.volume*(sim.pondDensity??sim.waterDensity)*submerged;
      const drag=Math.min(.4*p.body.mass(),dt*displaced*(2+.45*Math.hypot(flow.x-v.x,flow.y-v.y,flow.z-v.z)));
      p.body.applyImpulse({x:(flow.x-v.x)*drag,y:(flow.y-v.y)*drag-dt*displaced*world.gravity.y,z:(flow.z-v.z)*drag},true);
     }
@@ -204,6 +208,7 @@ export class DuneContacts{
   };
   for(const node of sim.cuts?.nodes.values()||[])mark(node,L/n+.01);
   for(const r of sim.bodies.values())mark(r.body.translation(),Math.min(L,1+r.probeRadius));
+  for(const r of sim.stand?.records.values()??[])mark(r.body.translation(),1);
   for(const c of sim.chunks?.values()||[])mark(c.body.translation(),1);
   for(const g of sim.matter.parts.values())if(!sim.sandTerrain||g.material.id!==sim.groundMaterial.id)for(const p of g.packets)mark(p.position,p.radius+.5);
   const sand=sim.sand,R=sim.R,scale={x:L,y:1,z:L};

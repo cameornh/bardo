@@ -75,26 +75,27 @@ export function stepChunks(sim,dt){
   }
  }
 }
-export function strikeGround(sim,point,force){
- const tile=sim.materialWorld?.ground(sim,point.x,point.z,false),base=tile?.material??sim.groundMaterial;
+export function strikeGround(sim,point,force,water=sim.sea,waterMaterial=null){
+ const tile=!waterMaterial&&sim.materialWorld?.ground(sim,point.x,point.z,false),base=waterMaterial??tile?.material??sim.groundMaterial;
  const strength=tile?.strength??1;
  const m=tile?{...base,moisture:Math.min(1,tile.water/tile.mass),youngModulus:base.youngModulus*strength,
   yieldStress:base.yieldStress*strength,cohesion:base.cohesion*strength,adhesion:base.adhesion*strength}:base;
  const {reach,dent,recovery}=impactResponse(m,force);
  // Project onto actual collision shapes so a bulk impulse only reaches things touching the ground.
- for(const [key,r] of [...sim.bodies,...sim.chunks]){
+ sim.stand?.around(point,Math.min(4,4*reach));
+ for(const [key,r] of [...sim.bodies,...sim.chunks,...(sim.stand?.records??[])]){
   const b=r.body;if(!b.isDynamic()&&!r.structure)continue;
   const origin=b.translation(),center=r.probeCenter?.clone().applyQuaternion(b.rotation()).add(origin)??origin;
   if(Math.hypot(center.x-point.x,center.z-point.z)>8*reach+(r.probeRadius||CELL))continue;
-  const probe=sim.sea?point:{x:point.x,y:Math.min(point.y,origin.y)-.3,z:point.z};
+  const probe=water?point:{x:point.x,y:Math.min(point.y,origin.y)-.3,z:point.z};
   let best=null,nearest=Infinity;
   for(let i=0;i<b.numColliders();i++){
-   const contact=b.collider(i).projectPoint(probe,!!sim.sea)?.point;
+   const contact=b.collider(i).projectPoint(probe,!!water)?.point;
    if(!contact)continue;
-   const surface=sim.sea?.height(contact.x,contact.z)??sim.matter.groundHeight(sim,contact.x,contact.z);
+   const surface=water?.height(contact.x,contact.z)??sim.matter.groundHeight(sim,contact.x,contact.z);
    const gap=contact.y-surface;
-   const distance=Math.hypot(point.x-contact.x,point.z-contact.z,sim.sea?point.y-contact.y:0);
-   const touching=sim.sea?gap<.09:Math.abs(gap)<.09;
+   const distance=Math.hypot(point.x-contact.x,point.z-contact.z,water?point.y-contact.y:0);
+   const touching=water?gap<.09:Math.abs(gap)<.09;
    if(touching&&distance<nearest){nearest=distance;best=contact;}
   }
   if(!best||nearest>8*reach)continue;
@@ -102,7 +103,7 @@ export function strikeGround(sim,point,force){
   if(r.part)sim.addPulse(key,sim.localPoint(r,new Vector3().copy(best)),pulse,.075);
   else b.applyImpulseAtPoint(pulse.multiplyScalar(.075),best,true);
  }
- if(sim.sea){sim.sea.splash(point.x,point.z,Math.min(3,Math.sqrt(force/5000)),0,0,reach);return true;}
+ if(water){water.splash(point.x,point.z,Math.min(3,Math.sqrt(force/5000)),0,0,reach);return true;}
  if(looseKind(m)===1||m.phase==='gas'){
   if(force<=CELL*CELL*m.cohesion)return true;
   if(sim.matter.count+(sim.sandTerrain?8:18)*(sim.heldChunk?.loose?2:1)>768)return false;

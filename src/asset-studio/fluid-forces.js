@@ -38,7 +38,7 @@ export function applyEnvironment(record,sea,waterDensity,wind,gravity,dt,column)
   pt.copy(sample.p).applyQuaternion(rotation).add(center);
   const e=sample.extent,r=Math.max(.01,Math.abs(up.x)*e.x+Math.abs(up.y)*e.y+Math.abs(up.z)*e.z);
   const pool=column?.(pt.x,pt.z);
-  const wet=sea?Math.max(0,Math.min(1,.5+(sea.height(pt.x,pt.z)-pt.y)/(2*r))):pool?Math.max(0,Math.min(pt.y+r,pool.top)-Math.max(pt.y-r,pool.bottom))/(2*r):0;
+  const wet=sea&&!column?Math.max(0,Math.min(1,.5+(sea.height(pt.x,pt.z)-pt.y)/(2*r))):pool?Math.max(0,Math.min(pt.y+r,pool.top)-Math.max(pt.y-r,pool.bottom))/(2*r):0;
   if(!wet&&!wind.speed)continue;
   const portion=sample.volume/record.fluidVolume,limit=b.mass()*portion*.38/dt;
   velocity.copy(b.velocityAtPoint(pt));force.set(0,0,0);
@@ -70,7 +70,7 @@ export function applyEnvironment(record,sea,waterDensity,wind,gravity,dt,column)
 
 // Probe the actual collision surface, including holes in compound sculpts and fixed parts.
 export function waveImpact(sim,record){
- const sea=sim.sea,entry=record.entryImpact,b=record.body;
+ const sea=sim.sea??sim.pondSea,entry=record.entryImpact,b=record.body;
  if(!entry&&(sea.speed<4||sea.time<(record.nextProbe||0)))return;
  const center=new Vector3().copy(record.probeCenter).applyQuaternion(b.rotation()).add(b.translation());
  sampleWaveContact(sea,record,center,record.probeRadius,b.linvel(),(origin,dir,reach)=>{
@@ -83,6 +83,7 @@ export function sampleWaveContact(sea,record,center,radius,velocity,probe){
  const entry=record.entryImpact;
  record.entryImpact=false;record.nextProbe=sea.time+.18;
  const level=sea.height(center.x,center.z);
+ if(sea.bedHeight&&sea.bedHeight(center.x,center.z)>=level)return;
  if(Math.abs(center.y-level)>radius+.08)return;
  const flow=sea.flow(center.x,center.z),relative=(flow.x-velocity.x)*sea.wx+(flow.z-velocity.z)*sea.wz;
  if(!entry&&(flow.y<.12||relative<.23||sea.time<(record.nextBreaker||0)))return;

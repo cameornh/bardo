@@ -28,7 +28,7 @@ export const interfaceOptics = /* glsl */`
  uniform vec3 skyColor,boundsMin,boundsMax;
  uniform vec4 properties;
  uniform mat4 mirrorVP,projectionMatrix;
- uniform float submerged;
+ uniform float submerged;uniform bool finiteBed;
  vec3 opticalSurface(vec3 p,vec3 normal,float thickness,float bubbles){
   vec3 incident=normalize(p-cameraPosition),n=faceforward(normal,incident,normal);
   vec3 vp=(viewMatrix*vec4(p,1.)).xyz;
@@ -54,6 +54,17 @@ export const interfaceOptics = /* glsl */`
   }else
   #endif
   {
+   // A finite pond has a visible bed behind the interface. At silhouettes
+   // the bent ray can leave the depth image: use the original sight line's
+   // thickness and radiance there, continuously tending to zero at the bank.
+   if(finiteBed&&!under){
+    float bedDepth=texture2D(sceneDepth,uv).r;
+    if(bedDepth<1.){
+     vec3 bed=viewPoint(uv,bedDepth);
+     travel=max(0.,vp.z-bed.z)*min(4.,length(vp)/max(.02,-vp.z));
+     through=texture2D(sceneColor,uv).rgb;
+    }
+   }
    // March the refracted ray against the source depth. A single UV offset
    // duplicates silhouettes when the original pixel straddles a depth edge.
    vec3 safeDir=mix(vec3(.000001),transmitted,greaterThan(abs(transmitted),vec3(.000001)));

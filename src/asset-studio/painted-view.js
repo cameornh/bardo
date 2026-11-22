@@ -120,7 +120,9 @@ export class PaintedView{
  }
  update(view,sim){
   if(this.sim!==sim||this.revision!==sim?.paintedHinges?.revision)return this.rebuild(view,sim);
-  for(const {mesh,owner,rows} of this.batches){
+  for(const {mesh,owner,rows,id} of this.batches){
+   mesh.visible=view.groups.get(id)?.visible!==false;
+   if(!mesh.visible)continue;
    if(!sim)owner.updateWorldMatrix(true,false);
    mesh.matrix.copy(sim?owner.matrix:owner.matrixWorld);mesh.matrixWorldNeedsUpdate=true;
    if(sim){const attr=mesh.geometry.attributes.swing;let dirty=false;
@@ -147,6 +149,7 @@ export class PaintedView{
  pick(ray,nearest=null){
   const inverse=new T.Matrix4(),local=new T.Ray();
   for(const b of this.batches){
+   if(!b.mesh.visible)continue;
    const matrix=b.mesh.matrix;local.copy(ray).applyMatrix4(inverse.copy(matrix).invert());
    if(!local.intersectsBox(b.mesh.geometry.boundingBox))continue;
    for(const {mark:m,angle=0,owner} of b.rows){

@@ -37,7 +37,7 @@ export class OceanView{
   geometry.setAttribute('spacing',new THREE.BufferAttribute(spacing,1));
   const material=new THREE.ShaderMaterial({uniforms:this.uniforms,side:THREE.DoubleSide,
    vertexShader:wave+`
-   varying vec3 surface;
+   varying vec3 surface;uniform bool finiteBed;
    #ifdef BREAKING_GRID
    ${breakerVertex}
    #else
@@ -51,7 +51,7 @@ export class OceanView{
     surface.y=surfaceHeight(surface.xz,spacing);
     #endif
     vec4 clip=projectionMatrix*viewMatrix*vec4(surface,1.);
-    gl_Position=vec4(clip.xy,min(clip.z,clip.w*.9999997),clip.w);}`,
+    gl_Position=finiteBed?clip:vec4(clip.xy,min(clip.z,clip.w*.9999997),clip.w);}`,
    fragmentShader:wave+lighting+medium+interfaceOptics+`varying vec3 surface;
    #ifdef BREAKING_GRID
    varying vec3 dxOffset,dzOffset;

@@ -159,6 +159,7 @@ export class StudioView{
  setLandscape(land,library){
   if(land){this.wetland??=new WetlandView(this,LIGHTING);this.wetland.configure(land,library);}
   this.garden=land?this.wetland:null;
+  if(!land&&this.camera.near!==.03){this.camera.near=.03;this.camera.updateProjectionMatrix();}
   if(this.wetland)this.wetland.reeds.group.visible=!!land;
   this.ground.material=this.garden?.terrain??this.groundMaterial;
   this.ground.frustumCulled=!land;
@@ -264,11 +265,12 @@ export class StudioView{
  attach(instanceId,partId,tool){this.gizmo.detach();if(!['translate','rotate','scale'].includes(tool))return;const group=this.groups.get(this.mode==='asset'?'editor':instanceId);if(!group)return;const obj=this.mode==='asset'?group.children.find(p=>p.userData.partId===partId):group;if(!obj)return;
  if(this.mode==='asset'){obj.matrix.decompose(obj.position,obj.quaternion,obj.scale);}this.gizmo.setMode(tool);this.gizmo.setSpace(this.mode==='asset'?'local':'world');this.gizmo.attach(obj);}
  ray(event){const rect=this.canvas.getBoundingClientRect();this.pointer.set((event.clientX-rect.left)/rect.width*2-1,1-(event.clientY-rect.top)/rect.height*2);this.scene.updateMatrixWorld(true);this.assetScene.updateMatrixWorld(true);this.raycaster.setFromCamera(this.pointer,this.camera);return this.raycaster.ray;}
- pick(event,{optimized=this.fastPicking===true,marks=true}={}){const ray=this.ray(event);let nearest=null;const local=new THREE.Ray(),inverse=new THREE.Matrix4(),p=new THREE.Vector3(),normal=new THREE.Vector3(),delta=new THREE.Vector3(),worldScratch=new THREE.Vector3(),bounds=new THREE.Sphere();for(const group of this.groups.values())for(const part of group.children){if(!part.visible)continue;const mesh=part.children[0];
+ pick(event,{optimized=this.fastPicking===true,marks=true}={}){const ray=this.ray(event);let nearest=null;const local=new THREE.Ray(),inverse=new THREE.Matrix4(),p=new THREE.Vector3(),normal=new THREE.Vector3(),delta=new THREE.Vector3(),worldScratch=new THREE.Vector3(),bounds=new THREE.Sphere();for(const group of this.groups.values())for(const part of group.children){if(!group.visible||!part.visible)continue;const mesh=part.children[0];
  if(mesh?.userData.implicit){const hit=intersectImplicit(ray,mesh);if(hit){const distance=ray.origin.distanceTo(hit.point);
   if(!nearest||distance<nearest.distance)nearest={...hit,materialId:part.userData.stampMaterial,distance,partId:part.userData.partId,instanceId:group.userData.instanceId,assetId:group.userData.assetId};}continue;}
  const key=group.userData.assetId+':'+part.userData.partId,s=this.surfaces.get(key);if(!s)continue;inverse.copy(part.matrixWorld).invert();local.copy(ray).applyMatrix4(inverse);const tolerance=s.spacing*1.25;const moving=this.activePhysics?.matter.parts;if(optimized){const geometry=this.cache.get(key);if(geometry?.boundingSphere){bounds.copy(geometry.boundingSphere);bounds.radius+=tolerance;if(!local.intersectsSphere(bounds))continue;}}
  for(let i=0;i<s.positions.length;i+=3){if(moving?.has(group.userData.instanceId+':'+part.userData.partId+'/'+s.materials[i/3]))continue;p.fromArray(s.positions,i);const t=(optimized?delta.copy(p):p.clone()).sub(local.origin).dot(local.direction);if(t<0||local.distanceSqToPoint(p)>tolerance*tolerance)continue;const world=(optimized?worldScratch.copy(p):p.clone()).applyMatrix4(part.matrixWorld),distance=world.distanceTo(ray.origin);if(nearest&&distance>=nearest.distance)continue;normal.fromArray(s.normals,i).applyNormalMatrix(new THREE.Matrix3().getNormalMatrix(part.matrixWorld));nearest={point:world.clone(),normal:normal.clone(),distance,partId:part.userData.partId,instanceId:group.userData.instanceId,localPoint:p.clone(),materialId:s.materials[i/3],assetId:group.userData.assetId};}}
+ if(this.garden)nearest=this.garden.reeds.pick(ray,nearest,this.activePhysics,marks);
  if(marks&&this.paintView?.batches.length)nearest=this.paintView.pick(ray,nearest);
  nearest=this.sectionView?.pick(this.raycaster,nearest)??nearest;
  for(const [chunk,mesh] of this.groundEdits?.meshes||[]){
@@ -285,8 +287,8 @@ export class StudioView{
  }
  const ground=this.sea||this.sand||this.activePhysics?.cuts?.nodes.size?this.waterHit(ray):ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());if(ground&&(!nearest||ground.distanceTo(ray.origin)<nearest.distance))nearest={point:ground,normal:new THREE.Vector3(0,1,0),distance:ground.distanceTo(ray.origin),ground:true};
  if(this.garden){
-  const point=ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
-  if(point&&(!nearest||point.distanceTo(ray.origin)<nearest.distance)&&(this.activePhysics?.sandTerrain??this.sand).height(point.x,point.z)<0)
+  const point=firstSurfaceHit(ray,(x,z)=>this.sea.height(x,z),nearest?.distance??this.camera.far,6);
+  if(point&&(!nearest||point.distanceTo(ray.origin)<nearest.distance)&&(this.activePhysics?.sandTerrain??this.sand).height(point.x,point.z)<point.y)
    nearest={point,ground:true,pond:true,normal:new THREE.Vector3(0,1,0),distance:point.distanceTo(ray.origin)};
  }
  return nearest;}
@@ -294,14 +296,14 @@ export class StudioView{
   const hit=this.pick(pointer,{optimized:true});
   if(hit?.pond)return this.library.materials.find(m=>m.id==='water');
   if(hit?.ground)return this.groundSurface;
-  if(this.sea&&this.oceanView.parcels.intersectsRay(this.raycaster.ray,hit?.distance??this.camera.far))return this.groundSurface;
+  if(this.sea&&this.oceanView.parcels.intersectsRay(this.raycaster.ray,hit?.distance??this.camera.far))return this.waterMaterial;
   if(hit?.chunk)return hit.chunk.material;
   if(hit?.looseGroup)return this.activePhysics.matter.parts.get(hit.looseGroup)?.material;
   const id=hit?.bedMaterial??hit?.materialId;
   return this.library.materials[this.materialIndices.get(id)];
  }
  waterHit(ray){
-  const terrain=this.sea||this.activePhysics?.sandTerrain||this.sand,cuts=this.activePhysics?.cuts;
+  const terrain=this.activePhysics?.sandTerrain||this.sand||this.sea,cuts=this.activePhysics?.cuts;
   if(!terrain&&!cuts?.nodes.size)return ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
   const height=(x,z)=>(terrain?.height(x,z)??0)+(cuts?.offset(x,z)??0);
   return firstSurfaceHit(ray,height,this.camera.far,(this.garden?12:5)+(this.activePhysics?.sandTerrain?.maxOffset||0));
@@ -338,14 +340,14 @@ export class StudioView{
  draw(){if(this.failed)throw Error('Studio graphics context lost; stopped.');this.controls.update();if(this.liveStudio){
  this.paintView.update(this,this.activePhysics??null);
  for(const drift of this.matterView.saltation.values())drift.updateEye(this.camera.position);
- this.groundEdits.update(this.activePhysics);this.sandView.update(this.sand,this.groundSurface,this.camera.position);this.finishMap.update(this.sea?null:this.activePhysics?.materialWorld,this.groundSurface);this.ground.geometry=this.garden?this.garden.geometry:this.sand?this.reliefFloor:this.flatFloor;this.groundMaterial.uniforms.granular.value=!!this.sand;
- this.ground.visible=!this.sea;if(this.garden)this.garden.update(this,this.library.world.wind,this.activePhysics?.time??0);
+ this.groundEdits.update(this.activePhysics);this.sandView.update(this.sand,this.groundSurface,this.camera.position);this.finishMap.update(this.sea&&!this.garden?null:this.activePhysics?.materialWorld,this.groundSurface);this.ground.geometry=this.garden?this.garden.geometry:this.sand?this.reliefFloor:this.flatFloor;this.groundMaterial.uniforms.granular.value=!!this.sand;
+ this.ground.visible=!!this.garden||!this.sea;if(this.garden)this.garden.update(this,this.library.world.wind,this.activePhysics?.time??0);
  this.uniforms.clipFloor.value=this.garden||this.sea||this.activePhysics?.sandTerrain?.version||this.activePhysics?.cuts?.nodes.size?-1e10:0;
- if(this.sea)this.oceanView.update(this.sea,this.camera,this.library.materials.find(m=>m.id===this.library.world.groundMaterialId));else this.oceanView.show(false);
+ if(this.sea)this.oceanView.update(this.sea,this.camera,this.waterMaterial??this.groundSurface);else this.oceanView.show(false);
  }if(this.implicitCount){this.assetScene.updateMatrixWorld(true);this.implicit.update(this.activePhysics);}this.ground.position.set(this.liveStudio?Math.round(this.camera.position.x*4)/4:this.camera.position.x,0,this.liveStudio?Math.round(this.camera.position.z*4)/4:this.camera.position.z);this.scene.updateMatrixWorld(true);if(this.liveStudio&&(this.sea||this.visibleLiquid)){
  this.oceanView.capture.render(this);
  }else{if(this.liveStudio&&this.groundSurface.metallic>.02)this.oceanView.capture.render(this,true);this.drawObjects(this.camera);}
- if(this.garden)this.garden.drawWater(this.renderer,this.camera);
+
  this.fieldView?.draw(this.renderer,this.camera,this.activePhysics?.materialWorld,this.fieldDisplay);
  if(this.eyeScene?.children.some(o=>o.visible)){this.renderer.autoClear=false;this.renderer.render(this.eyeScene,this.camera);}}
  drawObjects(camera){this.renderer.autoClear=true;this.renderer.render(this.scene,camera);this.renderer.autoClear=false;
