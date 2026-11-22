@@ -1,4 +1,5 @@
 import * as T from 'three';
+import {ReedTransparency} from './reed-transparency.js';
 import {waveHeight} from './wave-surface.js';
 import {medium} from './water-optics.js';
 import {REED_TILE} from './wetland.js';
@@ -86,7 +87,7 @@ const reedVertex=`
  attribute vec3 along,sideways,tint;attribute vec2 corner;attribute vec4 site;
  attribute vec4 leafRoot;attribute vec3 leafAxis,skin;attribute float section;attribute vec3 growthPose;
  uniform vec2 viewport;uniform sampler2D poses,angles;
- varying vec2 gaussian;varying vec3 dye,normalW,worldPoint;varying float coverageScale,haze;
+ varying vec2 gaussian;varying vec3 dye,normalW,worldPoint;varying float coverageScale,haze,reedDepth;
  vec3 turn(vec3 v,float c,float s){return vec3(c*v.x+s*v.z,v.y,-s*v.x+c*v.z);}
  vec3 rotateLeaf(vec3 v,float c,float s){return c*v+cross(leafAxis,v)*s+leafAxis*dot(leafAxis,v)*(1.-c);}
  mat3 basisAt(int row){return mat3(texelFetch(poses,ivec2(0,row),0).xyz,texelFetch(poses,ivec2(1,row),0).xyz,texelFetch(poses,ivec2(2,row),0).xyz);}
@@ -114,7 +115,7 @@ const reedVertex=`
    }
    if(leafRoot.w>=0.){
     float angle=texelFetch(angles,ivec2(int(leafRoot.w),row),0).r,co=cos(angle),si=sin(angle);
-    world=leafRoot.xyz+rotateLeaf(position-leafRoot.xyz,co,si);axis=rotateLeaf(along,co,si);
+    world=leafRoot.xyz+rotateLeaf(position-leafRoot.xyz,co,si);axis=rotateLeaf(along,co,si);width=rotateLeaf(sideways,co,si);
    }
    world=frame*world+shift;axis=frame*axis;width=frame*width;
   }
@@ -140,7 +141,7 @@ const reedVertex=`
   // pass behind a solid even when the centre of a long blade is in front.
   worldPoint=world+mat3(axis,width,third)*(px*(gaussian.x/a)+(py-px*(b/a))*(gaussian.y/minor));
   vec4 clip=projectionMatrix*v;clip.xy+=off*2./viewport*clip.w;vec4 pointClip=projectionMatrix*viewMatrix*vec4(worldPoint,1.);
-  clip.z=pointClip.z/max(.03,pointClip.w)*clip.w;gl_Position=clip;
+  reedDepth=pointClip.w;clip.z=pointClip.z/max(.03,reedDepth)*clip.w;gl_Position=clip;
   coverageScale=blend*smoothstep(.035,.08+reach,z)*clamp(sqrt(max(0.,xx*yy-xy*xy)/max(.0001,(xx+.24)*(yy+.24)-xy*xy)),.16,1.);
   haze=1.-exp(-distanceToRoot*.0014);
  }`;
@@ -150,32 +151,18 @@ export class WetlandReeds{
   this.poses=new T.DataTexture(new Float32Array(16),4,1,T.RGBAFormat,T.FloatType);
   this.angles=new T.DataTexture(new Float32Array(1),1,1,T.RedFormat,T.FloatType);
   this.uniforms={...view.oceanView.uniforms,...view.uniforms,angles:{value:this.angles},poses:{value:this.poses},reedWaterSide:{value:0},reedUnderwater:{value:false}};
-  this.materials=[0,1,2].map(lod=>new T.ShaderMaterial({uniforms:this.uniforms,defines:{REED_LOD:lod},
-   vertexShader:reedVertex,fragmentShader:lighting+waveHeight+medium+`
-    varying vec2 gaussian;varying vec3 dye,normalW,worldPoint;varying float coverageScale,haze;
-    uniform int reedWaterSide;uniform bool reedUnderwater;uniform vec2 clipHeights;
-    void main(){
-     if(reedWaterSide!=0){
-      float level=clamp(worldPoint.y,clipHeights.x-.001,clipHeights.y+.001);
-      bool wet=worldPoint.y<clipHeights.x||(worldPoint.y<=clipHeights.y&&level<elevation(worldPoint.xz));
-      if(wet!=(reedWaterSide<0))discard;
-     }
-     float weight=exp(-.5*dot(gaussian,gaussian));
-     // Independent densities add: combined transmission is the product
-     // of each lobe's transmission. A feathered edge never masks a neighbour.
-     float cover=1.-exp(-2.55*coverageScale*weight);if(cover<.003)discard;
-     vec3 n=normalize(normalW);vec3 lit=dye*(.5*(env(n,1.)+env(-n,1.))+.42+.32*abs(dot(n,normalize(vec3(-.6,1.,.5)))));
-     lit=mix(lit,vec3(.38,.45,.48),haze);
-     if(reedUnderwater)lit=inWater(lit,length(worldPoint-cameraPosition));
-     gl_FragColor=vec4(lit,cover);
-     #include <tonemapping_fragment>
-     #include <colorspace_fragment>
-    }`,transparent:true,depthWrite:false,side:T.DoubleSide,forceSinglePass:true}));
   this.frustum=new T.Frustum();this.vp=new T.Matrix4();this.bounds=new T.Box3();this.tiles=new Map();this.group=new T.Scene();
+  this.transparency=new ReedTransparency(this.group,this.uniforms,reedVertex,waveHeight,lighting+medium+`
+   uniform bool reedUnderwater;
+   vec3 reedLight(){
+    vec3 n=normalize(normalW);
+    vec3 lit=dye*(.5*(env(n,1.)+env(-n,1.))+.42+.32*abs(dot(n,normalize(vec3(-.6,1.,.5)))));
+    lit=mix(lit,vec3(.38,.45,.48),haze);
+    return reedUnderwater?inWater(lit,length(worldPoint-cameraPosition)):lit;
+   }`);
  }
- draw(renderer,camera,side,underwater=false){
-  this.uniforms.reedWaterSide.value=side;this.uniforms.reedUnderwater.value=underwater;
-  renderer.render(this.group,camera);
+ draw(renderer,camera,side,underwater=false,base=null){
+  this.transparency.draw(renderer,camera,side,underwater,base);
  }
  configure(assets,materials,placements){
   this.clear();this.instances=placements;this.assets=assets;this.placed=placements.map(p=>plantedCrown(p,assets.findIndex(a=>a?.id===p.assetId)));
@@ -185,8 +172,8 @@ export class WetlandReeds{
   this.poses.dispose();this.poses.image={data:new Float32Array(rows*16),width:4,height:rows};this.poses.needsUpdate=true;
   this.angles.dispose();this.angles.image={data:new Float32Array(columns*rows),width:columns,height:rows};this.angles.needsUpdate=true;
   this.inverseParts=assets.map(a=>instancedReed(a)?a.parts.map(p=>reedPartMatrix(p).invert()):[]);
-  for(const [variant,a] of assets.entries())if(instancedReed(a))for(const [lod,material] of this.materials.entries()){
-   const mesh=new T.Mesh(crownGeometry(a,materials,lod),material);mesh.userData={variant,lod};mesh.frustumCulled=false;this.group.add(mesh);
+  for(const [variant,a] of assets.entries())if(instancedReed(a))for(let lod=0;lod<3;lod++){
+   const mesh=new T.Mesh(crownGeometry(a,materials,lod),null);mesh.userData={variant,lod};mesh.frustumCulled=false;this.group.add(mesh);
   }
  }
  uploadPoses(sim,camera){
@@ -326,5 +313,5 @@ export class WetlandReeds{
   return nearest;
  }
  clear(){for(const mesh of this.group.children)mesh.geometry.dispose();this.group.clear();this.tiles.clear();this.visible=[];this.filtered?.clear();this.signature=undefined;}
- dispose(){this.clear();this.poses.dispose();this.angles.dispose();for(const m of this.materials)m.dispose();this.group.removeFromParent();}
+ dispose(){this.clear();this.poses.dispose();this.angles.dispose();this.transparency.dispose();this.group.removeFromParent();}
 }

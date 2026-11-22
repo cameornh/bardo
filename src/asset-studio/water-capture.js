@@ -86,6 +86,9 @@ export class WaterCapture{
    c.up.set(0,1,0).applyQuaternion(camera.quaternion);c.up.y*=-1;
    c.lookAt(this.direction.add(c.position));c.updateMatrixWorld();
    u.mirrorVP.value.multiplyMatrices(c.projectionMatrix,c.matrixWorldInverse);
+   if(view.garden&&!this.mirror.depthTexture){
+    this.mirror.dispose();this.mirror.depthTexture=new THREE.DepthTexture(this.mirror.width,this.mirror.height,THREE.UnsignedIntType);
+   }
    r.setRenderTarget(this.mirror);r.setClearColor(0,0);
    view.uniforms.viewport.value.set(this.mirror.width,this.mirror.height);
    view.uniforms.cameraWorld.value=c.matrixWorld;
@@ -107,18 +110,28 @@ export class WaterCapture{
   const ocean=view.oceanView;
   r.setRenderTarget(this.bulk);ocean.parcels.mesh.visible=false;
   r.autoClear=true;if(sea)r.render(view.waterScene,camera);else r.clear();ocean.parcels.mesh.visible=!!sea;
-  r.setRenderTarget(output);r.autoClear=true;r.render(this.copyScene,camera);r.autoClear=false;
+  // The reeds sample the actual opaque and parcel depth in their overlap
+  // pass. Keep that depth accessible when the destination is the canvas.
+  if(view.garden&&!this.gardenBase){
+   const type=r.extensions.has('EXT_color_buffer_float')?THREE.HalfFloatType:THREE.UnsignedByteType;
+   this.gardenBase=new THREE.WebGLRenderTarget(w,h,{type,depthTexture:new THREE.DepthTexture(w,h,THREE.UnsignedIntType)});
+  }
+  if(view.garden)this.gardenBase.setSize(w,h);
+  r.setRenderTarget(view.garden?this.gardenBase:output);r.autoClear=true;r.render(this.copyScene,camera);r.autoClear=false;
   if(sea&&ocean.parcels.mesh.count){
    ocean.mesh.visible=false;r.render(view.waterScene,camera);ocean.mesh.visible=true;
   }
   // Composite the near-side reeds against finished solid and water depth.
   // Submerged reeds already contributed to the refracted source above.
-  view.garden?.reeds.draw(r,camera,u.submerged.value?-1:1,!!u.submerged.value);
+  if(view.garden){
+   r.setRenderTarget(output);
+   view.garden.reeds.draw(r,camera,u.submerged.value?-1:1,!!u.submerged.value,this.gardenBase);
+  }
   if(sea)r.render(ocean.effectsScene,camera);
   if(view.visibleLiquid){
    const mask=camera.layers.mask;camera.layers.set(1);
    r.render(view.scene,camera);r.render(view.assetScene,camera);camera.layers.mask=mask;
   }
  }
- dispose(){this.source.dispose();this.mirror.dispose();this.bulk.dispose();this.copy.geometry.dispose();this.copy.material.dispose();}
+ dispose(){this.gardenBase?.dispose();this.source.dispose();this.mirror.dispose();this.bulk.dispose();this.copy.geometry.dispose();this.copy.material.dispose();}
 }
