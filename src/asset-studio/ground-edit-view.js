@@ -4,7 +4,7 @@ import {CELL,MAX_CUTS,chunkTriangles} from './ground-tools.js';
 
 export class GroundEditView{
  constructor(view){
-  this.view=view;this.meshes=new Map();this.chunkPool=[];this.chunkMaterial=null;
+  this.view=view;this.meshes=new Map();this.chunkPool=[];this.chunkMaterials=new Map();
   const mat=view.groundMaterial;this.sand=new SandTerrainView(mat.uniforms);
   Object.assign(mat.uniforms,{cutCount:{value:0},cutBounds:{value:new Vector4()},cutCenters:{value:Array.from({length:MAX_CUTS},()=>new Vector2())}});
   const patch=new ShaderMaterial({vertexShader:mat.vertexShader,fragmentShader:mat.fragmentShader,uniforms:mat.uniforms,defines:{GROUND_PATCH:1}});
@@ -40,12 +40,13 @@ export class GroundEditView{
    if(!mesh){
     mesh=this.chunkPool.pop();
     if(!mesh){
-     const g=new BufferGeometry();g.setAttribute('position',new Float32BufferAttribute(new Float32Array(108),3));
-     this.chunkMaterial??=this.view.matterView.material(c.material,false,CELL);
-     mesh=new Mesh(g,this.chunkMaterial);
+     mesh=new Mesh(new BufferGeometry(),this.patch.material);
     }
-    const geometry=mesh.geometry,position=geometry.attributes.position;
-    position.array.set(chunkTriangles(c.cut));position.needsUpdate=true;
+    if(!this.chunkMaterials.has(c.material.id))this.chunkMaterials.set(c.material.id,this.view.matterView.material(c.material,false,CELL));
+    mesh.material=this.chunkMaterials.get(c.material.id);
+    const geometry=mesh.geometry;
+    geometry.setAttribute('position',new Float32BufferAttribute(chunkTriangles(c.cut),3));
+    geometry.deleteAttribute('normal');
     geometry.computeVertexNormals();geometry.computeBoundingSphere();
     mesh.userData.chunk=c;
     this.view.scene.add(mesh);this.meshes.set(c,mesh);
@@ -56,7 +57,7 @@ export class GroundEditView{
  remove(mesh){mesh.removeFromParent();mesh.geometry.dispose();mesh.material.dispose();}
  clearChunks(){
   for(const mesh of [...this.meshes.values(),...this.chunkPool]){mesh.removeFromParent();mesh.geometry.dispose();}
-  this.meshes.clear();this.chunkPool.length=0;this.chunkMaterial?.dispose();this.chunkMaterial=null;
+  this.meshes.clear();this.chunkPool.length=0;for(const m of this.chunkMaterials.values())m.dispose();this.chunkMaterials.clear();
  }
  dispose(){this.sand.dispose();this.clearChunks();this.remove(this.patch);}
 }

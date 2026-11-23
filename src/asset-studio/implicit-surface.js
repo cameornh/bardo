@@ -1,3 +1,4 @@
+import {solidOptics} from './material-reactions.js';
 import {reflectedSurfaceClip} from './wave-surface.js';
 import {surfaceRelief,grainParams} from './surface-grain.js';
 import * as THREE from 'three';
@@ -7,7 +8,7 @@ const finishColor=new THREE.Color();
 export function implicitStamp(part,materials){
  if(part.stamps.length!==1)return null;
  const s=part.stamps[0],m=materials.find(m=>m.id===s.materialId);
- return s.mode==='add'&&['sphere','box'].includes(s.shape)&&m?.opacity===1&&
+ return s.mode==='add'&&['sphere','box'].includes(s.shape)&&m?.opacity===1&&!solidOptics(m)&&
    !m.fiberLength&&m.surfaceMode!=='gaussian'&&m.phase==='solid'&&m.liquidity<.999?s:null;
 }
 

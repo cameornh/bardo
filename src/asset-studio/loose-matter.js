@@ -86,6 +86,7 @@ export class LooseMatter{
    const pressure=liquid?Math.min(8,3.5/(1+m.viscosity)):0;
    for(let i=packets.length-1;i>=0;i--){
     const p=packets[i],r=p.radius,pos=p.position.copy(p.body.translation()),v=p.body.linvel();
+    if(p.sphereHeld)continue;
     if(g.grip){
      if(sim.time<(g.grip.releaseAt??Infinity)){
       const impulse=g.grip.target.clone().add(p.gripOffset).sub(pos).multiplyScalar(420)

@@ -53,6 +53,7 @@ export class GroundCuts{
  }
 }
 export function chunkTriangles(c){
+ if(c.vertices)return c.vertices;
  const out=[],bottom=[0,-c.depth,0];
  for(let i=0;i<6;i++){const a=c.ring[i].toArray(),b=c.ring[(i+1)%6].toArray();out.push(0,0,0,...a,...b,...bottom,...b,...a);}
  return out;

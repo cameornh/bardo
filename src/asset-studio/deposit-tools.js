@@ -5,18 +5,18 @@ import {BED_CELL} from './material-bed.js';
 import {activeMass,phaseState,surfaceState} from './material-reactions.js';
 import {takeDeposit} from './deposit-heat.js';
 
-export function disturbDeposit(sim,bed,point,force=null){
+export function disturbDeposit(sim,bed,point,force=null,radius=1.65*BED_CELL){
  if(!bed||sim.heldDeposit||sim.heldChunk)return false;
- const m=bed.material,area=BED_CELL**2,radius=1.65*BED_CELL;
+ const m=bed.material,area=BED_CELL**2,extent=Math.ceil(radius/BED_CELL);
  const i=Math.round(point.x/BED_CELL),j=Math.round(point.z/BED_CELL),samples=[];
  let total=0;
- for(let x=i-2;x<=i+2;x++)for(let z=j-2;z<=j+2;z++){
+ for(let x=i-extent;x<=i+extent;x++)for(let z=j-extent;z<=j+extent;z++){
   const cell=bed.at(x,z);
   if(!cell?.h)continue;
   const dx=x*BED_CELL-point.x,dz=z*BED_CELL-point.z;
   const weight=Math.max(0,1-(dx*dx+dz*dz)/radius**2);
   const mobile=bed.liquid?(cell.thermal?.melt??1):1;
-  const volume=Math.min(.12,cell.h)*area*weight*mobile;
+  const volume=Math.min(radius*Math.sqrt(weight),cell.h)*area*weight*mobile;
   if(volume<1e-7)continue;
   const r=.87*Math.cbrt(3*volume/(4*Math.PI));
   const top=sim.matter.groundHeight(sim,x*BED_CELL,z*BED_CELL)+(bed.liquid?cell.h:0);

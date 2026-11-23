@@ -1,4 +1,4 @@
-import {opticalIce} from './material-reactions.js';
+import {solidOptics} from './material-reactions.js';
 import {planarSurface} from './surface-support.js';
 import {Mesh,Vector3} from 'three';
 import {charSurfacePoint,roundCharChip} from './char-fracture.js';
@@ -144,7 +144,7 @@ export class SectionView{
      else{mesh=new Mesh(geometry,this.view.material);this.view.bindFinish(mesh,()=>r);mesh.matrixAutoUpdate=false;this.view.assetScene.add(mesh);batch.pieces.set(r,mesh);}
      for(const id of geometry.userData.materialIds){
       const index=this.view.materialIndices.get(id),m=this.view.library.materials[index];
-      if(opticalIce(m))this.view.attachOptics(mesh,geometry,m,index,null,()=>r);
+      if(solidOptics(m))this.view.attachOptics(mesh,geometry,m,index,null,()=>r);
      }
      mesh.userData.regions=r.regions;
     }

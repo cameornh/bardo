@@ -214,15 +214,24 @@ export class WindSea {
  returnDrop(d){
   if(d.scoop){d.scoop.volume=Math.max(0,d.scoop.volume-4*Math.PI*d.r**3/3);d.scoop=null;}
  }
- lift(x,z){
+ lift(x,z,radius=.35){
   this.release();const y=this.height(x,z),scoop=this.ripple(x,z,0,true);
   this.held=[];this.grip={x,y,z,t:this.time,vx:0,vy:0,vz:0};
   for(let i=0;i<10;i++){
-   const a=i*2.3999632,r=.070*Math.sqrt(i),offset=[Math.cos(a)*r,.06*Math.sin(a),Math.sin(a)*r];
-   const drop={x:x+offset[0],y:y+offset[1],z:z+offset[2],r:.105+.053*this.random(),vx:0,vy:0,vz:0,held:true};
+   const a=i*2.3999632,r=radius*.20*Math.sqrt(i),offset=[Math.cos(a)*r,radius*.17*Math.sin(a),Math.sin(a)*r];
+   const drop={x:x+offset[0],y:y+offset[1],z:z+offset[2],r:radius*(.30+.15*this.random()),vx:0,vy:0,vz:0,held:true};
    drop.scoop=scoop;scoop.volume+=4*Math.PI*drop.r**3/3;
    this.held.push({drop,offset});this.appendDrop(drop);
   }
+ }
+ grabDrops(point,radius){
+  const candidates=this.drops.filter(d=>!d.held&&!d.crest&&Math.hypot(d.x-point.x,d.y-point.y,d.z-point.z)<radius+d.r);
+  if(!candidates.length)return false;
+  if(!this.held){this.held=[];this.grip={x:point.x,y:point.y,z:point.z,t:this.time,vx:0,vy:0,vz:0};}
+  for(const drop of candidates){
+   drop.held=true;this.held.push({drop,offset:[drop.x-point.x,drop.y-point.y,drop.z-point.z]});
+  }
+  return true;
  }
  moveLift(p,collide){
   if(!this.held)return;
@@ -230,7 +239,7 @@ export class WindSea {
   for(const axis of ['x','y','z'])g['v'+axis]=Math.max(-3,Math.min(3,(p[axis]-g[axis])/dt));
   Object.assign(g,{x:p.x,y:p.y,z:p.z,t:this.time});
   for(const {drop,offset} of this.held){
-   const from={x:drop.x,y:drop.y,z:drop.z},lag=(.16-drop.r)*.46;
+   const from={x:drop.x,y:drop.y,z:drop.z},lag=Math.max(0,.16-drop.r)*.46;
    drop.x=p.x+offset[0]-g.vx*lag;drop.y=p.y+offset[1]-g.vy*lag;drop.z=p.z+offset[2]-g.vz*lag;collide?.(drop,from);
   }
  }

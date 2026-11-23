@@ -152,3 +152,6 @@ export function chargeNetwork(nodes,edges,dt){
   a.watts+=half;b.watts+=half;heat(a,half*dt);heat(b,half*dt);
  }
 }
+
+// Smooth conductors reflect the scene; transmissive solids use the finite-volume optical pass.
+export const solidOptics=m=>m.phase==='solid'&&(opticalIce(m)||(m.opacity<.98&&m.ior>1.001)||(m.metallic>=.985&&m.roughness<=.10));

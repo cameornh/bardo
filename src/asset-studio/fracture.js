@@ -240,6 +240,24 @@ export function separateMeltRegions(sim,r,liquid,maxGroups){
  }
  return separate(sim,r,groups).filter(piece=>liquid.has(piece.regions[0]));
 }
+// Use the same connected material cells as a stress fracture. Their centres
+// and the brush radius are in scaled rigid-body metres.
+export function detachSphere(sim,r,center,radius){
+ const s=r.structure;if(!s)return [r];
+ const selected=new Set(r.regions.filter(i=>new Vector3(...s.grid.nodes[i].center).distanceToSquared(center)<=radius*radius));
+ if(!selected.size){
+  let best=Infinity,index;
+  for(const i of r.regions){const d=new Vector3(...s.grid.nodes[i].center).distanceToSquared(center);if(d<best){best=d;index=i;}}
+  selected.add(index);
+ }
+ if(selected.size===r.regions.length)return [r];
+ for(const e of s.grid.bonds){
+  if(!e.broken&&s.owners[e.a]===r&&s.owners[e.b]===r&&selected.has(e.a)!==selected.has(e.b)){
+   e.broken=true;s.brokenBonds++;
+  }
+ }
+ return separate(sim,r,componentsOf(r)).filter(piece=>selected.has(piece.regions[0]));
+}
 export function advanceFractures(sim,dt){
  for(const s of sim.structures)for(const r of [...s.bodies])evaluate(sim,r,dt);
 }

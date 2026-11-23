@@ -1,4 +1,4 @@
-import {opticalIce} from './material-reactions.js';
+import {solidOptics} from './material-reactions.js';
 import {firstSurfaceHit} from './ground-tools.js';
 import {planarSurface,surfaceFragment} from './surface-support.js';
 import {MaterialFieldView} from './material-field-view.js';
@@ -38,7 +38,18 @@ void main(){
 const LIGHTING=`
 uniform vec3 environment[9];
 vec3 env(vec3 n,float diffuse){float b[9];b[0]=.282094792;b[1]=-.488602512*n.y;b[2]=.488602512*n.z;b[3]=-.488602512*n.x;b[4]=1.092548431*n.x*n.y;b[5]=-1.092548431*n.y*n.z;b[6]=.315391565*(2.*n.z*n.z-n.x*n.x-n.y*n.y);b[7]=-1.092548431*n.x*n.z;b[8]=.546274215*(n.x*n.x-n.y*n.y);vec3 s=vec3(0);for(int i=0;i<9;i++){float factor=i==0?1.:(i<4?.6666667:.25);s+=environment[i]*b[i]*mix(1.,factor,diffuse);}return max(vec3(.03),s);}
-vec3 shade(vec3 base,vec3 n,vec3 p,vec4 prop){vec3 v=normalize(cameraPosition-p),l=normalize(vec3(-.6,1.,.5));n=faceforward(n,-v,n);float rough=prop.x,metal=prop.y;vec3 diffuse=env(n,1.)+vec3(1.1,1.02,.88)*max(0.,dot(n,l));vec3 r=reflect(-v,n);float f=pow(1.-max(0.,dot(n,v)),5.);vec3 f0=mix(vec3(.04),base,metal),fresnel=f0+(1.-f0)*f*(1.-rough*.85);float spec=pow(max(0.,dot(n,normalize(l+v))),mix(160.,3.,rough*rough));return base*diffuse*(1.-metal)+mix(env(r,0.),env(n,1.),rough)*fresnel*mix(.45,1.,metal)+spec*mix(.7,.15,rough)*f0+base*prop.w;}
+uniform int studioLampCount;
+uniform vec4 studioLampPosition[4];uniform vec3 studioLampColor[4];
+vec3 studioIrradiance(vec3 p,vec3 n){
+ vec3 sum=vec3(0.);
+ for(int i=0;i<4;i++){
+  if(i>=studioLampCount)break;
+  vec3 delta=studioLampPosition[i].xyz-p;float d2=max(.0001,dot(delta,delta));
+  sum+=studioLampColor[i]*max(0.,dot(n,delta*inversesqrt(d2)))/(1.+d2/studioLampPosition[i].w);
+ }
+ return sum;
+}
+vec3 shade(vec3 base,vec3 n,vec3 p,vec4 prop){vec3 v=normalize(cameraPosition-p),l=normalize(vec3(-.6,1.,.5));n=faceforward(n,-v,n);float rough=prop.x,metal=prop.y;vec3 diffuse=studioIrradiance(p,n)+env(n,1.)+vec3(1.1,1.02,.88)*max(0.,dot(n,l));vec3 r=reflect(-v,n);float f=pow(1.-max(0.,dot(n,v)),5.);vec3 f0=mix(vec3(.04),base,metal),fresnel=f0+(1.-f0)*f*(1.-rough*.85);float spec=pow(max(0.,dot(n,normalize(l+v))),mix(160.,3.,rough*rough));return base*diffuse*(1.-metal)+mix(env(r,0.),env(n,1.),rough)*fresnel*mix(.45,1.,metal)+spec*mix(.7,.15,rough)*f0+base*prop.w;}
 `;
 const FRAGMENT=`varying vec2 footprint;varying vec3 vNormal;varying vec3 vColor;varying vec3 vWorld;varying vec4 vProps;varying float vRadius;${LIGHTING}
 uniform vec2 viewport;uniform mat4 projectionMatrix;
@@ -99,7 +110,8 @@ export class StudioView{
  this.canvas=canvas;this.renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:false,preserveDrawingBuffer,powerPreference:'low-power'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));this.renderer.setClearColor('#8eaaaf');this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.05;
  this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(48,1,.03,10000);this.camera.position.set(7,5,9);this.controls=new OrbitControls(this.camera,canvas);this.controls.target.set(0,1,0);this.controls.enableDamping=true;this.controls.dampingFactor=.12;this.controls.maxDistance=4000;this.controls.minDistance=.25;this.controls.update();
  const sh=projectSH(n=>[.44+.24*n[1],.49+.26*n[1],.53+.3*n[1]]),environment=Array.from({length:9},(_,i)=>new THREE.Vector3(...sh.slice(i*3,i*3+3)));
- this.uniforms={environment:{value:environment},viewport:{value:new THREE.Vector2(1,1)},cameraWorld:{value:this.camera.matrixWorld}};
+ this.lampUniforms={studioLampCount:{value:0},studioLampPosition:{value:Array.from({length:4},()=>new THREE.Vector4())},studioLampColor:{value:Array.from({length:4},()=>new THREE.Color())}};
+ this.uniforms={...this.lampUniforms,environment:{value:environment},viewport:{value:new THREE.Vector2(1,1)},cameraWorld:{value:this.camera.matrixWorld}};
  this.material=new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:VERTEX,fragmentShader:FRAGMENT,transparent:true,forceSinglePass:liveStudio,depthWrite:false,side:THREE.DoubleSide});this.material.name='studio covariance Gaussian';this.depthMaterial=new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:VERTEX,fragmentShader:DEPTH_FRAGMENT,colorWrite:false,depthWrite:true,side:THREE.DoubleSide});
  this.liveStudio=liveStudio;
  if(liveStudio){
@@ -109,9 +121,9 @@ export class StudioView{
   this.uniforms.grainMap={value:grainTexture()};this.uniforms.matterPlaying={value:0};
 
   this.waterScene=new THREE.Scene();
-  this.oceanView=new OceanView(this.waterScene,this.uniforms.environment,LIGHTING);
+  this.oceanView=new OceanView(this.waterScene,this.uniforms.environment,LIGHTING);Object.assign(this.oceanView.uniforms,this.lampUniforms);
   const ocean=this.oceanView.uniforms;this.uniforms.clipFloor={value:0};
-  const clipUniforms={clipFloor:this.uniforms.clipFloor};
+  const clipUniforms={...this.lampUniforms,clipFloor:this.uniforms.clipFloor};
   for(const key of ['height0','height1','height2','bandMix','rings','ringCount','ringAttenuation','clipWaves','clipHeights'])clipUniforms[key]=ocean[key];
   Object.assign(this.uniforms,clipUniforms);
   this.implicit=new ImplicitSurfaces(this.scene,this.uniforms.environment,LIGHTING,this.uniforms.grainMap,clipUniforms);
@@ -143,7 +155,7 @@ export class StudioView{
    vColor=tint*(1.-finish);`);
   this.fieldView=new MaterialFieldView(this.uniforms,LIGHTING);this.paintView=new PaintedView(this.uniforms,LIGHTING);this.sectionView=new SectionView(this);this.matterView=new MatterView(this,LIGHTING);this.liquidMats=new Map();
  }
- this.groundMaterial=new THREE.ShaderMaterial({uniforms:{environment:this.uniforms.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},vertexShader:GROUND_VERTEX,fragmentShader:GROUND_FRAGMENT});
+ this.groundMaterial=new THREE.ShaderMaterial({uniforms:{...this.lampUniforms,environment:this.uniforms.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},vertexShader:GROUND_VERTEX,fragmentShader:GROUND_FRAGMENT});
  if(liveStudio){
   this.grainScene=new THREE.Scene();this.eyeScene=new THREE.Scene();this.sandView=new SandDriftView(this.grainScene,this.uniforms,LIGHTING,false,this.eyeScene);
  }
@@ -167,7 +179,7 @@ export class StudioView{
  }
  setGround(m){this.groundSurface=m;if(this.liveStudio)this.groundMaterial.uniforms.grain.value.set(...grainParams(m));this.groundMaterial.uniforms.color.value.set(m.color);this.groundMaterial.uniforms.properties.value.set(m.roughness,m.metallic,m.opacity,m.emission);}
  geometry(surface,materials){return this.liveStudio?studioGeometry(surface,materials):this.referenceGeometry(surface,materials);}
- referenceGeometry(surface,materials){const geometry=new THREE.InstancedBufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));geometry.setIndex([0,1,2,0,2,3]);const count=surface.positions.length/3,colors=new Float32Array(count*3),props=new Float32Array(count*4),radii=new Float32Array(count),fiber=new Float32Array(count);const grains=new Float32Array(count*3),phases=new Float32Array(count*2);let maxFiber=0;for(let i=0;i<count;i++){const m=materials.find(m=>m.id===surface.materials[i])||materials[0],c=new THREE.Color(m.color);colors.set([c.r,c.g,c.b],i*3);if(this.liveStudio){grains.set(grainParams(m),i*3);phases.set([looseKind(m),materials.indexOf(m)],i*2);}props.set([m.roughness,m.metallic,m.opacity,m.emission],i*4);radii[i]=surface.spacing*.61;fiber[i]=m.fiberLength||0;maxFiber=Math.max(maxFiber,fiber[i]);}for(const [name,array,itemSize]of [['center',new Float32Array(surface.positions),3],['surfaceNormal',new Float32Array(surface.normals),3],['tint',colors,3],['properties',props,4],['radius',radii,1]])geometry.setAttribute(name,new THREE.InstancedBufferAttribute(array,itemSize));if(this.liveStudio){geometry.setAttribute('grainSettings',new THREE.InstancedBufferAttribute(grains,3));geometry.setAttribute('phaseId',new THREE.InstancedBufferAttribute(phases,2));}if(this.liveStudio)geometry.setAttribute('fiberLength',new THREE.InstancedBufferAttribute(fiber,1));geometry.instanceCount=count;const box=new THREE.Box3().setFromArray(surface.positions);box.expandByScalar(surface.spacing*2+maxFiber*2);geometry.boundingBox=box;geometry.boundingSphere=box.getBoundingSphere(new THREE.Sphere());return geometry;}
+ referenceGeometry(surface,materials){const geometry=new THREE.InstancedBufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));geometry.setIndex([0,1,2,0,2,3]);const count=surface.positions.length/3,colors=new Float32Array(count*3),props=new Float32Array(count*4),radii=new Float32Array(count),fiber=new Float32Array(count);const grains=new Float32Array(count*3),phases=new Float32Array(count*2);let maxFiber=0;for(let i=0;i<count;i++){const m=materials.find(m=>m.id===surface.materials[i])||materials[0],c=new THREE.Color(m.color);colors.set([c.r,c.g,c.b],i*3);if(this.liveStudio){grains.set(grainParams(m),i*3);phases.set([solidOptics(m)?3:m.phase==='gas'?1:looseKind(m),materials.indexOf(m)],i*2);}props.set([m.roughness,m.metallic,m.opacity,m.emission],i*4);radii[i]=surface.spacing*.61;fiber[i]=m.fiberLength||0;maxFiber=Math.max(maxFiber,fiber[i]);}for(const [name,array,itemSize]of [['center',new Float32Array(surface.positions),3],['surfaceNormal',new Float32Array(surface.normals),3],['tint',colors,3],['properties',props,4],['radius',radii,1]])geometry.setAttribute(name,new THREE.InstancedBufferAttribute(array,itemSize));if(this.liveStudio){geometry.setAttribute('grainSettings',new THREE.InstancedBufferAttribute(grains,3));geometry.setAttribute('phaseId',new THREE.InstancedBufferAttribute(phases,2));}if(this.liveStudio)geometry.setAttribute('fiberLength',new THREE.InstancedBufferAttribute(fiber,1));geometry.instanceCount=count;const box=new THREE.Box3().setFromArray(surface.positions);box.expandByScalar(surface.spacing*2+maxFiber*2);geometry.boundingBox=box;geometry.boundingSphere=box.getBoundingSphere(new THREE.Sphere());return geometry;}
  setSurface(key,surface,materials,stamps){if(this.liveStudio&&stamps)surface=planarSurface(stamps,surface.spacing)??surface;this.surfaces.set(key,surface);const old=this.cache.get(key),geometry=this.geometry(surface,materials);this.cache.set(key,geometry);for(const group of this.groups.values())group.traverse(o=>{if(o.userData.surfaceKey===key)o.geometry=geometry;});old?.dispose();}
  recolor(materials, material, field){
   for(const [key,surface] of this.surfaces){
@@ -194,8 +206,11 @@ export class StudioView{
   }
   const mat=this.liquidMats.get(key);Object.assign(mat.uniforms,liquidUniforms(this.oceanView.uniforms,m));mat.uniforms.selected.value=index;return mat;
  }
- rebuild(library,mode,assetId){this.gizmo.detach();this.root.clear();this.groups.clear();this.library=library;this.materialIndices=new Map(library.materials.map((m,i)=>[m.id,i]));this.mode=mode;this.hasFiniteLiquid=false;this.frozenOptics=new Set();this.implicitCount=0;this.gaussianCount=0;this.implicit?.clear();const instances=mode==='asset'?[{id:'editor',assetId,transform:{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}}]:library.world.instances;
- for(const instance of instances){const a=library.assets.find(a=>a.id===instance.assetId);if(!a)continue;const group=new THREE.Group();group.userData={instanceId:instance.id,assetId:a.id};poseObject(group,instance.transform);this.root.add(group);this.groups.set(instance.id,group);for(const p of a.parts){const object=new THREE.Group();object.userData={partId:p.id,assetId:a.id};object.matrixAutoUpdate=false;object.matrix.copy(partMatrix(p.transform,p.pivot));group.add(object);const direct=this.liveStudio&&implicitStamp(p,library.materials);
+ rebuild(library,mode,assetId){this.gizmo.detach();this.root.clear();this.groups.clear();this.library=library;this.emitters=[];this.materialIndices=new Map(library.materials.map((m,i)=>[m.id,i]));this.mode=mode;this.hasFiniteLiquid=false;this.frozenOptics=new Set();this.implicitCount=0;this.gaussianCount=0;this.implicit?.clear();const instances=mode==='asset'?[{id:'editor',assetId,transform:{position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]}}]:library.world.instances;
+ for(const instance of instances){const a=library.assets.find(a=>a.id===instance.assetId);if(!a)continue;const group=new THREE.Group();group.userData={instanceId:instance.id,assetId:a.id};poseObject(group,instance.transform);this.root.add(group);this.groups.set(instance.id,group);for(const p of a.parts){const object=new THREE.Group();object.userData={partId:p.id,assetId:a.id};object.matrixAutoUpdate=false;object.matrix.copy(partMatrix(p.transform,p.pivot));group.add(object);
+ if(this.liveStudio){const luminous=p.stamps.find(s=>s.mode==='add'&&library.materials[this.materialIndices.get(s.materialId)]?.emission>0);
+ if(luminous)this.emitters.push({object,origin:new THREE.Vector3(...luminous.position),size:Math.max(...luminous.size),material:library.materials[this.materialIndices.get(luminous.materialId)]});}
+ const direct=this.liveStudio&&implicitStamp(p,library.materials);
  if(direct){object.userData.stampMaterial=direct.materialId;object.add(this.implicit.mesh(direct,library.materials.find(m=>m.id===direct.materialId)));this.implicitCount++;continue;}
  const key=a.id+':'+p.id,geometry=this.cache.get(key);if(geometry){this.gaussianCount+=geometry.instanceCount;const mesh=new THREE.Mesh(geometry,this.material);mesh.userData.surfaceKey=key;if(this.liveStudio)this.bindFinish(mesh,()=>this.activePhysics?.get(instance.id,p.id));object.add(mesh);
  if(this.liveStudio)object.userData.fullyLoose=[...geometry.userData.materialIds].every(id=>{
@@ -203,13 +218,13 @@ export class StudioView{
  })&&!p.marks?.length;
  if(this.liveStudio)for(const mid of geometry.userData.materialIds??new Set(this.surfaces.get(key)?.materials)){
   const index=library.materials.findIndex(m=>m.id===mid),m=library.materials[index];
-  if(looseKind(m)!==2&&!opticalIce(m))continue;this.hasFiniteLiquid=true;
+  if(looseKind(m)!==2&&!solidOptics(m))continue;this.hasFiniteLiquid=true;
   this.attachOptics(object,geometry,m,index,key,()=>this.activePhysics?.get(instance.id,p.id));
  }}}}this.setGround(this.liveStudio&&mode==='asset'?this.workPlane:library.materials.find(m=>m.id===library.world.groundMaterialId));this.paintView?.rebuild(this);}
  attachOptics(parent,geometry,m,index,key,record){
   const mesh=new THREE.Mesh(geometry,this.liquidMaterial(m,index));
   mesh.layers.set(1);mesh.userData.surfaceKey=key;parent.add(mesh);
-  if(!opticalIce(m))return;
+  if(!solidOptics(m))return;
   this.frozenOptics.add(mesh);
   const size=geometry.boundingBox.getSize(new THREE.Vector3());
   const span=Math.max(.02,Math.min(size.x,size.y,size.z));
@@ -264,7 +279,7 @@ export class StudioView{
  }
  attach(instanceId,partId,tool){this.gizmo.detach();if(!['translate','rotate','scale'].includes(tool))return;const group=this.groups.get(this.mode==='asset'?'editor':instanceId);if(!group)return;const obj=this.mode==='asset'?group.children.find(p=>p.userData.partId===partId):group;if(!obj)return;
  if(this.mode==='asset'){obj.matrix.decompose(obj.position,obj.quaternion,obj.scale);}this.gizmo.setMode(tool);this.gizmo.setSpace(this.mode==='asset'?'local':'world');this.gizmo.attach(obj);}
- ray(event){const rect=this.canvas.getBoundingClientRect();this.pointer.set((event.clientX-rect.left)/rect.width*2-1,1-(event.clientY-rect.top)/rect.height*2);this.scene.updateMatrixWorld(true);this.assetScene.updateMatrixWorld(true);this.raycaster.setFromCamera(this.pointer,this.camera);return this.raycaster.ray;}
+ ray(event,updateScene=true){const rect=this.canvas.getBoundingClientRect();this.pointer.set((event.clientX-rect.left)/rect.width*2-1,1-(event.clientY-rect.top)/rect.height*2);if(this.firstPerson)this.pointer.set(0,0);this.camera.updateMatrixWorld();if(updateScene){this.scene.updateMatrixWorld(true);this.assetScene.updateMatrixWorld(true);}this.raycaster.setFromCamera(this.pointer,this.camera);return this.raycaster.ray;}
  pick(event,{optimized=this.fastPicking===true,marks=true}={}){const ray=this.ray(event);let nearest=null;const local=new THREE.Ray(),inverse=new THREE.Matrix4(),p=new THREE.Vector3(),normal=new THREE.Vector3(),delta=new THREE.Vector3(),worldScratch=new THREE.Vector3(),bounds=new THREE.Sphere();for(const group of this.groups.values())for(const part of group.children){if(!group.visible||!part.visible)continue;const mesh=part.children[0];
  if(mesh?.userData.implicit){const hit=intersectImplicit(ray,mesh);if(hit){const distance=ray.origin.distanceTo(hit.point);
   if(!nearest||distance<nearest.distance)nearest={...hit,materialId:part.userData.stampMaterial,distance,partId:part.userData.partId,instanceId:group.userData.instanceId,assetId:group.userData.assetId};}continue;}
@@ -273,6 +288,13 @@ export class StudioView{
  if(this.garden)nearest=this.garden.reeds.pick(ray,nearest,this.activePhysics,marks);
  if(marks&&this.paintView?.batches.length)nearest=this.paintView.pick(ray,nearest);
  nearest=this.sectionView?.pick(this.raycaster,nearest)??nearest;
+ for(const d of this.sea?.drops??[]){
+  if(d.held||d.crest)continue;
+  bounds.center.set(d.x,d.y,d.z);bounds.radius=d.r;
+  if(!ray.intersectSphere(bounds,p))continue;
+  const distance=p.distanceTo(ray.origin);
+  if(!nearest||distance<nearest.distance)nearest={point:p.clone(),normal:p.clone().sub(bounds.center).normalize(),distance,materialId:this.waterMaterial?.id};
+ }
  for(const [chunk,mesh] of this.groundEdits?.meshes||[]){
   const hit=this.raycaster.intersectObject(mesh,false)[0];if(hit&&(!nearest||hit.distance<nearest.distance))nearest={...hit,chunk};
  }
@@ -337,7 +359,18 @@ export class StudioView{
   for(const bed of matter.beds.values())if(usesLiquidOptics(bed.material,bed.liquid)&&bed.nodes.size)return true;
   return false;
  }
- draw(){if(this.failed)throw Error('Studio graphics context lost; stopped.');this.controls.update();if(this.liveStudio){
+ draw(){if(this.failed)throw Error('Studio graphics context lost; stopped.');if(!this.firstPerson)this.controls.update();if(this.liveStudio){
+ const lights=this.lampUniforms;let lampCount=0;
+ for(const lamp of this.emitters??[]){
+  if(!lamp.object.visible||!lamp.object.parent?.visible)continue;
+  lamp.object.updateWorldMatrix(true,false);
+  const pos=lights.studioLampPosition.value[lampCount],center=new THREE.Vector3().copy(lamp.origin).applyMatrix4(lamp.object.matrixWorld);
+  const radius=lamp.size*lamp.object.matrixWorld.getMaxScaleOnAxis();
+  pos.set(center.x,center.y,center.z,Math.max(.001,radius*radius));
+  lights.studioLampColor.value[lampCount].set(lamp.material.color).multiplyScalar(lamp.material.emission);
+  if(++lampCount===4)break;
+ }
+ lights.studioLampCount.value=lampCount;
  this.paintView.update(this,this.activePhysics??null);
  for(const drift of this.matterView.saltation.values())drift.updateEye(this.camera.position);
  this.groundEdits.update(this.activePhysics);this.sandView.update(this.sand,this.groundSurface,this.camera.position);this.finishMap.update(this.sea&&!this.garden?null:this.activePhysics?.materialWorld,this.groundSurface);this.ground.geometry=this.garden?this.garden.geometry:this.sand?this.reliefFloor:this.flatFloor;this.groundMaterial.uniforms.granular.value=!!this.sand;

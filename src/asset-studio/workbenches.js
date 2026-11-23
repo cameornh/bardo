@@ -1,3 +1,4 @@
+import {opticsBench} from './studio-equipment.js';
 import {asset, part, seedLibrary, stamp, transform} from './model.js';
 import {exampleWorlds} from './example-worlds.js';
 import {jointDefaults} from './physics-data.js';
@@ -125,10 +126,11 @@ function fractureBench(){
 export const studioTests = [
   {id:'library',name:'My library'},
   ...exampleWorlds,
+  {id:'optics',name:'Cups, balls and lenses',create:opticsBench,tool:'lift',guide:'Inspect the open cups and curved lenses, then grab material or place another sample.'},
   {id:'fracture',name:'Fracture comparison',create:fractureBench,tool:'nudge',guide:'Drop three equal-mass samples by pressing Play. From left to right, compare even grains, fibres and layers. The samples share bulk strength and overload time. Reset to repeat the drop.'},
   {id:'materials',name:'Material workbench',create:materialBench,tool:'field',guide:'Point at a sample to probe it or choose a material action. Try heating ice, wetting felt, or attaching a supply and a return across the two touching conductors.'},
   {id:'water',name:'Wind and water',create:waterBench,tool:'splash',guide:'Click beside a float to send it a wave. Change the wind heading, or lift a handful of water and throw it at the arch.'},
-  {id:'ground',name:'Ground materials',create:groundBench,tool:'lift',guide:'Play to drop sand, water and wood onto the same floor. Drag the ground to lift it. Change the ground material and repeat to compare the landings.'},
+  {id:'ground',name:'Ground materials',create:groundBench,tool:'lift',guide:'Play to drop sand, water and wood onto the same floor. Click to grab material, scroll to change its distance and click again to drop it. Change the ground material and repeat to compare the landings.'},
   {id:'joints',name:'Joint forces',create:jointBench,tool:'nudge',guide:'Play to swing the arm. Drag against its motion, then turn off joint animation forces to watch the swing settle.'},
   {id:'sculpts',name:'Example sculpts',create:sculptBench,guide:'Edit a sample to inspect its shapes. In the world, press Play to see the stem swing from its bracket and try nudging the clay.'}
 ];

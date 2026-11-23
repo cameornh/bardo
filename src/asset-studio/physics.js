@@ -5,6 +5,7 @@ import {BearingLoad} from './bearing-load.js';
 import {beamSection,bindBuckledSection} from './structural-section.js';
 import {attachStructure,structureBody,recordLoad,beforeFractureStep,advanceFractures} from './fracture.js';
 import {GroundCuts} from './ground-tools.js';
+import {advanceGrip} from './sphere-grip.js';
 import {stepChunks} from './ground-interaction.js';
 import {parcelObstacle,resolveParcel} from './parcel-contact.js';
 import {LooseMatter,DuneContacts,looseKind} from './loose-matter.js';
@@ -216,6 +217,7 @@ export class StudioPhysics {
     recordLoad(child,force,anchor,torque);b.addForceAtPoint(force,anchor,true);b.addTorque(torque,true);if(parent){force.negate();torque.negate();recordLoad(parent,force,anchor,torque);a.addForceAtPoint(force,anchor,true);a.addTorque(torque,true);}
    }
   }
+  if(this.sphereGrip)advanceGrip(this,dt);
   stepChunks(this,dt);
   this.pulses=this.pulses.filter(f=>f.until>this.time);for(const pulse of this.pulses){const fraction=Math.min(1,(pulse.until-this.time)/dt);this.applyForce({...pulse,force:pulse.force.clone().multiplyScalar(fraction)});}if(this.drag)this.applyForce(this.drag);
   const loads=prepareLoads(links,this.world.gravity);

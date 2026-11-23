@@ -100,6 +100,24 @@ export const interfaceOptics = /* glsl */`
    }
   }else reflection=inWater(reflection,32.);
   reflection=mix(reflection,env(n,1.),.65*properties.x*properties.x);
+  #ifdef PARCEL_OPTICS
+  if(parcel&&properties.y>.98){
+   // Trace a curved mirror's reflected ray through the same opaque scene capture.
+   reflection=env(reflected,0.);vec3 dir=mat3(viewMatrix)*reflected;
+   float t=.025,prior=t;
+   for(int i=0;i<24;i++){
+    vec3 q=vp+dir*t;vec4 clip=projectionMatrix*vec4(q,1.);
+    vec2 tap=clip.xy/max(.001,clip.w)*.5+.5;
+    if(clip.w<=0.||any(lessThan(tap,vec2(0.)))||any(greaterThan(tap,vec2(1.))))break;
+    float depth=texture2D(sceneDepth,tap).r,delta=viewPoint(tap,depth).z-q.z;
+    if(depth<.999999&&delta>=0.&&delta<.08+t-prior){
+     reflection=texture2D(sceneColor,tap).rgb;break;
+    }
+    prior=t;t=t*1.37+.035;
+   }
+   fresnel=1.;reflection*=color;
+  }
+  #endif
   vec3 radiance=mix(through,reflection,fresnel);
   float glint=pow(max(0.,dot(reflected,normalize(vec3(-.6,1.,.5)))),mix(180.,14.,properties.x*properties.x));
   radiance+=vec3(1.,.94,.8)*glint*.32;
