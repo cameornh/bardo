@@ -1,6 +1,6 @@
 import {installEquipment,placementPose} from './studio-equipment.js';
 import {grabBodies,dropBodies} from './sphere-grip.js';
-import {StudioWalk} from './walk.js';
+import {StudioWalk,bindWalkMouse} from './walk.js';
 import {bindMaterialHover} from './material-hover.js';
 import {bindFieldTools,fieldControls} from './material-field-controls.js';
 import {MarkBrush,strokePattern,bindBrushControls,brushControls,sculptToolbar,showBrushControls,toolOptions} from './paint-brush.js';
@@ -184,8 +184,8 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  Object.assign(gesture,{insert:'Click a surface to insert the library selection · Esc to select',gaussian:'Drag from the surface toward the tip · click to grow outward',detail:'Click a painted detail to edit its shape and joint',sample:'Click a surface or painted detail to sample its material'});
  showBrushControls($,mode==='asset',tool);
  view.paintView.select(selectedPart,mode==='asset'&&tool==='detail'&&!physics?markBrush.selected:null);
- $('hint').textContent=view.firstPerson?'WASD: walk · mouse: look · Space: jump / float · click: tool · wheel: held distance · Esc: orbit':(gesture[tool]||'')+' · right drag: orbit · Shift + right drag: pan · wheel: zoom · WASD/QE: move (Shift: fast) · F: '+(mode==='asset'?'frame asset':'frame placements');
- if(physics){view.gizmo.detach();return;}view.attach(selectedInstance,selectedPart,mode==='asset'?$('tool').value:worldTool);}
+ $('hint').textContent=view.firstPerson?`WASD: walk · ${document.pointerLockElement===view.canvas?'mouse: look':'right-drag to look'} · Space: jump / float · click: tool · wheel: held distance · Esc: orbit`:(gesture[tool]||'')+' · right drag: orbit · Shift + right drag: pan · wheel: zoom · WASD/QE: move (Shift: fast) · F: '+(mode==='asset'?'frame asset':'frame placements');
+ if(physics||view.firstPerson){view.gizmo.detach();return;}view.attach(selectedInstance,selectedPart,mode==='asset'?$('tool').value:worldTool);}
  function refresh(){hover.invalidate();const active=new Set(mode==='asset'?[selectedAsset]:library.world.instances.map(i=>i.assetId));for(const [key,g]of view.cache)if(!active.has(key.split(':')[0])){g.dispose();view.cache.delete(key);view.surfaces.delete(key);}view.rebuild(library,mode,selectedAsset);
  const groundKind=mode==='world'?looseKind(view.groundSurface):0;
  const landscapeSeed=library.world.wetlandSeed;
@@ -371,19 +371,19 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
   }
   if(strokeEdited&&!baking)pump();
  }
-  const cameraPointers=new Set();
- const walk=new StudioWalk(view);
- function endWalk(){if(document.pointerLockElement===canvas)document.exitPointerLock();walk.exit();$('walk').checked=false;$('crosshair').hidden=true;}
- $('walk').onchange=()=>{if($('walk').checked){walk.enter();$('crosshair').hidden=false;canvas.focus();}else endWalk();attach();};
+ const cameraPointers=new Set();
+ const canvas=$('canvas'),walk=new StudioWalk(view);
+ const mouse=bindWalkMouse(canvas,walk,{onLocked:attach,onUnlocked:endWalk});
+ function endWalk(){
+  endStroke({type:'pointercancel'});dropSphere();moveKeys.clear();
+  walk.exit();mouse.release();$('walk').checked=false;$('crosshair').hidden=true;attach();
+ }
+ $('walk').onchange=()=>{if($('walk').checked){walk.enter();$('crosshair').hidden=false;canvas.focus({preventScroll:true});mouse.request();attach();}else endWalk();};
  $('grab-radius').oninput=()=>{$('grab-radius-label').value=Number($('grab-radius').value).toFixed(2);};
- const canvas=$('canvas');$('impact').oninput=()=>{$('impact-label').value=$('impact').value;};let owner=null,activePointer=null,lastSplash=null,pendingGround=null;
+ $('impact').oninput=()=>{$('impact-label').value=$('impact').value;};let owner=null,activePointer=null,lastSplash=null,pendingGround=null;
  let gripCursor=null;
  const activeTool=()=>mode==='asset'?$('tool').value:worldTool;
  canvas.addEventListener('pointerdown',e=>{
-  if(walk.enabled&&e.button===2&&!document.pointerLockElement){
-   canvas.setPointerCapture(e.pointerId);
-   try{canvas.requestPointerLock?.()?.catch?.(()=>{});}catch{/* Captured dragging also works in embedded previews. */}
-  }
   if(activePointer!==null){
    if(owner==='camera'&&e.pointerType==='touch'){cameraPointers.add(e.pointerId);return;}
    e.stopImmediatePropagation();return;
@@ -392,9 +392,10 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
   owner=(e.button===1||e.button===2||activeTool()==='camera')?'camera':'tool';
   if(owner==='camera')cameraPointers.add(e.pointerId);
   view.controls.mouseButtons.LEFT=owner==='camera'?THREE.MOUSE.ROTATE:null;
-  view.controls.enabled=owner==='camera'&&!walk.enabled;
-  view.gizmo.enabled=owner==='tool'&&!!view.gizmo.object;
-  if(owner==='tool'&&!view.gizmo.enabled)canvas.setPointerCapture(e.pointerId);
+  const orbit=!walk.enabled&&!document.pointerLockElement;
+  view.controls.enabled=orbit&&owner==='camera';
+  view.gizmo.enabled=orbit&&owner==='tool'&&!!view.gizmo.object;
+  if(owner==='tool'&&!view.gizmo.enabled)mouse.captureToolDrag(e.pointerId);
  },true);
  function dropSphere(){
   if(!gripCursor)return;
@@ -462,7 +463,7 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  canvas.addEventListener('pointerdown',e=>{if(owner==='camera'||e.button!==0||view.dragging)return;const tool=activeTool();
  if(tool==='field'){const hit=view.pick(e);if(hit){e.stopImmediatePropagation();void fields.use(hit);}return;}
  if(mode==='world'&&(tool==='lift'||tool==='splash')){e.stopImmediatePropagation();lastSplash=null;groundAction(tool,e);return;}
- if(tool==='nudge'){const hit=view.pick(e);if(!hit||hit.ground)return;if(!physics||!playing){notice('Press Play physics before nudging.');return;}if(hit.reedSite)physics.stand?.activate(hit.reedSite);let r=hit.chunk||physics.bodies.get(hit.bodyKey)||physics.get(hit.instanceId,hit.partId);if(r?.structure&&!hit.bodyKey)r=structureBody(r,physics.localPoint(r,hit.point));if(!r&&!hit.loose)return notice('No movable material at this point.');e.stopImmediatePropagation();view.controls.enabled=false;canvas.setPointerCapture(e.pointerId);const normal=view.camera.getWorldDirection(new THREE.Vector3());forceDrag={throughBlade:!!hit.reedSite,key:hit.chunk?.key||hit.looseKey||r?.key||hit.instanceId+':'+hit.partId,loose:!!hit.loose,localPoint:hit.loose?hit.point.clone():physics.localPoint(r,hit.point),origin:hit.point.clone(),plane:new THREE.Plane().setFromNormalAndCoplanarPoint(normal,hit.point),force:new THREE.Vector3()};if(hit.mark)forceDrag.hinge=physics.paintedHinges.grab(hit.instanceId+':'+hit.partId,hit.mark.id,hit.point);if(hit.assetId){selectedPart=hit.partId;if(mode==='world'){selectedInstance=hit.instanceId;selectedAsset=hit.assetId;}sync();}return;}if(physics&&tool!=='select'){if(mode==='asset'&&['insert','gaussian','detail','add','subtract','paint'].includes(tool))notice('Reset physics to resume sculpting.');return;}
+ if(tool==='nudge'){const hit=view.pick(e);if(!hit||hit.ground)return;if(!physics||!playing){notice('Press Play physics before nudging.');return;}if(hit.reedSite)physics.stand?.activate(hit.reedSite);let r=hit.chunk||physics.bodies.get(hit.bodyKey)||physics.get(hit.instanceId,hit.partId);if(r?.structure&&!hit.bodyKey)r=structureBody(r,physics.localPoint(r,hit.point));if(!r&&!hit.loose)return notice('No movable material at this point.');e.stopImmediatePropagation();view.controls.enabled=false;const normal=view.camera.getWorldDirection(new THREE.Vector3());forceDrag={throughBlade:!!hit.reedSite,key:hit.chunk?.key||hit.looseKey||r?.key||hit.instanceId+':'+hit.partId,loose:!!hit.loose,localPoint:hit.loose?hit.point.clone():physics.localPoint(r,hit.point),origin:hit.point.clone(),plane:new THREE.Plane().setFromNormalAndCoplanarPoint(normal,hit.point),force:new THREE.Vector3()};if(hit.mark)forceDrag.hinge=physics.paintedHinges.grab(hit.instanceId+':'+hit.partId,hit.mark.id,hit.point);if(hit.assetId){selectedPart=hit.partId;if(mode==='world'){selectedInstance=hit.instanceId;selectedAsset=hit.assetId;}sync();}return;}if(physics&&tool!=='select'){if(mode==='asset'&&['insert','gaussian','detail','add','subtract','paint'].includes(tool))notice('Reset physics to resume sculpting.');return;}
  if(mode==='asset'&&tool==='insert'){
   e.stopImmediatePropagation();const hit=view.pick(e,{marks:false});
   if(hit&&!hit.ground)assembly.place(hit);else notice('Click the surface of a sculpted part.');
@@ -477,19 +478,18 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
   if(tool==='sample'){const id=hit?.materialId;if(id){selectedMaterial=id;sync();notice('Sampled '+currentMaterial().name+'.');}return;}
   if(hit?.mark){selectedPart=hit.partId;chooseMark(hit.mark.id);}return;
  }
- if(mode==='asset'&&['add','subtract','paint'].includes(tool)){e.stopImmediatePropagation();view.controls.enabled=false;canvas.setPointerCapture(e.pointerId);stroke=true;strokeEdited=false;strokeSide=null;lastStroke=null;applyBrush(view.pick(e,{marks:false}),e.shiftKey);}else if(['select','translate','rotate','scale'].includes(tool)){
+ if(mode==='asset'&&['add','subtract','paint'].includes(tool)){e.stopImmediatePropagation();view.controls.enabled=false;stroke=true;strokeEdited=false;strokeSide=null;lastStroke=null;applyBrush(view.pick(e,{marks:false}),e.shiftKey);}else if(['select','translate','rotate','scale'].includes(tool)){
  if(tool!=='select'&&view.gizmo.object){
   view.ray(e);view.gizmo.pointerHover({x:view.pointer.x,y:view.pointer.y,button:e.button});
   if(view.gizmo.axis)return;
  }
  e.stopImmediatePropagation();const hit=view.pick(e);if(hit&&!hit.ground&&hit.assetId&&hit.partId){if(mode==='world'){selectedInstance=hit.instanceId;selectedAsset=hit.assetId;}selectedPart=hit.partId;sync();}else if(mode==='world'&&hit?.ground&&view.garden){view.garden.disturbFauna(hit.point.x,hit.point.y,hit.point.z,hit.pond?'splash':'vibration',hit.pond?1.15:0.95,hit.pond?5.5:4.5);if(hit.pond&&view.sea)view.sea.ripple(hit.point.x,hit.point.z,.045,false,3.5);}}},true);
- canvas.addEventListener('pointermove',e=>{if(walk.enabled)walk.look(e.movementX||0,e.movementY||0);},true);
  canvas.addEventListener('pointermove',e=>{if(owner==='camera'||(activePointer!==null&&e.pointerId!==activePointer))return;
  if(markBrush.pending){markBrush.move(e);return;}
  if(gripCursor){gripCursor.clientX=e.clientX;gripCursor.clientY=e.clientY;return;}
  if(owner==='tool'&&activeTool()==='splash'&&mode==='world'){groundAction('splash',e);return;}if(forceDrag&&physics){const point=view.ray(e).intersectPlane(forceDrag.plane,new THREE.Vector3());if(point){forceDrag.force.copy(point).sub(forceDrag.origin).multiplyScalar(Math.max(1,Math.min(100000,Number($('force-strength').value)||1))).clampLength(0,100000);if(forceDrag.hinge)forceDrag.hinge.cursorForce.copy(forceDrag.force);if(!forceDrag.hinge||forceDrag.throughBlade)physics.setDrag(physics.drag?.key??forceDrag.key,forceDrag.localPoint,forceDrag.force,forceDrag.loose);view.showForce(forceDrag.origin,point);notice('Applied force: '+forceDrag.force.length().toFixed(0)+' N');}return;}if(physics)return;const tool=$('tool').value;if(mode==='asset'&&['add','subtract','paint'].includes(tool)){const hit=view.pick(e,{marks:false});view.showBrush(hit,Number($('radius').value));if(stroke)applyBrush(hit,e.shiftKey);}else view.showBrush(null,1);});
  const endStroke=e=>{if(owner==='camera'){
-  if(e.type==='blur')cameraPointers.clear();else cameraPointers.delete(e.pointerId);
+  if(e.pointerId==null)cameraPointers.clear();else cameraPointers.delete(e.pointerId);
   if(cameraPointers.size){activePointer=cameraPointers.values().next().value;return;}
   activePointer=e.pointerId??activePointer;
  }
@@ -501,9 +501,9 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
   if(markBrush.finish(e.type==='pointerup',begin)){changedMarks();view.showBrush(null,1);}
   return;
  }
- if(forceDrag){if(forceDrag.hinge&&physics)forceDrag.hinge.until=physics.time+(e.type==='pointerup'?Math.max(0,Math.min(5,Number($('force-duration').value)||0)):0);if(physics&&e.type==='pointerup'&&(!forceDrag.hinge||forceDrag.throughBlade))physics.addPulse(physics.drag?.key??forceDrag.key,forceDrag.localPoint,forceDrag.force,Number($('force-duration').value)||0,forceDrag.loose);physics?.clearDrag();view.showForce(null,null);forceDrag=null;view.controls.enabled=true;}if(!stroke)return;stroke=false;lastStroke=null;view.controls.enabled=true;if(strokeEdited){pump();changed(false);}strokeEdited=false;};canvas.addEventListener('pointerup',endStroke);canvas.addEventListener('pointercancel',endStroke);canvas.addEventListener('lostpointercapture',endStroke);window.addEventListener('blur',endStroke);canvas.addEventListener('pointerleave',()=>{if(!stroke)view.showBrush(null,1);});
+ if(forceDrag){if(forceDrag.hinge&&physics)forceDrag.hinge.until=physics.time+(e.type==='pointerup'?Math.max(0,Math.min(5,Number($('force-duration').value)||0)):0);if(physics&&e.type==='pointerup'&&(!forceDrag.hinge||forceDrag.throughBlade))physics.addPulse(physics.drag?.key??forceDrag.key,forceDrag.localPoint,forceDrag.force,Number($('force-duration').value)||0,forceDrag.loose);physics?.clearDrag();view.showForce(null,null);forceDrag=null;view.controls.enabled=!walk.enabled;}if(!stroke)return;stroke=false;lastStroke=null;view.controls.enabled=!walk.enabled;if(strokeEdited){pump();changed(false);}strokeEdited=false;};window.addEventListener('pointerup',endStroke);window.addEventListener('pointercancel',endStroke);canvas.addEventListener('lostpointercapture',endStroke);window.addEventListener('blur',endStroke);canvas.addEventListener('pointerleave',()=>{if(!stroke)view.showBrush(null,1);});
  const moveKeys=new Set(),flyCodes=new Set(['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','ShiftLeft','ShiftRight']);
- window.addEventListener('keydown',e=>{if(walk.enabled&&e.code==='Escape'){endWalk();attach();return;}if(walk.enabled&&e.code==='Space'&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName)){e.preventDefault();moveKeys.add('Space');return;}if(/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName))return;if(!e.ctrlKey&&!e.metaKey&&!e.altKey&&flyCodes.has(e.code)){moveKeys.add(e.code);return;}if(mode==='asset'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+ window.addEventListener('keydown',e=>{if(walk.enabled&&e.code==='Escape'){endWalk();return;}if(walk.enabled&&e.code==='Space'&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName)){e.preventDefault();moveKeys.add('Space');return;}if(/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName))return;if(!e.ctrlKey&&!e.metaKey&&!e.altKey&&flyCodes.has(e.code)){moveKeys.add(e.code);return;}if(mode==='asset'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
    if(e.key==='Escape'&&$('tool').value==='insert'){setBrush('select');return;}
    if(e.key==='Escape'&&markBrush.pending){markBrush.finish(false);return;}
    if(activePointer===null&&/^[1-6]$/.test(e.key)){setBrush($('brush-bar').children[Number(e.key)-1].dataset.brush);return;}
@@ -525,5 +525,5 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  frame=requestAnimationFrame(tick);boot.finish();
  // Diagnostics are read-only; numerical oracle is also available from the UI.
  window.__assetStudio={get diagnostics(){return {test:test.id,mode,assets:library.assets.length,materials:library.materials.length,placements:library.world.instances.length,implicit:view.implicitCount,water:!!view.sea,waterTime:view.sea?.time,drops:view.sea?.drops.length,wind:wind(),camera:view.camera.position.toArray(),baking,backend:baker.backend,validation:baker.validation,graphicsLost:!!view.failed,splats:[...view.surfaces.values()].reduce((n,s)=>n+s.positions.length/3,0),bakeMs,physics:physics?.diagnostics()||null,physicsBuilding,ecology:view.garden?.ecology?.snapshot()??null,fauna:view.garden?.fauna?{active:view.garden.fauna.activeAgentCount,total:view.garden.fauna.agents.length,placed:view.garden.fauna.sim.placedLinks.length,stimuli:view.garden.fauna.sim.stimuli.activeCount,ellipsoids:view.garden.fauna.geometry.instanceCount,byGuild:view.garden.fauna.activeCountsByGuild(),sampleStates:view.garden.fauna.agents.filter(a=>a.speciesId==='ghost-crab'||a.speciesId==='baitfish'||a.speciesId==='fiddler-crab').slice(0,12).map(a=>({id:a.id,speciesId:a.speciesId,state:a.state,alertStage:a.alertStage,fear:+((a.fear||0).toFixed(2)),hunger:+((a.hunger||0).toFixed(2)),speed:+((a.speed||0).toFixed(2)),support:a.crabRig?.supportCount}))}:null};}};
- window.addEventListener('pagehide',()=>{disposed=true;cancelAnimationFrame(frame);clearTimeout(saveTimer);hover.dispose();physics?.dispose();baker.dispose();view.dispose();},{once:true});
+ window.addEventListener('pagehide',()=>{disposed=true;cancelAnimationFrame(frame);clearTimeout(saveTimer);mouse.dispose();hover.dispose();physics?.dispose();baker.dispose();view.dispose();},{once:true});
 }

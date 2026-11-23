@@ -50,3 +50,59 @@ export class StudioWalk {
   this.space=jump;this.aim();
  }
 }
+
+// Pointer lock sends relative mouse motion to the canvas even without a button.
+// A captured drag is a different browser mode and is illegal during pointer lock.
+export function bindWalkMouse(canvas,walk,{onLocked,onUnlocked}){
+ const doc=canvas.ownerDocument,events=new AbortController(),options={signal:events.signal};
+ let hadLock=false,pending=false,retriedOnCanvas=false,drag=null;
+ function request(){
+  if(!walk.enabled||pending||doc.pointerLockElement||!canvas.requestPointerLock)return;
+  pending=true;
+  const refused=()=>{pending=false;};
+  try{canvas.requestPointerLock()?.catch(refused);}catch{refused();}
+ }
+ function changed(){
+  const locked=doc.pointerLockElement===canvas,wasLocked=hadLock;
+  hadLock=locked;pending=false;
+  if(locked){
+   drag=null;
+   if(walk.enabled)onLocked();else doc.exitPointerLock();
+  }else if(wasLocked&&walk.enabled)onUnlocked();
+ }
+ doc.addEventListener('pointerlockchange',changed,options);
+ doc.addEventListener('pointerlockerror',()=>{pending=false;},options);
+ doc.addEventListener('mousemove',e=>{
+  if(walk.enabled&&doc.pointerLockElement===canvas)walk.look(e.movementX,e.movementY);
+ },options);
+ canvas.addEventListener('pointerdown',e=>{
+  if(!walk.enabled||doc.pointerLockElement||(e.button!==2&&e.pointerType!=='touch'))return;
+  drag={id:e.pointerId,x:e.clientX,y:e.clientY};
+  // A canvas gesture may be accepted even when the checkbox gesture was refused.
+  if(e.button===2&&!pending&&!retriedOnCanvas){retriedOnCanvas=true;request();}
+ },options);
+ doc.addEventListener('pointermove',e=>{
+  if(!walk.enabled||doc.pointerLockElement||drag?.id!==e.pointerId)return;
+  if(e.pointerType!=='touch'&&!(e.buttons&2)){drag=null;return;}
+  walk.look(e.clientX-drag.x,e.clientY-drag.y);
+  drag.x=e.clientX;drag.y=e.clientY;
+ },options);
+ const finish=e=>{if(drag?.id===e.pointerId)drag=null;};
+ doc.addEventListener('pointerup',finish,options);
+ doc.addEventListener('pointercancel',finish,options);
+ doc.defaultView.addEventListener('blur',()=>{drag=null;},options);
+ canvas.addEventListener('contextmenu',e=>{if(walk.enabled)e.preventDefault();},options);
+ return {
+  request,
+  captureToolDrag(id){
+   if(walk.enabled||doc.pointerLockElement||!canvas.isConnected)return;
+   try{canvas.setPointerCapture(id);}
+   catch(e){if(e.name!=='NotFoundError'&&e.name!=='InvalidStateError')throw e;}
+  },
+  release(){
+   drag=null;hadLock=false;pending=false;retriedOnCanvas=false;
+   if(doc.pointerLockElement===canvas)doc.exitPointerLock();
+  },
+  dispose(){events.abort();this.release();}
+ };
+}
