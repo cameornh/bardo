@@ -2,7 +2,7 @@
 // the narrow paraxial focus separate from the softer spherical aberration.
 import {FocusMap} from './focus-map.js';
 import {Color,Vector3,Vector4} from 'three';
-import {opticalHit,traceOptic,transformedOptic} from './polished-shapes.js';
+import {opticalDistance,opticalHit,traceOptic,transformedOptic} from './polished-shapes.js';
 const PATHS=12,BANDS=2,SIDE=10,SPOTS=PATHS*BANDS;
 export const causticShader=`uniform int focusCount;uniform vec4 focusShape[${SPOTS}];uniform vec4 focusLight[${SPOTS}];
 uniform sampler2D focusMap;uniform vec4 focusBounds;uniform float focusMapScale;
@@ -30,10 +30,9 @@ export function beamGain(cosine,limit){
 }
 function blocked(from,dir,distance,blockers){
  for(const b of blockers){
-  const offset=b.center.clone().sub(from),along=offset.dot(dir);
-  if(along+b.radius<0||along-b.radius>distance||offset.lengthSq()-along*along>b.radius*b.radius)continue;
-  const hit=opticalHit(b,from,dir,1e-5);
-  if(hit&&hit.t<distance-.0001)return true;
+  const dx=b.center.x-from.x,dy=b.center.y-from.y,dz=b.center.z-from.z,along=dx*dir.x+dy*dir.y+dz*dir.z;
+  if(along+b.radius<0||along-b.radius>distance||dx*dx+dy*dy+dz*dz-along*along>b.radius*b.radius)continue;
+  if(opticalDistance(b,from,dir,1e-5)<distance-.0001)return true;
  }
  return false;
 }

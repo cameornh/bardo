@@ -9,33 +9,45 @@ export function polishedShape(stamps){
  return {primitives,center,size,bounds:new Box3(center.clone().sub(size),center.clone().add(size))};
 }
 const axes=['x','y','z'];
-function interval(s,origin,direction){
- const q=origin.clone().sub(s.center).divide(s.size),d=direction.clone().divide(s.size);
- if(!s.box){
-  const a=d.lengthSq(),b=q.dot(d),disc=a-q.clone().cross(d).lengthSq();
-  if(disc<=0)return [Infinity,-Infinity];
-  const h=Math.sqrt(disc);return [(-b-h)/a,(-b+h)/a];
- }
+// Scratch for one synchronous query. A primitive contributes at most two
+// endpoints and the authored shape contains at most four primitives.
+const roots=new Float64Array(8),localOrigin=new Vector3(),localDirection=new Vector3();
+function storeInterval(s,p,d,i){
+ const x=(p.x-s.center.x)/s.size.x,y=(p.y-s.center.y)/s.size.y,z=(p.z-s.center.z)/s.size.z;
+ const dx=d.x/s.size.x,dy=d.y/s.size.y,dz=d.z/s.size.z;
  let lo=-Infinity,hi=Infinity;
- for(const k of axes){
-  if(Math.abs(d[k])<1e-12){if(Math.abs(q[k])>=1)return [Infinity,-Infinity];continue;}
-  const a=(-1-q[k])/d[k],b=(1-q[k])/d[k];lo=Math.max(lo,Math.min(a,b));hi=Math.min(hi,Math.max(a,b));
+ if(!s.box){
+  const a=dx*dx+dy*dy+dz*dz,b=x*dx+y*dy+z*dz;
+  const cx=y*dz-z*dy,cy=z*dx-x*dz,cz=x*dy-y*dx,disc=a-(cx*cx+cy*cy+cz*cz);
+  if(disc<=0)return false;
+  const h=Math.sqrt(disc);lo=(-b-h)/a;hi=(-b+h)/a;
+ }else{
+  for(let k=0;k<3;k++){
+   const v=k===0?dx:k===1?dy:dz,q=k===0?x:k===1?y:z;
+   if(Math.abs(v)<1e-12){if(Math.abs(q)>=1)return false;continue;}
+   const a=(-1-q)/v,b=(1-q)/v;lo=Math.max(lo,Math.min(a,b));hi=Math.min(hi,Math.max(a,b));
+  }
+  if(hi<=lo)return false;
  }
- return [lo,hi];
+ roots[i]=lo;roots[i+1]=hi;return true;
+}
+function firstBoundary(shape,p,d,minT){
+ const prim=shape.primitives,n=2*prim.length;
+ if(!storeInterval(prim[0],p,d,0)||roots[1]<=minT)return -1;
+ for(let i=2;i<n;i+=2)if(!storeInterval(prim[i/2],p,d,i)){roots[i]=Infinity;roots[i+1]=-Infinity;}
+ let best=-1,t=Infinity;
+ for(let i=0;i<n;i++){
+  const root=roots[i];
+  if(root<minT||root>=t||root<roots[0]||root>roots[1])continue;
+  let carved=false;
+  for(let j=2;j<n;j+=2){if((i&~1)!==j&&root>roots[j]&&root<roots[j+1]){carved=true;break;}}
+  if(!carved){best=i;t=root;}
+ }
+ return best;
 }
 export function shapeHit(shape,origin,direction,minT=1e-6){
- const ranges=shape.primitives.map(s=>interval(s,origin,direction));
- const [entry,exit]=ranges[0];if(exit<=minT||exit<=entry)return null;
- let t=Infinity,owner=-1;
- for(const [i,[a,b]] of ranges.entries()){
-  if(b<=a)continue;
-  for(const root of [a,b]){
-   if(root<minT||root>=t||root<entry||root>exit)continue;
-   if(ranges.some(([lo,hi],j)=>j>0&&j!==i&&root>lo&&root<hi))continue;
-   t=root;owner=i;
-  }
- }
- if(owner<0)return null;
+ const i=firstBoundary(shape,origin,direction,minT);if(i<0)return null;
+ const t=roots[i],owner=i>>1;
  const s=shape.primitives[owner],point=origin.clone().addScaledVector(direction,t);
  const normal=point.clone().sub(s.center).divide(s.size);
  if(s.box){
@@ -53,8 +65,12 @@ export function transformedOptic(shape,matrix){
  const inverse=matrix.clone().invert();
  return {shape,matrix,inverse,toLocal:new Matrix3().setFromMatrix4(inverse),toWorldNormal:new Matrix3().getNormalMatrix(matrix)};
 }
+export function opticalDistance(optic,origin,direction,minT=1e-6){
+ const i=firstBoundary(optic.shape,localOrigin.copy(origin).applyMatrix4(optic.inverse),localDirection.copy(direction).applyMatrix3(optic.toLocal),minT);
+ return i<0?Infinity:roots[i];
+}
 export function opticalHit(optic,origin,direction,minT){
- const hit=shapeHit(optic.shape,origin.clone().applyMatrix4(optic.inverse),direction.clone().applyMatrix3(optic.toLocal),minT);
+ const hit=shapeHit(optic.shape,localOrigin.copy(origin).applyMatrix4(optic.inverse),localDirection.copy(direction).applyMatrix3(optic.toLocal),minT);
  if(!hit)return null;
  hit.point.applyMatrix4(optic.matrix);hit.normal.applyNormalMatrix(optic.toWorldNormal);return hit;
 }

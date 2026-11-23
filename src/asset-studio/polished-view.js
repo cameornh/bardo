@@ -54,21 +54,28 @@ const boundary=`
 `;
 const optics=`
  uniform vec3 tint,skyColor,floorColor;uniform vec4 finish;uniform vec2 coating;
- uniform float underwater;uniform bool hasWater;
+ uniform float underwater,traceWeight;uniform bool hasWater;
  uniform sampler2D sceneColor,sceneDepth,bulkColor,bulkDepth;
- uniform mat4 inverseProjection;
- float viewZ(vec2 uv,float depth){vec4 h=inverseProjection*vec4(uv*2.-1.,depth*2.-1.,1.);return h.z/h.w;}
+
  vec3 radiance(vec3 p,vec3 ray){
   vec3 fallback=mix(floorColor*env(vec3(0.,1.,0.),1.),env(ray,0.),smoothstep(-.06,.04,ray.y));
+  if(traceWeight<=0.)return fallback;
   vec3 vp=(viewMatrix*vec4(p,1.)).xyz,dir=mat3(viewMatrix)*ray;
+  // Project the origin and direction once. clip(t) is linear in t, and
+  // perspective depth can be compared directly before reconstructing view Z.
+  vec4 start=projectionMatrix*vec4(vp,1.),stepClip=projectionMatrix*vec4(dir,0.);
   float t=.018,last=0.;
   for(int i=0;i<12;i++){
-   vec3 q=vp+dir*t;vec4 clip=projectionMatrix*vec4(q,1.);
+   vec4 clip=start+stepClip*t;
    vec2 uv=clip.xy/max(.001,clip.w)*.5+.5;
    if(clip.w<=0.||any(lessThanEqual(uv,vec2(0.)))||any(greaterThanEqual(uv,vec2(1.))))break;
    float d=texture2D(sceneDepth,uv).r,w=hasWater?texture2D(bulkDepth,uv).r:1.;
-   float delta=viewZ(uv,min(d,w))-q.z;
-   if(min(d,w)<1.&&delta>=-.001&&delta<.035+t-last)return w<d?texture2D(bulkColor,uv).rgb:texture2D(sceneColor,uv).rgb;
+   float depth=min(d,w);
+   if(depth<1.){
+    float surfaceZ=-projectionMatrix[3][2]/(2.*depth-1.+projectionMatrix[2][2]);
+    float delta=surfaceZ+clip.w;
+    if(delta>=-.001&&delta<.035+t-last)return mix(fallback,w<d?texture2D(bulkColor,uv).rgb:texture2D(sceneColor,uv).rgb,traceWeight);
+   }
    last=t;t=t*1.77+.042;
   }
   return fallback;
@@ -102,12 +109,28 @@ function uniforms(){return {count:{value:0},centres:{value:Array.from({length:4}
  radii:{value:Array.from({length:4},()=>new T.Vector3())},localFromWorld:{value:new T.Matrix4()}};}
 export class PolishedView{
  constructor(view,lighting){
-  this.view=view;this.geometries=new Map();
+  this.view=view;this.geometries=new Map();this.frustum=new T.Frustum();this.vp=new T.Matrix4();this.bound=new T.Sphere();
   const u=view.oceanView.uniforms;
   this.material=new T.ShaderMaterial({side:T.FrontSide,vertexShader:vertex,fragmentShader:lighting+boundary+optics,
    uniforms:{...view.uniforms,...uniforms(),sceneColor:u.sceneColor,sceneDepth:u.sceneDepth,bulkColor:u.bulkColor,bulkDepth:u.bulkDepth,
-    inverseProjection:u.inverseProjection,skyColor:u.skyColor,underwater:u.submerged,hasWater:{value:false},
+    skyColor:u.skyColor,underwater:u.submerged,traceWeight:{value:1},hasWater:{value:false},
     tint:{value:new T.Color()},finish:{value:new T.Vector4()},coating:{value:new T.Vector2()},floorColor:{value:new T.Color()}}});
+ }
+ updateVisibility(camera,height,meshes=[]){
+  camera.updateMatrixWorld();this.vp.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);
+  this.frustum.setFromProjectionMatrix(this.vp);this.visible=false;this.needsBackground=false;
+  for(const mesh of meshes){
+   if(!mesh.parent.visible||!mesh.parent.parent.visible)continue;
+   mesh.updateWorldMatrix(true,false);
+   const g=mesh.geometry;if(!g.boundingSphere)g.computeBoundingSphere();
+   this.bound.copy(g.boundingSphere).applyMatrix4(mesh.matrixWorld);
+   if(!this.frustum.intersectsSphere(this.bound))continue;
+   this.visible=true;
+   const depth=-this.bound.center.applyMatrix4(camera.matrixWorldInverse).z;
+   const pixels=height*camera.projectionMatrix.elements[5]*this.bound.radius/(2*Math.max(camera.near,depth-this.bound.radius));
+   mesh.userData.traceWeight=T.MathUtils.smoothstep(pixels,3,10);
+   if(mesh.userData.traceWeight>0)this.needsBackground=true;
+  }
  }
  begin(){this.used=new Set();}
  end(){for(const [key,g] of this.geometries)if(!this.used.has(key)){g.dispose();this.geometries.delete(key);}}
@@ -122,7 +145,7 @@ export class PolishedView{
   mesh.userData.polished={shape,material};
   mesh.onBeforeRender=(_r,_s,_c,_g,mat)=>{
    if(mat!==this.material)return;
-   const u=mat.uniforms;u.count.value=shape.primitives.length;u.localFromWorld.value.copy(mesh.parent.matrixWorld).invert();
+   const u=mat.uniforms;u.traceWeight.value=mesh.userData.traceWeight??1;u.count.value=shape.primitives.length;u.localFromWorld.value.copy(mesh.parent.matrixWorld).invert();
    for(const [i,s] of shape.primitives.entries()){u.centres.value[i].set(s.center.x,s.center.y,s.center.z,Number(s.box));u.radii.value[i].copy(s.size);}
    u.tint.value.set(material.color);u.finish.value.set(material.metallic,material.ior,material.absorption,material.scattering);
    u.coating.value.set(material.roughness,-Math.log(Math.max(.001,1-material.opacity)));

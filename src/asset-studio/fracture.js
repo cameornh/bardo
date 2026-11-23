@@ -2,7 +2,7 @@ import {Matrix3,Quaternion,Vector3} from 'three';
 import {fractureBoxes,fractureGrid,islands,nearestRegion} from './fracture-grid.js';
 import {cellShapes,fractureCells,mergeBoxes} from './fracture-cells.js';
 import {charBondStrength} from './char-fracture.js';
-import {factorNetwork,solveBonds} from './fracture-stress.js';
+import {belowBondYield,factorNetwork,networkLayout,solveBonds} from './fracture-stress.js';
 
 const vec=p=>new Vector3().copy(p);
 function regionAt(r,point){
@@ -14,7 +14,10 @@ export function structureBody(r,point,candidates){
  return owners[nearestRegion(grid,point.clone().divide(r.scale).toArray(),candidates??indices)];
 }
 function assignRegions(r,s,ids){
- r.structure=s;r.regions=ids;r.net=null;
+ r.structure=s;r.regions=ids;r.net=null;r.stressLayout=null;
+ r.regionMass=ids.reduce((sum,i)=>sum+s.grid.nodes[i].mass,0);
+ r.massCenter=new Vector3();
+ for(const i of ids){const n=s.grid.nodes[i];r.massCenter.addScaledVector(new Vector3(...n.center),n.mass/r.regionMass);}
  for(const i of ids)s.owners[i]=r;
  for(const sample of r.floats)sample.region=regionAt(r,sample.p);
 }
@@ -123,15 +126,13 @@ function evaluate(sim,r,dt){
  const accel=vec(b.linvel()).sub(r.priorVelocity).divideScalar(dt);
  const spin=vec(b.angvel()).applyQuaternion(inv),alpha=vec(b.angvel()).sub(r.priorSpin).applyQuaternion(inv).divideScalar(dt);
  const weight=vec(sim.world.gravity).sub(accel).applyQuaternion(inv);
- const regionMass=regions.reduce((sum,i)=>sum+grid.nodes[i].mass,0);
- const massCenter=new Vector3();
+ const {regionMass,massCenter}=r;
  const massScale=r.massScale??1;
  const force=new Vector3(),center=new Vector3(),arm=new Vector3(),angular=new Vector3(),torque=new Vector3();
  loads.fill(0);
  for(const i of regions){
   const n=grid.nodes[i];center.fromArray(n.center);arm.copy(center).sub(com);
   force.copy(weight).sub(angular.crossVectors(alpha,arm)).sub(angular.crossVectors(spin,arm).crossVectors(spin,angular)).multiplyScalar(n.mass*massScale);
-  massCenter.addScaledVector(center,n.mass/regionMass);
   // Angular inertia about the region's own centroid, in addition to its arm.
   inertiaProduct(n.inertia,spin,angular);torque.crossVectors(spin,angular);
   inertiaProduct(n.inertia,alpha,angular);torque.add(angular).multiplyScalar(-massScale);
@@ -159,7 +160,10 @@ function evaluate(sim,r,dt){
  let amplitude=0;
  for(const i of regions)for(let k=0;k<6;k++)amplitude=Math.max(amplitude,Math.abs(loads[6*i+k]));
  if(amplitude<.001&&!r.accumulating)return;
- r.net??=factorNetwork(regions,grid);
+ r.stressLayout??=networkLayout(regions,grid);
+ if(!s.beam&&!s.brokenBonds&&!r.accumulating&&!r.fieldStrength&&!r.fieldChar&&!r.net?.pending&&
+    r.stressLayout.edges.length>=regions.length&&belowBondYield(r.stressLayout,loads))return;
+ r.net??=factorNetwork(regions,grid,r.stressLayout);
  let selected=null,highest=0,compression=0;const beam=s.beam;
  const mid=beam?.center.getComponent(beam.axis);
  r.accumulating=false;
@@ -206,7 +210,7 @@ function evaluate(sim,r,dt){
  if(!selected)return;
  // Redistribute the load before breaking an alternate path. Several cracks can
  // grow in one part, and a detached fragment keeps its own surviving bonds.
- selected.char=Math.max(r.fieldChar?.get(selected.a)??0,r.fieldChar?.get(selected.b)??0);selected.broken=true;s.brokenBonds++;r.net=null;
+ selected.char=Math.max(r.fieldChar?.get(selected.a)??0,r.fieldChar?.get(selected.b)??0);selected.broken=true;s.brokenBonds++;r.net=null;r.stressLayout=null;
  const groups=componentsOf(r);
  if(groups.length>1){
   separate(sim,r,groups);

@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {Color,Matrix4,Mesh,MeshBasicMaterial,Raycaster,Vector3} from 'three';
 import {lightPathBench,opticsBench} from '../src/asset-studio/studio-equipment.js';
 import {partMatrix} from '../src/asset-studio/view.js';
-import {polishedShape,traceOptic,transformedOptic,shapeHit} from '../src/asset-studio/polished-shapes.js';
+import {polishedShape,traceOptic,transformedOptic,shapeHit,opticalDistance,opticalHit} from '../src/asset-studio/polished-shapes.js';
+import {revolvedOptic} from '../src/asset-studio/revolved-optic.js';
 import {polishedShell} from '../src/asset-studio/polished-shell.js';
 import {groundFocus,beamGain} from '../src/asset-studio/ground-caustics.js';
 import {capillaryStrength} from '../src/asset-studio/capillary-sand.js';
@@ -37,6 +38,24 @@ test('rasterized cup and carved lens agree with their analytic front surfaces',(
   assert.ok(hit&&Math.abs(hit.distance-expected.t)<.012);
   assert.ok(hit.face.normal.dot(expected.normal)>.97);
   mesh.geometry.dispose();mesh.material.dispose();
+ }
+});
+test('the compact shell follows the carved profile and the blocker path respects through-holes',()=>{
+ for(const form of ['cup','concave']){
+  const {shape}=optic(form),g=revolvedOptic(shape,false);
+  assert.ok(g&&g.index.count/3<3000);g.dispose();
+  // An eccentric cavity has no shared revolution axis.
+  const cut=shape.primitives[1];cut.center.x+=.065;cut.center.z+=.07;cut.center.y+=.085;
+  assert.equal(revolvedOptic(shape,false),null);
+ }
+ const ring=polishedShape([{mode:'add',shape:'box',position:[0,0,0],size:[1,1,.12]},
+  {mode:'subtract',shape:'sphere',position:[0,0,0],size:[.65,.65,2]}]);
+ const matrix=new Matrix4().makeScale(1.5,.8,.7).setPosition(.2,1,3),o=transformedOptic(ring,matrix),dir=V(0,0,-1);
+ for(const x of [0,.25,.8,.99,1.1]){
+  const start=V(x,0,0).applyMatrix4(matrix);start.z+=4;
+  const d=opticalDistance(o,start,dir);
+  assert.equal(d,opticalHit(o,start,dir)?.t??Infinity);
+  assert.equal(Number.isFinite(d),x>.65&&x<1);
  }
 });
 test('mirror steers the central ray onto the floor and sunlight produces a focused spot',()=>{

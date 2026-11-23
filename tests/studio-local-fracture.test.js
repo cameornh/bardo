@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Vector3} from 'three';
 import {fractureGrid,fragmentBoxes,islands} from '../src/asset-studio/fracture-grid.js';
-import {factorNetwork,solveBonds} from '../src/asset-studio/fracture-stress.js';
+import {belowBondYield,factorNetwork,networkLayout,solveBonds} from '../src/asset-studio/fracture-stress.js';
 import {structureBody} from '../src/asset-studio/fracture.js';
 import {StudioPhysics} from '../src/asset-studio/physics.js';
 import {jointDefaults} from '../src/asset-studio/physics-data.js';
@@ -78,6 +78,25 @@ test('the stress network recovers axial force and bending stress at every loaded
   const expected=(f/.16+t/(.4**3/6))/e.strength;
   close(axial,f,.00001);close(ratio,expected,1e-9);count++;
  });assert.equal(count,ids.length-1);
+});
+test('the energy bound only skips intact bonds below yield under mixed forces and torques',()=>{
+ const material=fractureFixture().materials.find(m=>m.id==='wood');
+ const grid=fractureGrid([{type:'box',center:[.4,-.1,.7],half:[.6,.45,.3],materialId:'wood'}],
+  [1,1.3,.8],new Map([['wood',material]]));
+ const ids=grid.nodes.map(n=>n.index),layout=networkLayout(ids,grid),net=factorNetwork(ids,grid,layout);
+ assert.ok(!net.tree);
+ let safe=0,overloaded=0;
+ for(const scale of [1,5e3,1e6,1e9])for(let m=1;m<=4;m++){
+  const loads=new Float64Array(6*ids.length);
+  for(let i=1;i<ids.length;i++)for(let k=0;k<6;k++){
+   const v=scale*Math.sin(i*.37+k*m)*Math.cos(i*m*.47);loads[6*i+k]=v;loads[k]-=v;
+  }
+  const skip=belowBondYield(layout,loads);let peak=0;
+  solveBonds(net,loads,(_,ratio)=>{peak=Math.max(peak,ratio);});
+  if(skip){assert.ok(peak<1);safe++;}
+  if(peak>1){assert.equal(skip,false);overloaded++;}
+ }
+ assert.ok(safe&&overloaded);
 });
 test('diagonal contact and carved space provide no bond; collider merging conserves distinct added materials',()=>{
  const l=fractureFixture(),materials=new Map(l.materials.map(m=>[m.id,m]));

@@ -30,6 +30,14 @@ export class WaterCapture{
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
    }`}));
+  this.wetCopy=this.copy.material;
+  this.dryCopy=new THREE.ShaderMaterial({uniforms,depthFunc:THREE.AlwaysDepth,
+   vertexShader:this.wetCopy.vertexShader,fragmentShader:`uniform vec2 viewport;uniform sampler2D sceneDepth,sceneColor;
+   void main(){vec2 uv=gl_FragCoord.xy/viewport;gl_FragDepth=texture2D(sceneDepth,uv).r;
+    gl_FragColor=vec4(texture2D(sceneColor,uv).rgb,1.);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+   }`});
   this.copy.frustumCulled=false;this.copyScene=new THREE.Scene();this.copyScene.add(this.copy);
  }
  render(view,mirrorOnly=false){
@@ -118,8 +126,12 @@ export class WaterCapture{
   view.drawObjects(camera);
   view.garden?.reeds.draw(r,camera,u.submerged.value?1:-1);
   const ocean=view.oceanView;
-  r.setRenderTarget(this.bulk);ocean.parcels.mesh.visible=false;
-  r.autoClear=true;if(sea)r.render(view.waterScene,camera);else r.clear();ocean.parcels.mesh.visible=!!sea;
+  const dryPolished=!sea&&!view.garden&&!view.nonPolishedLiquid;
+  if(!dryPolished){
+   r.setRenderTarget(this.bulk);ocean.parcels.mesh.visible=false;
+   r.autoClear=true;if(sea)r.render(view.waterScene,camera);else r.clear();ocean.parcels.mesh.visible=!!sea;
+  }
+  this.copy.material=dryPolished?this.dryCopy:this.wetCopy;
   // The reeds sample the actual opaque and parcel depth in their overlap
   // pass. Keep that depth accessible when the destination is the canvas.
   if(view.garden&&!this.gardenBase){
@@ -140,8 +152,9 @@ export class WaterCapture{
   if(sea)r.render(ocean.effectsScene,camera);
   if(view.visibleLiquid){
    const mask=camera.layers.mask;camera.layers.set(1);
-   r.render(view.scene,camera);r.render(view.assetScene,camera);camera.layers.mask=mask;
+   try{if(!dryPolished)r.render(view.scene,camera);r.render(view.assetScene,camera);}
+   finally{camera.layers.mask=mask;}
   }
  }
- dispose(){this.gardenBase?.dispose();this.source.dispose();this.mirror.dispose();this.bulk.dispose();this.copy.geometry.dispose();this.copy.material.dispose();}
+ dispose(){this.gardenBase?.dispose();this.source.dispose();this.mirror.dispose();this.bulk.dispose();this.copy.geometry.dispose();this.wetCopy.dispose();this.dryCopy.dispose();}
 }

@@ -2,7 +2,7 @@
 // Six virtual degrees of freedom per region. Springs meet at each shared face,
 // so translation and bending are coupled and a rigid rotation costs no energy.
 // The first region fixes the reference frame after external loads are balanced.
-export function factorNetwork(indices,grid){
+export function networkLayout(indices,grid){
  const members=new Set(indices),edges=grid.bonds.filter(e=>!e.broken&&members.has(e.a)&&members.has(e.b));
  const neighbors=new Map(indices.map(i=>[i,[]]));
  for(const e of edges){neighbors.get(e.a).push(e);neighbors.get(e.b).push(e);}
@@ -14,9 +14,46 @@ export function factorNetwork(indices,grid){
   adjacent.sort((a,b)=>neighbors.get(a.next).length-neighbors.get(b.next).length);
   for(const {edge,next} of adjacent)if(!seen.has(next)){seen.add(next);order.push(next);parent.set(next,edge);}
  }
+ return {edges,order,parent,totals:new Float64Array(grid.nodes.length*6)};
+}
+
+// The spring solution minimizes complementary energy among wrenches in
+// equilibrium. Routing the same loads over a spanning tree gives a usable
+// *upper* bound. If even that energy cannot yield any face, the intact part
+// can take the exact no-damage branch without factoring its stiffness matrix.
+export function belowBondYield(layout,loads){
+ const {order,parent,edges,totals}=layout;
+ if(layout.yieldEnergy===undefined){
+  let worst=0;
+  for(const e of edges){
+   const k=e.axis,u=(k+1)%3,v=(k+2)%3,s=e.spring;
+   const normal=s[k]/e.area**2+s[3+u]/e.zu**2+s[3+v]/e.zv**2;
+   const shear=2.25*Math.max(s[u],s[v])/e.area**2+s[k+3]/e.zt**2;
+   // Normal and shear use disjoint wrench components. Compression strength
+   // is at least tensile strength by construction.
+   worst=Math.max(worst,normal/e.compression**2,Math.max(normal,shear)/e.strength**2);
+  }
+  layout.yieldEnergy=.81/worst; // Margin for roundoff and iterative solves.
+ }
+ totals.set(loads);let energy=0;
+ for(let j=order.length-1;j>0;j--){
+  const id=order[j],edge=parent.get(id),offset=id*6,dest=(edge.a===id?edge.b:edge.a)*6;
+  for(let k=0;k<3;k++){
+   const u=(k+1)%3,v=(k+2)%3,force=totals[offset+k];
+   const moment=totals[offset+3+k]-edge.center[u]*totals[offset+v]+edge.center[v]*totals[offset+u];
+   energy+=force*force/edge.spring[k]+moment*moment/edge.spring[k+3];
+   totals[dest+k]+=force;totals[dest+k+3]+=totals[offset+k+3];
+  }
+  if(energy>=layout.yieldEnergy)return false;
+ }
+ return energy<layout.yieldEnergy;
+}
+
+export function factorNetwork(indices,grid,layout=networkLayout(indices,grid)){
+ const {edges,order}=layout;
  // With only one load path per joint, equilibrium gives the exact forces and
  // moments by summing outward branches. No stiffness solve is necessary.
- if(edges.length===indices.length-1)return {tree:true,edges,order,parent,totals:new Float64Array(grid.nodes.length*6)};
+ if(edges.length===indices.length-1)return {tree:true,...layout};
  indices=order;
  const map=new Map(indices.map((id,k)=>[id,6*(k-1)])),n=6*(indices.length-1);
  const rows=[],matrix=Array.from({length:n},()=>new Map());

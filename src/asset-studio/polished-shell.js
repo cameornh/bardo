@@ -1,4 +1,5 @@
 import {BoxGeometry,BufferGeometry,Float32BufferAttribute,SphereGeometry} from 'three';
+import {revolvedOptic} from './revolved-optic.js';
 import {gridSpec} from './sculpt.js';
 import {extractSurfaceFast,sampleGridFast} from './sculpt-fast.js';
 
@@ -10,6 +11,7 @@ export function polishedShell(shape,shadow=false){
   const g=primitives[0].box?new BoxGeometry(2,2,2):new SphereGeometry(1,shadow?16:48,shadow?12:32);
   g.scale(size.x,size.y,size.z);g.translate(center.x,center.y,center.z);g.computeBoundingBox();return g;
  }
+ const revolved=revolvedOptic(shape,shadow);if(revolved)return revolved;
  const stamps=primitives.map((s,i)=>({shape:s.box?'box':'sphere',position:s.center.toArray(),size:s.size.toArray(),mode:i?'subtract':'add',blend:0}));
  const grid=gridSpec(stamps,Math.max(.006,Math.max(size.x,size.y,size.z)/(shadow?9:26)));
  const [nx,ny,nz]=grid.dims,vertices=new Int32Array(grid.count).fill(-1);
