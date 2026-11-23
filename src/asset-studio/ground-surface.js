@@ -51,6 +51,13 @@ const bed=`
   return (dot(h,vec2(65280.,255.))/65535.-.5)*4.;
  }`;
 export {bed as sandReliefShader};
+export const cutMask=`uniform int cutCount;uniform vec4 cutBounds;uniform vec2 cutCenters[${MAX_CUTS}];
+void discardCut(vec2 point){
+  if(cutCount>0&&all(greaterThanEqual(point,cutBounds.xy))&&all(lessThanEqual(point,cutBounds.zw))){
+   for(int i=0;i<${MAX_CUTS};i++){if(i>=cutCount)break;vec2 d=point-cutCenters[i];
+    if(max(max(abs(d.x),abs(d.y)),abs(d.x+d.y))<${CELL.toFixed(5)})discard;}
+  }
+}`;
 export function groundSurface(view,lighting){
  const u=view.groundMaterial.uniforms,shared=view.oceanView.uniforms;
  view.finishMap=new GroundFinish();Object.assign(u,view.finishMap.uniforms);
@@ -70,17 +77,14 @@ export function groundSurface(view,lighting){
    gl_Position=projectionMatrix*viewMatrix*vec4(worldPosition,1.);}`;
  view.groundMaterial.fragmentShader=lighting.replace('n=faceforward(n,-v,n);','')+surfaceRelief+groundFinishShader+bed+`
  #ifndef GROUND_PATCH
- uniform int cutCount;uniform vec4 cutBounds;uniform vec2 cutCenters[${MAX_CUTS}];
+ ${cutMask}
  #endif
  uniform mat4 projectionMatrix;uniform vec3 color,grain,hazeColor;uniform vec4 properties;uniform sampler2D mirrorColor;uniform mat4 mirrorVP;
  varying vec3 worldPosition;
  void main(){
   vec3 p=worldPosition,base=color,n=vec3(0,1,0);
   #ifndef GROUND_PATCH
-  if(cutCount>0&&all(greaterThanEqual(p.xz,cutBounds.xy))&&all(lessThanEqual(p.xz,cutBounds.zw))){
-   for(int i=0;i<${MAX_CUTS};i++){if(i>=cutCount)break;vec2 d=p.xz-cutCenters[i];
-    if(max(max(abs(d.x),abs(d.y)),abs(d.x+d.y))<${CELL.toFixed(5)})discard;}
-  }
+  discardCut(p.xz);
   #endif
   if(granular){
    const float d=${(SAND_METRES/SAND_SIDE*.5).toFixed(5)};

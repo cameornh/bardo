@@ -64,6 +64,9 @@ export function surfaceFragment(depth, lighting, relief, reflectionClip) {
    if(hard)gl_FragDepth=max(0.,z-.00000018);
    float coverage=hard?1.:smoothstep(.06,.3,exp(-.5*q));gl_FragColor=vec4(shade(base,n,surface,vProps),coverage*vProps.z);
    #include <tonemapping_fragment>
+     #ifdef TONE_MAPPING
+      gl_FragColor.rgb=emissionHue(gl_FragColor.rgb,base,vProps.w);
+     #endif
    #include <colorspace_fragment>`}
  }`;
 }

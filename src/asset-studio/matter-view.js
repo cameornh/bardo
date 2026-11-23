@@ -159,7 +159,7 @@ export class MatterView{
   const waterYAt=(qx,qz)=>land?waterSurfaceHeight(land,qx,qz,wSpd):(seaLevel!==null?seaLevel+0.03:-1e6);
   for(const k of this.seenGroundGroups)if(!sim.matter.parts.has(k))this.seenGroundGroups.delete(k);
   for(const [key,g] of sim.matter.parts){
-   if(!g.groundTool||g.kind!==1||this.seenGroundGroups.has(key))continue;
+   if(g.capillary||!g.groundTool||g.kind!==1||this.seenGroundGroups.has(key))continue;
    this.seenGroundGroups.add(key);
    const mode=key.startsWith('ground-')?'drop':'impulse';
    const nP=g.packets.length||1;
@@ -251,11 +251,14 @@ export class MatterView{
     this.saltation.get(id).update(bed,bed.material,this.view.camera.position);
    }
   }
-  for(const [key,mesh] of this.meshes)if(!sim.matter.parts.has(key)){
+  const surfaces=new Map(sim.matter.parts);
+  for(const [key,g] of surfaces)if(g.capillary)surfaces.delete(key);
+  for(const island of sim.matter.capillary.islands)surfaces.set('damp-sand:'+island.id,island);
+  for(const [key,mesh] of this.meshes)if(!surfaces.has(key)){
    mesh.removeFromParent();mesh.geometry.dispose();mesh.material.dispose();this.meshes.delete(key);
   }
   for(const [key,puff] of this.puffs)if(!sim.matter.parts.has(key)){puff.dispose();this.puffs.delete(key);}
-  for(const [key,g] of sim.matter.parts){
+  for(const [key,g] of surfaces){
    if(g.groundTool&&g.kind===1)continue;
    if(g.material.phase==='gas'){
     let puff=this.puffs.get(key);if(!puff){puff=new SandDriftView(this.view.grainScene,this.view.uniforms,this.lighting,true);this.puffs.set(key,puff);}
@@ -267,6 +270,10 @@ export class MatterView{
    const mesh=this.surface(key,g),size=mesh.size,packets=g.packets;
    mesh.visible=!!packets.length;if(!packets.length)continue;
    mesh.material.uniforms.parcelClouded.value=g.thermal?.trapped||0;
+   if(g.wet!==undefined&&g.kind===1){
+    mesh.material.uniforms.color.value.set(g.material.color).multiplyScalar(1-.40*g.wet);
+    mesh.material.uniforms.properties.value.x=g.material.roughness*(1-.36*g.wet);
+   }
    const lo=new THREE.Vector3(Infinity,Infinity,Infinity),hi=lo.clone().negate(),r=g.radius;
    for(const p of packets){lo.min(p.position);hi.max(p.position);}
    // Compact Gaussians blend to a common isosurface. Anisotropic grids retain
@@ -278,7 +285,7 @@ export class MatterView{
    mesh.field.fill(0);mesh.normal_cache.fill(0);
    for(const p of packets){
     const {x,y,z}=p.position,settled=g.kind===2&&y-r<(sim.sand?.height(x,z)||0)+r*.18;
-    const rx=r*(settled?1.65:1.24),ry=r*(settled?.64:1.24),cy=y-(settled?.38*r:0);
+    const rx=p.radius*(settled?1.65:1.24),ry=p.radius*(settled?.64:1.24),cy=y-(settled?.38*r:0);
     const ix=(x-origin.x)/cell.x,iy=(cy-origin.y)/cell.y,iz=(z-origin.z)/cell.z;
     const sx=cell.x/rx,sy=cell.y/ry,sz=cell.z/rx;
     for(let k=Math.max(1,Math.ceil(iz-1.8/sz));k<=Math.min(size-2,iz+1.8/sz);k++)

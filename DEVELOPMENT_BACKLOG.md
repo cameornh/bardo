@@ -13,6 +13,8 @@ Updated: 2026-11-23. This is working memory for future development, not a promis
 
 ## Current user-directed work — asset / material studio
 
+Wet-sand grabs now use bounded, yielding contacts between CPU-simulated grains. Separate handfuls can deform, join into one visible mound and split on a smaller grab. The six colored ceramic lamps use the same editable materials and sculpts as other assets. The point-shadow atlas supports eight lamps and refreshes one per frame. The rendered blocker check measured a red-channel value of 68 in shadow, 82 with the blocker moved and 68 after it returned. A neighboring lit patch stayed at 77. Profile moving lights in dense coastal vegetation before increasing the shadow budget. [Lamp and wet-sand check](tests/studio-lamp-shadow.html)
+
 First-person controls request mouse lock on entry. Tools share that lock, and right-drag look remains available when a browser declines it. Regressions cover lock loss through Esc, a late grant after exit, and releases outside the viewport.
 
 The November 23 studio catalog adds a twelve-piece optics bench, staged size and orientation, first-person shore movement and a radius-controlled material grab. Regression checks cover open cup geometry, intact startup, glass and mirror lens profiles, buoyant eye height, material volume and wet-sand contact bonds. Glass and mirrors use the current scene capture. Multi-surface ray transport and focused lens caustics are still open. The studio tools and Shell Island Beach now ship together on both project branches. The combined checkout passed all 201 studio tests and the production build.

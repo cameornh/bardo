@@ -1,7 +1,6 @@
 import {Vector3} from 'three';
 import {selectScoop} from './scoop-fragments.js';
 import {detachSphere} from './fracture.js';
-import {detachSandBonds} from './ground-interaction.js';
 
 export function grabBodies(sim,point,radius,hit){
  sim.stand?.around(point,radius);
@@ -40,7 +39,7 @@ export function grabBodies(sim,point,radius,hit){
   }
   if(!overlaps)continue;
   const c=selectScoop(sim,original,point,radius);if(!c)continue;
-  detachSandBonds(sim,c);c.sphereHeld=true;grip.items.push({body:c.body,chunk:c,offset:new Vector3().copy(c.body.worldCom()).sub(point)});
+  c.sphereHeld=true;grip.items.push({body:c.body,chunk:c,offset:new Vector3().copy(c.body.worldCom()).sub(point)});
  }
  sim.sphereGrip=grip;return grip.items.length;
 }

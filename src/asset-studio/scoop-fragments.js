@@ -1,5 +1,4 @@
 import {Box3,Vector3} from 'three';
-import {detachSandBonds} from './ground-interaction.js';
 
 // The polar terrain scoop already consists of convex triangular prisms. Reuse
 // those same finite elements for later cuts, including their exposed side walls.
@@ -30,7 +29,6 @@ export function selectScoop(sim,chunk,point,radius){
  if(!picked.length){picked.push(nearest);left.splice(left.indexOf(nearest),1);}
  if(sim.chunks.size>=32)return null;
  const prior=chunk.field,rot=chunk.body.rotation(),origin=chunk.body.translation(),spin=chunk.body.angvel(),velocity=chunk.body.linvel(),com=chunk.body.worldCom();
- detachSandBonds(sim,chunk);
  function piece(portion){
   const body=sim.world.createRigidBody(sim.R.RigidBodyDesc.dynamic().setTranslation(origin.x,origin.y,origin.z)
    .setRotation(rot).setCcdEnabled(true).setLinearDamping(.12).setAngularDamping(.3));
@@ -42,7 +40,7 @@ export function selectScoop(sim,chunk,point,radius){
    shapes.push({type:'box',center:bounds.getCenter(new Vector3()).toArray(),half:bounds.getSize(new Vector3()).multiplyScalar(.5).toArray(),materialId:m.id});
   }
   const cut={...chunk.cut,vertices:cutMesh(portion),volume:portion.reduce((sum,c)=>sum+c.vol,0),samples:portion};
-  const result={...chunk,body,cut,bond:null,bondParent:null,key:'ground-'+(++sim.chunkSerial)};
+  const result={...chunk,body,cut,key:'ground-'+(++sim.chunkSerial)};
   body.setLinvel(new Vector3().copy(spin).cross(new Vector3().copy(body.worldCom()).sub(com)).add(velocity),true);
   body.setAngvel(spin,true);
   sim.materialWorld?.bind(result,shapes);

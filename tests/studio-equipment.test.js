@@ -27,6 +27,20 @@ test('catalog upgrades preserve saved edits and round-trip all twelve solids',()
  validateLibrary(saved);installEquipment(saved);assert.deepEqual(saved,lib);
  assert.deepEqual(placementPose([1,2,3],{twist:5,size:.5},2,[3,2,1],[20,30,40],3),{position:[4,4,4],rotation:[20,35,40],scale:[3,3,3]});
 });
+test('upgrade adds six editable saturated lamp materials and distinct sculpts exactly once',()=>{
+ const lib=opticsBench();lib.materials=lib.materials.filter(m=>!/^lamp-(cyan|magenta|yellow|red|green|blue)$/.test(m.id));lib.assets=lib.assets.filter(a=>!a.id.startsWith('luminaire-'));
+ lib.studioEquipmentVersion=1;lib.assets=lib.assets.filter(a=>a.id!=='equipment-stone-cup');lib.world.instances=lib.world.instances.filter(i=>i.assetId!=='equipment-stone-cup');lib.assets[0].name='Saved sculpt';
+ const before=[lib.materials.length,lib.assets.length];installEquipment(lib);installEquipment(lib);validateLibrary(lib);
+ assert.deepEqual([lib.materials.length,lib.assets.length],before.map(n=>n+6));assert.equal(lib.assets[0].name,'Saved sculpt');
+ const silhouettes=new Set();
+ for(const color of ['cyan','magenta','yellow','red','green','blue']){
+  const m=lib.materials.find(m=>m.id==='lamp-'+color),p=lib.assets.find(a=>a.id==='luminaire-'+color).parts[0];
+  assert.ok(m.emission>0&&p.stamps.every(s=>s.materialId===m.id));
+  let silhouette='';for(let x=-.5;x<.5;x+=.05)for(let y=0;y<1.2;y+=.05)silhouette+=Number(field([x,y,0],p.stamps)[0]<0);
+  assert.ok(silhouette.includes('1'));silhouettes.add(silhouette);
+ }
+ assert.equal(silhouettes.size,6);
+});
 test('a walking camera jumps, floats above a moving waterline and restores its orbit',()=>{
  const camera=new PerspectiveCamera(),target=new Vector3(1,0,2);camera.position.set(2,8,4);camera.lookAt(target);
  const view={camera,controls:{target,update(){}},sand:{height:()=>0}};
@@ -50,14 +64,19 @@ test('spherical dry scoops conserve terrain volume and disperse, wet scoops atta
   lib.materials.find(m=>m.id==='sand').moisture=wet;const sim=await StudioPhysics.create(lib,'world','arch');
   try{
    const p=new Vector3(2,sim.sandTerrain.height(2,2),2);assert.ok(liftGround(sim,p,.45));
-   const chunk=sim.heldChunk,volume=chunk.cut.volume;
-   near(chunk.body.mass(),volume*chunk.material.density,.02);
+   const chunk=sim.heldChunk,group=sim.heldDeposit;
+   const volume=wet?group.packets.reduce((v,p)=>v+p.volume,0):chunk.cut.volume;
+   const mass=wet?group.packets.reduce((v,p)=>v+p.body.mass(),0):chunk.body.mass();
+   near(mass,volume*sim.groundMaterial.density,.02);
    const target=new Vector3(0,1.6,0);moveChunk(sim,target);step(sim,100);releaseChunk(sim);
    if(!wet){const packets=[...sim.matter.parts.values()][0].packets;near(packets.reduce((v,p)=>v+p.volume,0),volume,1e-6);continue;}
-   step(sim,220);assert.ok(chunk.cohesive);assert.ok(chunk.bond,'settled wet sand bonds at contact');
-   const cutAt=new Vector3().copy(chunk.body.worldCom());cutAt.x+=.22;assert.ok(grabBodies(sim,cutAt,.16));
-   const held=sim.sphereGrip.items[0].chunk;assert.ok(held.cut.volume<volume*.45&&held.cut.volume>0);
-   near([...sim.chunks.values()].reduce((v,c)=>v+c.cut.volume,0),volume,1e-6);
+   const distances=group.packets.slice(1).map(p=>p.position.distanceTo(group.packets[0].position));
+   step(sim,220);assert.ok(sim.matter.capillary.links.size>0);
+   assert.ok(group.packets.slice(1).some((p,i)=>Math.abs(p.position.distanceTo(group.packets[0].position)-distances[i])>.008),'impact changes internal distances');
+   const edge=group.packets.reduce((a,b)=>a.position.x>b.position.x?a:b);
+   assert.ok(grabBodies(sim,edge.position.clone(),.04));
+   const held=sim.sphereGrip.packets.reduce((v,p)=>v+p.volume,0);assert.ok(held>0&&held<volume*.6);
+   near(group.packets.reduce((v,p)=>v+p.volume,0),volume,1e-6);
    dropBodies(sim);step(sim,4);
   }finally{sim.dispose();}
  }
@@ -85,14 +104,16 @@ test('a second wet handful settles onto the first and stays joined above the gro
  try{
   function place(x,radius,target){
    const at=new Vector3(x,sim.sandTerrain.height(x,2),2);
-   assert.ok(liftGround(sim,at,radius));const chunk=sim.heldChunk;
+   assert.ok(liftGround(sim,at,radius));const group=sim.heldDeposit;
    moveChunk(sim,target);step(sim,100);releaseChunk(sim);step(sim,220);
-   return chunk;
+   return group;
   }
+  const center=g=>g.packets.reduce((c,p)=>c.add(p.position),new Vector3()).divideScalar(g.packets.length);
   const base=place(2,.55,new Vector3(0,1.2,0));
-  const target=new Vector3().copy(base.body.worldCom());target.y+=.55;
+  const target=center(base);target.y=Math.max(...base.packets.map(p=>p.position.y+p.radius))+.35;
   const top=place(3,.28,target);
-  assert.equal(base.bondParent,sim.ground.handle);assert.equal(top.bondParent,base.body.handle);
-  assert.ok(top.body.worldCom().y>base.body.worldCom().y+.1);
+  assert.ok([...sim.matter.capillary.links.values()].some(({a,b})=>a.group!==b.group),'handfuls join across the original boundary');
+  assert.ok(sim.matter.capillary.islands.some(g=>g.packets.some(p=>p.group===base)&&g.packets.some(p=>p.group===top)));
+  assert.ok(center(top).y>center(base).y+.08);
  }finally{sim.dispose();}
 });

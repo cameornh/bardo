@@ -125,6 +125,9 @@ export const interfaceOptics = /* glsl */`
   vec3 radiance=mix(through,reflection,fresnel);
   float glint=pow(max(0.,dot(reflected,normalize(sunDirection))),mix(180.,14.,properties.x*properties.x))*meniscus;
   radiance+=sunColor*vec3(.92,.91,.88)*glint*.32;
+  vec3 localGlint;
+  vec3 localLight=studioIrradiance(p,n,-incident,properties.x,localGlint);
+  radiance+=meniscus*(localGlint*mix(.12,.7,properties.y)+localLight*color*.08*(1.-exp(-scattering*travel)));
   if(shallowEdge)radiance=mix(through,radiance,.22+.78*meniscus);
   radiance=mix(radiance,env(n,1.)*vec3(.93,.98,1.),bubbles);
   return under?inWater(radiance,length(vp)):radiance;

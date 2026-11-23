@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {wetlandGLSL} from './wetland.js';
-import {sandReliefShader} from './ground-surface.js';
+import {cutMask,sandReliefShader} from './ground-surface.js';
 
 export const SHADOW_MAP_SIZE = 1024;
 export const SHADOW_NEAR_RADIUS = 7.5;
@@ -294,17 +294,15 @@ export class CoastalShadowSystem {
      }
      vec3 cW = center + surfaceNormal * fiberLength * 0.46;
      vec3 cV = (modelViewMatrix * vec4(cW, 1.0)).xyz;
-     vec3 nV = normalize(mat3(modelViewMatrix) * surfaceNormal);
-     vec3 refV = abs(nV.z) > 0.9 ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 0.0, 1.0);
-     vec3 t1 = normalize(cross(refV, nV));
-     vec3 t2 = cross(nV, t1);
      float r = max(radius, 0.008);
      float ext = max(r, fiberLength * 0.55);
-     vec3 ax = fiberLength > 0.0 ? nV * ext : t1 * r;
-     vec3 sd = t2 * r;
      vec2 g = position.xy * 1.4;
      vG = g;
-     vec3 vPos = cV + ax * g.x + sd * g.y;
+     // Project the oriented local footprint with the complete instance scale.
+     vec3 localN=normalize(surfaceNormal);
+     vec3 ref=abs(localN.z)>.9?vec3(1.,0.,0.):vec3(0.,0.,1.);
+     vec3 localT=normalize(cross(ref,localN)), localB=cross(localN,localT);
+     vec3 vPos=cV+mat3(modelViewMatrix)*((fiberLength>0.?localN*ext:localT*r)*g.x+localB*r*g.y);
      gl_Position = projectionMatrix * vec4(vPos, 1.0);
     }
    `,
@@ -332,25 +330,14 @@ export class CoastalShadowSystem {
   if (!view.groups?.size) return;
   const renderer = view.renderer;
   const swaps = [];
-  for (const group of view.groups.values()) {
-   if (!group.visible) continue;
-   for (const obj of group.children) {
-    if (!obj.visible) continue;
-    for (const child of obj.children) {
-     if (!child.visible || !child.isMesh || !child.layers.test(shadowCamera.layers)) continue;
-     if (child.geometry?.attributes?.center) {
-      swaps.push([child, child.material]);
-      child.material = this.assetShadowMat;
-     } else if (child.geometry?.attributes?.position && !child.userData.implicit) {
-      swaps.push([child, child.material]);
-      child.material = this.plainShadowMat;
-     }
-    }
-   }
-  }
+  view.assetScene.traverseVisible(child=>{
+   if (!child.isMesh || !child.layers.test(shadowCamera.layers)) return;
+   swaps.push([child,child.material]);
+   child.material=child.geometry.attributes.center?this.assetShadowMat:this.plainShadowMat;
+  });
   if (swaps.length > 0) {
-   renderer.render(view.assetScene, shadowCamera);
-   for (const [m, orig] of swaps) m.material = orig;
+   try { renderer.render(view.assetScene, shadowCamera); }
+   finally { for (const [m,orig] of swaps) m.material=orig; }
   }
  }
 
@@ -361,6 +348,10 @@ export class CoastalShadowSystem {
   renderer.clear(true, true, true);
   renderer.autoClear = false;
 
+  this.drawCasters(view,shadowCamera,includeTerrain,maxDistWorld);
+ }
+ drawCasters(view,shadowCamera,includeTerrain,maxDistWorld,emitter=null){
+  const renderer=view.renderer;
   if (includeTerrain && view.garden) {
    const gu = view.garden.uniforms;
    const tu = this.terrainShadowMat.uniforms;
@@ -390,8 +381,31 @@ export class CoastalShadowSystem {
    }
   }
 
+  if(emitter&&!view.garden&&view.ground.visible){
+   // Ground relief and excavations use the same vertices and cut mask in both passes.
+   this.floorShadowMat??=new T.ShaderMaterial({side:T.DoubleSide,colorWrite:false,
+    uniforms:view.groundMaterial.uniforms,vertexShader:view.groundMaterial.vertexShader,
+    fragmentShader:`varying vec3 worldPosition;${cutMask} void main(){discardCut(worldPosition.xz);gl_FragColor=vec4(0.);}`});
+   const floor=view.ground,material=floor.material;
+   floor.material=this.floorShadowMat;
+   try{renderer.render(floor,shadowCamera);}finally{floor.material=material;}
+   const patch=view.groundEdits.patch;
+   if(patch.visible){
+    const prior=patch.material;patch.material=this.plainShadowMat;
+    try{renderer.render(patch,shadowCamera);}finally{patch.material=prior;}
+   }
+  }
   this._drawAssetScene(view, shadowCamera);
-  view.implicit?.drawShadows?.(renderer, shadowCamera);
+  view.implicit?.drawShadows?.(renderer, shadowCamera,emitter);
+  if(emitter){
+   for(const collection of [view.groundEdits?.meshes,view.matterView?.meshes]){
+    for(const mesh of collection?.values()??[]){
+     if(!mesh.visible||!mesh.layers.test(shadowCamera.layers))continue;
+     const original=mesh.material;mesh.material=this.plainShadowMat;
+     try{renderer.render(mesh,shadowCamera);}finally{mesh.material=original;}
+    }
+   }
+  }
   view.paintView?.drawShadows?.(renderer, shadowCamera);
 
   if (view.garden) {
@@ -517,5 +531,6 @@ export class CoastalShadowSystem {
   this.sandPatchShadowMat.dispose();
   this.assetShadowMat.dispose();
   this.plainShadowMat.dispose();
+  this.floorShadowMat?.dispose();
  }
 }

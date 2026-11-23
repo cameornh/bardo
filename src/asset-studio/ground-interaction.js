@@ -1,5 +1,5 @@
-import {sphereScoop,sampledPackets} from './sphere-scoop.js';
-import {Box3,Quaternion,Vector3} from 'three';
+import {sphereScoop,sampledPackets,dampPackets} from './sphere-scoop.js';
+import {Box3,Vector3} from 'three';
 import {CELL,chunkPackets,impactResponse} from './ground-tools.js';
 import {looseKind} from './loose-matter.js';
 
@@ -26,9 +26,33 @@ function updateGroundContacts(sim){
 }
 export function liftGround(sim,point,radius){
  const m=sim.groundMaterial,loose=looseKind(m)===1||m.phase==='gas';
- if(sim.heldChunk||sim.heldDeposit||sim.chunks.size>=32||loose&&sim.matter.count+(sim.sandTerrain?8:18)>768)return false;
+ const terrain=sim.sandTerrain?.base?.landscape;
+ const shoreWet=sim.pondSea?Math.max(0,Math.min(1,1-(point.y-sim.pondSea.height(point.x,point.z))/.65)):0;
+ const soil=radius&&terrain?Math.max(shoreWet,terrain.environment?.(point.x,point.z)?.moisture??0):0;
+ const skin=radius&&sim.materialWorld?.ground(sim,point.x,point.z,false);
+ const wet=Math.min(1,Math.max(m.moisture||0,soil,skin?.water/Math.max(1e-8,skin?.mass)||0));
+ const damp=radius&&m.phase==='granular'&&wet>.001;
+ const count=damp?Math.max(8,Math.min(18,Math.round(8+radius*12))):(sim.sandTerrain?8:18);
+ if(sim.heldChunk||sim.heldDeposit||sim.chunks.size>=32||loose&&sim.matter.count+count>768)return false;
  const c=excavate(sim,point,.32,radius);if(!c)return false;
  const key='ground-'+(++sim.chunkSerial),R=sim.R;
+ if(damp){
+  const packets=dampPackets(c,m,count);
+  const group=sim.matter.addPackets(sim,key,m,packets,true,undefined,true);
+  // A terrain heightfield is one-sided. A newly excavated grain can
+  // start beneath a coarse triangle and must be able to leave the cut.
+  for(const p of packets){
+   p.leavingCut=true;p.body.collider(0).setCollisionGroups(0x0002fffb);
+  }
+  group.wet=wet;group.sourceTile=skin;group.grip={target:point.clone()};sim.heldDeposit=group;
+  if(sim.materialWorld){
+   sim.materialWorld.collectLoose(sim);
+   const state=sim.materialWorld.loose.get(key+'/'+m.id);
+   if(state){state.water=Math.max(state.water,wet*state.mass);group.surfaceMoisture=state.water/state.mass;}
+  }
+  sim.dunes.next=0;sim.dunes.update(sim);
+  return true;
+ }
  const body=sim.world.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(c.top.x,c.top.y+.003,c.top.z)
   .setCcdEnabled(true).setLinearDamping(.12).setAngularDamping(.3));
  if(c.vertices){
@@ -38,12 +62,7 @@ export function liftGround(sim,point,radius){
   const hull=R.ColliderDesc.convexHull(new Float32Array([0,0,0,0,-c.depth,0,...c.ring[i].toArray(),...c.ring[(i+1)%6].toArray()]));
   sim.world.createCollider(hull.setDensity(m.density).setRestitution(m.restitution).setFriction(m.friction),body);
  }
- const terrain=sim.sandTerrain?.base?.landscape;
- const shoreWet=sim.pondSea?Math.max(0,Math.min(1,1-(point.y-sim.pondSea.height(point.x,point.z))/.65)):0;
- const soil=radius&&terrain?Math.max(shoreWet,terrain.environment?.(point.x,point.z)?.moisture??0):0;
- const skin=radius&&sim.materialWorld?.ground(sim,point.x,point.z,false);
- const wet=Math.min(1,Math.max(m.moisture||0,soil,skin?.water/Math.max(1e-8,skin?.mass)||0));
- const chunk={wet,cut:c,key,body,material:m,loose,target:c.top.clone(),offset:c.top.clone().sub(point)};
+ const chunk={cut:c,key,body,material:m,loose,target:c.top.clone(),offset:c.top.clone().sub(point)};
  if(sim.materialWorld){
   chunk.scale=new Vector3(1,1,1);
   const bounds=c.vertices?new Box3().setFromArray(c.vertices):null;
@@ -70,10 +89,6 @@ export function releaseChunk(sim,finishDrag=false){
  if(finishDrag&&c.target.distanceToSquared(c.body.translation())>.025**2){c.releaseAt=sim.time+.09;return;}
  sim.heldChunk=null;delete c.releaseAt;
  if(!c.loose)return;
- // Capillary cohesion supports a grain aggregate against its own weight.
- if(c.cut.radius&&c.material.phase==='granular'&&c.wet*c.wet*26000>c.material.density*9.81*c.cut.radius){
-  c.cohesive=true;return;
- }
  const origin=new Vector3().copy(c.body.translation()),rot=c.body.rotation(),v=c.body.linvel(),omega=c.body.angvel();
  const packets=(c.cut.samples?sampledPackets:chunkPackets)(c.cut,c.material,new Vector3(),sim.sandTerrain?8:18);
  for(const p of packets){p.position.applyQuaternion(rot);p.velocity=new Vector3().copy(omega).cross(p.position).add(v);p.position.add(origin);}
@@ -91,50 +106,6 @@ export function stepChunks(sim,dt){
    const accel=c.target.clone().sub(b.translation()).multiplyScalar(420)
     .addScaledVector(b.linvel(),-40).sub(sim.world.gravity).clampLength(0,180);
    b.applyImpulse(accel.multiplyScalar(m*dt),true);
-  }
-  if(c.bond&&c.groundAnchor&&c.bondParent===sim.ground.handle){
-   const at=c.groundAnchor;
-   if(sim.matter.groundHeight(sim,at.x,at.z)<at.y-.06){
-    sim.world.removeImpulseJoint(c.bond,true);c.bond=null;c.bondParent=null;c.groundAnchor=null;
-   }
-  }
-  if(c.cohesive&&!c.sphereHeld&&c!==sim.heldChunk&&!c.bond){
-   const velocity=b.linvel(),speed2=velocity.x**2+velocity.y**2+velocity.z**2;
-   let support=null;
-   // A sleeping bonded clump may have no active solver pair when a new
-   // handful first touches it. Test nearby clumps at the capillary gap.
-   const atBody=new Vector3().copy(b.translation()),gap=.012;
-   for(const other of sim.chunks.values()){
-    if(other===c||!other.bond||other.bondParent===b.handle||other.sphereHeld)continue;
-    // Compare kinetic energy per volume with the capillary bond strength.
-    if(speed2*c.material.density*.5>26000*Math.min(c.wet,other.wet)**2)continue;
-    if(atBody.distanceToSquared(other.body.translation())>(c.cut.radius+other.cut.radius+gap)**2)continue;
-    for(let i=0;!support&&i<b.numColliders();i++){
-     const face=b.collider(i);
-     for(let j=0;j<other.body.numColliders();j++){
-      const touch=face.contactCollider(other.body.collider(j),gap);
-      if(touch&&touch.distance<=gap){support={parent:other.body,at:new Vector3().copy(touch.point1)};break;}
-     }
-    }
-    if(support)break;
-   }
-   for(let i=0;!support&&speed2<.5&&i<b.numColliders();i++){
-    const face=b.collider(i);
-    sim.world.contactPairsWith(face,other=>{
-     if(support)return;
-     const parent=other.parent();if(!parent||parent.handle===b.handle)return;
-     const otherChunk=[...sim.chunks.values()].find(item=>item.body.handle===parent.handle);
-     if(!(parent.isFixed()||otherChunk?.cohesive&&otherChunk.bondParent!==b.handle))return;
-     const contact=face.contactCollider(other,.012);
-     if(contact&&contact.distance<=.012)support={parent,at:new Vector3().copy(contact.point1)};
-    });
-   }
-   if(support){
-    const {at,parent}=support,local=body=>at.clone().sub(body.translation()).applyQuaternion(new Quaternion().copy(body.rotation()).invert());
-    const align=new Quaternion().copy(parent.rotation()).invert().multiply(b.rotation());
-    c.bond=sim.world.createImpulseJoint(sim.R.JointData.fixed(local(parent),align,local(b),new Quaternion()),parent,b,true);
-    c.bondParent=parent.handle;c.groundAnchor=parent.handle===sim.ground.handle?at:null;
-   }
   }
   if(sim.wind.speed){
    const angle=sim.wind.heading*Math.PI/180,relative=new Vector3(Math.cos(angle),0,Math.sin(angle)).multiplyScalar(sim.wind.speed).sub(b.linvel());
@@ -205,11 +176,4 @@ export function strikeGround(sim,point,force,water=sim.sea,waterMaterial=null){
  }
  if(dent>=.0002){sim.cuts.displace(point.x,point.z,dent,recovery);updateGroundContacts(sim);}
  return true;
-}
-
-
-export function detachSandBonds(sim,c){
- for(const other of sim.chunks.values())if(other.bond&&(other===c||other.bondParent===c.body.handle)){
-  sim.world.removeImpulseJoint(other.bond,true);other.bond=null;other.bondParent=null;
- }
 }

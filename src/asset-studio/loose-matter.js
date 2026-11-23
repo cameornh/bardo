@@ -1,3 +1,4 @@
+import {CapillarySand} from './capillary-sand.js';
 import {takeDeposit} from './deposit-heat.js';
 import {MaterialBed,BED_CELL} from './material-bed.js';
 import {Vector3} from 'three';
@@ -34,7 +35,7 @@ export function seedMatter(shapes,matrix,material,count){
  return out;
 }
 export class LooseMatter{
- constructor(){this.meltSerial=0;this.meltedMass=0;this.meltedParts=new Set();this.parts=new Map();this.beds=new Map();this.count=0;this.bedTime=0;}
+ constructor(){this.capillary=new CapillarySand();this.meltSerial=0;this.meltedMass=0;this.meltedParts=new Set();this.parts=new Map();this.beds=new Map();this.count=0;this.bedTime=0;}
  add(sim,key,shapes,matrix,material,budget){
   // Resolve finite liquid to the bed cell scale. Tiny drops previously cost
   // the same 64 rigid contacts as a bucketful, even inside a sponge.
@@ -42,16 +43,16 @@ export class LooseMatter{
   const count=looseKind(material)===2?Math.min(budget,Math.max(16,Math.ceil(litres/.60))):budget;
   return this.addPackets(sim,key,material,seedMatter(shapes,matrix,material,count));
  }
- addPackets(sim,key,material,packets,groundTool=false,id=key+'/'+material.id){
+ addPackets(sim,key,material,packets,groundTool=false,id=key+'/'+material.id,capillary=material.phase==='granular'&&material.moisture>.001){
   if(this.count+packets.length>768)throw Error('This physics preview exceeds the 768 loose parcel budget.');
   const {R,world}=sim,kind=looseKind(material);
-  const group={key,material,kind,packets,groundTool,age:0,radius:packets[0].radius};this.parts.set(id,group);
+  const group={key,material,kind,capillary,wet:material.moisture,packets,groundTool,age:0,radius:packets[0].radius};this.parts.set(id,group);
   for(const p of packets){
    const body=world.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(p.position.x,p.position.y,p.position.z)
     .setLinearDamping(kind===2?.8:.3).setAngularDamping(3).lockRotations().setCcdEnabled(true));
    const shape=R.ColliderDesc.ball(p.radius).setMass(p.volume*material.density)
     .setRestitution(.015).setFriction(kind===2?.018:material.friction+.18*material.moisture);
-   if(sim.sandTerrain&&material.id===sim.groundMaterial.id)shape.setCollisionGroups(0x0002fff9);
+   if(!capillary&&sim.sandTerrain&&material.id===sim.groundMaterial.id)shape.setCollisionGroups(0x0002fff9);
    if(material.phase==='gas'){shape.setSensor(true);body.setGravityScale(0,true);body.setLinearDamping(1.8);}
    world.createCollider(shape,body);p.body=body;this.count++;
   }
@@ -78,6 +79,8 @@ export class LooseMatter{
  }
  update(sim,dt){
   const {world,sea,wind}=sim;
+  const countBefore=this.count;
+  this.capillary.step(this.parts.values(),dt);
   const wx=Math.cos(wind.heading*Math.PI/180),wz=Math.sin(wind.heading*Math.PI/180);
   for(const [id,g] of this.parts){
    g.age+=dt;
@@ -86,6 +89,13 @@ export class LooseMatter{
    const pressure=liquid?Math.min(8,3.5/(1+m.viscosity)):0;
    for(let i=packets.length-1;i>=0;i--){
     const p=packets[i],r=p.radius,pos=p.position.copy(p.body.translation()),v=p.body.linvel();
+    if(p.leavingCut){
+     const floor=this.groundHeight(sim,pos.x,pos.z)+r;
+     if(!g.grip||pos.y>=floor+.01){
+      if(pos.y<floor){pos.y=floor;p.body.setTranslation(pos,true);}
+      p.body.collider(0).setCollisionGroups(0xffffffff);p.leavingCut=false;
+     }
+    }
     if(p.sphereHeld)continue;
     if(g.grip){
      if(sim.time<(g.grip.releaseAt??Infinity)){
@@ -119,6 +129,9 @@ export class LooseMatter{
       world.contactPairsWith(p.body.collider(0),c=>{if(c.parent()?.handle===sim.ground.handle)floorContact=true;});
      }
     }
+    // A load-bearing wet contact remains in the physical pile. Loose grains
+    // return their entire volume to the terrain when their support is too weak.
+    if(floorContact&&g.capillary&&p.contacts&&p.yield*26000>m.density*9.81*r)floorContact=false;
     if(floorContact&&joinsGround){
      sim.sandTerrain.deposit(pos.x,pos.z,p.volume);
      world.removeRigidBody(p.body);packets.splice(i,1);this.count--;continue;
@@ -161,6 +174,10 @@ export class LooseMatter{
     }
    }
    if((g.groundTool||g.fromMelt)&&!packets.length)this.parts.delete(id);
+  }
+  if(this.count!==countBefore){
+   for(const island of this.capillary.islands)island.packets=island.packets.filter(p=>p.body.isValid());
+   this.capillary.islands=this.capillary.islands.filter(i=>i.packets.length);
   }
   this.bedTime+=dt;
   if(this.bedTime+1e-8>=1/20){
@@ -210,7 +227,7 @@ export class DuneContacts{
   for(const node of sim.cuts?.nodes.values()||[])mark(node,L/n+.01);
   for(const r of sim.bodies.values())mark(r.body.translation(),Math.min(L,1+r.probeRadius));
   for(const c of sim.chunks?.values()||[])mark(c.body.translation(),1);
-  for(const g of sim.matter.parts.values())if(!sim.sandTerrain||g.material.id!==sim.groundMaterial.id)for(const p of g.packets)mark(p.position,p.radius+.5);
+  for(const g of sim.matter.parts.values())if(g.capillary||!sim.sandTerrain||g.material.id!==sim.groundMaterial.id)for(const p of g.packets)mark(p.position,p.radius+.5);
   const sand=sim.sand,R=sim.R,scale={x:L,y:1,z:L};
   const solids=[...sim.matter.beds.values()].filter(b=>!b.liquid);
   const version=(sim.cuts?.version||0)+(sand?.version||0)+solids.reduce((n,b)=>n+b.version,0);

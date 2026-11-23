@@ -52,3 +52,36 @@ export function sampledPackets(c,m,origin,count){
   return {position:origin.clone().add(c.samples[j].sample),radius:Math.cbrt(volume*3/(4*Math.PI))*.87,volume,material:m};
  });
 }
+
+// Partition the occupied volume, including its depth. The grain centers follow
+// the cut or slope; neither a lattice nor the brush hull becomes a rigid shell.
+export function dampPackets(c,material,count){
+ const sites=[];
+ for(const {sample,vol,points} of c.samples){
+  const depth=(points[0].y+points[1].y+points[2].y-points[3].y-points[4].y-points[5].y)/3;
+  for(const side of [-1,1])sites.push({x:sample.x,y:sample.y+side*depth*.255,z:sample.z,vol:vol*.5});
+ }
+ const centers=[new Vector3().copy(sites[Math.floor(sites.length*.43)])],nearest=sites.map(()=>Infinity);
+ while(centers.length<count){
+  let best=0,score=0;const last=centers.at(-1);
+  for(let j=0;j<sites.length;j++){
+   nearest[j]=Math.min(nearest[j],last.distanceToSquared(sites[j]));
+   const importance=nearest[j]*Math.cbrt(sites[j].vol);
+   if(importance>score){best=j;score=importance;}
+  }
+  if(!score)break;
+  centers.push(new Vector3().copy(sites[best]));
+ }
+ let bins;
+ for(let it=0;it<4;it++){
+  bins=centers.map(()=>({position:new Vector3(),volume:0}));
+  for(const s of sites){
+   let id=0,d=Infinity;
+   for(let j=0;j<centers.length;j++){const q=centers[j].distanceToSquared(s);if(q<d){d=q;id=j;}}
+   bins[id].position.addScaledVector(s,s.vol);bins[id].volume+=s.vol;
+  }
+  for(let j=0;j<bins.length;j++)if(bins[j].volume)centers[j].copy(bins[j].position.divideScalar(bins[j].volume));
+ }
+ return bins.filter(p=>p.volume>0).map(p=>({...p,material,radius:.86*Math.cbrt(3*p.volume/(4*Math.PI)),
+  gripOffset:p.position.clone(),position:p.position.add(c.top)}));
+}
