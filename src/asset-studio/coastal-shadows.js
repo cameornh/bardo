@@ -330,15 +330,14 @@ export class CoastalShadowSystem {
   if (!view.groups?.size) return;
   const renderer = view.renderer;
   const swaps = [];
+  const mask=shadowCamera.layers.mask;shadowCamera.layers.enable(2);
   view.assetScene.traverseVisible(child=>{
    if (!child.isMesh || !child.layers.test(shadowCamera.layers)) return;
    swaps.push([child,child.material]);
    child.material=child.geometry.attributes.center?this.assetShadowMat:this.plainShadowMat;
   });
-  if (swaps.length > 0) {
-   try { renderer.render(view.assetScene, shadowCamera); }
-   finally { for (const [m,orig] of swaps) m.material=orig; }
-  }
+  try { if(swaps.length)renderer.render(view.assetScene, shadowCamera); }
+  finally { shadowCamera.layers.mask=mask;for (const [m,orig] of swaps) m.material=orig; }
  }
 
  _renderCascade(view, shadowCamera, target, includeTerrain, maxDistWorld) {

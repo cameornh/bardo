@@ -80,7 +80,7 @@ export class WaterCapture{
   const changed=resized||this.lastSea!==sea||!camera.matrixWorld.equals(this.lastCamera)||!camera.projectionMatrix.equals(this.lastProjection);
   this.frame++;
   const waterDatum=sea?.seaLevel||0;
-  if(!u.submerged.value&&(changed||this.nextReflection===-Infinity||
+  if((sea||mirrorOnly||view.groundSurface.metallic>.02||view.frozenOptics.size>view.opticalParts.length||view.hasNonPolishedOptics)&&!u.submerged.value&&(changed||this.nextReflection===-Infinity||
    (this.frame-this.mirrorFrame>=2&&performance.now()>=this.nextReflection))){
    this.mirrorFrame=this.frame;
    this.lastSea=sea;this.lastCamera.copy(camera.matrixWorld);this.lastProjection.copy(camera.projectionMatrix);

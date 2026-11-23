@@ -84,3 +84,25 @@ export function opticsBench(){
  }
  return lib;
 }
+
+export function lightPathBench(){
+ const lib=installEquipment(newStudioLibrary()),ground=lib.materials.find(m=>m.id==='stone');
+ ground.color='#565d63';lib.world.groundMaterialId=ground.id;lib.world.instances=[];
+ const mirror=asset('Plane mirror');mirror.id='bench-plane-mirror';
+ mirror.parts=[part(mirror.name,[stamp('box','add',[0,0,0],[.51,.51,.035],'silver-mirror',0)])];
+ lib.assets.push(mirror);
+ // Specify the optical centre, independent of the modelling origin at the foot.
+ function mount(assetId,center,angle,originY=0,scale=1){
+  const a=lib.assets.find(a=>a.id===assetId);a.parts[0].physics={fixed:true};
+  const pitch=angle*Math.PI/180;
+  lib.world.instances.push({id:'mount-'+assetId,assetId,transform:{rotation:[angle,0,0],scale:[scale,scale,scale],
+   position:[center[0],center[1]-originY*scale*Math.cos(pitch),center[2]-originY*scale*Math.sin(pitch)]}});
+ }
+ lib.materials.find(m=>m.id==='lamp-cyan').beamAngle=13;
+ lib.materials.find(m=>m.id==='lamp-red').beamAngle=10;
+ mount('luminaire-cyan',[-1.35,4.85,0],-90,.55,.72);
+ mount('equipment-optical-glass-convex',[-1.35,2.3,0],-90,.54);
+ mount('luminaire-red',[1.35,1.55,-2.35],180,.37,.8);
+ mount(mirror.id,[1.35,1.55,0],-60);
+ return lib;
+}

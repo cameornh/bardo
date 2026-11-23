@@ -1,4 +1,4 @@
-import {opticsBench} from './studio-equipment.js';
+import {lightPathBench,opticsBench} from './studio-equipment.js';
 import {asset, part, seedLibrary, stamp, transform} from './model.js';
 import {exampleWorlds} from './example-worlds.js';
 import {jointDefaults} from './physics-data.js';
@@ -126,6 +126,7 @@ function fractureBench(){
 export const studioTests = [
   {id:'library',name:'My library'},
   ...exampleWorlds,
+  {id:'light-paths',name:'Lens focus and mirror bounce',create:lightPathBench,framing:{direction:[3,2.3,5],groundMargin:.45},guide:'Select a mount and rotate it to move the light on the floor. Lamp cones point along local −Z. Change the cone angle in Materials.'},
   {id:'optics',name:'Cups, balls and lenses',create:opticsBench,tool:'lift',guide:'Inspect the open cups and curved lenses, then grab material or place another sample.'},
   {id:'fracture',name:'Fracture comparison',create:fractureBench,tool:'nudge',guide:'Drop three equal-mass samples by pressing Play. From left to right, compare even grains, fibres and layers. The samples share bulk strength and overload time. Reset to repeat the drop.'},
   {id:'materials',name:'Material workbench',create:materialBench,tool:'field',guide:'Point at a sample to probe it or choose a material action. Try heating ice, wetting felt, or attaching a supply and a return across the two touching conductors.'},

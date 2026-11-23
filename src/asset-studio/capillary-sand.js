@@ -3,6 +3,10 @@
 import {sandMaterial} from '../sand-lab/sand-material.js';
 
 const MAX_CONTACTS=12;
+export function capillaryStrength(wet,memory){
+ const {adhesion,cohesion,shapeYield,residual}=sandMaterial(wet,memory);
+ return {adhesion:adhesion+.38*cohesion,yield:shapeYield+.40*(shapeYield-residual)+.10*cohesion};
+}
 export class CapillarySand{
  constructor(){this.links=new Map();this.serial=0;this.islands=[];}
  step(groups,dt){
@@ -12,10 +16,10 @@ export class CapillarySand{
    if(!g.capillary)continue;
    const wet=g.surfaceMoisture??g.wet;
    g.memory=Math.max(g.memory??0,wet);
-   const material=sandMaterial(wet,g.memory);
+   const strength=capillaryStrength(wet,g.memory);
    for(const p of g.packets){
     p.root=p;p.contacts=0;p.group=g;
-    p.adhesion=material.adhesion;p.yield=material.shapeYield;
+    p.adhesion=strength.adhesion;p.yield=strength.yield;
     p.held=!!(p.sphereHeld||g.grip);
     p.position.copy(p.body.translation());p.motion=p.body.linvel();
     p.mass??=p.body.mass();p.serial??=++this.serial;

@@ -17,7 +17,7 @@ export function sampleGridFast(stamps,g){
  }return data;
 }
 const corners=[[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]],edges=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]];
-export function extractSurfaceFast(data,g,stamps){
+export function extractSurfaceFast(data,g,stamps,cellVertices){
  if(!g)return {positions:[],normals:[],materials:[],spacing:0,truncated:false};
  const positions=[],normals=[],materials=[],[nx,ny,nz]=g.dims,offsets=[0,2,nx*2,(nx+1)*2,nx*ny*2,(nx*ny+1)*2,(nx*ny+nx)*2,(nx*ny+nx+1)*2],ds=new Float64Array(8);let truncated=false;
  for(let z=0;z<nz-1;z++)for(let y=0;y<ny-1;y++)for(let x=0;x<nx-1;x++){
@@ -29,6 +29,7 @@ export function extractSurfaceFast(data,g,stamps){
   for(let k=0;k<3;k++)p[k]/=count;
   const n=[(ds[1]+ds[3]+ds[5]+ds[7]-ds[0]-ds[2]-ds[4]-ds[6]),(ds[2]+ds[3]+ds[6]+ds[7]-ds[0]-ds[1]-ds[4]-ds[5]),(ds[4]+ds[5]+ds[6]+ds[7]-ds[0]-ds[1]-ds[2]-ds[3])],len=Math.hypot(...n)||1;
   if(positions.length/3>=LIMITS.splats){truncated=true;continue;}
+  if(cellVertices)cellVertices[base/2]=positions.length/3;
   positions.push(g.origin[0]+(x+p[0])*g.h,g.origin[1]+(y+p[1])*g.h,g.origin[2]+(z+p[2])*g.h);normals.push(n[0]/len,n[1]/len,n[2]/len);
   let nearest=0;for(let i=1;i<8;i++)if(Math.abs(ds[i])<Math.abs(ds[nearest]))nearest=i;
   materials.push(stamps[Math.round(data[base+offsets[nearest]+1])]?.materialId||stamps[0].materialId);

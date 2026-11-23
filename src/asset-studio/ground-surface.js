@@ -1,3 +1,4 @@
+import {causticShader,focusUniforms} from './ground-caustics.js';
 import {GroundFinish,groundFinishShader} from './ground-finish.js';
 import {CELL,MAX_CUTS} from './ground-tools.js';
 import * as THREE from 'three';
@@ -60,7 +61,7 @@ void discardCut(vec2 point){
 }`;
 export function groundSurface(view,lighting){
  const u=view.groundMaterial.uniforms,shared=view.oceanView.uniforms;
- view.finishMap=new GroundFinish();Object.assign(u,view.finishMap.uniforms);
+ view.finishMap=new GroundFinish();Object.assign(u,view.finishMap.uniforms,focusUniforms());
  Object.assign(u,{sandBed:{value:view.sandView.texture},granular:{value:false},grain:{value:new THREE.Vector3()},
   localBed:u.localBed??{value:null},localOrigin:u.localOrigin??{value:new THREE.Vector2()},localExtent:u.localExtent??{value:new THREE.Vector4(1,1,-1,-1)},
   grainMap:view.uniforms.grainMap,mirrorColor:shared.mirrorColor,mirrorVP:shared.mirrorVP,
@@ -75,7 +76,7 @@ export function groundSurface(view,lighting){
     editSlope=local.yz*fade;
    }
    gl_Position=projectionMatrix*viewMatrix*vec4(worldPosition,1.);}`;
- view.groundMaterial.fragmentShader=lighting.replace('n=faceforward(n,-v,n);','')+surfaceRelief+groundFinishShader+bed+`
+ view.groundMaterial.fragmentShader=lighting.replace('n=faceforward(n,-v,n);','')+surfaceRelief+groundFinishShader+causticShader+bed+`
  #ifndef GROUND_PATCH
  ${cutMask}
  #endif
@@ -101,6 +102,7 @@ export function groundSurface(view,lighting){
   base*=1.-min(.93,.88*finish.y+wet*(1.-properties.y)*.28);
   props.x=mix(props.x,min(props.x,.13),wet*.84);
   vec3 lit=shade(base,n,p,props);
+  lit+=base*(1.-.9*props.y)*focusedLight(p.xz);
   if(properties.y>.02){
    vec3 offset=(n-vec3(0,1,0))*min(.7,length(cameraPosition-p)*.11);
    vec4 clip=mirrorVP*vec4(p+offset,1.);vec2 uv=clip.xy/max(.001,clip.w)*.5+.5;

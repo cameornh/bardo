@@ -50,13 +50,16 @@ export class LampShadows{
     view.shadowRevision=(view.shadowRevision??0)+1;
    }
   }
-  const revisions=view.shadowRevision??0,simTime=view.activePhysics?.time??-1;
+  const sim=view.activePhysics;
+  const movingCasters=view.garden||view.paintView?.batches.length||sim?.chunks.size||sim?.matter.parts.size||sim?.matter.beds.size||view.sectionView?.meshes.size||sim?.cuts.nodes.size;
+  const revisions=view.shadowRevision??0,simTime=movingCasters?(sim?.time??-1):-1;
   let chosen=-1;
   for(let k=0;k<count;k++){
    const i=(this.next+k)%count,slot=this.slots[i],lamp=lamps[i],p=u.studioLampPosition.value[i];
    const moved=!slot||slot.lamp!==lamp||slot.origin.distanceToSquared(p)>.000025;
    if(!slot||slot.lamp!==lamp)u.studioLampRange.value[i]=0;
-   if(chosen<0&&(moved||slot.version!==revisions||slot.time!==simTime||view.gizmo.dragging))chosen=i;
+   const aim=u.studioLampAim.value[i],turned=slot&&(aim.w!==slot.aim.w||(aim.w> -1&&!aim.equals(slot.aim)));
+   if(chosen<0&&(moved||turned||slot.version!==revisions||slot.time!==simTime||view.gizmo.dragging))chosen=i;
   }
   this.slots.length=count;
   if(chosen<0)return;
@@ -65,10 +68,14 @@ export class LampShadows{
   const visible=lamp.object.visible,priorEye=view.uniforms.cameraWorld.value;
   u.studioLampAtlas.value=casters.fallbackTex; // Avoid reading an attached depth texture.
   cam.far=far;cam.updateProjectionMatrix();cam.position.set(p.x,p.y,p.z);
+  // Each cube face fits within a cone through its four far corners.
+  const aim=u.studioLampAim.value[i],faceLimit=Math.cos(Math.min(Math.PI,Math.acos(aim.w)+Math.acos(1/Math.sqrt(3))));
   lamp.object.visible=false;
   try{
    for(let f=0;f<6;f++){
-    const [x,y,z]=axes[f];cam.up.set(0,y?0:-1,y);
+    const [x,y,z]=axes[f];
+    if(aim.w> -1 && x*aim.x+y*aim.y+z*aim.z<faceLimit-1e-6)continue;
+    cam.up.set(0,y?0:-1,y);
     cam.lookAt(this.look.set(x,y,z).add(cam.position));cam.updateMatrixWorld(true);
     view.uniforms.cameraWorld.value=cam.matrixWorld;
     this.atlas.viewport.set(f*SIZE,i*SIZE,SIZE,SIZE);this.atlas.scissor.copy(this.atlas.viewport);
@@ -82,7 +89,7 @@ export class LampShadows{
   }
   u.studioLampShadowOrigin.value[i].copy(cam.position);
   u.studioLampRange.value[i]=far;
-  this.slots[i]={lamp,origin:cam.position.clone(),time:simTime,version:revisions};
+  this.slots[i]={lamp,origin:cam.position.clone(),aim:aim.clone(),time:simTime,version:revisions};
   this.next=(i+1)%count;
  }
  dispose(){this.atlas?.dispose();}
