@@ -5,8 +5,12 @@ import * as T from 'three';
 
 const reedCoverage = `
  varying vec2 gaussian;
- varying vec3 dye,normalW,worldPoint;
- varying float coverageScale,haze,reedDepth;
+ #if !defined(REED_RANGE_ONLY) && !defined(REED_LIGHT_VERT)
+ varying vec3 dye,normalW;
+ varying float haze;
+ #endif
+ varying vec3 worldPoint;
+ varying float coverageScale,reedDepth,vSoft;
  uniform mat4 projectionMatrix;
  uniform int reedWaterSide;
  uniform vec2 clipHeights;
@@ -14,12 +18,24 @@ const reedCoverage = `
  uniform bool hasReedSolidDepth;
  float visibleDensity(){
   if(reedDepth<=0.)discard;
+  float r2=dot(gaussian,gaussian);
+  #ifdef CRISP_FOLIAGE
+   float soft=clamp(vSoft,0.,1.);
+   float kurt=mix(.75,.04,soft);
+   float cut=mix(.045,.018,soft);
+   float hi=mix(.28,.72,soft);
+   float gain=mix(4.2,1.85,soft);
+   float w=exp(-.5*r2*(1.+kurt*r2));
+   if(w<cut)discard;
+   float density=gain*coverageScale*smoothstep(cut,hi,w);
+  #else
+   float density=2.55*coverageScale*exp(-.5*r2);
+   if(density<.003005)discard;
+  #endif
   if(hasReedSolidDepth){
    float depth=.5+.5*(-projectionMatrix[2][2]+projectionMatrix[3][2]/reedDepth);
    if(depth>texelFetch(reedSolidDepth,ivec2(gl_FragCoord.xy),0).r)discard;
   }
-  float density=2.55*coverageScale*exp(-.5*dot(gaussian,gaussian));
-  if(density<.003005)discard;
   if(reedWaterSide!=0 && (reedWaterSide<0)!=(worldPoint.y<clipHeights.x||
     (worldPoint.y<=clipHeights.y && worldPoint.y<elevation(worldPoint.xz))))discard;
   return density;
@@ -99,17 +115,18 @@ const resolveFragment=`
  }`;
 
 export class ReedTransparency{
- constructor(group,uniforms,vertex,waves,shading){
-  this.group=group;this.uniforms=uniforms;this.vertex=vertex;this.waves=waves;this.shading=shading;
+ constructor(group,uniforms,vertex,waves,shading,crisp=false,vertexLighting=''){
+  this.group=group;this.uniforms=uniforms;this.vertex=vertex;this.waves=waves;this.shading=shading;this.crisp=crisp;this.vertexLighting=vertexLighting;
   this.targets=new Map();this.size=new T.Vector2();this.clearColor=new T.Color();
   Object.assign(uniforms,{reedRange:{value:null},reedFar:{value:null},reverseReedDepth:{value:false},lowDigit:{value:false},reedSolidDepth:{value:null},hasReedSolidDepth:{value:false}});
  }
  init(renderer){
   const bytes=!renderer.extensions.has('EXT_color_buffer_float');
   this.bytes=bytes;
-  const defines=bytes?{BYTE_LAYERS:1}:{};
-  const materials=(fragment,options)=>[0,1,2].map(lod=>new T.ShaderMaterial({
-   uniforms:this.uniforms,defines:{...defines,REED_LOD:lod},vertexShader:this.vertex,
+  const defines={...(bytes?{BYTE_LAYERS:1}:{}),...(this.crisp?{CRISP_FOLIAGE:1}:{})};
+  const hasVertLight=this.crisp&&!!this.vertexLighting;
+  const materials=(fragment,extraDefines,vertexShader,options)=>[0,1,2,3].map(lod=>new T.ShaderMaterial({
+   uniforms:this.uniforms,defines:{...defines,...extraDefines,REED_LOD:lod},vertexShader,
    fragmentShader:fragment,transparent:true,depthTest:false,depthWrite:false,side:T.DoubleSide,
    forceSinglePass:true,toneMapped:false,blending:T.CustomBlending,...options}));
   this.rangeMaterials=materials(this.waves+reedCoverage+`
@@ -123,8 +140,9 @@ export class ReedTransparency{
     #else
      float d=z/(256.+z);gl_FragColor=vec4(d,-d,0.,0.);
     #endif
-   }`,bytes?{blending:T.NoBlending,colorWrite:false,depthWrite:true,depthTest:true}
+   }`,{REED_RANGE_ONLY:1},this.vertex,bytes?{blending:T.NoBlending,colorWrite:false,depthWrite:true,depthTest:true}
     :{blendEquation:T.MinEquation,blendSrc:T.OneFactor,blendDst:T.OneFactor});
+  const layerVert=hasVertLight?this.vertexLighting+'\nuniform vec3 hazeColor;\n'+this.vertex:this.vertex;
   this.layerMaterials=materials(this.waves+reedCoverage+this.shading+depthBands+`
    layout(location=1) out vec4 band1;
    layout(location=2) out vec4 band2;
@@ -135,7 +153,7 @@ export class ReedTransparency{
     vec4 value=density*vec4(reedLight(),1.);
     storeLayer(gl_FragColor,value,weights.x);storeLayer(band1,value,weights.y);
     storeLayer(band2,value,weights.z);storeLayer(band3,value,weights.w);
-   }`,{blendSrc:T.OneFactor,blendDst:T.OneFactor});
+   }`,hasVertLight?{REED_LIGHT_VERT:1}:{},layerVert,{blendSrc:T.OneFactor,blendDst:T.OneFactor});
   const uniforms=Object.fromEntries(['baseColor','baseDepth','layer0','layer1','layer2','layer3','fine0','fine1','fine2','fine3','presentBase'].map(k=>[k,{value:null}]));
   this.resolve=new T.ShaderMaterial({uniforms,defines,transparent:true,depthTest:true,depthFunc:T.AlwaysDepth,depthWrite:false,
    vertexShader:'void main(){gl_Position=vec4(position.xy,0.,1.);}',fragmentShader:resolveFragment});
@@ -166,24 +184,33 @@ export class ReedTransparency{
   };
   if(clear&&!base)renderer.clear();
   renderer.autoClear=false;
+  const hasVisible=this.group.children.some(m=>m.visible);
+  if(!hasVisible&&!base){
+   renderer.setRenderTarget(out);renderer.setClearColor(this.clearColor,alpha);renderer.autoClear=clear;return;
+  }
   // The half-float range uses MIN(z,-z). A positive high value in both
   // channels is the identity, including negative far-depth values.
-  u.reverseReedDepth.value=false;
-  clearTarget(range,0xffff00,1);
-  for(const mesh of this.group.children)mesh.material=this.rangeMaterials[mesh.userData.lod];
-  renderer.render(this.group,camera);
-  if(far){
-   // A 24-bit depth attachment keeps nearby blades distinct even when float
-   // blending is unavailable. Reverse projected depth for the farthest pass.
-   clearTarget(far,0,0);u.reverseReedDepth.value=true;
-   renderer.render(this.group,camera);u.reedFar.value=far.depthTexture;
-  }
-  u.lowDigit.value=false;clearTarget(layers,0,0);
-  u.reedRange.value=far?range.depthTexture:range.texture;
-  for(const mesh of this.group.children)mesh.material=this.layerMaterials[mesh.userData.lod];
-  renderer.render(this.group,camera);
-  if(fine){
-   clearTarget(fine,0,0);u.lowDigit.value=true;renderer.render(this.group,camera);
+  if(hasVisible){
+   u.reverseReedDepth.value=false;
+   clearTarget(range,0xffff00,1);
+   for(const mesh of this.group.children)if(mesh.visible)mesh.material=this.rangeMaterials[mesh.userData.lod];
+   renderer.render(this.group,camera);
+   if(far){
+    // A 24-bit depth attachment keeps nearby blades distinct even when float
+    // blending is unavailable. Reverse projected depth for the farthest pass.
+    clearTarget(far,0,0);u.reverseReedDepth.value=true;
+    renderer.render(this.group,camera);u.reedFar.value=far.depthTexture;
+   }
+   u.lowDigit.value=false;clearTarget(layers,0,0);
+   u.reedRange.value=far?range.depthTexture:range.texture;
+   for(const mesh of this.group.children)if(mesh.visible)mesh.material=this.layerMaterials[mesh.userData.lod];
+   renderer.render(this.group,camera);
+   if(fine){
+    clearTarget(fine,0,0);u.lowDigit.value=true;renderer.render(this.group,camera);
+   }
+  }else{
+   clearTarget(layers,0,0);
+   if(fine)clearTarget(fine,0,0);
   }
   renderer.setRenderTarget(out);renderer.setClearColor(this.clearColor,alpha);
   const ru=this.resolve.uniforms;

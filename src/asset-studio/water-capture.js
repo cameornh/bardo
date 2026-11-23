@@ -45,12 +45,15 @@ export class WaterCapture{
   // Only trace transmission where the refracted ray can reach authored geometry.
   // Sparse infinite ocean otherwise has a constant-cost deep-water solution.
   this.bounds.makeEmpty();view.assetScene.updateMatrixWorld(true);
-  if(sea)for(const group of view.groups.values())for(const part of group.children)for(const surface of part.children){
-   if(!part.visible||!surface.visible)continue;
-   if(surface.userData.implicit){this.partBounds.min.setScalar(-1);this.partBounds.max.setScalar(1);}
-   else if(surface.geometry?.boundingBox)this.partBounds.copy(surface.geometry.boundingBox);
-   else continue;
-   this.bounds.union(this.partBounds.applyMatrix4(surface.matrixWorld));
+  if(sea)for(const group of view.groups.values()){
+   if(!group.visible)continue;
+   for(const part of group.children)for(const surface of part.children){
+    if(!part.visible||!surface.visible)continue;
+    if(surface.userData.implicit){this.partBounds.min.setScalar(-1);this.partBounds.max.setScalar(1);}
+    else if(surface.geometry?.boundingBox)this.partBounds.copy(surface.geometry.boundingBox);
+    else continue;
+    this.bounds.union(this.partBounds.applyMatrix4(surface.matrixWorld));
+   }
   }
   if(sea)for(const {pieces} of view.sectionView?.meshes.values()||[])for(const mesh of pieces.values()){
    if(mesh.visible&&mesh.geometry.boundingBox)this.bounds.union(this.partBounds.copy(mesh.geometry.boundingBox).applyMatrix4(mesh.matrixWorld));
@@ -70,18 +73,21 @@ export class WaterCapture{
    this.bounds.expandByPoint(this.partBounds.max.set(camera.position.x+12000,8,camera.position.z+12000));}
   if(this.bounds.isEmpty()){u.boundsMin.value.setScalar(1);u.boundsMax.value.setScalar(-1);}
   else{this.bounds.expandByScalar(.08);u.boundsMin.value.copy(this.bounds.min);u.boundsMax.value.copy(this.bounds.max);}
-  const output=r.getRenderTarget(),alpha=r.getClearAlpha();r.getClearColor(this.clearColor);u.skyColor.value.copy(this.clearColor);
+  const output=r.getRenderTarget(),alpha=r.getClearAlpha();r.getClearColor(this.clearColor);
+  u.skyColor.value.copy(view.garden&&view.uniforms.hazeColor?view.uniforms.hazeColor.value:this.clearColor);
   // Wave slopes distort the reflection every presentation. The underlying view
   // of the objects only needs refreshing on camera motion or at 24 Hz.
   const changed=resized||this.lastSea!==sea||!camera.matrixWorld.equals(this.lastCamera)||!camera.projectionMatrix.equals(this.lastProjection);
   this.frame++;
+  const waterDatum=sea?.seaLevel||0;
   if(!u.submerged.value&&(changed||this.nextReflection===-Infinity||
    (this.frame-this.mirrorFrame>=2&&performance.now()>=this.nextReflection))){
    this.mirrorFrame=this.frame;
    this.lastSea=sea;this.lastCamera.copy(camera.matrixWorld);this.lastProjection.copy(camera.projectionMatrix);
-   this.nextReflection=performance.now()+1000/24;
+   const mirrorInterval=view.garden?(view.activePhysics?1000/12:250):1000/24;
+   this.nextReflection=performance.now()+mirrorInterval;
    const c=this.camera;c.projectionMatrix.copy(camera.projectionMatrix);c.projectionMatrixInverse.copy(camera.projectionMatrixInverse);
-   c.position.copy(camera.position);c.position.y*=-1;
+   c.position.copy(camera.position);c.position.y=2*waterDatum-camera.position.y;
    camera.getWorldDirection(this.direction);this.direction.y*=-1;
    c.up.set(0,1,0).applyQuaternion(camera.quaternion);c.up.y*=-1;
    c.lookAt(this.direction.add(c.position));c.updateMatrixWorld();
@@ -92,13 +98,17 @@ export class WaterCapture{
    r.setRenderTarget(this.mirror);r.setClearColor(0,0);
    view.uniforms.viewport.value.set(this.mirror.width,this.mirror.height);
    view.uniforms.cameraWorld.value=c.matrixWorld;
-   view.uniforms.clipFloor.value=-.012;u.clipWaves.value=!!sea;
+   view.uniforms.clipFloor.value=waterDatum-.012;u.clipWaves.value=!!sea;
    const patch=view.groundEdits?.patch,hadPatch=patch?.visible;if(patch)patch.visible=false;
+   const propsMesh=view.garden?.props?.mesh,hadProps=propsMesh?.visible;if(propsMesh)propsMesh.visible=false;
+   const propsSoft=view.garden?.props?.softMesh,hadPropsSoft=propsSoft?.visible;if(propsSoft)propsSoft.visible=false;
+   const faunaMesh=view.garden?.fauna?.mesh,hadFauna=faunaMesh?.visible;if(faunaMesh)faunaMesh.visible=false;
+   const faunaSoft=view.garden?.fauna?.softMesh,hadFaunaSoft=faunaSoft?.visible;if(faunaSoft)faunaSoft.visible=false;
    const floor=view.ground.visible;view.ground.visible=!!view.garden;
    // Even an untaken metallic branch must not bind the current render target.
    if(view.garden)u.mirrorColor.value=null;
-   view.drawObjects(c);view.garden?.reeds.draw(r,c,1);
-   u.mirrorColor.value=this.mirror.texture;view.ground.visible=floor;if(patch)patch.visible=hadPatch;
+   view.drawObjects(c);view.garden?.reeds.draw(r,c,1,false,null,true);
+   u.mirrorColor.value=this.mirror.texture;view.ground.visible=floor;if(patch)patch.visible=hadPatch;if(propsMesh)propsMesh.visible=hadProps;if(propsSoft)propsSoft.visible=hadPropsSoft;if(faunaMesh)faunaMesh.visible=hadFauna;if(faunaSoft)faunaSoft.visible=hadFaunaSoft;
   }
   r.setClearColor(this.clearColor,alpha);r.setRenderTarget(mirrorOnly?output:this.source);
   view.uniforms.viewport.value.copy(u.viewport.value);

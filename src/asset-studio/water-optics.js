@@ -67,25 +67,27 @@ export const interfaceOptics = /* glsl */`
    }
    // March the refracted ray against the source depth. A single UV offset
    // duplicates silhouettes when the original pixel straddles a depth edge.
-   vec3 safeDir=mix(vec3(.000001),transmitted,greaterThan(abs(transmitted),vec3(.000001)));
-   vec3 a=(boundsMin-p)/safeDir,b=(boundsMax-p)/safeDir,nearT=min(a,b),farT=max(a,b);
-   float lo=max(.006,max(nearT.x,max(nearT.y,nearT.z))),last=min(farT.x,min(farT.y,farT.z));
-   float stride=.13,hi=lo;
-   for(int i=0;i<11;i++){
-    if(boundsMax.x<boundsMin.x||hi>last+.13)break;
-    vec3 candidate=vp+travelDir*hi;vec4 clip=projectionMatrix*vec4(candidate,1.);
-    vec2 tap=clip.xy/max(.001,clip.w)*.5+.5;
-    if(clip.w<=0.||any(lessThan(tap,vec2(0.)))||any(greaterThan(tap,vec2(1.))))break;
-    float d=texture2D(sceneDepth,tap).r;float sceneZ=viewPoint(tap,d).z;
-    if(d<.999999&&sceneZ<vp.z-.001&&candidate.z<=sceneZ){
-     for(int j=0;j<4;j++){
-      float m=.5*(lo+hi);vec3 c=vp+travelDir*m;vec4 cp=projectionMatrix*vec4(c,1.);
-      vec2 mid=cp.xy/cp.w*.5+.5;float z=viewPoint(mid,texture2D(sceneDepth,mid).r).z;
-      if(z<vp.z-.001&&c.z<=z){hi=m;tap=mid;}else lo=m;
+   if(!(finiteBed&&!under&&(length(vp)>160.||travel>6.0))){
+    vec3 safeDir=mix(vec3(.000001),transmitted,greaterThan(abs(transmitted),vec3(.000001)));
+    vec3 a=(boundsMin-p)/safeDir,b=(boundsMax-p)/safeDir,nearT=min(a,b),farT=max(a,b);
+    float lo=max(.006,max(nearT.x,max(nearT.y,nearT.z))),last=min(farT.x,min(farT.y,farT.z));
+    float stride=.13,hi=lo;
+    for(int i=0;i<11;i++){
+     if(boundsMax.x<boundsMin.x||hi>last+.13)break;
+     vec3 candidate=vp+travelDir*hi;vec4 clip=projectionMatrix*vec4(candidate,1.);
+     vec2 tap=clip.xy/max(.001,clip.w)*.5+.5;
+     if(clip.w<=0.||any(lessThan(tap,vec2(0.)))||any(greaterThan(tap,vec2(1.))))break;
+     float d=texture2D(sceneDepth,tap).r;float sceneZ=viewPoint(tap,d).z;
+     if(d<.999999&&sceneZ<vp.z-.001&&candidate.z<=sceneZ){
+      for(int j=0;j<4;j++){
+       float m=.5*(lo+hi);vec3 c=vp+travelDir*m;vec4 cp=projectionMatrix*vec4(c,1.);
+       vec2 mid=cp.xy/cp.w*.5+.5;float z=viewPoint(mid,texture2D(sceneDepth,mid).r).z;
+       if(z<vp.z-.001&&c.z<=z){hi=m;tap=mid;}else lo=m;
+      }
+      through=texture2D(sceneColor,tap).rgb;travel=hi;break;
      }
-     through=texture2D(sceneColor,tap).rgb;travel=hi;break;
+     lo=hi;hi+=stride;stride=stride*1.6+.02;
     }
-    lo=hi;hi+=stride;stride=stride*1.6+.02;
    }
   }
   if(!under||parcel)through=inWater(through,travel);
@@ -100,6 +102,8 @@ export const interfaceOptics = /* glsl */`
    }
   }else reflection=inWater(reflection,32.);
   reflection=mix(reflection,env(n,1.),.65*properties.x*properties.x);
+  bool shallowEdge=finiteBed&&!under&&!parcel;
+  float meniscus=shallowEdge?smoothstep(0.,.065,travel):1.;
   #ifdef PARCEL_OPTICS
   if(parcel&&properties.y>.98){
    // Trace a curved mirror's reflected ray through the same opaque scene capture.
@@ -119,8 +123,9 @@ export const interfaceOptics = /* glsl */`
   }
   #endif
   vec3 radiance=mix(through,reflection,fresnel);
-  float glint=pow(max(0.,dot(reflected,normalize(vec3(-.6,1.,.5)))),mix(180.,14.,properties.x*properties.x));
-  radiance+=vec3(1.,.94,.8)*glint*.32;
+  float glint=pow(max(0.,dot(reflected,normalize(sunDirection))),mix(180.,14.,properties.x*properties.x))*meniscus;
+  radiance+=sunColor*vec3(.92,.91,.88)*glint*.32;
+  if(shallowEdge)radiance=mix(through,radiance,.22+.78*meniscus);
   radiance=mix(radiance,env(n,1.)*vec3(.93,.98,1.),bubbles);
   return under?inWater(radiance,length(vp)):radiance;
  }`;

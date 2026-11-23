@@ -5,22 +5,47 @@ import {SAND_SIDE,SAND_METRES} from './wind-sand.js';
 import {surfaceRelief} from './surface-grain.js';
 
 const bed=`
- uniform bool granular;uniform sampler2D sandBed;
+ uniform bool granular;uniform sampler2D sandBed,localBed;uniform vec2 localOrigin;uniform vec4 localExtent;
  varying vec2 editSlope;
- #ifdef SAND_VERTEX
- uniform sampler2D localBed;uniform vec2 localOrigin;uniform vec4 localExtent;
+ float localSample(ivec2 c,ivec2 last){
+  if(c.x<0||c.y<0||c.x>last.x||c.y>last.y)return 0.;
+  return texelFetch(localBed,c,0).r;
+ }
+ vec2 pchip1D(float p0,float p1,float p2,float p3,float t){
+  float d0=p1-p0,d1=p2-p1,d2=p3-p2;
+  float m1=d0*d1>0.?2.*d0*d1/(d0+d1):0.;
+  float m2=d1*d2>0.?2.*d1*d2/(d1+d2):0.;
+  float t2=t*t,omt=1.-t,omt2=omt*omt;
+  float v=(1.+2.*t)*omt2*p1+t*omt2*m1+t2*(3.-2.*t)*p2+t2*(t-1.)*m2;
+  float dv=6.*t*(t-1.)*(p1-p2)+(3.*t-1.)*(t-1.)*m1+t*(3.*t-2.)*m2;
+  return vec2(v,dv);
+ }
  vec3 localSurface(vec2 q){
+  if(localExtent.z<localExtent.x)return vec3(0.);
   vec2 p=q/${CELL.toFixed(5)}-localOrigin;
   if(any(lessThan(p,localExtent.xy))||any(greaterThan(p,localExtent.zw)))return vec3(0.);
   ivec2 i=ivec2(floor(p)),last=textureSize(localBed,0)-1;vec2 f=fract(p);
-  ivec2 diag=f.x+f.y<1.?ivec2(0):ivec2(1);
-  float corner=texelFetch(localBed,clamp(i+diag,ivec2(0),last),0).r;
-  float hx=texelFetch(localBed,clamp(i+ivec2(1,0),ivec2(0),last),0).r;
-  float hz=texelFetch(localBed,clamp(i+ivec2(0,1),ivec2(0),last),0).r;
-  float h=corner*abs(1.-f.x-f.y)+hx*min(f.x,1.-f.y)+hz*min(f.y,1.-f.x);
-  return vec3(h,diag.x==0?vec2(corner-hx,corner-hz):vec2(hz-corner,hx-corner));
+  vec2 r0=pchip1D(localSample(i+ivec2(-1,-1),last),localSample(i+ivec2(0,-1),last),localSample(i+ivec2(1,-1),last),localSample(i+ivec2(2,-1),last),f.x);
+  vec2 r1=pchip1D(localSample(i+ivec2(-1, 0),last),localSample(i+ivec2(0, 0),last),localSample(i+ivec2(1, 0),last),localSample(i+ivec2(2, 0),last),f.x);
+  vec2 r2=pchip1D(localSample(i+ivec2(-1, 1),last),localSample(i+ivec2(0, 1),last),localSample(i+ivec2(1, 1),last),localSample(i+ivec2(2, 1),last),f.x);
+  vec2 r3=pchip1D(localSample(i+ivec2(-1, 2),last),localSample(i+ivec2(0, 2),last),localSample(i+ivec2(1, 2),last),localSample(i+ivec2(2, 2),last),f.x);
+  vec2 hz=pchip1D(r0.x,r1.x,r2.x,r3.x,f.y);
+  float dhdx=pchip1D(r0.y,r1.y,r2.y,r3.y,f.y).x;
+  return vec3(hz.x,-vec2(dhdx,hz.y)/${CELL.toFixed(5)});
  }
- #endif
+ bool localEdited(vec2 q,int pad){
+  if(localExtent.z<localExtent.x)return false;
+  vec2 p=q/${CELL.toFixed(5)}-localOrigin;
+  if(any(lessThan(p,localExtent.xy-float(pad)))||any(greaterThan(p,localExtent.zw+float(pad))))return false;
+  ivec2 c=ivec2(floor(p)),last=textureSize(localBed,0)-1;
+  float m=0.;
+  for(int j=-1;j<=2;j++){if(j<0&&pad==0||j>1&&pad==0)continue;
+   for(int i=-1;i<=2;i++){if(i<0&&pad==0||i>1&&pad==0)continue;
+    m=max(m,abs(texelFetch(localBed,clamp(c+ivec2(i,j),ivec2(0),last),0).r));
+   }
+  }
+  return m>.0003;
+ }
  float sandHeight(vec2 q){
   vec2 h=texture2D(sandBed,q/${SAND_METRES.toFixed(1)}+.5/${SAND_SIDE.toFixed(1)}).rg;
   return (dot(h,vec2(65280.,255.))/65535.-.5)*4.;
@@ -30,8 +55,10 @@ export function groundSurface(view,lighting){
  const u=view.groundMaterial.uniforms,shared=view.oceanView.uniforms;
  view.finishMap=new GroundFinish();Object.assign(u,view.finishMap.uniforms);
  Object.assign(u,{sandBed:{value:view.sandView.texture},granular:{value:false},grain:{value:new THREE.Vector3()},
-  grainMap:view.uniforms.grainMap,mirrorColor:shared.mirrorColor,mirrorVP:shared.mirrorVP});
- view.groundMaterial.vertexShader='#define SAND_VERTEX\n'+bed+`varying vec3 worldPosition;
+  localBed:u.localBed??{value:null},localOrigin:u.localOrigin??{value:new THREE.Vector2()},localExtent:u.localExtent??{value:new THREE.Vector4(1,1,-1,-1)},
+  grainMap:view.uniforms.grainMap,mirrorColor:shared.mirrorColor,mirrorVP:shared.mirrorVP,
+  sunDirection:view.uniforms.sunDirection,sunColor:view.uniforms.sunColor,hazeColor:view.uniforms.hazeColor});
+ view.groundMaterial.vertexShader=bed+`varying vec3 worldPosition;
   void main(){worldPosition=(modelMatrix*vec4(position,1.)).xyz;
    editSlope=vec2(0.);
    if(granular){
@@ -45,7 +72,7 @@ export function groundSurface(view,lighting){
  #ifndef GROUND_PATCH
  uniform int cutCount;uniform vec4 cutBounds;uniform vec2 cutCenters[${MAX_CUTS}];
  #endif
- uniform mat4 projectionMatrix;uniform vec3 color,grain;uniform vec4 properties;uniform sampler2D mirrorColor;uniform mat4 mirrorVP;
+ uniform mat4 projectionMatrix;uniform vec3 color,grain,hazeColor;uniform vec4 properties;uniform sampler2D mirrorColor;uniform mat4 mirrorVP;
  varying vec3 worldPosition;
  void main(){
   vec3 p=worldPosition,base=color,n=vec3(0,1,0);
@@ -58,8 +85,9 @@ export function groundSurface(view,lighting){
   if(granular){
    const float d=${(SAND_METRES/SAND_SIDE*.5).toFixed(5)};
    float fade=1.-smoothstep(25.,65.,length(cameraPosition.xz-p.xz));
-   n=normalize(vec3((sandHeight(p.xz-vec2(d,0))-sandHeight(p.xz+vec2(d,0)))*fade+editSlope.x,2.*d,
-      (sandHeight(p.xz-vec2(0,d))-sandHeight(p.xz+vec2(0,d)))*fade+editSlope.y));
+   vec2 sSlope=vec2(sandHeight(p.xz-vec2(d,0))-sandHeight(p.xz+vec2(d,0)),sandHeight(p.xz-vec2(0,d))-sandHeight(p.xz+vec2(0,d)))/(2.*d);
+   vec2 lSlope=localSurface(p.xz).yz;
+   n=normalize(vec3((sSlope.x+lSlope.x)*fade,1.,(sSlope.y+lSlope.y)*fade));
   }
   #ifdef GROUND_PATCH
   n=normalize(cross(dFdx(p),dFdy(p)));if(n.y<0.)n=-n;
@@ -79,7 +107,7 @@ export function groundSurface(view,lighting){
     float amount=properties.y*(1.-properties.x*.7);lit=lit*(1.-amount*m.a)+amount*m.rgb*mix(vec3(1.),base,.65);
    }
   }
-  gl_FragColor=vec4(mix(lit,vec3(.38,.45,.48),1.-exp(-length(cameraPosition-p)*.003)),1.);
+  gl_FragColor=vec4(mix(lit,hazeColor,1.-exp(-length(cameraPosition-p)*.003)),1.);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
  }`;

@@ -16,9 +16,13 @@ function waveTexture(){
  return t;
 }
 export class OceanView{
- constructor(scene,environment,lighting) {
+ constructor(scene,environment,lighting,sunDirection=null,sunColor=null,shadowUniforms={}) {
   this.scene=scene;this.bands=WAVE_BANDS.map(()=>({height:waveTexture(),slope:waveTexture()}));
-  this.uniforms={environment,bandMix:{value:new THREE.Vector3()},ringCount:{value:0},ringAttenuation:{value:new Float32Array(12)},clipWaves:{value:false},clipHeights:{value:new THREE.Vector2()},
+  this.uniforms={environment,
+   sunDirection:sunDirection??{value:new THREE.Vector3(-.6,1,.5).normalize()},
+   sunColor:sunColor??{value:new THREE.Color(1.1,1.02,.88)},
+   ...shadowUniforms,
+   seaLevel:{value:0},coastalWater:{value:new THREE.Vector4(0,10.5,0,0)},bandMix:{value:new THREE.Vector3()},ringCount:{value:0},ringAttenuation:{value:new Float32Array(12)},clipWaves:{value:false},clipHeights:{value:new THREE.Vector2()},
    rings:{value:Array.from({length:12},()=>new THREE.Vector4())},color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}};
   this.bands.forEach((b,i)=>{
    this.uniforms['height'+i]={value:b.height};this.uniforms['slope'+i]={value:b.slope};
@@ -58,20 +62,26 @@ export class OceanView{
    varying vec2 referenceXZ;
    #endif
    void main(){
+    if(finiteBed&&gl_FragCoord.z>=texelFetch(sceneDepth,ivec2(gl_FragCoord.xy),0).r)discard;
+    float dShore=coastalWater.x>.5?cwShoreDist(surface.xz,coastalWater.zw):0.;
     #ifdef BREAKING_GRID
-    vec2 slope=waterSlope(referenceXZ);
+    vec2 slope=waterSlopeAtShore(referenceXZ,coastalWater.x>.5?cwShoreDist(referenceXZ,coastalWater.zw):0.);
     vec3 area=cross(vec3(0.,slope.y,1.)+dzOffset,vec3(1.,slope.x,0.)+dxOffset);
     vec3 n=area*inversesqrt(max(1.e-10,dot(area,area)));
     float air=.49*smoothstep(.35,1.18,1.-area.y);
     #else
-    vec2 slope=waterSlope(surface.xz);
+    vec2 slope=waterSlopeAtShore(surface.xz,dShore);
     vec3 n=normalize(vec3(-slope.x,1.,-slope.y));
     float air=0.;
     #endif
     vec3 radiance=opticalSurface(surface,n,-1.,air);
+    if(coastalWater.x>.5){
+     float swaleZone=smoothstep(24.,46.,dShore)*(1.-smoothstep(195.,235.,dShore));
+     radiance=mix(radiance,radiance*vec3(.86,.84,.68)+vec3(.018,.016,.008)*(1.-clamp(length(radiance),0.,1.)),swaleZone*.55);
+    }
     // Blend only the very long atmospheric sight paths into the sky at the horizon.
     float path=length(surface-cameraPosition);
-    float haze=1.-exp(-path*.000085);
+    float haze=1.-exp(-path*(coastalWater.x>.5?.00020:.000085));
     gl_FragColor=vec4(mix(radiance,skyColor,haze),1.);
    #include <tonemapping_fragment>
    #include <colorspace_fragment>
@@ -102,12 +112,14 @@ export class OceanView{
    cache.height.needsUpdate=cache.slope.needsUpdate=true;cache.version=field.version;
   }
   this.lastSea=sea;
-  const u=this.uniforms;u.color.value.set(m.color);u.properties.value.set(m.roughness,m.metallic,m.opacity,m.emission);
+  const u=this.uniforms;u.seaLevel.value=sea.seaLevel||0;u.color.value.set(m.color);u.properties.value.set(m.roughness,m.metallic,m.opacity,m.emission);
+  if(sea.coastal?.land)u.coastalWater.value.set(1,sea.coastal.waveDecayLen||10.5,sea.coastal.land.x,sea.coastal.land.z);
+  else u.coastalWater.value.set(0,10.5,0,0);
   u.opacity.value=m.opacity;u.ior.value=m.ior;u.absorption.value=m.absorption;u.scattering.value=m.scattering;
   // The interpolated wave cannot leave the sum of its individual band ranges.
   // Include the signed ripple envelope and the packed texture interpolation error.
   const margin=sea.ripples.reduce((a,r)=>a+(r.scoop?scoopProfile(r,sea.time).depth:Math.abs(r.a)*Math.exp(-1.3*(sea.time-r.t))),.01);
-  u.clipHeights.value.set(-margin,margin);
+  u.clipHeights.value.set((sea.seaLevel||0)-margin,(sea.seaLevel||0)+margin);
   for(const b of this.bands){u.clipHeights.value.x+=b.low;u.clipHeights.value.y+=b.high;}
   u.ringCount.value=sea.ripples.length;
   sea.ripples.forEach((r,i)=>{

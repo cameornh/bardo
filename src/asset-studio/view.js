@@ -16,6 +16,8 @@ import {ImplicitSurfaces,implicitStamp,intersectImplicit} from './implicit-surfa
 import {WetlandView} from './wetland-view.js';
 import {SandDriftView} from './sand-drift-view.js';
 import {OceanView} from './ocean-view.js';
+import {climateAtmosphere} from './coastal-climate.js';
+import {SHADOW_GLSL,CoastalShadowSystem,createDefaultShadowUniforms} from './coastal-shadows.js';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {TransformControls} from 'three/examples/jsm/controls/TransformControls.js';
@@ -36,7 +38,8 @@ void main(){
  footprint=position.xy*2.6;vNormal=normalize(mat3(cameraWorld)*normalMatrix*n);vColor=tint;vProps=properties;vRadius=radius;vWorld=(modelMatrix*vec4(center,1.)).xyz;
 }`;
 const LIGHTING=`
-uniform vec3 environment[9];
+uniform vec3 environment[9],sunDirection,sunColor;
+${SHADOW_GLSL}
 vec3 env(vec3 n,float diffuse){float b[9];b[0]=.282094792;b[1]=-.488602512*n.y;b[2]=.488602512*n.z;b[3]=-.488602512*n.x;b[4]=1.092548431*n.x*n.y;b[5]=-1.092548431*n.y*n.z;b[6]=.315391565*(2.*n.z*n.z-n.x*n.x-n.y*n.y);b[7]=-1.092548431*n.x*n.z;b[8]=.546274215*(n.x*n.x-n.y*n.y);vec3 s=vec3(0);for(int i=0;i<9;i++){float factor=i==0?1.:(i<4?.6666667:.25);s+=environment[i]*b[i]*mix(1.,factor,diffuse);}return max(vec3(.03),s);}
 uniform int studioLampCount;
 uniform vec4 studioLampPosition[4];uniform vec3 studioLampColor[4];
@@ -49,7 +52,8 @@ vec3 studioIrradiance(vec3 p,vec3 n){
  }
  return sum;
 }
-vec3 shade(vec3 base,vec3 n,vec3 p,vec4 prop){vec3 v=normalize(cameraPosition-p),l=normalize(vec3(-.6,1.,.5));n=faceforward(n,-v,n);float rough=prop.x,metal=prop.y;vec3 diffuse=studioIrradiance(p,n)+env(n,1.)+vec3(1.1,1.02,.88)*max(0.,dot(n,l));vec3 r=reflect(-v,n);float f=pow(1.-max(0.,dot(n,v)),5.);vec3 f0=mix(vec3(.04),base,metal),fresnel=f0+(1.-f0)*f*(1.-rough*.85);float spec=pow(max(0.,dot(n,normalize(l+v))),mix(160.,3.,rough*rough));return base*diffuse*(1.-metal)+mix(env(r,0.),env(n,1.),rough)*fresnel*mix(.45,1.,metal)+spec*mix(.7,.15,rough)*f0+base*prop.w;}
+vec3 shadeLit(vec3 base,vec3 n,vec3 p,vec4 prop,float sunVis){vec3 v=normalize(cameraPosition-p),l=normalize(sunDirection);n=faceforward(n,-v,n);float rough=prop.x,metal=prop.y;vec3 diffuse=studioIrradiance(p,n)+env(n,1.)+sunColor*max(0.,dot(n,l))*sunVis;vec3 r=reflect(-v,n);float f=pow(1.-max(0.,dot(n,v)),5.);vec3 f0=mix(vec3(.04),base,metal),fresnel=f0+(1.-f0)*f*(1.-rough*.85);float spec=pow(max(0.,dot(n,normalize(l+v))),mix(160.,3.,rough*rough))*sunVis;return base*diffuse*(1.-metal)+mix(env(r,0.),env(n,1.),rough)*fresnel*mix(.45,1.,metal)+spec*mix(.7,.15,rough)*f0+base*prop.w;}
+vec3 shade(vec3 base,vec3 n,vec3 p,vec4 prop){return shadeLit(base,n,p,prop,sampleSunShadow(p,n));}
 `;
 const FRAGMENT=`varying vec2 footprint;varying vec3 vNormal;varying vec3 vColor;varying vec3 vWorld;varying vec4 vProps;varying float vRadius;${LIGHTING}
 uniform vec2 viewport;uniform mat4 projectionMatrix;
@@ -105,13 +109,46 @@ function frameBounds(view,bounds,preset,emptyMode){
   view.controls.update();
  }
 
+/**
+ * Translate camera and orbit target along horizontal look directions (WASD),
+ * vertical lift (Q/E), with Shift fast boost and terrain floor non-penetration in World mode.
+ */
+export function stepWASDCamera(cameraPos,targetPos,keys,dt,{mode='world',land=null}={}){
+ if(!keys?.size||!(dt>0))return false;
+ const fwdN=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0);
+ const rightN=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0);
+ const upN=(keys.has('KeyE')?1:0)-(keys.has('KeyQ')?1:0);
+ if(!fwdN&&!rightN&&!upN)return false;
+ let fx=targetPos.x-cameraPos.x,fz=targetPos.z-cameraPos.z;
+ const fLen=Math.hypot(fx,fz);
+ if(fLen<1e-4){fx=0;fz=-1;}else{fx/=fLen;fz/=fLen;}
+ const rx=-fz,rz=fx;
+ const horizLen=Math.hypot(fwdN,rightN);
+ const hScale=horizLen>1?1/horizLen:1;
+ const dx=(fx*fwdN+rx*rightN)*hScale,dz=(fz*fwdN+rz*rightN)*hScale;
+ const dist=Math.hypot(targetPos.x-cameraPos.x,targetPos.y-cameraPos.y,targetPos.z-cameraPos.z);
+ const baseSpd=mode==='asset'?Math.max(.8,Math.min(10,dist*.9)):Math.max(1.8,Math.min(36,dist*.85));
+ const fast=(keys.has('ShiftLeft')||keys.has('ShiftRight'))?2.8:1;
+ const step=baseSpd*fast*Math.min(.1,dt);
+ const mx=dx*step,my=upN*step,mz=dz*step;
+ cameraPos.x+=mx;cameraPos.y+=my;cameraPos.z+=mz;
+ targetPos.x+=mx;targetPos.y+=my;targetPos.z+=mz;
+ if(mode==='world'&&land){
+  const minY=land.height(cameraPos.x,cameraPos.z)+.16;
+  if(cameraPos.y<minY){const lift=minY-cameraPos.y;cameraPos.y+=lift;targetPos.y+=lift;}
+ }
+ return true;
+}
+
 export class StudioView{
  constructor(canvas,onChange,onDragStart,{preserveDrawingBuffer=false,liveStudio=false}={}){
  this.canvas=canvas;this.renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:false,preserveDrawingBuffer,powerPreference:'low-power'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));this.renderer.setClearColor('#8eaaaf');this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.05;
  this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(48,1,.03,10000);this.camera.position.set(7,5,9);this.controls=new OrbitControls(this.camera,canvas);this.controls.target.set(0,1,0);this.controls.enableDamping=true;this.controls.dampingFactor=.12;this.controls.maxDistance=4000;this.controls.minDistance=.25;this.controls.update();
  const sh=projectSH(n=>[.44+.24*n[1],.49+.26*n[1],.53+.3*n[1]]),environment=Array.from({length:9},(_,i)=>new THREE.Vector3(...sh.slice(i*3,i*3+3)));
- this.lampUniforms={studioLampCount:{value:0},studioLampPosition:{value:Array.from({length:4},()=>new THREE.Vector4())},studioLampColor:{value:Array.from({length:4},()=>new THREE.Color())}};
- this.uniforms={...this.lampUniforms,environment:{value:environment},viewport:{value:new THREE.Vector2(1,1)},cameraWorld:{value:this.camera.matrixWorld}};
+ this.defaultEnvironment=environment.map(v=>v.clone());
+ this.shadowUniforms=createDefaultShadowUniforms();
+ Object.assign(this.shadowUniforms,{studioLampCount:{value:0},studioLampPosition:{value:Array.from({length:4},()=>new THREE.Vector4())},studioLampColor:{value:Array.from({length:4},()=>new THREE.Color())}});
+ this.uniforms={environment:{value:environment},sunDirection:{value:new THREE.Vector3(-.6,1,.5).normalize()},sunColor:{value:new THREE.Color(1.1,1.02,.88)},hazeColor:{value:new THREE.Color(.38,.45,.48)},viewport:{value:new THREE.Vector2(1,1)},cameraWorld:{value:this.camera.matrixWorld},...this.shadowUniforms};
  this.material=new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:VERTEX,fragmentShader:FRAGMENT,transparent:true,forceSinglePass:liveStudio,depthWrite:false,side:THREE.DoubleSide});this.material.name='studio covariance Gaussian';this.depthMaterial=new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:VERTEX,fragmentShader:DEPTH_FRAGMENT,colorWrite:false,depthWrite:true,side:THREE.DoubleSide});
  this.liveStudio=liveStudio;
  if(liveStudio){
@@ -121,12 +158,12 @@ export class StudioView{
   this.uniforms.grainMap={value:grainTexture()};this.uniforms.matterPlaying={value:0};
 
   this.waterScene=new THREE.Scene();
-  this.oceanView=new OceanView(this.waterScene,this.uniforms.environment,LIGHTING);Object.assign(this.oceanView.uniforms,this.lampUniforms);
+  this.oceanView=new OceanView(this.waterScene,this.uniforms.environment,LIGHTING,this.uniforms.sunDirection,this.uniforms.sunColor,this.shadowUniforms);
   const ocean=this.oceanView.uniforms;this.uniforms.clipFloor={value:0};
-  const clipUniforms={...this.lampUniforms,clipFloor:this.uniforms.clipFloor};
-  for(const key of ['height0','height1','height2','bandMix','rings','ringCount','ringAttenuation','clipWaves','clipHeights'])clipUniforms[key]=ocean[key];
+  const clipUniforms={clipFloor:this.uniforms.clipFloor};
+  for(const key of ['height0','height1','height2','bandMix','rings','ringCount','ringAttenuation','clipWaves','clipHeights','seaLevel','coastalWater'])clipUniforms[key]=ocean[key];
   Object.assign(this.uniforms,clipUniforms);
-  this.implicit=new ImplicitSurfaces(this.scene,this.uniforms.environment,LIGHTING,this.uniforms.grainMap,clipUniforms);
+  this.implicit=new ImplicitSurfaces(this.scene,this.uniforms.environment,LIGHTING,this.uniforms.grainMap,clipUniforms,{sunDirection:this.uniforms.sunDirection,sunColor:this.uniforms.sunColor,...this.shadowUniforms});
   // Stretch each fibre along its surface normal, retaining the projected covariance.
   for(const mat of [this.material,this.depthMaterial]){
    mat.vertexShader='attribute float fiberLength;\n'+mat.vertexShader
@@ -155,9 +192,10 @@ export class StudioView{
    vColor=tint*(1.-finish);`);
   this.fieldView=new MaterialFieldView(this.uniforms,LIGHTING);this.paintView=new PaintedView(this.uniforms,LIGHTING);this.sectionView=new SectionView(this);this.matterView=new MatterView(this,LIGHTING);this.liquidMats=new Map();
  }
- this.groundMaterial=new THREE.ShaderMaterial({uniforms:{...this.lampUniforms,environment:this.uniforms.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},vertexShader:GROUND_VERTEX,fragmentShader:GROUND_FRAGMENT});
+ this.groundMaterial=new THREE.ShaderMaterial({uniforms:{environment:this.uniforms.environment,sunDirection:this.uniforms.sunDirection,sunColor:this.uniforms.sunColor,...this.shadowUniforms,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},vertexShader:GROUND_VERTEX,fragmentShader:GROUND_FRAGMENT});
  if(liveStudio){
   this.grainScene=new THREE.Scene();this.eyeScene=new THREE.Scene();this.sandView=new SandDriftView(this.grainScene,this.uniforms,LIGHTING,false,this.eyeScene);
+  this.shadows=new CoastalShadowSystem(this);
  }
  this.ground=new THREE.Mesh(liveStudio?groundSurface(this,LIGHTING):new THREE.PlaneGeometry(20000,20000),this.groundMaterial);this.ground.rotation.x=-Math.PI/2;this.scene.add(this.ground);if(liveStudio){this.reliefFloor=this.ground.geometry;this.flatFloor=new THREE.PlaneGeometry(19970,19970);this.groundEdits=new GroundEditView(this);}
  this.root=new THREE.Group();this.assetScene=new THREE.Scene();this.assetScene.add(this.root);this.cache=new Map();this.groups=new Map();this.surfaces=new Map();
@@ -172,10 +210,28 @@ export class StudioView{
   if(land){this.wetland??=new WetlandView(this,LIGHTING);this.wetland.configure(land,library);}
   this.garden=land?this.wetland:null;
   if(!land&&this.camera.near!==.03){this.camera.near=.03;this.camera.updateProjectionMatrix();}
-  if(this.wetland)this.wetland.reeds.group.visible=!!land;
+  if(this.wetland){this.wetland.reeds.group.visible=!!land;this.wetland.sky.visible=!!land;this.wetland.props.mesh.visible=!!land;if(this.wetland.props.softMesh)this.wetland.props.softMesh.visible=!!land&&this.wetland.props.softMesh.geometry.instanceCount>0;this.wetland.fauna.mesh.visible=!!land;if(this.wetland.fauna.softMesh)this.wetland.fauna.softMesh.visible=!!land&&this.wetland.fauna.softMesh.geometry.instanceCount>0;if(!land&&this.wetland.sandPatch)this.wetland.sandPatch.visible=false;}
   this.ground.material=this.garden?.terrain??this.groundMaterial;
   this.ground.frustumCulled=!land;
   this.sandView.setLandscape(land);
+ }
+ applyClimate(climate,sandMaterial=null){
+  if(!climate){
+   this.defaultEnvironment.forEach((v,i)=>this.uniforms.environment.value[i].copy(v));
+   this.uniforms.sunDirection.value.set(-.6,1,.5).normalize();
+   this.uniforms.sunColor.value.setRGB(1.1,1.02,.88);
+   this.uniforms.hazeColor.value.setRGB(.38,.45,.48);
+   this.renderer.setClearColor('#8eaaaf');
+   return null;
+  }
+  const atm=climateAtmosphere(climate,sandMaterial);
+  atm.environment.forEach((v,i)=>this.uniforms.environment.value[i].copy(v));
+  this.uniforms.sunDirection.value.set(...atm.sunDirection);
+  this.uniforms.sunColor.value.setRGB(...atm.sunColor);
+  this.uniforms.hazeColor.value.setRGB(...atm.hazeColor);
+  this.renderer.setClearColor(new THREE.Color(...atm.skyHorizon));
+  this.wetland?.setClimate(climate,atm);
+  return atm;
  }
  setGround(m){this.groundSurface=m;if(this.liveStudio)this.groundMaterial.uniforms.grain.value.set(...grainParams(m));this.groundMaterial.uniforms.color.value.set(m.color);this.groundMaterial.uniforms.properties.value.set(m.roughness,m.metallic,m.opacity,m.emission);}
  geometry(surface,materials){return this.liveStudio?studioGeometry(surface,materials):this.referenceGeometry(surface,materials);}
@@ -220,7 +276,7 @@ export class StudioView{
   const index=library.materials.findIndex(m=>m.id===mid),m=library.materials[index];
   if(looseKind(m)!==2&&!solidOptics(m))continue;this.hasFiniteLiquid=true;
   this.attachOptics(object,geometry,m,index,key,()=>this.activePhysics?.get(instance.id,p.id));
- }}}}this.setGround(this.liveStudio&&mode==='asset'?this.workPlane:library.materials.find(m=>m.id===library.world.groundMaterialId));this.paintView?.rebuild(this);}
+ }}}}this.setGround(this.liveStudio&&mode==='asset'?this.workPlane:library.materials.find(m=>m.id===library.world.groundMaterialId));this.paintView?.rebuild(this);if(mode==='world')this.garden?.syncPlacedFauna?.(library);}
  attachOptics(parent,geometry,m,index,key,record){
   const mesh=new THREE.Mesh(geometry,this.liquidMaterial(m,index));
   mesh.layers.set(1);mesh.userData.surfaceKey=key;parent.add(mesh);
@@ -285,7 +341,7 @@ export class StudioView{
   if(!nearest||distance<nearest.distance)nearest={...hit,materialId:part.userData.stampMaterial,distance,partId:part.userData.partId,instanceId:group.userData.instanceId,assetId:group.userData.assetId};}continue;}
  const key=group.userData.assetId+':'+part.userData.partId,s=this.surfaces.get(key);if(!s)continue;inverse.copy(part.matrixWorld).invert();local.copy(ray).applyMatrix4(inverse);const tolerance=s.spacing*1.25;const moving=this.activePhysics?.matter.parts;if(optimized){const geometry=this.cache.get(key);if(geometry?.boundingSphere){bounds.copy(geometry.boundingSphere);bounds.radius+=tolerance;if(!local.intersectsSphere(bounds))continue;}}
  for(let i=0;i<s.positions.length;i+=3){if(moving?.has(group.userData.instanceId+':'+part.userData.partId+'/'+s.materials[i/3]))continue;p.fromArray(s.positions,i);const t=(optimized?delta.copy(p):p.clone()).sub(local.origin).dot(local.direction);if(t<0||local.distanceSqToPoint(p)>tolerance*tolerance)continue;const world=(optimized?worldScratch.copy(p):p.clone()).applyMatrix4(part.matrixWorld),distance=world.distanceTo(ray.origin);if(nearest&&distance>=nearest.distance)continue;normal.fromArray(s.normals,i).applyNormalMatrix(new THREE.Matrix3().getNormalMatrix(part.matrixWorld));nearest={point:world.clone(),normal:normal.clone(),distance,partId:part.userData.partId,instanceId:group.userData.instanceId,localPoint:p.clone(),materialId:s.materials[i/3],assetId:group.userData.assetId};}}
- if(this.garden)nearest=this.garden.reeds.pick(ray,nearest,this.activePhysics,marks);
+ if(this.garden){nearest=this.garden.reeds.pick(ray,nearest,this.activePhysics,marks);nearest=this.garden.props.pick(ray,nearest);nearest=this.garden.fauna.pick(ray,nearest);}
  if(marks&&this.paintView?.batches.length)nearest=this.paintView.pick(ray,nearest);
  nearest=this.sectionView?.pick(this.raycaster,nearest)??nearest;
  for(const d of this.sea?.drops??[]){
@@ -324,6 +380,27 @@ export class StudioView{
   const id=hit?.bedMaterial??hit?.materialId;
   return this.library.materials[this.materialIndices.get(id)];
  }
+ hoverLabelAtPointer(pointer){
+  if(!this.garden?.land)return this.materialAtPointer(pointer)?.name;
+  const hit=this.pick(pointer,{optimized:true});
+  if(!hit){
+   if(this.sea&&this.oceanView.parcels.intersectsRay(this.raycaster.ray,this.camera.far))return this.waterMaterial?.name;
+   return undefined;
+  }
+  const env=this.garden.land.environment(hit.point.x,hit.point.z);
+  if(hit.pond){
+   const depth=Math.max(0,(this.sea?.seaLevel||0)-this.garden.land.height(hit.point.x,hit.point.z));
+   return `Water · depth ${depth.toFixed(2)} m · sal ${(env.salinity*100).toFixed(0)}%`;
+  }
+  if(hit.ground){
+   const name=this.groundSurface?.name||'Sand';
+   return `${name} · ${hit.point.y>=0?'+':''}${hit.point.y.toFixed(2)} m · moist ${(env.moisture*100).toFixed(0)}% · salt ${env.saltSpray.toFixed(2)} · wind ${env.windExposure.toFixed(2)}×`;
+  }
+  if(hit.propLabel)return hit.propLabel;
+  const mat=hit.chunk?hit.chunk.material:hit.looseGroup?this.activePhysics.matter.parts.get(hit.looseGroup)?.material:this.library.materials[this.materialIndices.get(hit.bedMaterial??hit.materialId)];
+  if(hit.reedSite&&hit.assetName&&mat)return `${hit.assetName} · ${mat.name}`;
+  return mat?.name;
+ }
  waterHit(ray){
   const terrain=this.activePhysics?.sandTerrain||this.sand||this.sea,cuts=this.activePhysics?.cuts;
   if(!terrain&&!cuts?.nodes.size)return ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
@@ -351,6 +428,7 @@ export class StudioView{
   frameBounds(this,bounds,direction,'world');
  }
  focus(mode='world'){this.controls.target.set(0,1,0);this.camera.position.set(...(mode==='asset'?[4,3,5]:[8,5,10]));this.controls.update();}
+ stepFly(dt,keys,land=null){if(!stepWASDCamera(this.camera.position,this.controls.target,keys,dt,{mode:this.mode,land}))return false;this.controls.update();return true;}
  get visibleLiquid(){
   const matter=this.activePhysics?.matter;
   if(!matter)return this.hasFiniteLiquid;
@@ -360,7 +438,7 @@ export class StudioView{
   return false;
  }
  draw(){if(this.failed)throw Error('Studio graphics context lost; stopped.');if(!this.firstPerson)this.controls.update();if(this.liveStudio){
- const lights=this.lampUniforms;let lampCount=0;
+ const lights=this.shadowUniforms;let lampCount=0;
  for(const lamp of this.emitters??[]){
   if(!lamp.object.visible||!lamp.object.parent?.visible)continue;
   lamp.object.updateWorldMatrix(true,false);
@@ -371,13 +449,13 @@ export class StudioView{
   if(++lampCount===4)break;
  }
  lights.studioLampCount.value=lampCount;
- this.paintView.update(this,this.activePhysics??null);
  for(const drift of this.matterView.saltation.values())drift.updateEye(this.camera.position);
  this.groundEdits.update(this.activePhysics);this.sandView.update(this.sand,this.groundSurface,this.camera.position);this.finishMap.update(this.sea&&!this.garden?null:this.activePhysics?.materialWorld,this.groundSurface);this.ground.geometry=this.garden?this.garden.geometry:this.sand?this.reliefFloor:this.flatFloor;this.groundMaterial.uniforms.granular.value=!!this.sand;
  this.ground.visible=!!this.garden||!this.sea;if(this.garden)this.garden.update(this,this.library.world.wind,this.activePhysics?.time??0);
+ this.paintView.update(this,this.activePhysics??null);
  this.uniforms.clipFloor.value=this.garden||this.sea||this.activePhysics?.sandTerrain?.version||this.activePhysics?.cuts?.nodes.size?-1e10:0;
  if(this.sea)this.oceanView.update(this.sea,this.camera,this.waterMaterial??this.groundSurface);else this.oceanView.show(false);
- }if(this.implicitCount){this.assetScene.updateMatrixWorld(true);this.implicit.update(this.activePhysics);}this.ground.position.set(this.liveStudio?Math.round(this.camera.position.x*4)/4:this.camera.position.x,0,this.liveStudio?Math.round(this.camera.position.z*4)/4:this.camera.position.z);this.scene.updateMatrixWorld(true);if(this.liveStudio&&(this.sea||this.visibleLiquid)){
+ }if(this.implicitCount){this.assetScene.updateMatrixWorld(true);this.implicit.update(this.activePhysics);}this.ground.position.set(this.liveStudio?Math.round(this.camera.position.x*4)/4:this.camera.position.x,0,this.liveStudio?Math.round(this.camera.position.z*4)/4:this.camera.position.z);this.scene.updateMatrixWorld(true);if(this.shadows)this.shadows.update(this);if(this.liveStudio&&(this.sea||this.visibleLiquid)){
  this.oceanView.capture.render(this);
  }else{if(this.liveStudio&&this.groundSurface.metallic>.02)this.oceanView.capture.render(this,true);this.drawObjects(this.camera);}
 
@@ -385,5 +463,5 @@ export class StudioView{
  if(this.eyeScene?.children.some(o=>o.visible)){this.renderer.autoClear=false;this.renderer.render(this.eyeScene,this.camera);}}
  drawObjects(camera){this.renderer.autoClear=true;this.renderer.render(this.scene,camera);this.renderer.autoClear=false;
  this.assetScene.overrideMaterial=this.depthMaterial;this.renderer.render(this.assetScene,camera);this.assetScene.overrideMaterial=null;this.renderer.render(this.assetScene,camera);if(this.paintView?.scene.children.length)this.renderer.render(this.paintView.scene,camera);if(this.grainScene?.children.some(o=>o.visible))this.renderer.render(this.grainScene,camera);}
- dispose(){this.wetland?.dispose();this.fieldView?.dispose();this.paintView?.dispose();this.sectionView?.clear();this.groundEdits?.dispose();this.matterView?.reset();this.uniforms.grainMap?.value.dispose();for(const mat of this.liquidMats?.values()||[])mat.dispose();this.sandView?.dispose();this.oceanView?.dispose();this.implicit?.dispose();this.forceLine.geometry.dispose();this.forceLine.material.dispose();this.resizeObserver.disconnect();this.controls.dispose();this.gizmo.dispose();for(const g of this.cache.values())g.dispose();this.material.dispose();this.depthMaterial.dispose();if(this.liveStudio){this.reliefFloor.dispose();this.flatFloor.dispose();this.finishMap.dispose();}else this.ground.geometry.dispose();this.groundMaterial.dispose();this.brush.geometry.dispose();this.brush.material.dispose();this.renderer.dispose();}
+ dispose(){this.shadows?.dispose();if(!this.shadows)this.shadowUniforms?.shadowMapNear?.value?.dispose?.();this.wetland?.dispose();this.fieldView?.dispose();this.paintView?.dispose();this.sectionView?.clear();this.groundEdits?.dispose();this.matterView?.reset();this.uniforms.grainMap?.value.dispose();for(const mat of this.liquidMats?.values()||[])mat.dispose();this.sandView?.dispose();this.oceanView?.dispose();this.implicit?.dispose();this.forceLine.geometry.dispose();this.forceLine.material.dispose();this.resizeObserver.disconnect();this.controls.dispose();this.gizmo.dispose();for(const g of this.cache.values())g.dispose();this.material.dispose();this.depthMaterial.dispose();if(this.liveStudio){this.reliefFloor.dispose();this.flatFloor.dispose();this.finishMap.dispose();}else this.ground.geometry.dispose();this.groundMaterial.dispose();this.brush.geometry.dispose();this.brush.material.dispose();this.renderer.dispose();}
 }

@@ -19,6 +19,7 @@ import {AuthoredWaveContacts} from './authored-wave-contacts.js';
 import {looseKind} from './loose-matter.js';
 import {windAt} from './wind.js';
 import {Wetland} from './wetland.js';
+import {DEFAULT_COASTAL_CLIMATE,climateAtmosphere} from './coastal-climate.js';
 import {WindSand} from './wind-sand.js';
 import {WindSea} from './ocean.js';
 import {implicitStamp} from './implicit-surface.js';
@@ -43,7 +44,7 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  <aside>
  <fieldset><legend>Asset library</legend><label>Asset<select id="studio-assets"></select></label><div class="studio-row"><button id="studio-new">New</button><button id="studio-copy-asset">Duplicate</button><button id="studio-edit">Edit asset</button></div><label id="studio-view-preset-row" hidden>Frame from<select id="studio-view-preset"><option value="">Current angle</option><option value="threeQuarter">Three-quarter</option><option value="front">Front</option><option value="side">Side</option><option value="top">Top</option></select></label><label>Name<input id="studio-asset-name" maxlength="100"></label><details id="studio-stage"><summary>Stage placement</summary><label>Uniform size (×)<input id="studio-stage-size" type="number" step=".05" min=".01" max="100" value="1"></label>${['offset','rotation'].map(kind=>'<label>'+(kind==='offset'?'Offset from placement point (m)':'Orientation (°)')+'<span class="studio-vector">'+['X','Y','Z'].map(axis=>'<span class="studio-stage-axis"><small>'+axis+'</small><input type="number" aria-label="Stage '+kind+' '+axis+'" id="studio-stage-'+kind+axis+'" step="'+(kind==='offset'?'.1':'1')+'" value="0"></span>').join('')+'</span></label>').join('')}</details><div class="studio-row"><button id="studio-place">Place selected asset</button><button id="studio-frame">Frame placements</button></div><div class="studio-row"><button id="studio-export-asset">Export asset</button><button id="studio-import-asset">Add from file</button><input id="studio-asset-file" type="file" accept="application/json,.json" hidden></div>${familyControls}<small id="studio-library-note">Edits update all placements of an asset. Duplicate it for an independent version.</small></fieldset>
  ${assemblyControls}
- <fieldset id="studio-world-controls"><legend>World</legend><label><input type="checkbox" id="studio-walk">First person</label>${test.seed===undefined?'':`<label>Garden seed<input id="studio-garden-seed" type="number" min="0" max="4294967295" step="1" value="${seed}" required></label><button id="studio-regrow">Regrow test</button>`}<label>Ground material<select id="studio-ground"></select></label><label>Wind speed (m/s)<output id="studio-wind-speed-label"></output><input id="studio-wind-speed" type="range" min="0" max="${MAX_WIND_SPEED}" step=".5"></label><label>Wind heading (°)<output id="studio-wind-heading-label"></output><input id="studio-wind-heading" type="range" min="-180" max="180" step="1"></label><label>Wind turbulence<output id="studio-wind-turbulence-label"></output><input id="studio-wind-turbulence" type="range" min="0" max="1" step=".05"></label><button data-world-tool="splash" id="studio-splash">Ground impulse</button><button data-world-tool="lift" id="studio-lift">Grab / drop sphere</button><label>Grab radius (m)<output id="studio-grab-radius-label">0.45</output><input id="studio-grab-radius" type="range" min=".12" max="2.4" step=".01" value=".45"></label><label>Ground impulse force (N)<output id="studio-impact-label">5000</output><input id="studio-impact" type="range" min="100" max="50000" step="100" value="5000"></label><label>Placed object<select id="studio-instances"></select></label><div class="studio-row"><button id="studio-copy-instance">Duplicate placement</button><button id="studio-delete-instance">Remove</button></div><small>Wind drives waves and loose sand. Press Play to apply wind and water forces to parts and joints. Heading 0° blows toward +X, 90° toward +Z.</small></fieldset>
+ <fieldset id="studio-world-controls"><legend>World</legend><label><input type="checkbox" id="studio-walk">First person</label>${test.seed===undefined?'':`<label>Garden seed<input id="studio-garden-seed" type="number" min="0" max="4294967295" step="1" value="${seed}" required></label><button id="studio-regrow">Regrow test</button><details open id="studio-climate-controls"><summary>Climate &amp; coastal fields</summary><label>Transect view<select id="studio-transect"><option value="overview">Coastal transect overview</option><option value="beach">Gulf beach &amp; berm pioneers</option><option value="wildlife">Swash, crabs &amp; wrack wildlife</option><option value="nearshore">Nearshore reef &amp; seafloor</option><option value="foredune">Foredune crest &amp; sea oats</option><option value="swale">Interdunal swale pond &amp; reeds</option><option value="scrub">Backdune rosemary &amp; sand live oak</option></select></label><label>Coastal field overlay<select id="studio-coastal-overlay"><option value="natural">Natural appearance</option><option value="moisture">Soil moisture &amp; water table</option><option value="saltSpray">Marine salt spray</option><option value="windExposure">Wind speedup &amp; lee shelter</option><option value="sandMobility">Aeolian sand mobility</option><option value="salinity">Groundwater salinity</option></select></label><label>Solar hour (h)<output id="studio-climate-solarHour-label"></output><input id="studio-climate-solarHour" type="range" min="0" max="24" step=".1"></label><label>Day of year<output id="studio-climate-dayOfYear-label"></output><input id="studio-climate-dayOfYear" type="range" min="1" max="365" step="1"></label><label>Tide / sea level (m)<output id="studio-climate-seaLevelOffset-label"></output><input id="studio-climate-seaLevelOffset" type="range" min="-.5" max="1" step=".02"></label><label>Annual rainfall (m/yr)<output id="studio-climate-precipitation-label"></output><input id="studio-climate-precipitation" type="range" min=".2" max="3.5" step=".05"></label><label>Cloud cover<output id="studio-climate-cloudCover-label"></output><input id="studio-climate-cloudCover" type="range" min="0" max="1" step=".02"></label><output id="studio-climate-readout" class="studio-field-readout"></output><output id="studio-ecology-readout" class="studio-field-readout"></output></details>`}<label>Ground material<select id="studio-ground"></select></label><label>Wind speed (m/s)<output id="studio-wind-speed-label"></output><input id="studio-wind-speed" type="range" min="0" max="${MAX_WIND_SPEED}" step=".5"></label><label>Wind heading (°)<output id="studio-wind-heading-label"></output><input id="studio-wind-heading" type="range" min="-180" max="180" step="1"></label><label>Wind turbulence<output id="studio-wind-turbulence-label"></output><input id="studio-wind-turbulence" type="range" min="0" max="1" step=".05"></label><button data-world-tool="splash" id="studio-splash">Ground impulse</button><button data-world-tool="lift" id="studio-lift">Grab / drop sphere</button><label>Grab radius (m)<output id="studio-grab-radius-label">0.45</output><input id="studio-grab-radius" type="range" min=".12" max="2.4" step=".01" value=".45"></label><label>Ground impulse force (N)<output id="studio-impact-label">5000</output><input id="studio-impact" type="range" min="100" max="50000" step="100" value="5000"></label><label>Placed object<select id="studio-instances"></select></label><div class="studio-row"><button id="studio-copy-instance">Duplicate placement</button><button id="studio-delete-instance">Remove</button></div><small>Wind drives waves and loose sand. Press Play to apply wind and water forces to parts and joints. Heading 0° blows toward +X, 90° toward +Z.</small></fieldset>
  <fieldset id="studio-asset-controls" hidden><legend>Sculpt / paint</legend><label>Part<select id="studio-parts"></select></label><div class="studio-row"><button id="studio-add-part">Add part</button><button id="studio-delete-part">Remove part</button></div><label>Part name<input id="studio-part-name" maxlength="100"></label><label>Tool<select id="studio-tool"><option value="camera">Camera</option><option value="select" selected>Select</option><option value="nudge">Nudge with force</option><option value="field">Material interaction</option><option value="add">Add volume</option><option value="subtract">Carve</option><option value="paint">Paint material</option>${toolOptions}<option value="insert">Place library selection</option><option value="translate">Move</option><option value="rotate">Rotate</option><option value="scale">Scale</option></select></label><label>Brush shape<select id="studio-shape"><option value="sphere">Sphere / ellipsoid</option><option value="box">Box</option><option value="capsule">Capsule</option></select></label><label>Brush radius (m)<output id="studio-radius-label">0.35</output><input id="studio-radius" type="range" min=".05" max="2" step=".01" value=".35"></label><label>Soft blend (m)<input id="studio-blend" type="range" min="0" max=".6" step=".01" value=".12"></label>${brushControls}<label>Surface spacing (m)<input id="studio-spacing" type="number" min=".05" max=".5" step=".01"></label><label class="studio-check"><input id="studio-gpu" type="checkbox" checked> GPU sculpt sampling, when validated</label><small>Brushes use the selected part’s local axes. Hold Shift to swap Add and Carve. Use [ and ] to resize the brush.</small></fieldset>
  <fieldset><legend id="studio-pose-title">Placement transform</legend><div id="studio-world-tools" class="studio-row"><button data-world-tool="camera">Camera</button><button data-world-tool="translate">Move</button><button data-world-tool="rotate">Rotate</button><button data-world-tool="scale">Scale</button><button data-world-tool="select">Select</button><button data-world-tool="nudge">Nudge</button></div>${poseInputs()}<div id="studio-pivot-controls" hidden><label>Part pivot (m)<span class="studio-vector">${['X','Y','Z'].map((axis,i)=>`<input type="number" step=".05" aria-label="Pivot ${axis}" data-pivot="${i}">`).join('')}</span></label><small>Pivot is in the asset's local coordinates. Part animation rotates and scales around it.</small></div></fieldset>
  ${fieldControls}
@@ -87,9 +88,80 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  const sea=new WindSea(),sand=new WindSand(),authoredWater=new AuthoredWaveContacts();
  let sandTime=0;
  const wind=()=>library.world.wind||{speed:0,heading:0};
+ const climate=()=>library.world.climate;
+ function syncClimateUI(atm=null){
+  const c=climate();
+  if(!c)return;
+  const info=atm??climateAtmosphere(c);
+  for(const k of ['solarHour','dayOfYear','seaLevelOffset','precipitation','cloudCover']){
+   const el=$('climate-'+k),lbl=$('climate-'+k+'-label');
+   if(el){el.value=c[k]??DEFAULT_COASTAL_CLIMATE[k];}
+   if(lbl){lbl.value=k==='dayOfYear'?Math.round(el.value):Number(el.value).toFixed(k==='solarHour'?1:2);}
+  }
+  const readout=$('climate-readout');
+  if(readout){
+   const {solar,hydrology,seaBreeze}=info;
+   readout.textContent=`Sun ${solar.elevationDeg.toFixed(1)}° · ${solar.globalWm2.toFixed(0)} W/m² · VPD ${hydrology.vpdKpa.toFixed(2)} kPa\nFreshwater lens +${hydrology.lensHeight.toFixed(2)} m · ${seaBreeze.label}`;
+  }
+  const ecoReadout=$('ecology-readout');
+  if(ecoReadout)ecoReadout.textContent=view.garden?.ecology?.formatSummary(view.garden.fauna)??'';
+  if($('air-temp')&&$('air-rh')){
+   $('air-temp').value=c.airTemperature.toFixed(0);
+   $('air-rh').value=Math.round(c.relativeHumidity*100);
+  }
+ }
+ function updateClimateField(key,value){
+  if(!library.world.climate)return;
+  library.world.climate={...library.world.climate,[key]:value};
+  if(key==='prevailingWindSpeed')library.world.wind={...wind(),speed:value};
+  if(key==='prevailingWindHeading')library.world.wind={...wind(),heading:value};
+  sand.landscape?.setClimate(library.world.climate,view.groundSurface);
+  sea.seaLevel=library.world.climate.seaLevelOffset??0;
+  if(sand.landscape)sea.coastal={land:sand.landscape,waveDecayLen:sand.landscape.hydrology.waveDecayLen};
+  if(physics?.pondSea){
+   physics.pondSea.seaLevel=sea.seaLevel;
+   if(physics.sand?.landscape)physics.pondSea.coastal={land:physics.sand.landscape,waveDecayLen:physics.sand.landscape.hydrology.waveDecayLen};
+  }
+  if(physics?.sand?.landscape){
+   physics.sand.landscape.setClimate(library.world.climate,physics.groundMaterial);
+   if(key==='precipitation'||key==='seaLevelOffset')physics.stand?.tiles.clear();
+  }
+  if(physics?.materialWorld){
+   physics.materialWorld.air.temperature=273.15+library.world.climate.airTemperature;
+   physics.materialWorld.air.humidity=library.world.climate.relativeHumidity;
+  }
+  if(key==='precipitation'||key==='seaLevelOffset')view.wetland?.reeds.tiles.clear();
+  if(view.wetland?.reeds)view.wetland.reeds.signature=undefined;
+  const atm=view.applyClimate(library.world.climate,view.groundSurface);
+  syncClimateUI(atm);
+  clearTimeout(saveTimer);saveTimer=setTimeout(()=>save().catch(()=>{}),400);
+ }
  function updateWind(){
   const w=wind();sea.setWind(w.speed,w.heading,w.turbulence);if(physics)physics.wind=w;
+  if(library.world.climate){
+   library.world.climate={...library.world.climate,prevailingWindSpeed:w.speed,prevailingWindHeading:w.heading};
+   sand.landscape?.setClimate(library.world.climate,view.groundSurface);
+   physics?.sand?.landscape?.setClimate(library.world.climate,physics.groundMaterial);
+   const atm=view.applyClimate(library.world.climate,view.groundSurface);syncClimateUI(atm);
+  }
   for(const k of ['speed','heading','turbulence']){$('wind-'+k).value=w[k]??0;$('wind-'+k+'-label').value=w[k]??0;}
+ }
+ if(test.seed!==undefined){
+  for(const k of ['solarHour','dayOfYear','seaLevelOffset','precipitation','cloudCover']){
+   const input=$('climate-'+k);
+   if(!input)continue;
+   input.oninput=()=>{
+    if(!input.dataset.editing){history.push(library);input.dataset.editing='yes';$('undo').disabled=false;$('redo').disabled=true;}
+    updateClimateField(k,Number(input.value));
+   };
+   input.onchange=()=>delete input.dataset.editing;
+  }
+  if($('coastal-overlay'))$('coastal-overlay').onchange=()=>view.wetland?.setOverlay($('coastal-overlay').value);
+  if($('transect'))$('transect').onchange=()=>{
+   const vp=sand.landscape?.transectViewpoints()[$('transect').value];
+   if(!vp)return;
+   view.camera.position.set(...vp.position);view.controls.target.set(...vp.target);view.controls.update();
+  };
  }
  for(const k of ['speed','heading','turbulence']){
   const input=$('wind-'+k);
@@ -112,15 +184,20 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  Object.assign(gesture,{insert:'Click a surface to insert the library selection · Esc to select',gaussian:'Drag from the surface toward the tip · click to grow outward',detail:'Click a painted detail to edit its shape and joint',sample:'Click a surface or painted detail to sample its material'});
  showBrushControls($,mode==='asset',tool);
  view.paintView.select(selectedPart,mode==='asset'&&tool==='detail'&&!physics?markBrush.selected:null);
- $('hint').textContent=view.firstPerson?'WASD: walk · mouse: look · Space: jump / float · click: tool · wheel: held distance · Esc: orbit':(gesture[tool]||'')+' · right drag: orbit · Shift + right drag: pan · wheel: zoom · F: '+(mode==='asset'?'frame asset':'frame placements');
+ $('hint').textContent=view.firstPerson?'WASD: walk · mouse: look · Space: jump / float · click: tool · wheel: held distance · Esc: orbit':(gesture[tool]||'')+' · right drag: orbit · Shift + right drag: pan · wheel: zoom · WASD/QE: move (Shift: fast) · F: '+(mode==='asset'?'frame asset':'frame placements');
  if(physics){view.gizmo.detach();return;}view.attach(selectedInstance,selectedPart,mode==='asset'?$('tool').value:worldTool);}
  function refresh(){hover.invalidate();const active=new Set(mode==='asset'?[selectedAsset]:library.world.instances.map(i=>i.assetId));for(const [key,g]of view.cache)if(!active.has(key.split(':')[0])){g.dispose();view.cache.delete(key);view.surfaces.delete(key);}view.rebuild(library,mode,selectedAsset);
  const groundKind=mode==='world'?looseKind(view.groundSurface):0;
  const landscapeSeed=library.world.wetlandSeed;
- if(sand.landscape?.seed!==landscapeSeed)sand.landscape=Number.isInteger(landscapeSeed)?new Wetland(landscapeSeed):null;
+ if(sand.landscape?.seed!==landscapeSeed)sand.landscape=Number.isInteger(landscapeSeed)?new Wetland(landscapeSeed,library.world.climate,view.groundSurface):null;
+ else sand.landscape?.setClimate(library.world.climate,view.groundSurface);
  view.setLandscape(groundKind===1?sand.landscape:null,library);
+ const atm=view.applyClimate(mode==='world'&&groundKind===1?library.world.climate:null,view.groundSurface);
+ syncClimateUI(atm);
  view.sand=groundKind===1?sand:null;view.sea=groundKind===2||view.garden?sea:null;
  view.waterMaterial=view.garden?library.materials.find(m=>m.id==='water'):view.groundSurface;
+ sea.seaLevel=view.garden?(library.world.climate?.seaLevelOffset??0):0;
+ sea.coastal=view.garden&&sand.landscape?{land:sand.landscape,waveDecayLen:sand.landscape.hydrology.waveDecayLen}:null;
  sea.bedHeight=view.garden?(x,z)=>(physics?.sandTerrain??sand).height(x,z):null;
  if(view.sea){sea.organicLoad=view.waterMaterial.organicLoad||0;authoredWater.rebuild(view);}
  $('splash').disabled=$('lift').disabled=mode!=='world';updateWind();attach();}
@@ -183,10 +260,10 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  $('asset-name').onchange=()=>{const name=$('asset-name').value.trim();if(!name)return sync();begin();currentAsset().name=name;changed();};
  $('add-part').onclick=()=>{if(currentAsset().parts.length>=LIMITS.parts)return notice('Part limit reached.');if(worldPartCount(library)+library.world.instances.filter(i=>i.assetId===selectedAsset).length>LIMITS.previewParts)return notice('World preview limit reached. Remove a placement before adding a part.');begin();const p=part('Part '+(currentAsset().parts.length+1));currentAsset().parts.push(p);selectedPart=p.id;changed();};
  $('delete-part').onclick=()=>{if(currentAsset().parts.length===1)return notice('Keep at least one part; carve or undo to change it.');begin();currentAsset().parts=currentAsset().parts.filter(p=>p.id!==selectedPart);for(const p of currentAsset().parts)if(p.joint?.parentId===selectedPart)p.joint=null;selectedPart=currentAsset().parts[0].id;removeUnused();changed();};$('part-name').onchange=()=>{const name=$('part-name').value.trim();if(!name)return sync();begin();currentPart().name=name;changed();};
- $('place').onclick=()=>{if(library.world.instances.length>=LIMITS.instances||worldPartCount(library)+currentAsset().parts.length>LIMITS.previewParts)return notice('World preview limit reached (32 placed parts). Additional assets stay in the library.');let n;try{n=assembly.seed();}catch(e){return notice(e.message);}const variant=familySampler(currentAsset().variation,n);begin();const p=(mode==='asset'&&worldCamera?worldCamera.target:view.controls.target).clone();p.y=sand.landscape&&looseKind(library.materials.find(m=>m.id===library.world.groundMaterialId))===1?Math.max(0,sand.height(p.x,p.z)):0;const vector=kind=>['X','Y','Z'].map(axis=>Number($('stage-'+kind+axis).value));
+ $('place').onclick=()=>{if(library.world.instances.length>=LIMITS.instances||worldPartCount(library)+currentAsset().parts.length>LIMITS.previewParts)return notice('World preview limit reached (32 placed parts). Additional assets stay in the library.');let n;try{n=assembly.seed();}catch(e){return notice(e.message);}const fauna=currentAsset().fauna;const variant=familySampler(currentAsset().variation,n);begin();const p=(mode==='asset'&&worldCamera?worldCamera.target:view.controls.target).clone();const seaY=library.world.climate?.seaLevelOffset??0;if(fauna&&sand.landscape){const bedY=sand.height(p.x,p.z),hover=fauna.hoverHeight??0;if(fauna.medium==='air')p.y=Math.max(seaY,bedY)+hover;else if((fauna.medium==='submerged'||fauna.medium==='swale-water')&&bedY<seaY-0.14)p.y=Math.min(seaY-0.10,bedY+hover);else p.y=bedY;}else{p.y=sand.landscape&&looseKind(library.materials.find(m=>m.id===library.world.groundMaterialId))===1?Math.max(0,sand.height(p.x,p.z)):0;}const vector=kind=>['X','Y','Z'].map(axis=>Number($('stage-'+kind+axis).value));
  const rotation=vector('rotation'),offset=vector('offset'),size=$('stage-size').valueAsNumber;
  if(!(size>=.01&&size<=100)||rotation.some(x=>!Number.isFinite(x)||Math.abs(x)>3600)||offset.some(x=>!Number.isFinite(x)||Math.abs(x)>10000))return notice('Check placement size, offset and orientation.');
- const i={id:uid(),assetId:selectedAsset,transform:placementPose(p.toArray(),variant,1,offset,rotation,size)};assembly.advance(n);library.world.instances.push(i);selectedInstance=i.id;worldTool='translate';switchMode('world');changed();notice(`Placed ${currentAsset().name}. Use the placement controls to adjust it.`);};
+ const i={id:uid(),assetId:selectedAsset,transform:placementPose(p.toArray(),variant,fauna?.defaultScale??1,offset,rotation,size)};assembly.advance(n);library.world.instances.push(i);selectedInstance=i.id;worldTool='translate';switchMode('world');changed();if(fauna)view.garden?.disturbFauna(p.x,p.y,p.z,(fauna.medium==='submerged'||fauna.medium==='swale-water')?'splash':'vibration',0.75,3.2);notice(`Placed ${currentAsset().name}. Use the placement controls to adjust it.`);};
  $('copy-instance').onclick=()=>{const i=currentInstance();if(!i)return;if(worldPartCount(library)+library.assets.find(a=>a.id===i.assetId).parts.length>LIMITS.previewParts)return notice('World preview limit reached (32 placed parts).');begin();const copy=clone(i);copy.id=uid();copy.transform.position[0]+=2;library.world.instances.push(copy);selectedInstance=copy.id;changed();};$('delete-instance').onclick=()=>{if(!currentInstance())return;begin();library.world.instances=library.world.instances.filter(i=>i.id!==selectedInstance);changed();};
  $('tool').onchange=()=>{if(previewPose&&['translate','rotate','scale'].includes($('tool').value)){begin();currentPart().transform=sampleTrack(currentPart(),time);previewPose=false;playing=false;refresh();syncPose();}view.controls.enabled=true;attach();view.showBrush(null,1);};document.querySelectorAll('[data-world-tool]').forEach(e=>e.onclick=()=>{dropSphere();worldTool=e.dataset.worldTool;view.showBrush(null,1);attach();});$('radius').oninput=()=>{$('radius-label').textContent=Number($('radius').value).toFixed(2);};
  $('spacing').onchange=()=>{const v=Number($('spacing').value);if(!Number.isFinite(v)||v<.05||v>.5)return sync();begin();currentAsset().spacing=v;enqueue();changed(false);};$('gpu').onchange=()=>{enqueue();};
@@ -239,7 +316,7 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
   try{
    const next=await StudioPhysics.create(clone(library),mode,selectedAsset,Number($('gravity').value),view.sea,view.sand);
    if(generation!==physicsEpoch||disposed){next.dispose();return;}
-   physics=next;fields.settings(physics);physics.wind=wind();if(mode==='world')test.start?.(physics);playing=true;previewPose=false;
+   physics=next;next.onGroundDisturb=(ev)=>view.garden?.onGroundDisturb?.(ev,next);fields.settings(physics);physics.wind=wind();if(mode==='world')test.start?.(physics);playing=true;previewPose=false;
    view.gizmo.detach();$('play').textContent='Pause physics';
    notice(next.skipped.length?next.skipped.join(' · '):'Physics running. Reset restores the authored poses and ground.');
    if(pendingGround){const run=pendingGround;pendingGround=null;run();}
@@ -250,7 +327,7 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
    if(!disposed&&!physics&&pendingGround&&generation!==physicsEpoch)void startPhysics();
   }
  }
- function resetPhysics(){pendingGround=null;dropSphere();sea.release();physicsEpoch++;playing=false;forceDrag=null;view?.controls&&(view.controls.enabled=true);physics?.dispose();physics=null;if(view?.firstPerson)view.controls.enabled=false;fields.read(null);time=0;previewPose=false;$('play').textContent='Play physics';$('physics-status').textContent='Physics is stopped. Authoring poses are preserved.';view?.showForce(null,null);view?.animate(0,false);}
+ function resetPhysics(){pendingGround=null;dropSphere();sea.release();physicsEpoch++;playing=false;forceDrag=null;view?.controls&&(view.controls.enabled=true);physics?.dispose();physics=null;if(view?.firstPerson)view.controls.enabled=false;fields.read(null);time=0;previewPose=false;$('play').textContent='Play physics';$('physics-status').textContent='Physics is stopped. Authoring poses are preserved.';view?.showForce(null,null);view?.garden?.resetDisturbances?.();view?.animate(0,false);}
  $('play').onclick=()=>{if(!physics)return startPhysics();playing=!playing;$('play').textContent=playing?'Pause physics':'Resume physics';notice(playing?'Physics running.':'Physics paused. You can orbit or probe the scene.');};
  $('physics-reset').onclick=()=>{resetPhysics();sea.reset();sand.reset();refresh();sync();};$('nudge').onclick=()=>{if(mode==='asset')$('tool').value='nudge';else worldTool='nudge';attach();notice('Drag on an object while physics runs. Drag direction and length set the applied force.');};
  $('time').oninput=()=>{if(physics){playing=false;$('play').textContent='Play physics';}time=Number($('time').value);$('time-label').textContent=time.toFixed(2)+' s';syncDrive();};
@@ -356,6 +433,7 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
   gripCursor=gesture;
   const run=()=>{
    if(mode!=='world'||worldTool!==tool||gesture&&gripCursor!==gesture)return;
+   view.garden?.disturbFauna(point.x,point.y,point.z,surfaceWater?'splash':'vibration',.85,6);
    if(tool==='splash'){
     if(hit.bedMaterial)disturbDeposit(physics,physics.matter.beds.get(hit.bedMaterial),point,force);
     else strikeGround(physics,point,force,surfaceWater?sea:physics.sea,surfaceWater?view.waterMaterial:null);
@@ -404,7 +482,8 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
   view.ray(e);view.gizmo.pointerHover({x:view.pointer.x,y:view.pointer.y,button:e.button});
   if(view.gizmo.axis)return;
  }
- e.stopImmediatePropagation();const hit=view.pick(e);if(hit&&!hit.ground&&hit.assetId&&hit.partId){if(mode==='world'){selectedInstance=hit.instanceId;selectedAsset=hit.assetId;}selectedPart=hit.partId;sync();}}},true);
+ e.stopImmediatePropagation();const hit=view.pick(e);if(hit&&!hit.ground&&hit.assetId&&hit.partId){if(mode==='world'){selectedInstance=hit.instanceId;selectedAsset=hit.assetId;}selectedPart=hit.partId;sync();}else if(mode==='world'&&hit?.ground&&view.garden){view.garden.disturbFauna(hit.point.x,hit.point.y,hit.point.z,hit.pond?'splash':'vibration',hit.pond?1.15:0.95,hit.pond?5.5:4.5);if(hit.pond&&view.sea)view.sea.ripple(hit.point.x,hit.point.z,.045,false,3.5);}}},true);
+ canvas.addEventListener('pointermove',e=>{if(walk.enabled)walk.look(e.movementX||0,e.movementY||0);},true);
  canvas.addEventListener('pointermove',e=>{if(owner==='camera'||(activePointer!==null&&e.pointerId!==activePointer))return;
  if(markBrush.pending){markBrush.move(e);return;}
  if(gripCursor){gripCursor.clientX=e.clientX;gripCursor.clientY=e.clientY;return;}
@@ -424,7 +503,7 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  }
  if(forceDrag){if(forceDrag.hinge&&physics)forceDrag.hinge.until=physics.time+(e.type==='pointerup'?Math.max(0,Math.min(5,Number($('force-duration').value)||0)):0);if(physics&&e.type==='pointerup'&&(!forceDrag.hinge||forceDrag.throughBlade))physics.addPulse(physics.drag?.key??forceDrag.key,forceDrag.localPoint,forceDrag.force,Number($('force-duration').value)||0,forceDrag.loose);physics?.clearDrag();view.showForce(null,null);forceDrag=null;view.controls.enabled=true;}if(!stroke)return;stroke=false;lastStroke=null;view.controls.enabled=true;if(strokeEdited){pump();changed(false);}strokeEdited=false;};canvas.addEventListener('pointerup',endStroke);canvas.addEventListener('pointercancel',endStroke);canvas.addEventListener('lostpointercapture',endStroke);window.addEventListener('blur',endStroke);canvas.addEventListener('pointerleave',()=>{if(!stroke)view.showBrush(null,1);});
  const moveKeys=new Set(),flyCodes=new Set(['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','ShiftLeft','ShiftRight']);
- window.addEventListener('keydown',e=>{if(walk.enabled&&e.code==='Escape'){endWalk();attach();return;}if(walk.enabled&&e.code==='Space'&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName)){e.preventDefault();moveKeys.add('Space');return;}if(/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName))return;if(walk.enabled&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&flyCodes.has(e.code)){moveKeys.add(e.code);return;}if(mode==='asset'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+ window.addEventListener('keydown',e=>{if(walk.enabled&&e.code==='Escape'){endWalk();attach();return;}if(walk.enabled&&e.code==='Space'&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName)){e.preventDefault();moveKeys.add('Space');return;}if(/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName))return;if(!e.ctrlKey&&!e.metaKey&&!e.altKey&&flyCodes.has(e.code)){moveKeys.add(e.code);return;}if(mode==='asset'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
    if(e.key==='Escape'&&$('tool').value==='insert'){setBrush('select');return;}
    if(e.key==='Escape'&&markBrush.pending){markBrush.finish(false);return;}
    if(activePointer===null&&/^[1-6]$/.test(e.key)){setBrush($('brush-bar').children[Number(e.key)-1].dataset.brush);return;}
@@ -437,11 +516,14 @@ export async function startStudioApp(boot={mark(){},finish(){},fail:console.erro
  window.addEventListener('keyup',e=>{if(flyCodes.has(e.code)||e.code==='Space')moveKeys.delete(e.code);});
  window.addEventListener('blur',()=>moveKeys.clear());
  $('validate').onclick=async()=>{if(baking)return notice('Wait for the current sculpt bake to finish.');$('validate').disabled=true;validating=true;try{if(!baker.gpu)await baker.init();else baker.validation=await baker.gpu.validate();$('validation').textContent=JSON.stringify(baker.validation,null,2);}catch(e){notice(e.message);}finally{$('validate').disabled=false;validating=false;pump();}};
+ $('air-temp')&&($('air-temp').addEventListener('change',()=>{if(library.world.climate)updateClimateField('airTemperature',Number($('air-temp').value));}));
+ $('air-rh')&&($('air-rh').addEventListener('change',()=>{if(library.world.climate)updateClimateField('relativeHumidity',Number($('air-rh').value)/100);}));
+ $('diagnostics').textContent=`Sculpt grid: ${baker.gpu&&!baker.gpu.failed&&$('gpu').checked?baker.backend:($('cpu-shortcuts').checked?'CPU worker · exact allocation-light path':'CPU worker reference')}\nRendering & coastal fields: WebGL 2 Gaussian OIT · 60 FPS cap\nPhysics, material & microclimate fields: CPU Rapier WASM + CPU ecological solver`;
  refresh();sync();view.frameWorld(library,test.framing);notice(loaded.message);boot.mark('Preparing isolated studio sculpt backend');if(cpuOnly){$('gpu').checked=false;$('gpu').disabled=true;}else await baker.init();$('validation').textContent=JSON.stringify(baker.validation,null,2);ensureVisible();
  let last=performance.now(),lastDraw=0,rateAt=last,frames=0;
- function tick(now){if(disposed||stop)return;frame=requestAnimationFrame(tick);if(now-lastDraw<1000/60-.3)return;lastDraw=now;const dt=Math.min(.1,(now-last)/1000);last=now;if(walk.enabled)walk.step(dt,moveKeys);if(gripCursor)updateSphere();if(physics){physics.motorEnabled=$('motors').checked;try{if(playing){const elapsed=physics.advance(dt);simulationTotal+=elapsed;}view.applyPhysics(physics);}catch(e){playing=false;notice(e.message);}$('physics-status').textContent=`CPU · Rapier WASM · ${physics.bodies.size} bodies / ${physics.matter.count} loose parcels / ${physics.joints.length} body joints (${physics.broken} broken) / ${physics.structures.reduce((n,s)=>n+s.brokenBonds,0)} broken bonds / ${physics.structures.reduce((n,s)=>n+Math.max(0,s.bodies.size-1),0)} separated pieces / ${physics.colliderCount} colliders · ${physics.paintedHinges.count} painted hinges${physics.stand?.windWorld?' · wind samples: '+physics.stand.windWorld.joints.length+' joints ('+physics.stand.windWorld.broken+' broken)':''}${physics.matter.meltedMass?' · '+physics.matter.meltedMass.toFixed(2)+' kg melted':''}\n${physics.time.toFixed(2)} s simulated · ${physics.lastStepMs.toFixed(2)} ms last step\nCarved proxy spacing ≤ ${physics.maxProxySpacing.toFixed(3)} m`;if(playing){time=physics.time%currentAsset().duration;$('time').value=time;$('time-label').textContent=time.toFixed(2)+' s';}}else {view.animate(0,false);if(view.sea){authoredWater.advance(sea);sea.advance(dt,authoredWater.collideDrop);}if(view.sand){sandTime+=dt;view.sand.advance(dt,windAt(wind(),sandTime),view.groundSurface)};}try{view.draw();}catch(e){stop=true;cancelAnimationFrame(frame);notice(e.message);return;}hover.update(now,playing||view.sea||view.sand);frames++;if(now-rateAt>1000){fields.read(physics);$('comparison').textContent=physics&&test.readout?test.readout(physics):'';$('rates').textContent=`${(frames*1000/(now-rateAt)).toFixed(1)} FPS · ${mode==='asset'?'Asset editor':'World preview'} · ${Math.min(1,simulationTotal*1000/(now-rateAt)).toFixed(2)}× physics · ${view.gaussianCount} surface splats · ${view.paintView.batches.reduce((n,b)=>n+b.rows.length,0)} painted details · ${view.implicitCount} implicit parts${baking?' · rebuilding surface':''}`;frames=0;simulationTotal=0;rateAt=now;}}
+ function tick(now){if(disposed||stop)return;frame=requestAnimationFrame(tick);if(now-lastDraw<1000/60-.3)return;lastDraw=now;const dt=Math.min(.1,(now-last)/1000);last=now;if(walk.enabled)walk.step(dt,moveKeys);else if(moveKeys.size&&!view.dragging)view.stepFly(dt,moveKeys,mode==='world'?view.garden?.land:null);if(gripCursor)updateSphere();if(physics){physics.motorEnabled=$('motors').checked;try{if(playing){const elapsed=physics.advance(dt);simulationTotal+=elapsed;}view.applyPhysics(physics);}catch(e){playing=false;notice(e.message);}$('physics-status').textContent=`CPU · Rapier WASM · ${physics.bodies.size} bodies / ${physics.matter.count} loose parcels / ${physics.joints.length} body joints (${physics.broken} broken) / ${physics.structures.reduce((n,s)=>n+s.brokenBonds,0)} broken bonds / ${physics.structures.reduce((n,s)=>n+Math.max(0,s.bodies.size-1),0)} separated pieces / ${physics.colliderCount} colliders · ${physics.paintedHinges.count} painted hinges${physics.stand?.windWorld?' · wind samples: '+physics.stand.windWorld.joints.length+' joints ('+physics.stand.windWorld.broken+' broken)':''}${physics.matter.meltedMass?' · '+physics.matter.meltedMass.toFixed(2)+' kg melted':''}\n${physics.time.toFixed(2)} s simulated · ${physics.lastStepMs.toFixed(2)} ms last step\nCarved proxy spacing ≤ ${physics.maxProxySpacing.toFixed(3)} m`;if(playing){time=physics.time%currentAsset().duration;$('time').value=time;$('time-label').textContent=time.toFixed(2)+' s';}}else {view.animate(0,false);if(view.sea){authoredWater.advance(sea);sea.advance(dt,authoredWater.collideDrop);}if(view.sand){sandTime+=dt;view.sand.advance(dt,windAt(wind(),sandTime),view.groundSurface)};}try{view.draw();}catch(e){stop=true;cancelAnimationFrame(frame);notice(e.message);return;}hover.update(now,playing||view.sea||view.sand);frames++;if(now-rateAt>1000){fields.read(physics);$('comparison').textContent=physics&&test.readout?test.readout(physics):'';const ecoReadout=$('ecology-readout');if(ecoReadout)ecoReadout.textContent=view.garden?.ecology?.formatSummary(view.garden.fauna)??'';$('rates').textContent=`${(frames*1000/(now-rateAt)).toFixed(1)} FPS · ${mode==='asset'?'Asset editor':'World preview'} · ${Math.min(1,simulationTotal*1000/(now-rateAt)).toFixed(2)}× physics · ${view.gaussianCount} surface splats · ${view.paintView.batches.reduce((n,b)=>n+b.rows.length,0)} painted details · ${view.implicitCount} implicit parts${baking?' · rebuilding surface':''}`;frames=0;simulationTotal=0;rateAt=now;}}
  frame=requestAnimationFrame(tick);boot.finish();
  // Diagnostics are read-only; numerical oracle is also available from the UI.
- window.__assetStudio={get diagnostics(){return {test:test.id,mode,assets:library.assets.length,materials:library.materials.length,placements:library.world.instances.length,implicit:view.implicitCount,water:!!view.sea,waterTime:view.sea?.time,drops:view.sea?.drops.length,wind:wind(),camera:view.camera.position.toArray(),baking,backend:baker.backend,validation:baker.validation,graphicsLost:!!view.failed,splats:[...view.surfaces.values()].reduce((n,s)=>n+s.positions.length/3,0),bakeMs,physics:physics?.diagnostics()||null,physicsBuilding};}};
+ window.__assetStudio={get diagnostics(){return {test:test.id,mode,assets:library.assets.length,materials:library.materials.length,placements:library.world.instances.length,implicit:view.implicitCount,water:!!view.sea,waterTime:view.sea?.time,drops:view.sea?.drops.length,wind:wind(),camera:view.camera.position.toArray(),baking,backend:baker.backend,validation:baker.validation,graphicsLost:!!view.failed,splats:[...view.surfaces.values()].reduce((n,s)=>n+s.positions.length/3,0),bakeMs,physics:physics?.diagnostics()||null,physicsBuilding,ecology:view.garden?.ecology?.snapshot()??null,fauna:view.garden?.fauna?{active:view.garden.fauna.activeAgentCount,total:view.garden.fauna.agents.length,placed:view.garden.fauna.sim.placedLinks.length,stimuli:view.garden.fauna.sim.stimuli.activeCount,ellipsoids:view.garden.fauna.geometry.instanceCount,byGuild:view.garden.fauna.activeCountsByGuild(),sampleStates:view.garden.fauna.agents.filter(a=>a.speciesId==='ghost-crab'||a.speciesId==='baitfish'||a.speciesId==='fiddler-crab').slice(0,12).map(a=>({id:a.id,speciesId:a.speciesId,state:a.state,alertStage:a.alertStage,fear:+((a.fear||0).toFixed(2)),hunger:+((a.hunger||0).toFixed(2)),speed:+((a.speed||0).toFixed(2)),support:a.crabRig?.supportCount}))}:null};}};
  window.addEventListener('pagehide',()=>{disposed=true;cancelAnimationFrame(frame);clearTimeout(saveTimer);hover.dispose();physics?.dispose();baker.dispose();view.dispose();},{once:true});
 }

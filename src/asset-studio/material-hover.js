@@ -27,7 +27,7 @@ export function bindMaterialHover(view, label) {
    const rect = canvas.getBoundingClientRect();
    const x = pointer.clientX - rect.left, y = pointer.clientY - rect.top;
    if (x < 0 || y < 0 || x >= rect.width || y >= rect.height) return clear();
-   const name = view.materialAtPointer(pointer)?.name;
+   const name = view.hoverLabelAtPointer ? view.hoverLabelAtPointer(pointer) : view.materialAtPointer(pointer)?.name;
    label.hidden = !name;
    if (!name) return;
    if (label.textContent !== name) label.textContent = name;

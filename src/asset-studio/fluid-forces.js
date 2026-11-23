@@ -1,6 +1,11 @@
 import {recordLoad} from './fracture.js';
 import {Vector3, Quaternion} from 'three';
 
+const _center=new Vector3(),_rot=new Quaternion(),_inv=new Quaternion(),_up=new Vector3();
+const _pt=new Vector3(),_vel=new Vector3(),_force=new Vector3(),_dir=new Vector3();
+const _com=new Vector3(),_arm=new Vector3(),_netForce=new Vector3(),_netTorque=new Vector3();
+const _linvel=new Vector3(),_angvel=new Vector3(),_cross=new Vector3();
+
 // At most eight displaced-volume samples per body, independent of view or render spacing.
 export function flotationSamples(shapes,scale){
  const points=[],centroid=new Vector3();let total=0;
@@ -28,38 +33,54 @@ export function applyEnvironment(record,sea,waterDensity,wind,gravity,dt,column)
  if(!sea&&!column&&!wind.speed){record.wetFraction=0;return;}
  const b=record.body;
  if(!b.isDynamic()&&!record.structure)return;
- const center=new Vector3().copy(b.translation()),rotation=new Quaternion().copy(b.rotation());
- const inverse=rotation.clone().invert(),up=new Vector3(0,1,0).applyQuaternion(inverse);
+ _center.copy(b.translation());_rot.copy(b.rotation());
+ _inv.copy(_rot).invert();_up.set(0,1,0).applyQuaternion(_inv);
  const angle=wind.heading*Math.PI/180,wx=Math.cos(angle),wz=Math.sin(angle);
- const pt=new Vector3(),velocity=new Vector3(),force=new Vector3(),dir=new Vector3();
+ const needsSamples=!!record.forceSamples,dynamic=b.isDynamic();
+ const mass=(record.field?.scale===1&&record.mass!==undefined)?record.mass:b.mass();
+ if(!needsSamples){
+  _com.copy(b.worldCom());
+  _linvel.copy(b.linvel());
+  _angvel.copy(b.angvel());
+  _netForce.set(0,0,0);_netTorque.set(0,0,0);
+ }
  let wetVolume=0;
- const flow=sea?.flow(center.x,center.z);
+ const flow=sea?.flow(_center.x,_center.z);
  for(const sample of record.floats){
-  pt.copy(sample.p).applyQuaternion(rotation).add(center);
-  const e=sample.extent,r=Math.max(.01,Math.abs(up.x)*e.x+Math.abs(up.y)*e.y+Math.abs(up.z)*e.z);
-  const pool=column?.(pt.x,pt.z);
-  const wet=sea&&!column?Math.max(0,Math.min(1,.5+(sea.height(pt.x,pt.z)-pt.y)/(2*r))):pool?Math.max(0,Math.min(pt.y+r,pool.top)-Math.max(pt.y-r,pool.bottom))/(2*r):0;
+  _pt.copy(sample.p).applyQuaternion(_rot).add(_center);
+  const e=sample.extent,r=Math.max(.01,Math.abs(_up.x)*e.x+Math.abs(_up.y)*e.y+Math.abs(_up.z)*e.z);
+  const pool=column?.(_pt.x,_pt.z);
+  const wet=sea&&!column?Math.max(0,Math.min(1,.5+(sea.height(_pt.x,_pt.z)-_pt.y)/(2*r))):pool?Math.max(0,Math.min(_pt.y+r,pool.top)-Math.max(_pt.y-r,pool.bottom))/(2*r):0;
   if(!wet&&!wind.speed)continue;
-  const portion=sample.volume/record.fluidVolume,limit=b.mass()*portion*.38/dt;
-  velocity.copy(b.velocityAtPoint(pt));force.set(0,0,0);
+  const portion=sample.volume/record.fluidVolume,limit=mass*portion*.38/dt;
+  if(needsSamples)_vel.copy(b.velocityAtPoint(_pt));
+  else _vel.crossVectors(_angvel,_arm.subVectors(_pt,_com)).add(_linvel);
+  _force.set(0,0,0);
   if(wet){
    wetVolume+=wet*sample.volume;
-   const mass=sample.volume*(pool?.density??waterDensity)*wet;
-   if(flow)dir.copy(flow);else dir.set(0,0,0);dir.sub(velocity);
-   force.copy(dir).multiplyScalar(Math.min(mass*(2+.45*dir.length()),limit));force.y+=mass*gravity;
+   const wMass=sample.volume*(pool?.density??waterDensity)*wet;
+   if(flow)_dir.copy(flow);else _dir.set(0,0,0);_dir.sub(_vel);
+   _force.copy(_dir).multiplyScalar(Math.min(wMass*(2+.45*_dir.length()),limit));_force.y+=wMass*gravity;
   }
   if(wind.speed>0&&wet<1){
    // Integrate air pressure over exposed faces. Off-centre pressure loads the joint.
-   const speed=wind.speed*(.72+.28*Math.min(1,Math.max(0,pt.y)/2));
-   dir.set(speed*wx,0,speed*wz).sub(velocity);const relative=dir.length();
+   const speed=wind.speed*(.72+.28*Math.min(1,Math.max(0,_pt.y)/2));
+   _dir.set(speed*wx,0,speed*wz).sub(_vel);const relative=_dir.length();
    if(relative>1e-5){
-    dir.divideScalar(relative).applyQuaternion(inverse);
-    const area=4*(Math.abs(dir.x)*e.y*e.z+Math.abs(dir.y)*e.x*e.z+Math.abs(dir.z)*e.x*e.y)*portion/(.55*.55);
+    _dir.divideScalar(relative).applyQuaternion(_inv);
+    const area=4*(Math.abs(_dir.x)*e.y*e.z+Math.abs(_dir.y)*e.x*e.z+Math.abs(_dir.z)*e.x*e.y)*portion/(.55*.55);
     const magnitude=relative*Math.min(limit,.61*area*relative*(1-wet));
-    force.addScaledVector(dir.applyQuaternion(rotation),magnitude);
+    _force.addScaledVector(_dir.applyQuaternion(_rot),magnitude);
    }
   }
-  if(force.lengthSq()){recordLoad(record,force,pt,null,sample.region);if(b.isDynamic())b.addForceAtPoint(force,pt,true);}
+  if(_force.lengthSq()){
+   if(needsSamples){recordLoad(record,_force,_pt,null,sample.region);if(dynamic)b.addForceAtPoint(_force,_pt,true);}
+   else{_netForce.add(_force);_cross.crossVectors(_arm,_force);_netTorque.add(_cross);}
+  }
+ }
+ if(!needsSamples&&dynamic&&(_netForce.lengthSq()||_netTorque.lengthSq())){
+  b.addForce(_netForce,true);
+  b.addTorque(_netTorque,true);
  }
  const wet=wetVolume/record.fluidVolume;
  if(sea&&record.wetFraction!==undefined&&record.wetFraction<.1&&wet>=.1&&b.linvel().y<-.9){

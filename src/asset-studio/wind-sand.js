@@ -1,3 +1,5 @@
+import {isDrySandAt, waterSurfaceHeight} from './wetland.js';
+
 // Bed stores metres of loose material above the reference substrate. Airborne
 // load uses the same units per cell, so transfers conserve volume exactly.
 export const SAND_SIDE=32,SAND_METRES=12,SAND_CAP=320;
@@ -26,7 +28,7 @@ export class WindSand{
    this.substrate[index(x,z)]=rough;
    this.bed[index(x,z)]=BASE+.011*rough;
   }
-  this.grains=[];this.credit=0;this.seed=1733;this.version=0;this.clock=0;
+  this.grains=[];this.credit=0;this.seed=1733;this.version=0;this.clock=0;this.lastWindSpeed=0;
  }
  random(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296;}
  height(x,z){return this.driftHeight(x,z)+(this.landscape?.height(x,z)??0);}
@@ -57,6 +59,7 @@ export class WindSand{
  }
  advance(dt,wind,material){
   if(dt<=0)return;
+  this.lastWindSpeed=wind?.speed||0;
   const angle=wind.heading*Math.PI/180,wx=Math.cos(angle),wz=Math.sin(angle);
   const excess=Math.min(70,Math.max(0,wind.speed-entrainment(material)));
   this.clock+=dt;
@@ -64,10 +67,25 @@ export class WindSand{
   this.credit=excess?Math.min(24,this.credit+dt*excess*11):0;
   for(let i=this.grains.length-1;i>=0;i--){
    const g=this.grains[i];driftGrain(g,dt,wind,wx,wz);g.x=wrap(g.x);g.z=wrap(g.z);
-   if(g.y<=this.driftHeight(g.x,g.z)){this.bed[index(Math.round(g.x/CELL),Math.round(g.z/CELL))]+=g.load;this.grains.splice(i,1);this.version++;}
+   let hitWater=false;
+   if(this.landscape){
+    const bed=this.landscape.height(g.x,g.z);
+    const wSurf=waterSurfaceHeight(this.landscape,g.x,g.z,this.lastWindSpeed);
+    if(bed<wSurf+0.04||bed+g.y<=wSurf)hitWater=true;
+   }
+   if(hitWater||g.y<=this.driftHeight(g.x,g.z)){this.bed[index(Math.round(g.x/CELL),Math.round(g.z/CELL))]+=g.load;this.grains.splice(i,1);this.version++;}
   }
   while(this.credit>=1&&this.grains.length<SAND_CAP){
-   this.credit--;const x=this.random()*SAND_METRES,z=this.random()*SAND_METRES,i=index(Math.round(x/CELL),Math.round(z/CELL));
+   this.credit--;
+   let x=this.random()*SAND_METRES,z=this.random()*SAND_METRES,dry=!this.landscape||isDrySandAt(this.landscape,x,z,this.lastWindSpeed,0.06);
+   if(!dry){
+    for(let tries=0;tries<7;tries++){
+     const cx=this.random()*SAND_METRES,cz=this.random()*SAND_METRES;
+     if(isDrySandAt(this.landscape,cx,cz,this.lastWindSpeed,0.06)){x=cx;z=cz;dry=true;break;}
+    }
+    if(!dry)continue;
+   }
+   const i=index(Math.round(x/CELL),Math.round(z/CELL));
    const noise=this.random(),load=Math.min(this.bed[i],.0008+.002*noise);if(load<=0)continue;
    this.bed[i]-=load;this.version++;
    this.grains.push(launchGrain(x,this.driftHeight(x,z),z,load,wind,wx,wz,excess,()=>this.random()));

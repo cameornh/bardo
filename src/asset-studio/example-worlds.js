@@ -1,5 +1,6 @@
 import {seedLibrary,transform} from './model.js';
 import {GARDEN_SEED,populateWindGarden} from './wind-garden.js';
+import {COASTAL_SPECIES} from './coastal-flora.js';
 import {installCatalog} from './example-catalog.js';
 
 const example=id=>'example-'+id;
@@ -46,9 +47,15 @@ export const exampleWorlds=[
    for(const [id,dose] of [['wax',316000],['ice',370000]])
     sim.materialWorld.heatVolumeOver(sim.get(id,'body'),id,dose,4);
   }},
- {id:'wetland',name:'Wind garden',seed:GARDEN_SEED,framing:{direction:[.68,.42,-1],groundMargin:2.8},tool:'nudge',
-  guide:'Pan to explore dune ridges and flooded hollows. Play to nudge stems on any bank. Use Ground impulse or Lift / drop in the ponds.',
-  create:(_ground,seed=GARDEN_SEED)=>world('sand',8,-25,(place,l)=>populateWindGarden(l,place,seed))},
+ {id:'wetland',name:'Shell Island Beach',seed:GARDEN_SEED,framing:{direction:[.42,.42,.80],groundMargin:3.2},tool:'nudge',
+  guide:'St. Andrews / Shell Island coastal transect. Use Transect view or orbit across Gulf surf, foredunes, swale ponds and scrub. Adjust Climate, Wind or Coastal field overlay; Play to nudge plants or disturb water.',
+  readout(sim){
+   const c=sim.sand?.landscape?.climate;
+   const h=sim.sand?.landscape?.hydrology;
+   if(!c||!h)return '';
+   return `Climate · ${c.airTemperature.toFixed(0)} °C · RH ${Math.round(c.relativeHumidity*100)}% · VPD ${h.vpdKpa.toFixed(2)} kPa · Water lens +${h.lensHeight.toFixed(2)} m · ${COASTAL_SPECIES.length} coastal species`;
+  },
+  create:(_ground,seed=GARDEN_SEED)=>world('sand',6.8,65,(place,l)=>populateWindGarden(l,place,seed))},
  {id:'tidepool',name:'Floats and breakers',tool:'splash',guide:'Play to release the floats onto the waves. Raise the wind for breaking crests, spray and organic foam. Use the ground tools to lift or throw water.',
   create:()=>world('water',13,32,(place,l)=>{
    l.materials.find(m=>m.id==='water').organicLoad=.67;

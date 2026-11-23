@@ -29,7 +29,7 @@ export class MaterialFieldView {
   const g=new THREE.InstancedBufferGeometry();
   g.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,1,-1,0,1,1,0,-1,1,0],3));g.setIndex([0,1,2,0,2,3]);
   for(const [name,size] of [['center',3],['sigma',3],['majorAxis',3],['tint',4]])g.setAttribute(name,new THREE.InstancedBufferAttribute(new Float32Array(capacity*size),size).setUsage(THREE.DynamicDrawUsage));
-  const mat=new THREE.ShaderMaterial({uniforms:{viewport:uniforms.viewport,environment:uniforms.environment,debug:{value:0}},vertexShader:vertex,
+  const mat=new THREE.ShaderMaterial({uniforms:{viewport:uniforms.viewport,environment:uniforms.environment,sunDirection:uniforms.sunDirection,sunColor:uniforms.sunColor,debug:{value:0}},vertexShader:vertex,
    fragmentShader:lighting+`
    varying vec4 color;varying vec2 offset;varying float glow;uniform float debug;
    void main(){float r=dot(offset,offset);if(r>6.7)discard;

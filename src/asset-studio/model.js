@@ -2,6 +2,7 @@ import {validateVariation} from './family.js';
 import {materialPresets} from './material-presets.js';
 import {validateMarks} from './gaussian-marks.js';
 import {validatePhysics} from './physics-data.js';
+import {validateClimate} from './coastal-climate.js';
 // Versioned authoring data. Derived Gaussian samples are disposable caches.
 export const MAX_WIND_SPEED=100;
 export const MAX_LIBRARY_BYTES=8*1024*1024;
@@ -97,6 +98,7 @@ export function validateLibrary(value){
  if(!value.world||!mids.has(value.world.groundMaterialId)||!Array.isArray(value.world.instances)||value.world.instances.length>LIMITS.instances)fail('world');
  const terrainSeed=value.world.wetlandSeed;
  if(terrainSeed!==undefined&&(!Number.isInteger(terrainSeed)||terrainSeed<0||terrainSeed>0xffffffff))fail('invalid garden seed');
+ validateClimate(value.world.climate);
  const wind=value.world.wind;if(wind&&(!finite(wind.speed,0,MAX_WIND_SPEED)||!finite(wind.heading,-180,180)||(wind.turbulence!==undefined&&!finite(wind.turbulence,0,1))))fail('invalid wind');
  const instanceIds=new Set();for(const i of value.world.instances){if(typeof i.id!=='string'||instanceIds.has(i.id)||!aids.has(i.assetId)||!checkTransform(i.transform))fail('instance');instanceIds.add(i.id);}
  if(worldPartCount(value)>LIMITS.previewParts)fail('world preview part budget (32); keep additional assets in the library');

@@ -70,10 +70,35 @@ function geometry(records,materials){
  return g;
 }
 
-export class PaintedView{
- constructor(uniforms,lighting){
-  this.scene=new T.Scene();this.batches=[];
-  this.material=new T.ShaderMaterial({uniforms,vertexShader:vertex,fragmentShader:lighting+reflectedSurfaceClip+`
+  export class PaintedView{
+   constructor(uniforms,lighting){
+    this.scene=new T.Scene();this.batches=[];
+    this.shadowMaterial=new T.ShaderMaterial({colorWrite:false,depthWrite:true,depthTest:true,side:T.DoubleSide,
+     vertexShader:`
+      attribute vec2 lobe,profile;attribute vec3 root,axis,markUp;attribute vec4 style;attribute float swing;
+      varying vec2 vG;
+      void main(){
+       float t=lobe.x, lane=lobe.y, len=style.x, kind=style.w;
+       vec3 side=normalize(cross(axis,markUp));
+       vec3 dir=axis*cos(swing)+markUp*sin(swing),up=normalize(cross(side,dir));
+       float form=mix(sin(3.14159*pow(t,profile.x)),1.-t,profile.y);
+       float width=len*style.y*(.07+.93*max(0.,form));
+       float rise=style.z*t*t*.48;
+       vec3 center=root+len*(dir*t+up*rise)+width*(lane*.49*side+abs(lane)*.055*up);
+       vec3 tangent=normalize(dir+up*(style.z*t*.96)),across=normalize(side+up*(lane*.11));
+       vec3 A=tangent*(len*.086),B=across*(width*.39);
+       if(step(.5,kind)>.5){
+        tangent=normalize(dir+up*(style.z*.48));
+        center=root+tangent*len*.5;
+        A=tangent*(len*.23);B=side*(len*style.y*.46);
+       }
+       vG=position.xy*1.4;
+       vec3 localP=center+A*vG.x+B*vG.y;
+       gl_Position=projectionMatrix*modelViewMatrix*vec4(localP,1.);
+      }`,
+     fragmentShader:'varying vec2 vG;void main(){if(dot(vG,vG)>1.5)discard;gl_FragColor=vec4(0.);}'
+    });
+    this.material=new T.ShaderMaterial({uniforms,vertexShader:vertex,fragmentShader:lighting+reflectedSurfaceClip+`
    varying vec2 uvG;varying vec3 world,norm,base;varying vec4 finish;varying float extent,softDab;
    uniform vec2 viewport;uniform mat4 projectionMatrix;
    void main(){float w=exp(-.5*dot(uvG,uvG));float aa=clamp(fwidth(w),.002,.022);
@@ -125,9 +150,18 @@ export class PaintedView{
    if(!mesh.visible)continue;
    if(!sim)owner.updateWorldMatrix(true,false);
    mesh.matrix.copy(sim?owner.matrix:owner.matrixWorld);mesh.matrixWorldNeedsUpdate=true;
-   if(sim){const attr=mesh.geometry.attributes.swing;let dirty=false;
-    for(let i=0;i<rows.length;i++){const v=Math.fround(rows[i].angle);if(attr.array[i]!==v){attr.array[i]=v;dirty=true;}}
-    if(dirty)attr.needsUpdate=true;
+   const attr=mesh.geometry.attributes.swing;let dirty=false;
+   for(let i=0;i<rows.length;i++){const v=Math.fround(rows[i].angle||0);if(attr.array[i]!==v){attr.array[i]=v;dirty=true;}}
+   if(dirty)attr.needsUpdate=true;
+  }
+ }
+ setMarkSwings(instanceId,swings){
+  if(!swings)return;
+  for(const b of this.batches){
+   if(b.id!==instanceId)continue;
+   for(let i=0;i<b.rows.length;i++){
+    const angle=swings[b.rows[i].mark.id];
+    if(angle!==undefined)b.rows[i].angle=angle;
    }
   }
  }
@@ -205,5 +239,12 @@ export class PaintedView{
   object.updateWorldMatrix(true,false);this.ghost.matrix.copy(object.matrixWorld);this.ghost.matrixWorldNeedsUpdate=true;
  }
  clearPreview(){if(this.ghost){this.ghost.removeFromParent();this.ghost.geometry.dispose();this.ghost=null;}}
- dispose(){this.clearPreview();this.clear();this.material.dispose();}
-}
+  drawShadows(renderer,shadowCamera){
+   if(!this.batches.length)return;
+   let any=false;
+   for(const b of this.batches)if(b.mesh.visible){b.mesh.material=this.shadowMaterial;any=true;}
+   if(any)renderer.render(this.scene,shadowCamera);
+   for(const b of this.batches)b.mesh.material=this.material;
+  }
+  dispose(){this.clearPreview();this.clear();this.material.dispose();this.shadowMaterial.dispose();}
+ }

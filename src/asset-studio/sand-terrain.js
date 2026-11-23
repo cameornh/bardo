@@ -21,7 +21,7 @@ export class SandTerrain{
   if(!delta)return;
   const x=Math.floor(i/N),z=Math.floor(j/N),key=bedKey(x,z);
   let tile=this.tiles.get(key);
-  if(!tile){tile={heights:new Float64Array(N*N),version:0};this.tiles.set(key,tile);}
+  if(!tile){tile={tx:x,tz:z,heights:new Float64Array(N*N),version:0};this.tiles.set(key,tile);}
   const h=tile.heights[(j-z*N)*N+i-x*N]+=delta;this.maxOffset=Math.max(this.maxOffset,Math.abs(h));tile.version=++this.version;
   const point=bedKey(i,j),coords=[i,j];
   this.active.set(point,coords);

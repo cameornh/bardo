@@ -16,12 +16,43 @@ const heightSum=bandGLSL((i,b)=>`
   h=textureLod(height${i},uv${i}(p),max(0.,log2(max(1.,spacing*${(N/b.metres).toFixed(8)}))));
   y+=mix(dot(h.rg,unpack16),dot(h.ba,unpack16),bandMix[${i}])*12.-6.;`);
 export const waveHeight=sampling+`
+ uniform float seaLevel;
+ uniform vec4 coastalWater;
  uniform vec3 bandMix;
  uniform vec4 rings[12];uniform float ringAttenuation[12];uniform int ringCount;
  const vec2 unpack16=vec2(65280.,255.)/65535.;
+ float cwHash(ivec2 p){
+  uint n=uint(p.x)*1597334677u ^ uint(p.y)*3812015801u;
+  n=(n^(n>>16u))*2246822519u;
+  return float((n^(n>>13u))>>8u)/16777216.;
+ }
+ float cwNoise(vec2 p){
+  ivec2 i=ivec2(floor(p));vec2 f=fract(p);f=f*f*(3.-2.*f);
+  return mix(mix(cwHash(i),cwHash(i+ivec2(1,0)),f.x),
+   mix(cwHash(i+ivec2(0,1)),cwHash(i+ivec2(1)),f.x),f.y);
+ }
+ float cwCoastCurve(float along){
+  return 13.5*(cwNoise(vec2(along/128.+3.1,7.7))-.5)
+   +5.2*(cwNoise(vec2(along/48.-1.7,19.3))-.5)
+   +1.6*(cwNoise(vec2(along/19.+5.4,2.3))-.5);
+ }
+ float cwShoreDist(vec2 pos,vec2 surv){
+  vec2 p=pos+surv;
+  float along=dot(p,vec2(.906308,-.422618));
+  float crossV=dot(p,vec2(.422618,.906308));
+  return crossV-cwCoastCurve(along);
+ }
  float surfaceHeight(vec2 p,float spacing){
   vec4 h;float y=0.;
   ${heightSum}
+  float baseLevel=seaLevel;
+  if(coastalWater.x>.5){
+   float d=cwShoreDist(p,coastalWater.zw);
+   float wf=max(.22,max(exp(-max(0.,d)/max(1.,coastalWater.y)),smoothstep(225.,265.,d)*.65));
+   float tf=max(.74+.26*exp(-max(0.,d)/24.),smoothstep(225.,270.,d));
+   baseLevel*=tf;y*=wf;
+  }
+  y+=baseLevel;
   for(int i=0;i<12;i++){if(i>=ringCount)break;vec4 r=rings[i];if(r.z<0.){vec2 d=p-r.xy;float h=max(0.,1.+dot(d,d)/r.z);y-=r.w*h*h;continue;}
    float d=length(p-r.xy),q=d-2.*r.z;
    y+=r.w*cos(6.*q)*exp(-3.*q*q-1.3*r.z-d*ringAttenuation[i])/(1.+spacing*spacing);
@@ -30,14 +61,21 @@ export const waveHeight=sampling+`
  float elevation(vec2 p){return surfaceHeight(p,0.);}
 `;
 export const wave=waveHeight+bandGLSL(i=>'uniform sampler2D slope'+i+';')+`
- vec2 waterSlope(vec2 p){
+ vec2 waterSlopeAtShore(vec2 p,float dShore){
   vec2 slope=vec2(0.);vec4 h;
   ${bandGLSL(i=>`h=texture2D(slope${i},uv${i}(p));slope+=transpose(rot${i})*((mix(h.xy,h.zw,bandMix[${i}])*255.-128.)/120.);`)}
+  if(coastalWater.x>.5){
+   float wf=max(.22,max(exp(-max(0.,dShore)/max(1.,coastalWater.y)),smoothstep(225.,265.,dShore)*.65));
+   slope*=wf;
+  }
   for(int i=0;i<12;i++){if(i>=ringCount)break;vec4 r=rings[i];vec2 dv=p-r.xy;
    if(r.z<0.){slope-=4.*r.w*dv*max(0.,1.+dot(dv,dv)/r.z)/r.z;continue;}
    float d=length(dv),q=d-2.*r.z;
    slope+=dv/max(.001,d)*r.w*exp(-3.*q*q-1.3*r.z-d*ringAttenuation[i])*(-6.*sin(6.*q)-(6.*q+ringAttenuation[i])*cos(6.*q));
   }return slope;
+ }
+ vec2 waterSlope(vec2 p){
+  return waterSlopeAtShore(p,coastalWater.x>.5?cwShoreDist(p,coastalWater.zw):0.);
  }
 `;
 export const reflectedSurfaceClip=waveHeight+`

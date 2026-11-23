@@ -30,21 +30,25 @@ export class GroundFinish{
  }
  dispose(){this.texture.dispose();}
 }
+// Only early-return on uniform finishProbes==0; per-fragment bounds returns
+// cause quad-divergence dot seams along finishBounds on Metal/ANGLE WebGL2,
+// while empty/out-of-bounds cells already miss on n=0 in the 512-slot table.
 export const groundFinishShader=`
  uniform sampler2D finishMap;uniform vec4 finishBounds;uniform int finishProbes;
  vec2 finishCell(ivec2 p){
   int slot=((p.x*73)^(p.y*151))&511;
+  vec2 res=vec2(0.);
   for(int n=0;n<finishProbes;n++){
    vec4 t=texelFetch(finishMap,ivec2(slot&31,slot>>5),0);
    if(t.z==0.)break;
-   if(all(equal(t.xy,vec2(p))))return vec2(t.z-1.,t.w);
+   if(all(equal(t.xy,vec2(p)))){res=vec2(t.z-1.,t.w);break;}
    slot=(slot+1)&511;
   }
-  return vec2(0.);
+  return res;
  }
  vec2 groundFinish(vec2 xz){
+  if(finishProbes==0)return vec2(0.);
   vec2 p=xz/${GROUND_FIELD_CELL}-.5;
-  if(finishProbes==0||any(lessThan(p,finishBounds.xy))||any(greaterThan(p,finishBounds.zw)))return vec2(0.);
   ivec2 i=ivec2(floor(p));vec2 f=smoothstep(vec2(0.),vec2(1.),fract(p));
   return mix(mix(finishCell(i),finishCell(i+ivec2(1,0)),f.x),
              mix(finishCell(i+ivec2(0,1)),finishCell(i+ivec2(1)),f.x),f.y);

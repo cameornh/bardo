@@ -9,7 +9,16 @@ function excavate(sim,point,depth,radius){
  if(!radius&&sim.groundMaterial.phase==='gas'){
   const n=sim.cuts.node(cut.top.x,cut.top.z);n.depth-=depth;n.elastic+=depth;
  }
- if(sim.sandTerrain)sim.dunes.next=0;else updateGroundContacts(sim);return cut;
+ if(sim.sandTerrain){
+  sim.dunes.next=0;sim.dunes.update(sim);
+  for(const r of sim.bodies.values()){
+   if(!r.body?.isDynamic?.())continue;
+   const bt=r.body.translation();
+   if(Math.hypot(bt.x-point.x,bt.z-point.z)<4.0)r.body.wakeUp();
+  }
+ }else updateGroundContacts(sim);
+ sim.onGroundDisturb?.({kind:'excavate',point:point.clone(),depth,force:0,reach:1.4});
+ return cut;
 }
 function updateGroundContacts(sim){
  if(sim.flatFloor){sim.world.removeCollider(sim.flatFloor,true);sim.flatFloor=null;}
@@ -165,7 +174,26 @@ export function strikeGround(sim,point,force,water=sim.sea,waterMaterial=null){
  if(looseKind(m)===1||m.phase==='gas'){
   if(force<=CELL*CELL*m.cohesion)return true;
   if(sim.matter.count+(sim.sandTerrain?8:18)*(sim.heldChunk?.loose?2:1)>768)return false;
-  const cut=excavate(sim,point,Math.min(.3,.15*Math.sqrt(force/5000)));if(!cut)return false;
+  const depth=Math.min(.3,.15*Math.sqrt(force/5000));
+  const cut=excavate(sim,point,depth);if(!cut)return false;
+  if(sim.sandTerrain){
+   const blastReach=Math.max(1.8,4.5*reach);
+   for(const r of [...sim.bodies.values(),...sim.chunks.values()]){
+    const b=r.body;if(!b||(!b.isDynamic()&&!r.structure))continue;
+    const origin=b.translation(),center=r.probeCenter?.clone().applyQuaternion(b.rotation()).add(origin)??origin;
+    const dx=center.x-point.x,dz=center.z-point.z,hd=Math.hypot(dx,dz);
+    if(hd>blastReach+(r.probeRadius||CELL))continue;
+    const bedY=sim.matter.groundHeight(sim,center.x,center.z);
+    if(center.y-(r.probeRadius||CELL)>bedY+0.45)continue;
+    b.wakeUp?.();
+    const falloff=Math.exp(-hd/Math.max(0.4,reach));
+    const nx=hd>1e-4?dx/hd:0,nz=hd>1e-4?dz/hd:0;
+    const scale=Math.min(8,b.mass()*0.45)*Math.sqrt(force/900)*falloff;
+    b.applyImpulse({x:nx*scale*0.75,y:Math.max(0.12,scale),z:nz*scale*0.75},true);
+   }
+   sim.stand?.impulse?.(point,force,blastReach,sim.sandTerrain);
+   sim.onGroundDisturb?.({kind:'impulse',point:point.clone(),force,reach:blastReach,depth});
+  }
   const packets=chunkPackets(cut,base,cut.top,sim.sandTerrain?8:18),speed=Math.min(6,force*.06/(cut.volume*m.density));
   const group=sim.matter.addPackets(sim,'strike-'+(++sim.chunkSerial),base,packets,true);
   if(tile){group.sourceTile=tile;sim.materialWorld.collectLoose(sim);}

@@ -5,17 +5,49 @@ import * as THREE from 'three';
 import {LIMITS} from './model.js';
 const finishColor=new THREE.Color();
 
-export function implicitStamp(part,materials){
- if(part.stamps.length!==1)return null;
- const s=part.stamps[0],m=materials.find(m=>m.id===s.materialId);
- return s.mode==='add'&&['sphere','box'].includes(s.shape)&&m?.opacity===1&&!solidOptics(m)&&
-   !m.fiberLength&&m.surfaceMode!=='gaussian'&&m.phase==='solid'&&m.liquidity<.999?s:null;
-}
+ export function implicitStamp(part,materials){
+  if(part.stamps.length!==1)return null;
+  const s=part.stamps[0],m=materials.find(m=>m.id===s.materialId);
+  return s.mode==='add'&&['sphere','box'].includes(s.shape)&&m?.opacity===1&&!solidOptics(m)&&
+    !m.fiberLength&&m.surfaceMode!=='gaussian'&&m.phase==='solid'&&m.liquidity<.999?s:null;
+ }
+ function makeImplicitShadowMat(sphere){
+  return new THREE.ShaderMaterial({
+   colorWrite:false,depthWrite:true,depthTest:true,
+   side:sphere?THREE.BackSide:THREE.FrontSide,
+   defines:sphere?{ELLIPSOID:1}:{},
+   vertexShader:`
+    #ifdef ELLIPSOID
+     varying vec3 vLocalPos;varying mat4 vTransform;
+    #endif
+    void main(){
+     mat4 transform = modelMatrix * instanceMatrix;
+     #ifdef ELLIPSOID
+      vLocalPos = position;
+      vTransform = transform;
+     #endif
+     gl_Position = projectionMatrix * viewMatrix * transform * vec4(position, 1.0);
+    }`,
+   fragmentShader:`
+    uniform mat4 viewMatrix;
+    #ifdef ELLIPSOID
+     varying vec3 vLocalPos;varying mat4 vTransform;
+    #endif
+    void main(){
+     #ifdef ELLIPSOID
+      vec3 dirV = normalize((inverse(viewMatrix * vTransform) * vec4(0.0, 0.0, -1.0, 0.0)).xyz);
+      vec3 perp = vLocalPos - dirV * dot(vLocalPos, dirV);
+      if(dot(perp, perp) > 1.0) discard;
+     #endif
+     gl_FragColor = vec4(0.0);
+    }`,
+  });
+ }
 
 // The unit sphere and box have closed-form zero-isosurface intersections.
 // The box hull bounds rasterization; the shader writes the exact surface depth.
 export class ImplicitSurfaces {
- constructor(scene,environment,lighting,grainMap,clipUniforms){this.grainMap=grainMap;this.clipUniforms=clipUniforms;
+ constructor(scene,environment,lighting,grainMap,clipUniforms,sunUniforms={}){this.grainMap=grainMap;this.clipUniforms=clipUniforms;this.sunUniforms=sunUniforms;
   this.scene=scene;this.geometry=new THREE.BoxGeometry(2,2,2);
   this.materials=new Map();this.batches=new Map();this.environment=environment;this.lighting=lighting;
  }
@@ -28,7 +60,7 @@ export class ImplicitSurfaces {
   let mat=this.materials.get(key);
   if(!mat){
    mat=new THREE.ShaderMaterial({side:sphere?THREE.BackSide:THREE.FrontSide,defines:sphere?{ELLIPSOID:1}:{},
-    uniforms:{grainMap:this.grainMap,grain:{value:new THREE.Vector3()},...this.clipUniforms,environment:this.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},
+    uniforms:{grainMap:this.grainMap,grain:{value:new THREE.Vector3()},...this.clipUniforms,...this.sunUniforms,environment:this.environment,color:{value:new THREE.Color()},properties:{value:new THREE.Vector4()}},
     vertexShader:`varying float finishTint;varying vec3 worldPoint,detailCoord,detailNormal;flat varying vec3 dimensions;
     #ifdef ELLIPSOID
      varying vec3 localPosition;varying vec3 eye;varying mat3 normalToWorld;
@@ -74,10 +106,21 @@ export class ImplicitSurfaces {
    const mesh=new THREE.InstancedMesh(this.geometry,mat,LIMITS.previewParts);mesh.frustumCulled=false;mesh.count=0;mesh.setColorAt(0,finishColor.setScalar(1));
    batch={mesh,parts:[]};this.batches.set(key,batch);this.scene.add(mesh);
   }
-  batch.parts.push(proxy);batch.mesh.count=batch.parts.length;
-  return proxy;
- }
- update(sim){
+   batch.parts.push(proxy);batch.mesh.count=batch.parts.length;
+   return proxy;
+  }
+  drawShadows(renderer,shadowCamera){
+   for(const [key,{mesh}] of this.batches){
+    if(!mesh.count)continue;
+    const sphere=key.endsWith('/sphere');
+    this.shadowMats??={sphere:makeImplicitShadowMat(true),box:makeImplicitShadowMat(false)};
+    const orig=mesh.material;
+    mesh.material=sphere?this.shadowMats.sphere:this.shadowMats.box;
+    renderer.render(mesh,shadowCamera);
+    mesh.material=orig;
+   }
+  }
+  update(sim){
   for(const {mesh,parts} of this.batches.values()){
    let count=0;for(const part of parts)if(part.parent.visible){
     const parent=part.parent,body=sim?.get(parent.parent.userData.instanceId,parent.userData.partId);
@@ -87,8 +130,8 @@ export class ImplicitSurfaces {
    mesh.instanceMatrix.needsUpdate=true;
   }
  }
- dispose(){this.clear();this.geometry.dispose();for(const mat of this.materials.values())mat.dispose();}
-}
+  dispose(){this.clear();this.geometry.dispose();for(const mat of this.materials.values())mat.dispose();if(this.shadowMats){this.shadowMats.sphere.dispose();this.shadowMats.box.dispose();}}
+ }
 export function intersectImplicit(ray,mesh){
  const local=ray.clone().applyMatrix4(mesh.matrixWorld.clone().invert()),point=new THREE.Vector3();
  const ball=mesh.userData.implicit==='sphere';

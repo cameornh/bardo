@@ -1,4 +1,5 @@
 import {reflectedSurfaceClip} from './wave-surface.js';
+import {waterSurfaceHeight} from './wetland.js';
 import * as THREE from 'three';
 import {MarchingCubes} from 'three/examples/jsm/objects/MarchingCubes.js';
 import {SandDriftView} from './sand-drift-view.js';
@@ -9,6 +10,83 @@ import {medium,interfaceOptics} from './water-optics.js';
 // Opaque fused materials keep their own surface shading. Transmissive melts
 // and authored liquids use the shared reflection, refraction and volume pass.
 export const usesLiquidOptics=(material,liquid)=>liquid&&!(material.fromSolid&&material.opacity===1);
+const SPRAY_CAP=4096;
+function mulberry32(seed){
+ let s=(seed>>>0)||1;
+ return()=>{s=(s+0x6D2B79F5)|0;let t=Math.imul(s^(s>>>15),1|s);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};
+}
+function gaussianRng(rng){
+ return Math.sqrt(-2*Math.log(Math.max(1e-6,rng())))*Math.cos(6.28318530718*rng());
+}
+export function createImpactSandSpray({origin={x:0,y:0,z:0},packets=[],baseSpeed=3.2,count=220,seed=1,mode='impulse'}={}){
+ const rng=mulberry32(seed),TAU=6.28318530718,out=[];
+ if(mode==='drop'){
+  const src=packets.length?packets:[{position:origin,velocity:{x:0,y:0,z:0},radius:0.08}];
+  const perPacket=Math.max(12,Math.round(count/src.length));
+  for(const p of src){
+   const lv=p.body?.linvel?.()||p.velocity||{x:0,y:0,z:0};
+   const pr=Math.max(0.035,p.radius||0.08);
+   const px=p.position?.x??origin.x,py=p.position?.y??origin.y,pz=p.position?.z??origin.z;
+   const vx0=lv.x??0,vy0=lv.y??0,vz0=lv.z??0;
+   for(let k=0;k<perPacket&&out.length<count;k++){
+    const cls=rng(),isDust=cls>=0.93,isCoarse=!isDust&&cls>=0.66;
+    const r=isDust?-(0.028+0.040*rng()):isCoarse?(0.0068+0.0052*(rng()**1.2)):(0.0028+0.0040*(rng()**1.3));
+    const grainSeed=rng();
+    const scalePos=isDust?pr*1.1:pr*0.75;
+    out.push({
+     x:px+gaussianRng(rng)*scalePos,
+     y:py+Math.abs(gaussianRng(rng))*pr*0.55-pr*0.2,
+     z:pz+gaussianRng(rng)*scalePos,
+     vx:vx0*(0.75+0.4*rng())+gaussianRng(rng)*0.42,
+     vy:vy0*(0.75+0.4*rng())+gaussianRng(rng)*0.30,
+     vz:vz0*(0.75+0.4*rng())+gaussianRng(rng)*0.42,
+     r,seed:grainSeed,alpha:1,
+     drag:isDust?(2.8+1.6*rng()):isCoarse?(0.25+0.30*rng()):(0.9+1.3*rng()),
+     age:0,maxAge:isDust?(0.65+0.55*rng()):(1.8+0.8*rng()),
+     settleFade:0.18,settledAge:-1,bounces:isCoarse?1:0,dust:isDust
+    });
+   }
+  }
+  return out;
+ }
+ const p1=rng()*TAU,p2=rng()*TAU,p3=rng()*TAU;
+ const jetCount=4+Math.floor(rng()*3);
+ const jets=Array.from({length:jetCount},()=>({ang:rng()*TAU,spread:0.14+0.22*rng(),boost:1.05+0.38*rng()}));
+ const spdScale=Math.max(1.8,baseSpeed);
+ for(let i=0;i<count;i++){
+  let th=rng()*TAU,jetBoost=1.0;
+  if(rng()<0.55){
+   const j=jets[Math.floor(rng()*jets.length)];
+   th=j.ang+gaussianRng(rng)*j.spread;
+   jetBoost=j.boost;
+  }
+  const uGauss=Math.sqrt(-2*Math.log(Math.max(1e-4,rng())))*0.145;
+  const harm=1+0.42*Math.sin(2*th+p1)+0.28*Math.cos(3*th+p2)+0.18*Math.sin(5*th+p3);
+  const radDist=Math.min(0.46,uGauss*Math.max(0.35,harm));
+  const fR=Math.min(1,radDist/0.36);
+  const cls=rng(),isDust=cls>=0.94,isCoarse=!isDust&&cls>=0.66;
+  const r=isDust?-(0.032+0.046*rng()):isCoarse?(0.0070+0.0055*(rng()**1.2)):(0.0028+0.0042*(rng()**1.3));
+  const grainSeed=rng();
+  const elevBase=(1.26-0.55*fR)+gaussianRng(rng)*0.16;
+  const elev=Math.max(0.38,Math.min(1.42,elevBase));
+  const speedMag=spdScale*(0.38+0.92*(rng()**0.85))*jetBoost*(isDust?0.35:isCoarse?0.78:1.08);
+  const hSpd=speedMag*Math.cos(elev),vSpd=speedMag*Math.sin(elev);
+  const az=th+gaussianRng(rng)*0.14;
+  out.push({
+   x:origin.x+Math.cos(th)*radDist,
+   y:origin.y+Math.max(-0.02,0.015+0.07*rng()*(1-fR)),
+   z:origin.z+Math.sin(th)*radDist,
+   vx:Math.cos(az)*hSpd,
+   vy:isDust?Math.max(0.45,vSpd*0.55):vSpd,
+   vz:Math.sin(az)*hSpd,
+   r,seed:grainSeed,alpha:1,
+   drag:isDust?(2.8+1.7*rng()):isCoarse?(0.25+0.30*rng()):(0.9+1.3*rng()),
+   age:0,maxAge:isDust?(0.65+0.60*rng()):(1.8+0.9*rng()),
+   settleFade:0.18,settledAge:-1,bounces:isCoarse?1:0,dust:isDust
+  });
+ }
+ return out;
+}
 export function liquidUniforms(shared,m){
  return {...shared,color:{value:new THREE.Color(m.color)},absorption:{value:m.absorption},scattering:{value:m.scattering},ior:{value:m.ior},opacity:{value:m.opacity},
   properties:{value:new THREE.Vector4(m.roughness,m.metallic,m.opacity,m.emission)}};
@@ -24,12 +102,12 @@ void main(){
  p=(modelMatrix*vec4(position,1.)).xyz;n=transpose(inverse(mat3(modelMatrix)))*normal;
  gl_Position=projectionMatrix*viewMatrix*vec4(p,1.);}`;
 export class MatterView{
- constructor(view,lighting){this.view=view;this.lighting=lighting;this.meshes=new Map();this.beds=new Map();this.saltation=new Map();this.puffs=new Map();this.last=-1;}
+ constructor(view,lighting){this.view=view;this.lighting=lighting;this.meshes=new Map();this.beds=new Map();this.saltation=new Map();this.puffs=new Map();this.sprayGrains=[];this.seenGroundGroups=new Set();this.lastSprayTime=null;this.spraySerial=0;this.last=-1;}
  reset(){
   for(const mesh of [...this.meshes.values(),...this.beds.values()]){mesh.removeFromParent();mesh.material.dispose();mesh.geometry.dispose();}
   for(const renderer of this.saltation.values())renderer.dispose();this.saltation.clear();
   for(const puff of this.puffs.values())puff.dispose();this.puffs.clear();
-  this.thrownSand?.dispose();this.thrownSand=null;this.meshes.clear();this.beds.clear();this.last=-1;this.state=null;
+  this.thrownSand?.dispose();this.thrownSand=null;this.sprayGrains=[];this.seenGroundGroups.clear();this.lastSprayTime=null;this.spraySerial=0;this.meshes.clear();this.beds.clear();this.last=-1;this.state=null;
  }
  material(m,water,radius,deposit=false){
   const uniforms=liquidUniforms(this.view.oceanView.uniforms,m);
@@ -68,9 +146,102 @@ export class MatterView{
   if(water)mesh.layers.set(1);
   this.view.scene.add(mesh);this.meshes.set(key,mesh);return mesh;
  }
+ stepSandSpray(sim){
+  if(!sim){return;}
+  if(this.lastSprayTime!==null&&sim.time<this.lastSprayTime-1e-4){
+   this.sprayGrains.length=0;this.seenGroundGroups.clear();this.last=-1;this.lastSprayTime=sim.time;
+  }
+  const dt=this.lastSprayTime===null?0:Math.min(0.05,Math.max(0,sim.time-this.lastSprayTime));
+  this.lastSprayTime=sim.time;
+  const land=this.view.garden?.land||sim.sand?.landscape||null;
+  const seaLevel=this.view.sea?.seaLevel??land?.climate?.seaLevelOffset??null;
+  const wSpd=sim.wind?.speed||0;
+  const waterYAt=(qx,qz)=>land?waterSurfaceHeight(land,qx,qz,wSpd):(seaLevel!==null?seaLevel+0.03:-1e6);
+  for(const k of this.seenGroundGroups)if(!sim.matter.parts.has(k))this.seenGroundGroups.delete(k);
+  for(const [key,g] of sim.matter.parts){
+   if(!g.groundTool||g.kind!==1||this.seenGroundGroups.has(key))continue;
+   this.seenGroundGroups.add(key);
+   const mode=key.startsWith('ground-')?'drop':'impulse';
+   const nP=g.packets.length||1;
+   let cx=0,cy=0,cz=0,spdSum=0;
+   for(const p of g.packets){
+    cx+=p.position.x;cy+=p.position.y;cz+=p.position.z;
+    const lv=p.body?.linvel?.();
+    if(lv)spdSum+=Math.hypot(lv.x,lv.y,lv.z);
+   }
+   cx/=nP;cy/=nP;cz/=nP;
+   const bedY=sim.sandTerrain?sim.sandTerrain.height(cx,cz):sim.matter.groundHeight(sim,cx,cz);
+   const wY=waterYAt(cx,cz);
+   if(bedY<=wY+0.02&&cy<=wY+0.04)continue;
+   const seed=((++this.spraySerial)*2654435761)^Math.imul(Math.round(cx*97+cz*193),1597334677)^Math.round((sim.time||0)*1000);
+   const burst=createImpactSandSpray({
+    origin:{x:cx,y:Math.max(bedY+0.025,cy),z:cz},
+    packets:g.packets,
+    baseSpeed:spdSum/nP||3.2,
+    count:mode==='drop'?Math.max(40,Math.min(180,nP*20)):220,
+    seed,
+    mode
+   });
+   if(this.sprayGrains.length+burst.length>SPRAY_CAP)this.sprayGrains.splice(0,this.sprayGrains.length+burst.length-SPRAY_CAP);
+   for(let i=0;i<burst.length;i++)this.sprayGrains.push(burst[i]);
+  }
+  if(dt>0&&this.sprayGrains.length){
+   const wRad=(sim.wind?.heading||0)*Math.PI/180;
+   const wx=wSpd*Math.cos(wRad),wz=wSpd*Math.sin(wRad);
+   let write=0;
+   for(let i=0;i<this.sprayGrains.length;i++){
+    const gr=this.sprayGrains[i];
+    gr.age+=dt;
+    if(gr.age>=gr.maxAge)continue;
+    if(gr.settledAge<0){
+     gr.vy-=(gr.dust?1.8:9.81)*dt;
+     const kDrag=Math.exp(-gr.drag*dt);
+     gr.vx=wx+(gr.vx-wx)*kDrag;
+     gr.vz=wz+(gr.vz-wz)*kDrag;
+     gr.vy*=gr.dust?kDrag:Math.exp(-gr.drag*0.25*dt);
+     gr.x+=gr.vx*dt;gr.y+=gr.vy*dt;gr.z+=gr.vz*dt;
+     const wY=waterYAt(gr.x,gr.z);
+     if(gr.y<=wY+0.01)continue;
+     const bedY=sim.sandTerrain?sim.sandTerrain.height(gr.x,gr.z):sim.matter.groundHeight(sim,gr.x,gr.z);
+     const surfY=bedY+Math.abs(gr.r)*0.45;
+     if(gr.vy<=0&&gr.y<=surfY){
+      if(gr.bounces>0&&gr.vy<-1.1){
+       gr.bounces--;gr.y=surfY;
+       const jh=((gr.seed*131+gr.age*17)%1)*6.283185;
+       const rest=0.22+(gr.seed%0.18);
+       gr.vy=-gr.vy*rest;
+       gr.vx=gr.vx*0.52+Math.cos(jh)*0.35;
+       gr.vz=gr.vz*0.52+Math.sin(jh)*0.35;
+      }else{
+       gr.y=surfY;gr.vx=gr.vy=gr.vz=0;gr.settledAge=0;
+      }
+     }
+    }else{
+     gr.settledAge+=dt;
+     if(gr.settledAge>=gr.settleFade)continue;
+    }
+    if(gr.dust){
+     gr.alpha=Math.min(1,gr.age/0.06)*(Math.max(0,1-gr.age/gr.maxAge)**1.6);
+    }else if(gr.settledAge>=0){
+     gr.alpha=Math.max(0,1-gr.settledAge/gr.settleFade);
+    }else{
+     gr.alpha=Math.min(1,gr.age/0.02+0.55)*(gr.age>gr.maxAge-0.25?(gr.maxAge-gr.age)/0.25:1);
+    }
+    this.sprayGrains[write++]=gr;
+   }
+   this.sprayGrains.length=write;
+  }
+  if(this.sprayGrains.length&&!this.thrownSand)this.thrownSand=new SandDriftView(this.view.grainScene,this.view.uniforms,this.lighting,true,null,SPRAY_CAP);
+  if(this.thrownSand){
+   if(this.thrownSand.landscape!==land)this.thrownSand.setLandscape(land);
+   this.thrownSand.update({grains:this.sprayGrains,lastWindSpeed:wSpd},sim.groundMaterial??{color:'#e8dec8'},this.view.camera?.position);
+  }
+ }
  update(sim){
   if(sim!==this.state){this.reset();this.state=sim;}
-  if(!sim||sim.time-this.last<1/30)return;this.last=sim.time;
+  if(!sim)return;
+  this.stepSandSpray(sim);
+  if(sim.time-this.last<1/30)return;this.last=sim.time;
   for(const [id,bed] of sim.matter.beds){
    let mesh=this.beds.get(id);
    if(!mesh){mesh=new DepositSurface(bed,this.material(bed.material,usesLiquidOptics(bed.material,bed.liquid),0,true));if(!usesLiquidOptics(bed.material,bed.liquid))mesh.layers.set(0);this.beds.set(id,mesh);this.view.scene.add(mesh);}
@@ -84,17 +255,8 @@ export class MatterView{
    mesh.removeFromParent();mesh.geometry.dispose();mesh.material.dispose();this.meshes.delete(key);
   }
   for(const [key,puff] of this.puffs)if(!sim.matter.parts.has(key)){puff.dispose();this.puffs.delete(key);}
-  const grains=[];
   for(const [key,g] of sim.matter.parts){
-   if(g.groundTool&&g.kind===1){
-    for(const p of g.packets){
-     // Four overlapping Gaussian grains per physical parcel, one draw across all strokes.
-     for(let k=0;k<4;k++){const r=p.radius*.48,sign=k&1?1:-1,side=k&2?1:-1;
-      grains.push({x:p.position.x+r*sign,y:p.position.y+r*side*.7,z:p.position.z+r*sign*side,
-       r,vx:0,vy:0,vz:0});}
-    }
-    continue;
-   }
+   if(g.groundTool&&g.kind===1)continue;
    if(g.material.phase==='gas'){
     let puff=this.puffs.get(key);if(!puff){puff=new SandDriftView(this.view.grainScene,this.view.uniforms,this.lighting,true);this.puffs.set(key,puff);}
     const grains=g.packets.map(p=>({...p.position,r:p.radius*(1+g.age),vx:0,vy:0,vz:0}));
@@ -129,7 +291,5 @@ export class MatterView{
    }
    mesh.update();
   }
-  if(grains.length&&!this.thrownSand)this.thrownSand=new SandDriftView(this.view.grainScene,this.view.uniforms,this.lighting,true,null,768*4);
-  this.thrownSand?.update({grains},sim.groundMaterial);
  }
 }

@@ -92,7 +92,7 @@ export function scoopProfile(r,time){
 export class WindSea {
  constructor(speed=0,heading=0,turbulence=0){
   this.bands=WAVE_BANDS.map(b=>new SpectralBand(b));
-  this.whitewater=new Whitewater();this.organicLoad=0;this.crests=[];this.ripples=[];this.drops=[];this.serial=0;this.breakTick=-1;this.time=0;this.setWind(speed,heading,turbulence);
+  this.seaLevel=0;this.coastal=null;this.whitewater=new Whitewater();this.organicLoad=0;this.crests=[];this.ripples=[];this.drops=[];this.serial=0;this.breakTick=-1;this.time=0;this.setWind(speed,heading,turbulence);
  }
  setWind(speed,heading,turbulence=0){
   const meanChanged=this.speed!==speed||this.heading!==heading;
@@ -109,13 +109,27 @@ export class WindSea {
   this.time=t;this.updateAir();for(const band of this.bands)band.sampleTime(t);
   for(const c of this.crests)c.frame=crestFrame(c,t-c.t);
  }
+ coastalAttenuation(x,z){
+  if(!this.coastal?.land)return {waveFactor:1,tideFactor:1};
+  const d=this.coastal.land.shoreDistance(x,z);
+  const tBay=Math.max(0,Math.min(1,(d-225)/45)),smoothBay=tBay*tBay*(3-2*tBay);
+  const tBayWave=Math.max(0,Math.min(1,(d-225)/40)),smoothBayWave=tBayWave*tBayWave*(3-2*tBayWave);
+  const decay=Math.max(1,this.coastal.waveDecayLen||10.5);
+  return {
+   waveFactor:Math.max(.22,Math.exp(-Math.max(0,d)/decay),smoothBayWave*.65),
+   tideFactor:Math.max(.74+.26*Math.exp(-Math.max(0,d)/24),smoothBay)
+  };
+ }
  bulk(x,z){
-  let h=0;for(const band of this.bands)h+=band.sample(x,z);return h;
+  let h=0;for(const band of this.bands)h+=band.sample(x,z);
+  const {waveFactor,tideFactor}=this.coastalAttenuation(x,z);
+  return this.seaLevel*tideFactor+h*waveFactor;
  }
  flow(x,z){
   const flow={x:0,y:0,z:0};let along=0;
   for(const band of this.bands)along+=band.sample(x,z,flow)*band.orbitalGain;
-  flow.x=this.wx*along;flow.z=this.wz*along;return flow;
+  const {waveFactor}=this.coastalAttenuation(x,z);
+  flow.x=this.wx*along*waveFactor;flow.z=this.wz*along*waveFactor;flow.y*=waveFactor;return flow;
  }
  height(x,z){let y=this.baseHeight(x,z);for(const c of this.crests)y+=crestLevel(c,x,z);return y;}
  baseHeight(x,z){

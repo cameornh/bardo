@@ -21,6 +21,8 @@ import {collisionProxy} from './collision.js';
 import {anchorRetention} from './attachment-material.js';
 import {sampleForces} from './physics-data.js';
 const v=x=>new THREE.Vector3(x.x,x.y,x.z),q=x=>new THREE.Quaternion(x.x,x.y,x.z,x.w),V=a=>new THREE.Vector3(...a),rad=Math.PI/180;
+const _v1=new THREE.Vector3(),_v2=new THREE.Vector3(),_v3=new THREE.Vector3(),_v4=new THREE.Vector3(),_v5=new THREE.Vector3();
+const _q1=new THREE.Quaternion(),_q2=new THREE.Quaternion(),_q3=new THREE.Quaternion(),_zero=new THREE.Vector3();
 const compose=t=>new THREE.Matrix4().compose(V(t.position),new THREE.Quaternion().setFromEuler(new THREE.Euler(...t.rotation.map(x=>x*rad))),V(t.scale));
 function partTransform(p){const m=compose({...p.transform,position:p.transform.position.map((x,k)=>x+p.pivot[k])});return m.multiply(new THREE.Matrix4().makeTranslation(...p.pivot.map(x=>-x)));}
 // An elastic flexure has three rotational modes. A slender member can bend
@@ -39,15 +41,21 @@ function flexureTorque(out, child, parent, response, matrix){
 let engine;
 export async function loadPhysics(){if(!engine)engine=import('@dimforge/rapier3d-compat').then(async m=>{const R=m.default;await R.init();return R;});return engine;}
 export class StudioPhysics {
- static async create(library,mode,assetId,gravity=9.81,sea=null,sand=null,reference=false){const R=await loadPhysics(),p=new StudioPhysics(R,gravity);p.wind=library.world.wind||{speed:0,heading:0};
- p.materialWorld=new MaterialWorld(library.materials);
+ static async create(library,mode,assetId,gravity=9.81,sea=null,sand=null,reference=false){const R=await loadPhysics(),p=new StudioPhysics(R,gravity);p.reference=reference;p.wind=library.world.wind||{speed:0,heading:0};
+ p.materialWorld=reference?null:new MaterialWorld(library.materials);
+ if(p.materialWorld&&library.world.climate){
+  p.materialWorld.air.temperature=273.15+library.world.climate.airTemperature;
+  p.materialWorld.air.humidity=library.world.climate.relativeHumidity;
+ }
  p.groundMaterial=library.materials.find(m=>m.id===library.world.groundMaterialId);
- const kind=mode==='world'?looseKind(p.groundMaterial):0,liquid=kind===2;p.sand=kind===1&&!reference?(sand??new WindSand(Number.isInteger(library.world.wetlandSeed)?new Wetland(library.world.wetlandSeed):null)):null;
+ const kind=mode==='world'?looseKind(p.groundMaterial):0,liquid=kind===2;p.sand=kind===1&&!reference?(sand??new WindSand(Number.isInteger(library.world.wetlandSeed)?new Wetland(library.world.wetlandSeed,library.world.climate,p.groundMaterial):null)):null;
  p.bearing=mode==='world'&&p.groundMaterial.phase==='solid'?new BearingLoad():null;
  p.sandTerrain=p.sand?new SandTerrain(p.sand,p.groundMaterial):null;
  p.pondDensity=p.sand?.landscape?library.materials.find(m=>m.id==='water')?.density:undefined;
  if(p.pondDensity){
   p.pondSea=sea??new WindSea(p.wind.speed,p.wind.heading,p.wind.turbulence);
+  p.pondSea.seaLevel=library.world.climate?.seaLevelOffset??0;
+  p.pondSea.coastal=p.sand?.landscape?{land:p.sand.landscape,waveDecayLen:p.sand.landscape.hydrology.waveDecayLen}:null;
   p.pondSea.organicLoad=library.materials.find(m=>m.id==='water').organicLoad||0;
   if(!sea)p.pondSea.bedHeight=(x,z)=>p.sandTerrain.height(x,z);
  }
@@ -84,7 +92,7 @@ export class StudioPhysics {
     const key=asset.id+':'+p.id;
     if(!cache.has(key))cache.set(key,p.stamps.length===1?collisionProxy(p):await this.proxy(p));
     const original=cache.get(key);if(!original.shapes.length)continue;
-    if(++total>32)throw Error('Physics preview is limited to 32 parts');
+    if(++total>(this.reference?128:32))throw Error('Physics preview is limited to 32 parts');
     this.instantiatePart(library,materials,i,asset,p,im,original,partCount);
     await new Promise(resolve=>setTimeout(resolve,0));
    }
@@ -110,8 +118,9 @@ export class StudioPhysics {
     const anchor=(p.joint?V(p.joint.anchor).applyMatrix4(im).applyMatrix4(m.clone().invert()):V(p.pivot)).multiply(scale);
     const section=beamSection(p,proxy.shapes,scale,rotation,anchor,mat);
     const makeBody=(shapes,recordKey,fixed,stamps,densityScale=1,origin=position,orientation=rotation)=>{
-     const desc=(fixed?R.RigidBodyDesc.fixed():R.RigidBodyDesc.dynamic()).setTranslation(origin.x,origin.y,origin.z).setRotation(orientation).setCcdEnabled(true).setCanSleep(this.world.gravity.y!==0).setLinearDamping(.025).setAngularDamping(.04);
+     const desc=(fixed?R.RigidBodyDesc.fixed():R.RigidBodyDesc.dynamic()).setTranslation(origin.x,origin.y,origin.z).setRotation(orientation).setCcdEnabled(!this.reference).setCanSleep(this.world.gravity.y!==0).setLinearDamping(.025).setAngularDamping(.04);
      const body=this.world.createRigidBody(desc);
+     const colliders=[];
      for(const s of shapes){const mat=library.materials.find(x=>x.id===s.materialId),center=V(s.center).multiply(scale);let shape;
       if(s.type==='box')shape=R.ColliderDesc.cuboid(...V(s.half).multiply(scale).toArray());
       else if(s.type==='hull')shape=R.ColliderDesc.convexHull(Float32Array.from(s.vertices,(v,k)=>v*scale.getComponent(k%3)));
@@ -120,9 +129,9 @@ export class StudioPhysics {
       else {const points=[];for(let y=0;y<=12;y++)for(let x=0;x<24;x++){const a=Math.PI*y/12,b=2*Math.PI*x/24;points.push(s.radius*Math.sin(a)*Math.cos(b)*scale.x,(s.radius*Math.cos(a)+(s.type==='capsule'?(Math.cos(a)>=0?1:-1)*s.halfHeight:0))*scale.y,s.radius*Math.sin(a)*Math.sin(b)*scale.z);}shape=R.ColliderDesc.convexHull(new Float32Array(points));}
       if(!shape)throw Error('Cannot build collision shape for '+p.name);
       if(reed)shape.setCollisionGroups(stemGroups(p)).setActiveHooks(R.ActiveHooks.FILTER_CONTACT_PAIRS);
-      this.world.createCollider(shape.setTranslation(...center.toArray()).setDensity(mat.density*densityScale).setFriction(mat.friction).setRestitution(mat.restitution),body);this.colliderCount++;
+      colliders.push(this.world.createCollider(shape.setTranslation(...center.toArray()).setDensity(mat.density*densityScale).setFriction(mat.friction).setRestitution(mat.restitution),body));this.colliderCount++;
      }
-     const record={body,part:p,asset,instance:i,scale,initialRotation:rotation.clone(),matrix:m.clone(),key:recordKey};if(this.sea||this.pondSea){
+     const record={body,colliders,mass:body.mass(),part:p,asset,instance:i,scale,initialRotation:rotation.clone(),matrix:m.clone(),key:recordKey};if(this.sea||this.pondSea){
       const obstacle=parcelObstacle(stamps,()=>record.matrix,library.materials,true);
       if(obstacle){record.obstacle=obstacle;this.parcelObstacles.push(obstacle);}
      }
@@ -130,12 +139,14 @@ export class StudioPhysics {
      for(const s of record.floats){const reach=s.extent.clone().multiplyScalar(2);bounds.expandByPoint(s.p.clone().sub(reach));bounds.expandByPoint(s.p.clone().add(reach));}
      record.probeCenter=bounds.getCenter(new THREE.Vector3());record.probeRadius=bounds.getSize(new THREE.Vector3()).length()*.5;
      if(reed)this.reedContacts.owners.set(body.handle,i.id);
-     this.materialWorld.bind(record,shapes);record.nextProbe=(this.bodies.size%7)*.024;this.bodies.set(recordKey,record);return record;
+     if(this.materialWorld)this.materialWorld.bind(record,shapes);
+     else record.field={scale:1};
+     record.nextProbe=(this.bodies.size%7)*.024;this.bodies.set(recordKey,record);return record;
     };
     const record=makeBody(proxy.shapes,recordKey,p.physics?.fixed,p.stamps);
     if(!reed)attachStructure(this,record,proxy.shapes,materials,anchor,section,makeBody);
     this.paintedHinges.attach(record,materials);
-    this.materialWorld.attachMarks(record,this.paintedHinges.parts.get(record.key));
+    this.materialWorld?.attachMarks(record,this.paintedHinges.parts.get(record.key));
     this.maxProxySpacing=Math.max(this.maxProxySpacing,proxy.spacing*Math.max(...scale.toArray()));
     return record;
  }
@@ -159,7 +170,8 @@ export class StudioPhysics {
     const axis=V(j.axis).normalize().transformDirection(im),axisParent=axis.clone().applyQuaternion(q(pa.rotation()).invert());data=R.JointData.revolute(a,b,axisParent);
     data.axis=axisParent;
    }else data=R.JointData.spherical(a,b);
-   const link={child,parent,j,data,support,rest:q(pa.rotation()).invert().multiply(q(child.body.rotation())),anchorParent:a,anchorChild:b};
+   const rest=q(pa.rotation()).invert().multiply(q(child.body.rotation()));
+   const link={child,parent,j,data,support,rest,restInv:rest.clone().invert(),anchorParent:a,anchorChild:b};
    if(j.type==='hinge'){
     const axis=V(j.axis).normalize().transformDirection(im),frame=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1,0,0),axis);
     link.frames=[q(pa.rotation()).invert().multiply(frame),q(child.body.rotation()).invert().multiply(frame)];
@@ -186,31 +198,43 @@ export class StudioPhysics {
   if(dt<=0||dt>1/60)throw Error('Invalid physics timestep');const start=performance.now();this.world.timestep=dt;
   this.airflow=windAt(this.windSettings,this.time,0,0,this.gust??={});
   this.stand?.step(dt);
-  beforeFractureStep(this);
+  if(this.structures.length)beforeFractureStep(this);
   const pool=!this.sea&&(this.pondDensity||this.matter.beds.size)?(x,z)=>this.matter.liquidColumn(this,x,z):null;
   for(const r of this.bodies.values()){
    r.body.resetForces(false);r.body.resetTorques(false);
    if(!this.sea&&!this.wind.speed&&!pool)continue;
    let air=this.airflow;
-   if(this.windSettings.turbulence&&air.speed){
+   if((this.windSettings.turbulence||this.sand?.landscape)&&air.speed){
     const point=r.body.translation();
-    air=windAt(this.windSettings,this.time,point.x,point.z,this.bodyGust??={});
+    air=this.windSettings.turbulence?windAt(this.windSettings,this.time,point.x,point.z,this.bodyGust??={}):{...this.airflow};
+    if(this.sand?.landscape?.windExposure&&!this.reference){
+     const topo=this.sand.landscape.windExposure(point.x,point.z);
+     air={speed:air.speed*topo,heading:air.heading};
+    }
    }
    applyEnvironment(r,this.sea??this.pondSea,this.waterDensity,air,-this.world.gravity.y,dt,pool);
   }
   const links=this.internalLinks.length?this.joints.concat(this.internalLinks):this.joints;
-  for(const link of links){const {child,parent,j,support,rest}=link,b=child.body,a=parent?.body||this.ground;
+  for(const link of links){const {child,parent,j,support}=link,b=child.body,a=parent?.body||this.ground;
    if(j.type!=='fixed'){
-    const qa=q(a.rotation()),relative=qa.clone().invert().multiply(q(b.rotation())),err=relative.multiply(rest.clone().invert());if(err.w<0)err.set(-err.x,-err.y,-err.z,-err.w);
-    const angle=2*Math.acos(Math.min(1,Math.max(-1,err.w))),axis=new THREE.Vector3(err.x,err.y,err.z).normalize().applyQuaternion(qa),velocity=v(b.angvel()).sub(v(a.angvel()));
+    const restInv=link.restInv??=link.rest.clone().invert();
+    _q1.copy(a.rotation());_q2.copy(b.rotation());
+    _q3.copy(_q1).invert().multiply(_q2).multiply(restInv);
+    if(_q3.w<0)_q3.set(-_q3.x,-_q3.y,-_q3.z,-_q3.w);
+    const angle=2*Math.acos(Math.min(1,Math.max(-1,_q3.w)));
+    _v1.set(_q3.x,_q3.y,_q3.z).normalize().applyQuaternion(_q1);
+    const vb=b.angvel(),va=a.angvel();
+    _v2.set(vb.x-va.x,vb.y-va.y,vb.z-va.z);
     // Passive elastic rest is distinct from the open-loop animation. No pose motor is used.
     const k=j.stiffness*support,d=j.damping*support;
-    const torque=axis.multiplyScalar(-Math.max(0,angle-j.looseness*rad)*k).addScaledVector(velocity,-d);
+    _v3.copy(_v1).multiplyScalar(-Math.max(0,angle-j.looseness*rad)*k).addScaledVector(_v2,-d);
     const response=dt*(d+dt*k);
-    if(j.type==='flexure')flexureTorque(torque,b,a,response,this.springMatrix??=new THREE.Matrix3());
-    else torque.multiplyScalar(1/(1+response/Math.max(.00001,Math.min(...Object.values(b.principalInertia())))));
-    torque.clampLength(0,100000);
-    recordLoad(child,new THREE.Vector3(),this.worldPoint(child,link.anchorChild),torque);b.addTorque(torque,true);if(parent){const opposite=torque.clone().negate();recordLoad(parent,new THREE.Vector3(),this.worldPoint(parent,link.anchorParent),opposite);a.addTorque(opposite,true);}
+    if(j.type==='flexure')flexureTorque(_v3,b,a,response,this.springMatrix??=new THREE.Matrix3());
+    else _v3.multiplyScalar(1/(1+response/Math.max(.00001,Math.min(...Object.values(b.principalInertia())))));
+    _v3.clampLength(0,100000);
+    if(child.forceSamples)recordLoad(child,_zero,this.worldPoint(child,link.anchorChild),_v3);
+    b.addTorque(_v3,true);
+    if(parent){_v3.negate();if(parent.forceSamples)recordLoad(parent,_zero,this.worldPoint(parent,link.anchorParent),_v3);a.addTorque(_v3,true);}
    }
    if(this.motorEnabled&&!link.section&&child.part.forceKeys?.length){const f=sampleForces(child.part.forceKeys,this.time,child.asset.duration),orientation=q(a.rotation());
     const force=V(f.force).applyQuaternion(orientation),torque=V(f.torque).applyQuaternion(orientation),anchor=this.worldPoint(child,link.anchorChild);
@@ -218,14 +242,14 @@ export class StudioPhysics {
    }
   }
   if(this.sphereGrip)advanceGrip(this,dt);
-  stepChunks(this,dt);
-  this.pulses=this.pulses.filter(f=>f.until>this.time);for(const pulse of this.pulses){const fraction=Math.min(1,(pulse.until-this.time)/dt);this.applyForce({...pulse,force:pulse.force.clone().multiplyScalar(fraction)});}if(this.drag)this.applyForce(this.drag);
+  if(this.chunks.size)stepChunks(this,dt);
+  if(this.pulses.length){this.pulses=this.pulses.filter(f=>f.until>this.time);for(const pulse of this.pulses){const fraction=Math.min(1,(pulse.until-this.time)/dt);this.applyForce({...pulse,force:pulse.force.clone().multiplyScalar(fraction)});}}if(this.drag)this.applyForce(this.drag);
   const loads=prepareLoads(links,this.world.gravity);
   if(this.sand)this.sand.advance(dt,this.wind,this.groundMaterial);
-  this.sandTerrain?.advance(dt,this.wind);this.cuts.relax(dt);
-  if(!this.flatFloor&&!this.sea||[...this.matter.beds.values()].some(b=>!b.liquid))this.dunes.update(this);
-  this.matter.update(this,dt);this.world.step(this.reedContacts?.events,this.reedContacts?.hooks);this.bearing?.advance(this,dt);if(this.sea||this.pondSea)for(const record of this.bodies.values())waveImpact(this,record);releaseOverloaded(this,loads,dt,links);advanceFractures(this,dt);this.time+=dt;this.steps++;
-  for(const r of this.bodies.values()){const p=r.body.translation(),rot=r.body.rotation();if(![p.x,p.y,p.z,rot.x,rot.y,rot.z,rot.w].every(Number.isFinite))throw Error('Physics stopped: non-finite body state');r.matrix.compose(v(p),q(rot),r.field.scale===1?r.scale:r.scale.clone().multiplyScalar(r.field.scale));}
+  this.sandTerrain?.advance(dt,this.wind);if(this.cuts.nodes.size)this.cuts.relax(dt);
+  if(!this.flatFloor&&!this.sea||this.matter.beds.size&&[...this.matter.beds.values()].some(b=>!b.liquid))this.dunes.update(this);
+  if(this.matter.parts.size||this.matter.beds.size)this.matter.update(this,dt);this.world.step(this.reedContacts?.events,this.reedContacts?.hooks);this.bearing?.advance(this,dt);if(this.sea||this.pondSea)for(const record of this.bodies.values())waveImpact(this,record);releaseOverloaded(this,loads,dt,links);if(this.structures.length)advanceFractures(this,dt);this.time+=dt;this.steps++;
+  for(const r of this.bodies.values()){const p=r.body.translation(),rot=r.body.rotation();if(!Number.isFinite(p.x)||!Number.isFinite(p.y)||!Number.isFinite(p.z)||!Number.isFinite(rot.x)||!Number.isFinite(rot.y)||!Number.isFinite(rot.z)||!Number.isFinite(rot.w))throw Error('Physics stopped: non-finite body state');_v1.set(p.x,p.y,p.z);_q1.set(rot.x,rot.y,rot.z,rot.w);if(r.field.scale===1)r.matrix.compose(_v1,_q1,r.scale);else r.matrix.compose(_v1,_q1,_v2.copy(r.scale).multiplyScalar(r.field.scale));}
   if(this.paintedHinges.parts.size)this.paintedHinges.step(dt,this.wind,this.world.gravity.y,this.time);
   this.materialWorld?.step(this,dt);
   (this.sea??this.pondSea)?.advance(dt,this.collideDrop);this.lastStepMs=performance.now()-start;
