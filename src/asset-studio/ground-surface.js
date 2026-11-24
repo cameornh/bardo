@@ -76,7 +76,7 @@ export function groundSurface(view,lighting){
     editSlope=local.yz*fade;
    }
    gl_Position=projectionMatrix*viewMatrix*vec4(worldPosition,1.);}`;
- view.groundMaterial.fragmentShader=lighting.replace('n=faceforward(n,-v,n);','')+surfaceRelief+groundFinishShader+causticShader+bed+`
+ view.groundMaterial.fragmentShader=lighting.replace('n=faceforward(n,-v,n);','')+surfaceRelief+groundFinishShader+'\n#ifndef COASTAL_GROUND\n'+causticShader+'\n#endif\n'+bed+`
  #ifndef GROUND_PATCH
  ${cutMask}
  #endif
@@ -102,7 +102,9 @@ export function groundSurface(view,lighting){
   base*=1.-min(.93,.88*finish.y+wet*(1.-properties.y)*.28);
   props.x=mix(props.x,min(props.x,.13),wet*.84);
   vec3 lit=shade(base,n,p,props);
+  #ifndef COASTAL_GROUND
   lit+=base*(1.-.9*props.y)*focusedLight(p.xz);
+  #endif
   if(properties.y>.02){
    vec3 offset=(n-vec3(0,1,0))*min(.7,length(cameraPosition-p)*.11);
    vec4 clip=mirrorVP*vec4(p+offset,1.);vec2 uv=clip.xy/max(.001,clip.w)*.5+.5;

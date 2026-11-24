@@ -45,6 +45,12 @@ const LIGHTING=`
 uniform vec3 environment[9],sunDirection,sunColor;
 ${SHADOW_GLSL}
 vec3 env(vec3 n,float diffuse){float b[9];b[0]=.282094792;b[1]=-.488602512*n.y;b[2]=.488602512*n.z;b[3]=-.488602512*n.x;b[4]=1.092548431*n.x*n.y;b[5]=-1.092548431*n.y*n.z;b[6]=.315391565*(2.*n.z*n.z-n.x*n.x-n.y*n.y);b[7]=-1.092548431*n.x*n.z;b[8]=.546274215*(n.x*n.x-n.y*n.y);vec3 s=vec3(0);for(int i=0;i<9;i++){float factor=i==0?1.:(i<4?.6666667:.25);s+=environment[i]*b[i]*mix(1.,factor,diffuse);}return max(vec3(.03),s);}
+#ifdef STUDIO_DAYLIGHT_ONLY
+vec3 studioIrradiance(vec3 p,vec3 n,vec3 v,float rough,out vec3 highlight){
+ highlight=vec3(0.);
+ return vec3(0.);
+}
+#else
 ${lampShadowGLSL}
 uniform int studioLampCount;
 uniform vec4 studioLampAim[${MAX_LAMPS}];uniform vec4 studioLampPosition[${MAX_LAMPS}];uniform vec3 studioLampColor[${MAX_LAMPS}];
@@ -70,6 +76,7 @@ vec3 studioIrradiance(vec3 p,vec3 n,vec3 v,float rough,out vec3 highlight){
  }
  return sum;
 }
+#endif
 vec3 shadeLit(vec3 base,vec3 n,vec3 p,vec4 prop,float sunVis){vec3 v=normalize(cameraPosition-p),l=normalize(sunDirection);n=faceforward(n,-v,n);float rough=prop.x,metal=prop.y;vec3 highlight;vec3 diffuse=studioIrradiance(p,n,v,rough,highlight)+env(n,1.)+sunColor*max(0.,dot(n,l))*sunVis;vec3 r=reflect(-v,n);float f=pow(1.-max(0.,dot(n,v)),5.);vec3 f0=mix(vec3(.04),base,metal),fresnel=f0+(1.-f0)*f*(1.-rough*.85);float spec=pow(max(0.,dot(n,normalize(l+v))),mix(160.,3.,rough*rough))*sunVis;return base*diffuse*(1.-metal)+mix(env(r,0.),env(n,1.),rough)*fresnel*mix(.45,1.,metal)+(vec3(spec)+highlight)*mix(.7,.15,rough)*f0+base*prop.w;}
 // Chromatic emitters can exceed display white by several stops. Preserve
 // their material hue as highlights roll off, leaving neutral emitters alone.
@@ -172,7 +179,11 @@ export class StudioView{
  const sh=projectSH(n=>[.44+.24*n[1],.49+.26*n[1],.53+.3*n[1]]),environment=Array.from({length:9},(_,i)=>new THREE.Vector3(...sh.slice(i*3,i*3+3)));
  this.defaultEnvironment=environment.map(v=>v.clone());
  this.shadowUniforms=createDefaultShadowUniforms();
- Object.assign(this.shadowUniforms,{studioLampAtlas:{value:null},studioLampRange:{value:new Float32Array(MAX_LAMPS)},studioLampShadowOrigin:{value:Array.from({length:MAX_LAMPS},()=>new THREE.Vector3())},studioLampCount:{value:0},studioLampAim:{value:Array.from({length:MAX_LAMPS},()=>new THREE.Vector4(0,0,-1,-1))},studioLampPosition:{value:Array.from({length:MAX_LAMPS},()=>new THREE.Vector4())},studioLampColor:{value:Array.from({length:MAX_LAMPS},()=>new THREE.Color())}});
+ // A comparison sampler requires allocated depth storage even when no lights are active.
+ this.emptyLampShadow=new THREE.DepthTexture(1,1,THREE.UnsignedIntType);
+ this.emptyLampShadow.compareFunction=THREE.LessEqualCompare;
+ this.emptyLampShadow.needsUpdate=true;
+ Object.assign(this.shadowUniforms,{studioLampAtlas:{value:this.emptyLampShadow},studioLampRange:{value:new Float32Array(MAX_LAMPS)},studioLampShadowOrigin:{value:Array.from({length:MAX_LAMPS},()=>new THREE.Vector3())},studioLampCount:{value:0},studioLampAim:{value:Array.from({length:MAX_LAMPS},()=>new THREE.Vector4(0,0,-1,-1))},studioLampPosition:{value:Array.from({length:MAX_LAMPS},()=>new THREE.Vector4())},studioLampColor:{value:Array.from({length:MAX_LAMPS},()=>new THREE.Color())}});
  this.uniforms={environment:{value:environment},sunDirection:{value:new THREE.Vector3(-.6,1,.5).normalize()},sunColor:{value:new THREE.Color(1.1,1.02,.88)},hazeColor:{value:new THREE.Color(.38,.45,.48)},viewport:{value:new THREE.Vector2(1,1)},cameraWorld:{value:this.camera.matrixWorld},...this.shadowUniforms};
  this.material=new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:VERTEX,fragmentShader:FRAGMENT,transparent:true,forceSinglePass:liveStudio,depthWrite:false,side:THREE.DoubleSide});this.material.name='studio covariance Gaussian';this.depthMaterial=new THREE.ShaderMaterial({uniforms:this.uniforms,vertexShader:VERTEX,fragmentShader:DEPTH_FRAGMENT,colorWrite:false,depthWrite:true,side:THREE.DoubleSide});
  this.liveStudio=liveStudio;
@@ -492,11 +503,28 @@ export class StudioView{
   this.activeLamps.push(lamp);if(++lampCount===MAX_LAMPS)break;
  }
  lights.studioLampCount.value=lampCount;
+ // Keep the large coastal receiver shaders as small as the active scene allows.
+ // An authored lamp keeps its shader ready even when temporarily hidden.
+ const daylightOnly=Boolean(this.garden && !this.emitters?.length);
+ if(this.coastalDaylightOnly!==daylightOnly||this.lightingGarden!==this.garden){
+  const ocean=this.oceanView;
+  const receivers=[ocean.mesh.material,ocean.breakingGrid.mesh.material];
+  if(this.garden)receivers.push(this.garden.terrain,this.garden.sandPatchTerrain);
+  for(const material of receivers){
+   if(Boolean(material.defines.STUDIO_DAYLIGHT_ONLY)===daylightOnly)continue;
+   if(daylightOnly)material.defines.STUDIO_DAYLIGHT_ONLY=1;
+   else delete material.defines.STUDIO_DAYLIGHT_ONLY;
+   material.needsUpdate=true;
+  }
+  this.coastalDaylightOnly=daylightOnly;
+  this.lightingGarden=this.garden;
+ }
  for(const drift of this.matterView.saltation.values())drift.updateEye(this.camera.position);
  this.groundEdits.update(this.activePhysics);this.sandView.update(this.sand,this.groundSurface,this.camera.position);this.finishMap.update(this.sea&&!this.garden?null:this.activePhysics?.materialWorld,this.groundSurface);this.ground.geometry=this.garden?this.garden.geometry:this.sand?this.reliefFloor:this.flatFloor;this.groundMaterial.uniforms.granular.value=!!this.sand;
  this.ground.visible=!!this.garden||!this.sea;if(this.garden)this.garden.update(this,this.library.world.wind,this.activePhysics?.time??0);
  this.polished.updateVisibility(this.camera,this.renderer.domElement.height,this.opticalParts);
- this.caustics.update(this);
+ // Focused optical paths are confined to the studio floor. The coast keeps sun, lamp and water lighting.
+ if(!this.garden)this.caustics.update(this);
  this.paintView.update(this,this.activePhysics??null);
  this.uniforms.clipFloor.value=this.garden||this.sea||this.activePhysics?.sandTerrain?.version||this.activePhysics?.cuts?.nodes.size?-1e10:0;
  if(this.sea)this.oceanView.update(this.sea,this.camera,this.waterMaterial??this.groundSurface);else this.oceanView.show(false);
@@ -513,5 +541,5 @@ export class StudioView{
  if(this.eyeScene?.children.some(o=>o.visible)){this.renderer.autoClear=false;this.renderer.render(this.eyeScene,this.camera);}}
  drawObjects(camera){this.renderer.autoClear=true;this.renderer.render(this.scene,camera);this.renderer.autoClear=false;
  this.assetScene.overrideMaterial=this.depthMaterial;this.renderer.render(this.assetScene,camera);this.assetScene.overrideMaterial=null;this.renderer.render(this.assetScene,camera);if(this.paintView?.scene.children.length)this.renderer.render(this.paintView.scene,camera);if(this.grainScene?.children.some(o=>o.visible))this.renderer.render(this.grainScene,camera);}
- dispose(){this.caustics?.dispose();this.polished?.dispose();this.lampShadows?.dispose();this.shadows?.dispose();if(!this.shadows)this.shadowUniforms?.shadowMapNear?.value?.dispose?.();this.wetland?.dispose();this.fieldView?.dispose();this.paintView?.dispose();this.sectionView?.clear();this.groundEdits?.dispose();this.matterView?.reset();this.uniforms.grainMap?.value.dispose();for(const mat of this.liquidMats?.values()||[])mat.dispose();this.sandView?.dispose();this.oceanView?.dispose();this.implicit?.dispose();this.forceLine.geometry.dispose();this.forceLine.material.dispose();this.resizeObserver.disconnect();this.controls.dispose();this.gizmo.dispose();for(const g of this.cache.values())g.dispose();this.material.dispose();this.depthMaterial.dispose();if(this.liveStudio){this.reliefFloor.dispose();this.flatFloor.dispose();this.finishMap.dispose();}else this.ground.geometry.dispose();this.groundMaterial.dispose();this.brush.geometry.dispose();this.brush.material.dispose();this.renderer.dispose();}
+ dispose(){this.emptyLampShadow.dispose();this.caustics?.dispose();this.polished?.dispose();this.lampShadows?.dispose();this.shadows?.dispose();if(!this.shadows)this.shadowUniforms?.shadowMapNear?.value?.dispose?.();this.wetland?.dispose();this.fieldView?.dispose();this.paintView?.dispose();this.sectionView?.clear();this.groundEdits?.dispose();this.matterView?.reset();this.uniforms.grainMap?.value.dispose();for(const mat of this.liquidMats?.values()||[])mat.dispose();this.sandView?.dispose();this.oceanView?.dispose();this.implicit?.dispose();this.forceLine.geometry.dispose();this.forceLine.material.dispose();this.resizeObserver.disconnect();this.controls.dispose();this.gizmo.dispose();for(const g of this.cache.values())g.dispose();this.material.dispose();this.depthMaterial.dispose();if(this.liveStudio){this.reliefFloor.dispose();this.flatFloor.dispose();this.finishMap.dispose();}else this.ground.geometry.dispose();this.groundMaterial.dispose();this.brush.geometry.dispose();this.brush.material.dispose();this.renderer.dispose();}
 }

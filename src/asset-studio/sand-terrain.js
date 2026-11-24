@@ -42,6 +42,7 @@ export class SandTerrain{
   }
  }
  offset(x,z){
+  if(!this.tiles.size)return 0;
   const u=x/CELL,v=z/CELL,i=Math.floor(u),j=Math.floor(v),a=u-i,b=v-j;
   return this.node(i+1,j)*Math.min(a,1-b)+this.node(i,j+1)*Math.min(b,1-a)
    +(a+b<=1?this.node(i,j)*(1-a-b):this.node(i+1,j+1)*(a+b-1));

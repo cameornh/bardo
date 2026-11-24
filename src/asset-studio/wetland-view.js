@@ -112,7 +112,7 @@ export const COASTAL_OVERLAY_MODES = {
 
 // Each axis is a nested world-space lattice. Adjacent strips share their
 // actual vertices, including at changes of spacing and across the origin.
-function groundGrid(){
+export function groundGrid(){
  const axis=[{offset:0,step:.375}];
  let offset=0;
  for(let level=0;level<10;level++){
@@ -142,6 +142,47 @@ const habitat=`
   if(t<.68)return mix(c1,c2,(t-.34)/.34);
   return mix(c2,c3,(t-.68)/.32);
  }`;
+
+// The sun and point lights see a small part of the camera-centred coastal grid.
+// Store its original triangles in concentric rings so a shadow camera can issue
+// one bounded draw. Heights, winding and the normal colour mesh are shared.
+export class CoastalShadowGrid {
+ constructor(grid,material){
+  const pos=grid.getAttribute('position'),step=grid.getAttribute('gridStep');
+  const side=Math.sqrt(pos.count),mid=(side-1)/2,indices=new grid.index.array.constructor(grid.index.count);
+  this.extents=[];
+  let next=0;
+  const quad=(x,z)=>{
+   const k=z*side+x;
+   indices[next++]=k;indices[next++]=k+side;indices[next++]=k+1;
+   indices[next++]=k+1;indices[next++]=k+side;indices[next++]=k+side+1;
+  };
+  for(let ring=1;ring<=mid;ring++){
+   const lo=mid-ring,hi=mid+ring;
+   for(let x=lo;x<hi;x++){quad(x,lo);quad(x,hi-1);}
+   for(let z=lo+1;z<hi-1;z++){quad(lo,z);quad(hi-1,z);}
+   // smoothstep(fract(x)) - fract(x) never exceeds 0.097 in magnitude.
+   this.extents.push(pos.getX(hi)-.125*step.getX(hi));
+  }
+  const g=new T.BufferGeometry();
+  g.setAttribute('position',pos);g.setAttribute('gridStep',step);
+  g.setIndex(new T.BufferAttribute(indices,1));
+  this.mesh=new T.Mesh(g,material);
+  this.mesh.frustumCulled=false;
+  this.corner=new T.Vector3();
+ }
+ fit(camera,eye){
+  let radius=0;
+  for(let z=-1;z<=1;z+=2)for(let y=-1;y<=1;y+=2)for(let x=-1;x<=1;x+=2){
+   const p=this.corner.set(x,y,z).unproject(camera);
+   radius=Math.max(radius,Math.abs(p.x-eye.x),Math.abs(p.z-eye.y));
+  }
+  let rings=1;
+  while(rings<this.extents.length && this.extents[rings-1]<=radius)rings++;
+  this.mesh.geometry.setDrawRange(0,24*rings*rings);
+ }
+ dispose(){this.mesh.geometry.dispose();}
+}
 
 const lattice=`attribute vec2 gridStep;
  uniform vec2 landEye;vec2 landPoint(){vec2 cell=landEye/gridStep;return (floor(cell)+smoothstep(vec2(0.),vec2(1.),fract(cell)))*gridStep+position.xz;}`;
@@ -176,7 +217,7 @@ export class WetlandView{
 
   const bed=view.groundMaterial;
   const sandGradD=(SAND_METRES/SAND_SIDE*0.5).toFixed(5);
-  const makeTerrainMaterial=(isPatch)=>new T.ShaderMaterial({uniforms:this.uniforms,
+  const makeTerrainMaterial=(isPatch)=>new T.ShaderMaterial({uniforms:this.uniforms,defines:{COASTAL_GROUND:1},
    ...(isPatch?{polygonOffset:true,polygonOffsetFactor:1.0,polygonOffsetUnits:1.0}:{}),
    vertexShader:(isPatch?'#define SAND_PATCH\n':'')+wetlandGLSL+coastalFieldsGLSL+habitat+(isPatch?'':lattice)+'uniform int coastalOverlay;uniform bool clipWaves;uniform vec2 clipHeights;varying vec2 duneSlope;\n'+bed.vertexShader
     .replace('worldPosition=(modelMatrix*vec4(position,1.)).xyz;',isPatch
@@ -374,6 +415,7 @@ export class WetlandView{
      }
      gl_FragColor=vec4(mix(lit,hazeColor,1.-exp(-length(cameraPosition-p)*.00028)),1.);`)});
   this.terrain=makeTerrainMaterial(false);
+  this.shadowGrid=view.shadows?new CoastalShadowGrid(this.geometry,view.shadows.terrainShadowMat):null;
   this.sandPatchTerrain=makeTerrainMaterial(true);
   this.sandPatch=new T.Mesh(new T.BufferGeometry(),this.sandPatchTerrain);
   this.sandPatch.frustumCulled=false;
@@ -493,6 +535,7 @@ export class WetlandView{
   this.sky.removeFromParent();
   this.sky.geometry.dispose();
   this.sky.material.dispose();
+  this.shadowGrid?.dispose();
   this.geometry.dispose();
   this.terrain.dispose();
   this.sandPatch.removeFromParent();

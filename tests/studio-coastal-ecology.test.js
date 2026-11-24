@@ -17,6 +17,7 @@ import {SandTerrain} from '../src/asset-studio/sand-terrain.js';
 import {CELL} from '../src/asset-studio/ground-tools.js';
 import {
  CoastalFaunaSim,
+ resolveEffectiveLand,
  FAUNA_SECTOR_M,
  FAUNA_SPECIES,
  MAX_FAUNA_ELLIPSOIDS,
@@ -1261,4 +1262,18 @@ test('Pillar 6: all 6 new small Shell Island species exhibit authentic ethology 
  const highSea = {seaLevel: land.height(peri.x, peri.z) + 0.08, height: () => land.height(peri.x, peri.z) + 0.08};
  sim.step(0.04, land, {speed: 2, x: -2, z: 0}, highSea, eco);
  assert.equal(peri.state, 'climbing-shelter', 'Marsh periwinkle climbs upslope ahead of rising tide');
+});
+
+test('wildlife samples an edited beach height exactly once across view and simulation', () => {
+ const land = {height: () => 4};
+ let calls = 0;
+ const physics = {sandTerrain: {offset: () => {calls++; return 1.25;}}};
+ const shown = resolveEffectiveLand(land, physics);
+ const simulated = resolveEffectiveLand(shown, physics);
+ assert.equal(simulated, shown);
+ assert.equal(simulated.height(3, 7), 5.25);
+ assert.equal(calls, 1);
+ const next = resolveEffectiveLand(shown, {sandTerrain: {offset: () => -2}});
+ assert.equal(next.height(3, 7), 2);
+ assert.equal(calls, 1);
 });

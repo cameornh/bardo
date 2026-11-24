@@ -33,7 +33,7 @@ export class LampShadows{
  }
  update(view,casters){
   const u=view.shadowUniforms,lamps=view.activeLamps,count=lamps.length;
-  if(!count){this.slots.length=0;return;}
+  if(!count){this.slots.length=0;u.studioLampAtlas.value=view.emptyLampShadow;return;}
   if(!this.atlas){
    this.atlas=new WebGLRenderTarget(SIZE*6,SIZE*MAX_LAMPS,{minFilter:NearestFilter,magFilter:NearestFilter});
    this.atlas.depthTexture=new DepthTexture(SIZE*6,SIZE*MAX_LAMPS,UnsignedIntType);
@@ -66,7 +66,7 @@ export class LampShadows{
   const i=chosen,lamp=lamps[i],p=u.studioLampPosition.value[i],cam=this.cam,renderer=view.renderer;
   const far=Math.max(12,Math.sqrt(p.w)*100),previous=renderer.getRenderTarget(),autoClear=renderer.autoClear;
   const visible=lamp.object.visible,priorEye=view.uniforms.cameraWorld.value;
-  u.studioLampAtlas.value=null; // Avoid reading an attached depth texture.
+  u.studioLampAtlas.value=view.emptyLampShadow; // Avoid reading an attached depth texture.
   cam.far=far;cam.updateProjectionMatrix();cam.position.set(p.x,p.y,p.z);
   // Each cube face fits within a cone through its four far corners.
   const aim=u.studioLampAim.value[i],faceLimit=Math.cos(Math.min(Math.PI,Math.acos(aim.w)+Math.acos(1/Math.sqrt(3))));

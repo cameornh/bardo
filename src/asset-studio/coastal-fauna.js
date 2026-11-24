@@ -10,14 +10,15 @@ export const ACTIVE_SECTOR_RADIUS = 2;
 export const MAX_FAUNA_ELLIPSOIDS = 16384;
 export const MAX_SOFT_FAUNA_ELLIPSOIDS = 2048;
 
-function resolveEffectiveLand(land, physics) {
+export function resolveEffectiveLand(land, physics) {
  const st = physics?.sandTerrain;
  if (!land || !st) return land;
- if (land._baseLandForSand === land && land._sandTerrainRef === st) return land;
- const proxy = Object.create(land);
- proxy._baseLandForSand = land;
+ if (land._sandTerrainRef === st) return land;
+ const base = land._baseLandForSand ?? land;
+ const proxy = Object.create(base);
+ proxy._baseLandForSand = base;
  proxy._sandTerrainRef = st;
- proxy.height = (x, z) => land.height(x, z) + st.offset(x, z);
+ proxy.height = (x, z) => base.height(x, z) + st.offset(x, z);
  return proxy;
 }
 
@@ -2307,6 +2308,18 @@ function uploadEllipsoidInstance(dstCenter, dstAxis, dstSide, dstTint, dstProps,
  dstMat[i4] = e.rough ?? 0.42; dstMat[i4 + 1] = e.metal ?? 0.0; dstMat[i4 + 2] = e.trans ?? 0.0; dstMat[i4 + 3] = e.bedClear ?? 0.05;
 }
 
+function updateFaunaInstances(mesh, count) {
+ mesh.visible = count > 0;
+ mesh.geometry.instanceCount = count;
+ if (!count) return;
+ for (const attribute of Object.values(mesh.geometry.attributes)) {
+  if (!attribute.isInstancedBufferAttribute) continue;
+  attribute.clearUpdateRanges();
+  attribute.addUpdateRange(0, count * attribute.itemSize);
+  attribute.needsUpdate = true;
+ }
+}
+
 export class CoastalFaunaView {
  constructor(view, lighting) {
   this.view = view;
@@ -2327,12 +2340,12 @@ export class CoastalFaunaView {
     props: new Float32Array(capacity * 4),
     mat: new Float32Array(capacity * 4),
    };
-   g.setAttribute('instCenter', new T.InstancedBufferAttribute(bufs.center, 3));
-   g.setAttribute('instAxis', new T.InstancedBufferAttribute(bufs.axis, 3));
-   g.setAttribute('instSide', new T.InstancedBufferAttribute(bufs.side, 3));
-   g.setAttribute('instTint', new T.InstancedBufferAttribute(bufs.tint, 3));
-   g.setAttribute('instProps', new T.InstancedBufferAttribute(bufs.props, 4));
-   g.setAttribute('instMat', new T.InstancedBufferAttribute(bufs.mat, 4));
+   g.setAttribute('instCenter', new T.InstancedBufferAttribute(bufs.center, 3).setUsage(T.DynamicDrawUsage));
+   g.setAttribute('instAxis', new T.InstancedBufferAttribute(bufs.axis, 3).setUsage(T.DynamicDrawUsage));
+   g.setAttribute('instSide', new T.InstancedBufferAttribute(bufs.side, 3).setUsage(T.DynamicDrawUsage));
+   g.setAttribute('instTint', new T.InstancedBufferAttribute(bufs.tint, 3).setUsage(T.DynamicDrawUsage));
+   g.setAttribute('instProps', new T.InstancedBufferAttribute(bufs.props, 4).setUsage(T.DynamicDrawUsage));
+   g.setAttribute('instMat', new T.InstancedBufferAttribute(bufs.mat, 4).setUsage(T.DynamicDrawUsage));
    g.instanceCount = 0;
    return {g, bufs};
   };
@@ -2670,29 +2683,8 @@ export class CoastalFaunaView {
    }
   }
 
-  const g = this.geometry;
-  g.instanceCount = oCount;
-  if (oCount > 0) {
-   g.attributes.instCenter.needsUpdate = true;
-   g.attributes.instAxis.needsUpdate = true;
-   g.attributes.instSide.needsUpdate = true;
-   g.attributes.instTint.needsUpdate = true;
-   g.attributes.instProps.needsUpdate = true;
-   g.attributes.instMat.needsUpdate = true;
-  }
-  this.mesh.visible = oCount > 0;
-
-  const sg = this.softGeometry;
-  sg.instanceCount = sCount;
-  if (sCount > 0) {
-   sg.attributes.instCenter.needsUpdate = true;
-   sg.attributes.instAxis.needsUpdate = true;
-   sg.attributes.instSide.needsUpdate = true;
-   sg.attributes.instTint.needsUpdate = true;
-   sg.attributes.instProps.needsUpdate = true;
-   sg.attributes.instMat.needsUpdate = true;
-  }
-  this.softMesh.visible = sCount > 0;
+  updateFaunaInstances(this.mesh, oCount);
+  updateFaunaInstances(this.softMesh, sCount);
  }
 
  drawShadows(renderer, shadowCamera) {

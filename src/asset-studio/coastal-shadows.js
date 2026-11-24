@@ -361,16 +361,9 @@ export class CoastalShadowSystem {
    if (gu.localBed) tu.localBed = gu.localBed;
    if (gu.localOrigin) tu.localOrigin = gu.localOrigin;
    if (gu.localExtent) tu.localExtent = gu.localExtent;
-   const origMat = view.ground.material;
-   const origVis = view.ground.visible;
-   const origCull = view.ground.frustumCulled;
-   view.ground.material = this.terrainShadowMat;
-   view.ground.visible = true;
-   view.ground.frustumCulled = false;
-   renderer.render(view.ground, shadowCamera);
-   view.ground.material = origMat;
-   view.ground.visible = origVis;
-   view.ground.frustumCulled = origCull;
+   const grid=view.garden.shadowGrid;
+   grid.fit(shadowCamera,gu.landEye.value);
+   renderer.render(grid.mesh,shadowCamera);
    if (view.garden.sandPatch?.visible) {
     const patch = view.garden.sandPatch;
     const origP = patch.material;
